@@ -1,27 +1,23 @@
-# Wikidata Integrator #
-[![Build Status](https://travis-ci.org/SuLab/WikidataIntegrator.svg?branch=main)](https://travis-ci.org/SuLab/WikidataIntegrator)
-[![Pyversions](https://img.shields.io/pypi/pyversions/wikidataintegrator.svg)](https://pypi.python.org/pypi/wikidataintegrator)
-[![PyPi](https://img.shields.io/pypi/v/wikidataintegrator.svg)](https://pypi.python.org/pypi/wikidataintegrator)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/SuLab/WikidataIntegrator/main)
-[<img src="https://img.shields.io/badge/slack-@genewiki/wdi_bot_dev-green.svg?logo=slack">](https://suwulab.slack.com/archives/C014ADW3SGZ)
-
-# Slack channel 
-We have a slack channel for Wikidata bot developers using the Wikidata Integrator. Send us a [request](mailto:andra@micel.io) to join this channel. 
+# Wikibase Integrator #
+[![Build Status](https://travis-ci.org/Mystou/WikibaseIntegrator.svg?branch=master)](https://travis-ci.org/Mystou/WikibaseIntegrator)
+[![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+[![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Mystou/WikibaseIntegrator/master)
 
 # Installation #
-The easiest way to install WikidataIntegrator is using `pip` or `pip3`. WikidataIntegrator supports python 3.6 and higher, hence the suggestion for pip3. If python2 is installed pip will lead to an error indicating missing dependencies. 
+The easiest way to install WikibaseIntegrator is using `pip` or `pip3`. WikibaseIntegrator supports python 3.6 and higher, hence the suggestion for pip3. If python2 is installed pip will lead to an error indicating missing dependencies. 
 
 ```
-pip3 install wikidataintegrator
+pip3 install wikibaseintegrator
 ```
 
 You can also clone the repo and execute with administrator rights or install into a virtualenv.
 
 ```bash
 
-git clone https://github.com/sebotic/WikidataIntegrator.git
+git clone https://github.com/Mystou/WikibaseIntegrator.git
 
-cd WikidataIntegrator
+cd WikibaseIntegrator
 
 python3 setup.py install
 ```
@@ -36,17 +32,6 @@ my_first_wikidata_item = wdi_core.WDItemEngine(wd_item_id='Q5')
 # to check successful installation and retrieval of the data, you can print the json representation of the item
 my_first_wikidata_item.get_wd_json_representation()
 ```
-
-# Introduction #
-WikidataIntegrator is a library for reading and writing to Wikidata/Wikibase. We created it for populating [WikiData](http://www.wikidata.org) with content from authoritative resources on Genes, Proteins, Diseases, Drugs and others. 
-Details on the different tasks can be found on [the bot's Wikidata page](https://www.wikidata.org/wiki/User:ProteinBoxBot).
-
-[Pywikibot](https://www.mediawiki.org/wiki/Manual:Pywikibot) is an existing framework for interacting with the [MediaWiki](https://www.mediawiki.org/) API. The reason why we came up with our own solution is that we need a high integration with the [Wikidata SPARQL endpoint](query.wikidata.org) in order to ensure data consistency (duplicate check, consistency checks, correct item selection, etc.). 
-
-Compared to Pywikibot, WikidataIntegrator currently is not a full Python wrapper for the MediaWiki API but is solely focused on providing an easy means to generate Python based Wikidata bots, it therefore resembles a basic database connector like JDBC or ODBC. 
-
-## Note: Rate Limits ##
-New users may hit rate limits (of 8 edits per minute) when editing or creating items. [Autoconfirmed users](https://www.wikidata.org/wiki/Wikidata:User_access_levels#Autoconfirmed_users), (an account with at least 4 days of age and at least 50 edits), should not need to worry about hitting these limits. Users who anticipate making large numbers of edits to Wikidata should create a separate [bot](https://www.wikidata.org/wiki/Wikidata:Bots) account and [request approval](https://www.wikidata.org/wiki/Wikidata:Requests_for_permissions/Bot). 
 
 # The Core Parts #
 
@@ -87,7 +72,6 @@ However, the code of wdi_core can also run with normal user accounts, the differ
 
 wdi_login.WDLogin provides the login functionality and also stores the cookies and edit tokens required (For security reasons, every Wikidata edit requires an edit token).
 The constructor takes two essential parameters, username and password. Additionally, the server (default www.wikidata.org) and the the token renewal periods can be specified. 
-
 
 ```Python     
     login_instance = wdi_login.WDLogin(user='<bot user name>', pwd='<bot password>')     
@@ -151,12 +135,6 @@ The method wdi_core.WDItemEngine.log() allows for using the Python built in logg
 It takes two parameters, the log level (level) and the log message (message). It is advisable to separate log file columns by colons
 and always use the same number of fields, as this allows you to load the log file into databases or dataframes of R or Python.
 
-There is a helper method wdi_helpers.try_write() which allows both writing and logging at the same time. Calling this function with the WDItemEngine item to be written,
-will call the write() method on the item and log the action in a standard format in a log file, while capturing all exceptions and writing them to the log as well. This
-method uses wdi_helpers.format_msg internally to format the logging. 
-
-If logs are written using wdi_helpers.try_write() they can be automatically parsed by an external tool called '[Bot Log Parser](https://github.com/SuLab/scheduled-bots/blob/master/scheduled_bots/logger/bot_log_parser.py)', which generates a clickable html output for easy viewing and sharing. See [example output](http://jenkins.sulab.org/job/Disease_Ontology/21/artifact/Disease_Ontology/logs/DOIDBot-20171002_23%3A00.html).
-
 ## Wikidata Search ##
  The method wdi_core.WDItemEngine.get_wd_search_results() allows for string search in
  Wikidata. This means that labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments:
@@ -172,29 +150,7 @@ information, a server (server) if the Wikibase instance is not Wikidata and a fl
 The last parameter will do a partial merge for all statements which do not conflict. This should generally be avoided because it 
 leaves a crippled item in Wikidata. Before a merge, any potential conflicts should be resolved first.
 
-## Pubmed Articles ##
-The class wdi_core.wdi_helpers.PubmedItem allows you to create article items. Given a PMID, it will create an item representing this journal article. It can also retrieve existing items. This is useful for quickly creating items to use in reference statements.
-
-## Database Release ##
-The class wdi_core.wdi_helpers.Release allows you to create an item for a database release. These should be used in reference statements. See [here](https://www.wikidata.org/wiki/User:ProteinBoxBot/evidence#Guidelines_for_Referencing_Databases.2C_Ontologies_and_similar_Web-native_information_entities.) 
-for more information. 
-
-## Test for conformance to a Shape Expression ##
-Shape Expressions (ShEx) is a structural schema language for RDF graphs. It allows to express the graph structures such a Wikidata items. 
-The class wdi_core.check_shex_conformance tests a wikidata item on conformance to a given ShEx.
-In the example below the wikidata item [helium (!560)](https://www.wikidata.org/wiki/Q560)  is checked for conformance to a schema expressed as shape expression for [chemical element (E46)](https://www.wikidata.org/wiki/EntitySchema:E46). 
-
-
-```Python
-from wikibaseintegrator import wdi_core
-
-print("Q560 conforms to E46"+wdi_core.WDItemEngine.check_shex_conformance("Q560", "E46"))
-```
-
 # Examples (in normal mode) #
-
-## An Example Bot ##
-https://github.com/stuppie/wikidatacon_wdi_demo
 
 ## A Minimal Bot ##
 In order to create a minimal bot based on wdi_core, three things are required:
