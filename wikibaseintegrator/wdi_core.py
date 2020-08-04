@@ -15,10 +15,10 @@ from pyshex import ShExEvaluator
 from rdflib import Graph
 from shexer.shaper import Shaper
 
-from wikidataintegrator.wdi_backoff import wdi_backoff
-from wikidataintegrator.wdi_config import config
-from wikidataintegrator.wdi_fastrun import FastRunContainer
-from wikidataintegrator.wdi_helpers import MappingRelationHelper
+from wikibaseintegrator.wdi_backoff import wdi_backoff
+from wikibaseintegrator.wdi_config import config
+from wikibaseintegrator.wdi_fastrun import FastRunContainer
+from wikibaseintegrator.wdi_helpers import MappingRelationHelper
 
 """
 Authors:

@@ -1,8 +1,8 @@
 import datetime
 
-from wikidataintegrator import wdi_core
-from wikidataintegrator.wdi_helpers import id_mapper, try_write
-from wikidataintegrator.wdi_helpers.wikibase_helper import WikibaseHelper
+from wikibaseintegrator import wdi_core
+from wikibaseintegrator.wdi_helpers import id_mapper, try_write
+from wikibaseintegrator.wdi_helpers.wikibase_helper import WikibaseHelper
 
 
 class Release(object):

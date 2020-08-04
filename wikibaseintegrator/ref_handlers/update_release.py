@@ -48,7 +48,7 @@ def update_release(olditem, newitem, old_stated_in=None, stated_in_pid='P248', r
 """
 # todo: this needs to be integrated into a test system on a separate test wikibase
 # todo: need another test for adding a ref with a release on an existing statement with no old release
-from wikidataintegrator import wdi_core, wdi_login, wdi_helpers, ref_handlers
+from wikibaseintegrator import wdi_core, wdi_login, wdi_helpers, ref_handlers
 from functools import partial
 
 mediawiki_api_url = "http://localhost:7171/w/api.php"

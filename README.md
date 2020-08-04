@@ -29,7 +29,7 @@ python3 setup.py install
 To test for correct installation, start a python console and execute the following (Will retrieve the Wikidata item for ['Human'](http://www.wikidata.org/entity/Q5)):
 
 ```python
-from wikidataintegrator import wdi_core
+from wikibaseintegrator import wdi_core
 
 my_first_wikidata_item = wdi_core.WDItemEngine(wd_item_id='Q5')
 
@@ -186,7 +186,7 @@ In the example below the wikidata item [helium (!560)](https://www.wikidata.org/
 
 
 ```Python
-from wikidataintegrator import wdi_core
+from wikibaseintegrator import wdi_core
 
 print("Q560 conforms to E46"+wdi_core.WDItemEngine.check_shex_conformance("Q560", "E46"))
 ```
@@ -205,7 +205,7 @@ In order to create a minimal bot based on wdi_core, three things are required:
 
 ```Python
 
-    from wikidataintegrator import wdi_core, wdi_login
+    from wikibaseintegrator import wdi_core, wdi_login
         
     # login object
     login_instance = wdi_login.WDLogin(user='<bot user name>', pwd='<bot password>')
@@ -226,7 +226,7 @@ An enhanced example of the previous bot just puts two of the three things into a
 
 ```Python
 
-    from wikidataintegrator import wdi_core, wdi_login
+    from wikibaseintegrator import wdi_core, wdi_login
         
     # login object
     login_instance = wdi_login.WDLogin(user='<bot user name>', pwd='<bot password>')
@@ -268,7 +268,7 @@ Below, the normal mode run example from above, slightly modified, to meet the re
 The full example:
 ```Python
 
-    from wikidataintegrator import wdi_core, wdi_login
+    from wikibaseintegrator import wdi_core, wdi_login
         
     # login object
     login_instance = wdi_login.WDLogin(user='<bot user name>', pwd='<bot password>')

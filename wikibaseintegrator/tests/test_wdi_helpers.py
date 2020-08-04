@@ -1,4 +1,4 @@
-from wikidataintegrator.wdi_helpers import PublicationHelper, Release, id_mapper
+from wikibaseintegrator.wdi_helpers import PublicationHelper, Release, id_mapper
 
 
 def test_get_pubmed_item():

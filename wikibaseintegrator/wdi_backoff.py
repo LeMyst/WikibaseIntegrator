@@ -1,5 +1,5 @@
 """
-Set up backoff module for wikidataintegrator
+Set up backoff module for wikibaseintegrator
 
 """
 
@@ -9,7 +9,7 @@ from functools import partial
 import requests
 
 import backoff
-from wikidataintegrator.wdi_config import config
+from wikibaseintegrator.wdi_config import config
 
 
 import simplejson as json

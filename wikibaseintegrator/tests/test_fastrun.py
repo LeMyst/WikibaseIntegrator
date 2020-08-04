@@ -1,4 +1,4 @@
-from wikidataintegrator import wdi_core, wdi_fastrun
+from wikibaseintegrator import wdi_core, wdi_fastrun
 wdi_fastrun.FastRunContainer.debug = True
 
 

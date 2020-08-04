@@ -2,8 +2,8 @@
 #### same as before, but with one ref
 import copy
 
-from wikidataintegrator import wdi_fastrun, wdi_core
-from wikidataintegrator.ref_handlers import update_retrieved_if_new as custom_ref_handler
+from wikibaseintegrator import wdi_fastrun, wdi_core
+from wikibaseintegrator.ref_handlers import update_retrieved_if_new as custom_ref_handler
 import pprint
 
 class frc_fake_query_data_paper1(wdi_fastrun.FastRunContainer):

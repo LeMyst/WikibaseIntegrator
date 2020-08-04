@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from wikidataintegrator import wdi_core
-from wikidataintegrator.wdi_helpers import id_mapper
+from wikibaseintegrator import wdi_core
+from wikibaseintegrator.wdi_helpers import id_mapper
 
 
 class WikibaseHelper:

@@ -8,8 +8,8 @@ import requests
 from dateutil import parser as du
 
 from .. import wdi_core, wdi_login
-from wikidataintegrator.wdi_config import config
-from wikidataintegrator.wdi_helpers import prop2qid, PROPS, try_write
+from wikibaseintegrator.wdi_config import config
+from wikibaseintegrator.wdi_helpers import prop2qid, PROPS, try_write
 
 
 class PubmedItem:

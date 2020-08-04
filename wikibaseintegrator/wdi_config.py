@@ -14,14 +14,14 @@ USER_AGENT_DEFAULT: default user agent string used for http requests. Both to wi
 import pkg_resources
 
 try:
-    __version__ = pkg_resources.get_distribution("wikidataintegrator").version
+    __version__ = pkg_resources.get_distribution("wikibaseintegrator").version
 except Exception as e:
     __version__ = ""
 
 config = {
     'BACKOFF_MAX_TRIES': None,
     'BACKOFF_MAX_VALUE': 3600,
-    'USER_AGENT_DEFAULT': 'wikidataintegrator/{}'.format(__version__),
+    'USER_AGENT_DEFAULT': 'wikibaseintegrator/{}'.format(__version__),
     'MAXLAG': 5,
     'PROPERTY_CONSTRAINT_PID': 'P2302',
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',

@@ -1,5 +1,5 @@
 import unittest
-from wikidataintegrator import wdi_core
+from wikibaseintegrator import wdi_core
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
 __license__ = 'AGPLv3'

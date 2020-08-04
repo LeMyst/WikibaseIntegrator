@@ -4,8 +4,8 @@ import unittest
 
 import requests
 
-from wikidataintegrator import wdi_core, wdi_fastrun
-from wikidataintegrator.wdi_core import WDApiError
+from wikibaseintegrator import wdi_core, wdi_fastrun
+from wikibaseintegrator.wdi_core import WDApiError
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
 __license__ = 'AGPLv3'

@@ -1,6 +1,6 @@
 import copy
-from wikidataintegrator import wdi_fastrun, wdi_core
-from wikidataintegrator.ref_handlers import strict_overwrite
+from wikibaseintegrator import wdi_fastrun, wdi_core
+from wikibaseintegrator.ref_handlers import strict_overwrite
 # not testing the functionality of KEEP_GOOD here, just skipping the query of all pmids
 wdi_core.WDItemEngine.databases = ['a']
 wdi_core.WDItemEngine.pmids = ['a']

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 VERSION = "0.7.4"
 
 setup(
-    name='wikidataintegrator',
+    name='wikibaseintegrator',
     version=VERSION,
     author='Andra Waagmeester, Greg Stupp, Sebastian Burgstaller-Muehlbacher ',
     author_email='andra@micel.io',
@@ -12,8 +12,8 @@ setup(
     keywords='Wikidata genewiki biology chemistry medicine ShEx citations',
     url='https://github.com/sulab/WikidataIntegrator',
     packages=find_packages(),
-    # packages=['wikidataintegrator',
-    #          'wikidataintegrator.ref_handlers', 'wikidataintegrator.wdi_helpers'],
+    # packages=['wikibaseintegrator',
+    #          'wikibaseintegrator.ref_handlers', 'wikibaseintegrator.wdi_helpers'],
     include_package_data=True,
     ## long_description=read('README.md'),
     classifiers=[

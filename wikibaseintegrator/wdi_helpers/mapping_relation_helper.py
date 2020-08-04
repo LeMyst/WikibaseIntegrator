@@ -1,6 +1,6 @@
-from wikidataintegrator import wdi_core
-from wikidataintegrator.wdi_helpers import RELATIONS, PROPS
-from wikidataintegrator.wdi_helpers.wikibase_helper import WikibaseHelper
+from wikibaseintegrator import wdi_core
+from wikibaseintegrator.wdi_helpers import RELATIONS, PROPS
+from wikibaseintegrator.wdi_helpers.wikibase_helper import WikibaseHelper
 from functools import lru_cache
 
 

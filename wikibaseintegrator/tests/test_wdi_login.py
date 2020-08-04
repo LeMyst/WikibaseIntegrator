@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 
-from wikidataintegrator import wdi_login
+from wikibaseintegrator import wdi_login
 import os
 
 # look for environment variables. if none set, don't do anything
