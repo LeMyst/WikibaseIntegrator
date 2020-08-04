@@ -1,21 +1,20 @@
 from setuptools import setup, find_packages
 
-VERSION = "0.7.4"
+VERSION = "0.8.0"
 
 setup(
     name='wikibaseintegrator',
     version=VERSION,
-    author='Andra Waagmeester, Greg Stupp, Sebastian Burgstaller-Muehlbacher ',
-    author_email='andra@micel.io',
-    description='Python package for reading and writing to/from Wikidata',
+    author='Myst and WikidataIntegrator authors',
+    description='Python package for reading and writing to/from Wikibase',
     license='MIT',
-    keywords='Wikidata genewiki biology chemistry medicine ShEx citations',
-    url='https://github.com/sulab/WikidataIntegrator',
+    keywords='Wikibase',
+    url='https://github.com/Mystou/WikibaseIntegrator',
     packages=find_packages(),
     # packages=['wikibaseintegrator',
     #          'wikibaseintegrator.ref_handlers', 'wikibaseintegrator.wdi_helpers'],
     include_package_data=True,
-    ## long_description=read('README.md'),
+    # long_description=read('README.md'),
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
