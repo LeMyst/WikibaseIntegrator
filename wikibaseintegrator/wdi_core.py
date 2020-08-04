@@ -23,14 +23,13 @@ from wikibaseintegrator.wdi_helpers import MappingRelationHelper
 """
 Authors:
   Andra Waagmeester (andra' at ' micelio.be)
-  Gregory Stupp (stuppie' at 'gmail.com )
-  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com
-
-This file is part of the WikidataIntegrator.
+  Gregory Stupp (stuppie' at 'gmail.com)
+  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com)
+  Myst
 
 """
 
-__author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller '
+__author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller, Myst'
 __license__ = 'MIT'
 
 
