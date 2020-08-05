@@ -114,7 +114,8 @@ class FastRunContainer(object):
             if self.prop_dt_map[prop_nr] == 'time':
                 current_value = current_value[0]
             elif self.prop_dt_map[prop_nr] == 'wikibase-item':
-                current_value = 'Q{}'.format(current_value)
+                if not str(current_value).startswith('Q'):
+                    current_value = 'Q{}'.format(current_value)
             elif self.prop_dt_map[prop_nr] == 'quantity':
                 current_value = self.format_amount(current_value[0])
 
