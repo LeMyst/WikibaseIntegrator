@@ -11,8 +11,6 @@ setup(
     keywords='Wikibase',
     url='https://github.com/Mystou/WikibaseIntegrator',
     packages=find_packages(),
-    # packages=['wikibaseintegrator',
-    #          'wikibaseintegrator.ref_handlers', 'wikibaseintegrator.wdi_helpers'],
     include_package_data=True,
     # long_description=read('README.md'),
     classifiers=[
@@ -26,10 +24,8 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Information Technology",
-        "Intended Audience :: Healthcare Industry",
         "Intended Audience :: Developers",
         "Topic :: Utilities",
-        "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     install_requires=[
         'requests',

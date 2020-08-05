@@ -18,7 +18,6 @@ from shexer.shaper import Shaper
 from wikibaseintegrator.wdi_backoff import wdi_backoff
 from wikibaseintegrator.wdi_config import config
 from wikibaseintegrator.wdi_fastrun import FastRunContainer
-from wikibaseintegrator.wdi_helpers import MappingRelationHelper
 
 """
 Authors:
@@ -168,15 +167,6 @@ class WDItemEngine(object):
             self.get_distinct_value_props(self.sparql_endpoint_url, self.wikibase_url, self.property_constraint_pid,
                                           self.distinct_values_constraint_qid)
         self.core_props = core_props if core_props is not None else self.DISTINCT_VALUE_PROPS[self.sparql_endpoint_url]
-
-        try:
-            self.mrh = MappingRelationHelper(self.sparql_endpoint_url)
-        except Exception as e:
-            # if the "equivalent property" and "mappingRelation" property are not found, we can't know what the
-            # QIDs for the mapping relation types are
-            self.mrh = None
-            if self.debug:
-                warnings.warn("mapping relation types are being ignored")
 
         if self.fast_run:
             self.init_fastrun()
@@ -426,16 +416,12 @@ class WDItemEngine(object):
         """
         qid_list = set()
         conflict_source = {}
-        if self.mrh:
-            exact_qid = self.mrh.mrt_qids['http://www.w3.org/2004/02/skos/core#exactMatch']
-            mrt_pid = self.mrh.mrt_pid
-        else:
-            # This is a `hack` for if initializing the mapping relation helper fails. We can't determine the
-            # mapping relation type PID or the exact match QID. If we set mrt_pid to "Pxxx", then no qualifier will
-            # ever match it (and exact_qid will never get checked), and so what happens is exactly what would
-            # happen if the statement had no mapping relation qualifiers
-            exact_qid = "Q0"
-            mrt_pid = "PXXX"
+        # This is a `hack` for if initializing the mapping relation helper fails. We can't determine the
+        # mapping relation type PID or the exact match QID. If we set mrt_pid to "Pxxx", then no qualifier will
+        # ever match it (and exact_qid will never get checked), and so what happens is exactly what would
+        # happen if the statement had no mapping relation qualifiers
+        exact_qid = "Q0"
+        mrt_pid = "PXXX"
 
         for statement in self.data:
             wd_property = statement.get_prop_nr()
