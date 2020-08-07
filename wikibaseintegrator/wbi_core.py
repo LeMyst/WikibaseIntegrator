@@ -2220,8 +2220,8 @@ class ItemID(BaseDataType):
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value is str and value.startswith("Q"):
-            pattern = re.compile('[0-9]+')
+        elif value.startswith("Q"):
+            pattern = re.compile(r'[0-9]+')
             matches = pattern.match(value[1:])
 
             if len(value[1:]) == len(matches.group(0)):
@@ -2305,7 +2305,7 @@ class Property(BaseDataType):
         elif isinstance(value, int):
             self.value = value
         elif value.startswith("P"):
-            pattern = re.compile('[0-9]+')
+            pattern = re.compile(r'[0-9]+')
             matches = pattern.match(value[1:])
 
             if len(value[1:]) == len(matches.group(0)):
@@ -2833,7 +2833,7 @@ class GeoShape(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile('Data:((?![:|#]).)+\.map')
+        pattern = re.compile(r'Data:((?![:|#]).)+\.map')
         matches = pattern.match(value)
 
         if not matches:
@@ -2949,7 +2949,7 @@ class TabularData(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile('Data:((?![:|#]).)+\.tab')
+        pattern = re.compile(r'Data:((?![:|#]).)+\.tab')
         matches = pattern.match(value)
 
         if not matches:
@@ -3028,7 +3028,7 @@ class Lexeme(BaseDataType):
         elif isinstance(value, int):
             self.value = value
         elif value.startswith("L"):
-            pattern = re.compile('[0-9]+')
+            pattern = re.compile(r'[0-9]+')
             matches = pattern.match(value[1:])
 
             if len(value[1:]) == len(matches.group(0)):
@@ -3097,7 +3097,7 @@ class Form(BaseDataType):
         if value is None:
             self.value = value
         elif value.startswith("L"):
-            pattern = re.compile('^L[0-9]+-F[0-9]+$')
+            pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
@@ -3163,7 +3163,7 @@ class Sense(BaseDataType):
         if value is None:
             self.value = value
         elif value.startswith("L"):
-            pattern = re.compile('^L[0-9]+-S[0-9]+$')
+            pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
