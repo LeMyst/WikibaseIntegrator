@@ -16,7 +16,7 @@ Login class for Wikidata. Takes username and password and stores the session coo
 """
 
 
-class WDLogin(object):
+class Login(object):
     """
     A class which handles the login to Wikidata and the generation of edit-tokens
     """

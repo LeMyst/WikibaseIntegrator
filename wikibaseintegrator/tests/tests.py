@@ -5,7 +5,7 @@ import unittest
 import requests
 
 from wikibaseintegrator import wbi_core, wbi_fastrun
-from wikibaseintegrator.wbi_core import WDApiError
+from wikibaseintegrator.wbi_core import MWApiError
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
 __license__ = 'AGPLv3'
@@ -13,7 +13,7 @@ __license__ = 'AGPLv3'
 
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
-        with self.assertRaises(WDApiError):
+        with self.assertRaises(MWApiError):
             wbi_core.ItemEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
                                                    max_retries=3, retry_after=1,
                                                    params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})

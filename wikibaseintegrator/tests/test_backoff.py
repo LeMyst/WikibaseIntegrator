@@ -55,7 +55,7 @@ def bad_request():
 
 
 def bad_login():
-    wbi_login.WDLogin("name", "pass", mediawiki_api_url="www.wikidataaaaaaaaa.org")
+    wbi_login.Login("name", "pass", mediawiki_api_url="www.wikidataaaaaaaaa.org")
 
 
 if __name__ == "__main__":

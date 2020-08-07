@@ -12,6 +12,6 @@ WDPASS = os.getenv("WDPASS")
 
 def test_login():
     if WDUSER and WDPASS:
-        login = wbi_login.WDLogin(WDUSER, WDPASS)
+        login = wbi_login.Login(WDUSER, WDPASS)
     else:
         print("no WDUSER or WDPASS found in environment variables", file=sys.stderr)
