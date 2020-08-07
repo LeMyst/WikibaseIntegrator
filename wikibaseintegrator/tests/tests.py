@@ -14,19 +14,19 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(WDApiError):
-            wbi_core.WDItemEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
-                                                     max_retries=3, retry_after=1,
-                                                     params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
+                                                   max_retries=3, retry_after=1,
+                                                   params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
         with self.assertRaises(requests.HTTPError):
-            wbi_core.WDItemEngine.mediawiki_api_call("GET", "http://httpstat.us/400", max_retries=3, retry_after=1)
+            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://httpstat.us/400", max_retries=3, retry_after=1)
 
-        wbi_core.WDItemEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
-                                                 params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+        wbi_core.ItemEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
+                                               params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
 
 
 class TestDataType(unittest.TestCase):
     def test_wd_quantity(self):
-        dt = wbi_core.WDQuantity(value='34', prop_nr='P43')
+        dt = wbi_core.Quantity(value='34', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
 
@@ -41,7 +41,7 @@ class TestDataType(unittest.TestCase):
         if not value['value']['unit'] == '1':
             raise
 
-        dt2 = wbi_core.WDQuantity(value='34', prop_nr='P43', upper_bound='35', lower_bound='33')
+        dt2 = wbi_core.Quantity(value='34', prop_nr='P43', upper_bound='35', lower_bound='33')
 
         value = dt2.get_json_representation()['mainsnak']['datavalue']
 
@@ -58,7 +58,7 @@ class TestDataType(unittest.TestCase):
             raise
 
     def test_wd_geoshape(self):
-        dt = wbi_core.WDGeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
+        dt = wbi_core.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
 
@@ -77,7 +77,7 @@ class TestDataType(unittest.TestCase):
         pass
 
     def test_live_item(self):
-        wd_item = wbi_core.WDItemEngine(wd_item_id='Q423111')
+        wd_item = wbi_core.ItemEngine(wd_item_id='Q423111')
 
         mass_statement = [x for x in wd_item.statements if x.get_prop_nr() == 'P2067'].pop()
         pprint.pprint(mass_statement.get_json_representation())
@@ -85,7 +85,7 @@ class TestDataType(unittest.TestCase):
         if not mass_statement:
             raise
 
-            # TODO: get json directly from the API and compare part to WDItemEngine
+            # TODO: get json directly from the API and compare part to ItemEngine
 
 
 class TestFastRun(unittest.TestCase):
@@ -98,12 +98,12 @@ class TestFastRun(unittest.TestCase):
         qid = 'Q27552312'
 
         statements = [
-            wbi_core.WDExternalID(value='P40095', prop_nr='P352'),
-            wbi_core.WDExternalID(value='YER158C', prop_nr='P705')
+            wbi_core.ExternalID(value='P40095', prop_nr='P352'),
+            wbi_core.ExternalID(value='YER158C', prop_nr='P705')
         ]
 
         frc = wbi_fastrun.FastRunContainer(base_filter={'P352': '', 'P703': 'Q27510868'},
-                                           base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine)
+                                           base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine)
 
         fast_run_result = frc.write_required(data=statements)
 
@@ -119,12 +119,12 @@ class TestFastRun(unittest.TestCase):
 
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
-        data = [wbi_core.WDExternalID('/m/02j71', 'P646')]
+        data = [wbi_core.ExternalID('/m/02j71', 'P646')]
         fast_run_base_filter = {'P361': 'Q18589965'}
-        item = wbi_core.WDItemEngine(wd_item_id="Q2", data=data, fast_run=True,
-                                     fast_run_base_filter=fast_run_base_filter)
+        item = wbi_core.ItemEngine(wd_item_id="Q2", data=data, fast_run=True,
+                                   fast_run_base_filter=fast_run_base_filter)
 
-        frc = wbi_core.WDItemEngine.fast_run_store[0]
+        frc = wbi_core.ItemEngine.fast_run_store[0]
         frc.debug = True
 
         assert item.get_label('en') == "Earth"
@@ -165,8 +165,8 @@ class TestFastRun(unittest.TestCase):
 
 
 def test_sitelinks():
-    data = [wbi_core.WDItemID(value='Q12136', prop_nr='P31')]
-    item = wbi_core.WDItemEngine(wd_item_id='Q622901', data=data)
+    data = [wbi_core.ItemID(value='Q12136', prop_nr='P31')]
+    item = wbi_core.ItemEngine(wd_item_id='Q622901', data=data)
     item.get_sitelink("enwiki")
     assert "enwiki" not in item.wd_json_representation['sitelinks']
     item.set_sitelink("enwiki", "something")
@@ -176,8 +176,8 @@ def test_sitelinks():
 
 def test_nositelinks():
     # this item doesn't and probably wont ever have any sitelinks (but who knows?? maybe one day..)
-    data = [wbi_core.WDItemID(value='Q5', prop_nr='P31')]
-    item = wbi_core.WDItemEngine(wd_item_id='Q27869338', data=data)
+    data = [wbi_core.ItemID(value='Q5', prop_nr='P31')]
+    item = wbi_core.ItemEngine(wd_item_id='Q27869338', data=data)
     item.get_sitelink("enwiki")
     assert "enwiki" not in item.wd_json_representation['sitelinks']
     item.set_sitelink("enwiki", "something")
@@ -190,24 +190,24 @@ def test_nositelinks():
 ####
 def test_ref_equals():
     # statements are identical
-    oldref = [wbi_core.WDExternalID(value='P58742', prop_nr='P352'),
-              wbi_core.WDItemID(value='Q24784025', prop_nr='P527'),
-              wbi_core.WDTime('+2001-12-31T12:01:13Z', prop_nr='P813')]
-    olditem = wbi_core.WDItemID("Q123", "P123", references=[oldref])
+    oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352'),
+              wbi_core.ItemID(value='Q24784025', prop_nr='P527'),
+              wbi_core.Time('+2001-12-31T12:01:13Z', prop_nr='P813')]
+    olditem = wbi_core.ItemID("Q123", "P123", references=[oldref])
     newitem = copy.deepcopy(olditem)
     assert olditem.equals(newitem, include_ref=False)
     assert olditem.equals(newitem, include_ref=True)
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references[0][2] = wbi_core.WDTime('+2002-1-31T12:01:13Z', prop_nr='P813')
+    newitem.references[0][2] = wbi_core.Time('+2002-1-31T12:01:13Z', prop_nr='P813')
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 
     # multiple refs
     newitem = copy.deepcopy(olditem)
-    newitem.references.append([wbi_core.WDExternalID(value='99999', prop_nr='P352')])
+    newitem.references.append([wbi_core.ExternalID(value='99999', prop_nr='P352')])
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
-    olditem.references.append([wbi_core.WDExternalID(value='99999', prop_nr='P352')])
+    olditem.references.append([wbi_core.ExternalID(value='99999', prop_nr='P352')])
     assert olditem.equals(newitem, include_ref=True)

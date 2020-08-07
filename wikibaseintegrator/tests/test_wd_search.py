@@ -8,7 +8,7 @@ __license__ = 'AGPLv3'
 class TestWDSearch(unittest.TestCase):
 
     def test_wd_search(self):
-        t = wbi_core.WDItemEngine.get_wd_search_results('rivaroxaban')
+        t = wbi_core.ItemEngine.get_wd_search_results('rivaroxaban')
 
         print(t)
         print('Number of results: ', len(t))
