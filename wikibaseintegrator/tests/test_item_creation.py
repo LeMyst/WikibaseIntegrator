@@ -1,7 +1,7 @@
 import unittest
-import sys
 
-from .. import wbi_core
+from wikibaseintegrator import wbi_core
+
 
 class TestItemCreation(unittest.TestCase):
     def test_new_item_creation(self):

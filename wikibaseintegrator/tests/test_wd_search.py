@@ -1,4 +1,5 @@
 import unittest
+
 from wikibaseintegrator import wbi_core
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'

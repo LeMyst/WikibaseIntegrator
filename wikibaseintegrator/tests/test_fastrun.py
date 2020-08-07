@@ -1,4 +1,5 @@
 from wikibaseintegrator import wbi_core, wbi_fastrun
+
 wbi_fastrun.FastRunContainer.debug = True
 
 
@@ -112,15 +113,15 @@ def test_fastrun_ref_ensembl():
     # statement has the same ref
     statements = [wbi_core.ExternalID(value='ENSG00000123374', prop_nr='P594',
                                       references=[[wbi_core.ItemID("Q29458763", "P248", is_reference=True),
-                                                     wbi_core.ExternalID("ENSG00000123374", "P594",
-                                                                         is_reference=True)]])]
+                                                   wbi_core.ExternalID("ENSG00000123374", "P594",
+                                                                       is_reference=True)]])]
     assert not frc.write_required(data=statements)
 
     # new statement has an different stated in
     statements = [wbi_core.ExternalID(value='ENSG00000123374', prop_nr='P594',
                                       references=[[wbi_core.ItemID("Q99999999999", "P248", is_reference=True),
-                                                     wbi_core.ExternalID("ENSG00000123374", "P594",
-                                                                         is_reference=True)]])]
+                                                   wbi_core.ExternalID("ENSG00000123374", "P594",
+                                                                       is_reference=True)]])]
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,

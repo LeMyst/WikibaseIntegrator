@@ -1,10 +1,12 @@
-import unittest
-import requests
 import sys
+import unittest
+
+import requests
 
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
+
 pyv = sys.version_info.major
 if pyv == 3:
     import json

@@ -1,7 +1,7 @@
-import unittest
 import pprint
-import sys
-from wikibaseintegrator import wbi_core, wbi_fastrun, wbi_login
+import unittest
+
+from wikibaseintegrator import wbi_core
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
 __license__ = 'AGPLv3'
