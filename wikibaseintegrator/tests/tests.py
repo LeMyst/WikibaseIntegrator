@@ -77,7 +77,7 @@ class TestDataType(unittest.TestCase):
         pass
 
     def test_live_item(self):
-        wd_item = wbi_core.ItemEngine(wd_item_id='Q423111')
+        wd_item = wbi_core.ItemEngine(item_id='Q423111')
 
         mass_statement = [x for x in wd_item.statements if x.get_prop_nr() == 'P2067'].pop()
         pprint.pprint(mass_statement.get_json_representation())
@@ -121,7 +121,7 @@ class TestFastRun(unittest.TestCase):
         # tests fastrun label, description and aliases, and label in another language
         data = [wbi_core.ExternalID('/m/02j71', 'P646')]
         fast_run_base_filter = {'P361': 'Q18589965'}
-        item = wbi_core.ItemEngine(wd_item_id="Q2", data=data, fast_run=True,
+        item = wbi_core.ItemEngine(item_id="Q2", data=data, fast_run=True,
                                    fast_run_base_filter=fast_run_base_filter)
 
         frc = wbi_core.ItemEngine.fast_run_store[0]
@@ -142,12 +142,12 @@ class TestFastRun(unittest.TestCase):
 
         item.set_description(descr)
         item.set_description("fghjkl")
-        assert item.wd_json_representation['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
+        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
         item.set_label("Earth")
         item.set_label("xfgfdsg")
-        assert item.wd_json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
         item.set_aliases(["fake alias"], append=True)
-        assert {'language': 'en', 'value': 'fake alias'} in item.wd_json_representation['aliases']['en']
+        assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
 
         # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
         frc.check_language_data("Q2", ['Ewiase'], 'ak', 'label')
@@ -166,23 +166,23 @@ class TestFastRun(unittest.TestCase):
 
 def test_sitelinks():
     data = [wbi_core.ItemID(value='Q12136', prop_nr='P31')]
-    item = wbi_core.ItemEngine(wd_item_id='Q622901', data=data)
+    item = wbi_core.ItemEngine(item_id='Q622901', data=data)
     item.get_sitelink("enwiki")
-    assert "enwiki" not in item.wd_json_representation['sitelinks']
+    assert "enwiki" not in item.json_representation['sitelinks']
     item.set_sitelink("enwiki", "something")
     assert item.get_sitelink("enwiki")['title'] == "something"
-    assert "enwiki" in item.wd_json_representation['sitelinks']
+    assert "enwiki" in item.json_representation['sitelinks']
 
 
 def test_nositelinks():
     # this item doesn't and probably wont ever have any sitelinks (but who knows?? maybe one day..)
     data = [wbi_core.ItemID(value='Q5', prop_nr='P31')]
-    item = wbi_core.ItemEngine(wd_item_id='Q27869338', data=data)
+    item = wbi_core.ItemEngine(item_id='Q27869338', data=data)
     item.get_sitelink("enwiki")
-    assert "enwiki" not in item.wd_json_representation['sitelinks']
+    assert "enwiki" not in item.json_representation['sitelinks']
     item.set_sitelink("enwiki", "something")
     assert item.get_sitelink("enwiki")['title'] == "something"
-    assert "enwiki" in item.wd_json_representation['sitelinks']
+    assert "enwiki" in item.json_representation['sitelinks']
 
 
 ####

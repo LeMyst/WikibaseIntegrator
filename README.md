@@ -36,10 +36,10 @@ To test for correct installation, start a python console and execute the followi
 ```python
 from wikibaseintegrator import wbi_core
 
-my_first_wikidata_item = wbi_core.WDItemEngine(wd_item_id='Q5')
+my_first_wikidata_item = wbi_core.WDItemEngine(item_id='Q5')
 
 # to check successful installation and retrieval of the data, you can print the json representation of the item
-print(my_first_wikidata_item.get_wd_json_representation())
+print(my_first_wikidata_item.get_json_representation())
 ```
 
 # The Core Parts #
@@ -145,7 +145,7 @@ It takes two parameters, the log level (level) and the log message (message). It
 and always use the same number of fields, as this allows you to load the log file into databases or dataframes of R or Python.
 
 ## Wikidata Search ##
- The method wbi_core.WDItemEngine.get_wd_search_results() allows for string search in
+ The method wbi_core.WDItemEngine.get_search_results() allows for string search in
  Wikidata. This means that labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments:
  The actual search string (search_string), an optional server (in case the Wikibase instance used is not Wikidata), an optional user_agent, an
  optional max_results (default 500), and an optional language (default 'en').

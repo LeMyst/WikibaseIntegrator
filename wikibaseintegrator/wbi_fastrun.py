@@ -575,7 +575,7 @@ class FastRunContainer(object):
 
     @lru_cache(maxsize=100000)
     def get_prop_datatype(self, prop_nr):
-        item = self.engine(wd_item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url,
+        item = self.engine(item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url,
                            mediawiki_api_url=self.mediawiki_api_url,
                            wikibase_url=self.wikibase_url)
         return item.entity_metadata['datatype']

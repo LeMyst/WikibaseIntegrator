@@ -43,7 +43,7 @@ class ItemEngine(object):
 
     logger = None
 
-    def __init__(self, wd_item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
+    def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
                  wikibase_url=None, concept_base_uri=None, append_value=None, fast_run=False, fast_run_base_filter=None,
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
                  keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None,
@@ -51,7 +51,7 @@ class ItemEngine(object):
                  fast_run_case_insensitive=False, debug=False):
         """
         constructor
-        :param wd_item_id: Wikidata item id
+        :param item_id: Wikidata item id
         :param new_item: This parameter lets the user indicate if a new item should be created
         :type new_item: True or False
         :param data: a dictionary with WD property strings as keys and the data which should be written to
@@ -104,22 +104,22 @@ class ItemEngine(object):
             data to the item, the method update() will take data, modify the Wikidata item and a write() call will
             then perform the actual write to Wikidata.
         :type search_only: bool
-        :param item_data: A Python JSON object corresponding to the Wikidata item in wd_item_id. This can be used in
-            conjunction with wd_item_id in order to provide raw data.
+        :param item_data: A Python JSON object corresponding to the Wikidata item in item_id. This can be used in
+            conjunction with item_id in order to provide raw data.
         :param user_agent: The user agent string to use when making http requests
         :type user_agent: str
-        :param core_props: Core properties are used to retrieve a Wikidata item based on `data` if a `wd_item_id` is
+        :param core_props: Core properties are used to retrieve a Wikidata item based on `data` if a `item_id` is
             not given. This is a set of PIDs to use. If None, all Wikidata properties with a distinct values
             constraint will be used. (see: get_core_props)
         :type core_props: set
         :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item
-            when the wd_item_id is not specified.
+            when the item_id is not specified.
         :type core_prop_match_thresh: float
         :param debug: Enable debug output.
         :type debug: boolean
         """
         self.core_prop_match_thresh = core_prop_match_thresh
-        self.wd_item_id = wd_item_id
+        self.item_id = item_id
         self.new_item = new_item
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
@@ -144,7 +144,7 @@ class ItemEngine(object):
         self.user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
         self.create_new_item = False
-        self.wd_json_representation = {}
+        self.json_representation = {}
         self.statements = []
         self.original_statements = []
         self.entity_metadata = {}
@@ -179,7 +179,7 @@ class ItemEngine(object):
                 else:
                     print('successful fastrun, no write to Wikidata required')
 
-        if self.wd_item_id != '' and self.create_new_item == True:
+        if self.item_id != '' and self.create_new_item == True:
             raise IDMissingError('Cannot create a new item, when a wikidata identifier is given')
         elif self.new_item == True and len(self.data) > 0:
             self.create_new_item = True
@@ -226,20 +226,20 @@ class ItemEngine(object):
         cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set(df.p)
 
     def init_data_load(self):
-        if self.wd_item_id and self.item_data:
-            self.wd_json_representation = self.parse_wd_json(self.item_data)
-        elif self.wd_item_id:
-            self.wd_json_representation = self.get_wd_entity()
+        if self.item_id and self.item_data:
+            self.json_representation = self.parse_json(self.item_data)
+        elif self.item_id:
+            self.json_representation = self.get_entity()
         else:
             qids_by_props = ''
             try:
-                qids_by_props = self.__select_wd_item()
+                qids_by_props = self.__select_item()
             except WDSearchError as e:
                 self.log('ERROR', str(e))
 
             if qids_by_props:
-                self.wd_item_id = qids_by_props
-                self.wd_json_representation = self.get_wd_entity()
+                self.item_id = qids_by_props
+                self.json_representation = self.get_entity()
                 self.__check_integrity()
 
         if not self.search_only:
@@ -280,17 +280,17 @@ class ItemEngine(object):
 
         if not self.search_only:
             self.require_write = self.fast_run_container.write_required(self.data, append_props=self.append_value,
-                                                                        cqid=self.wd_item_id)
+                                                                        cqid=self.item_id)
             # set item id based on fast run data
-            if not self.require_write and not self.wd_item_id:
-                self.wd_item_id = self.fast_run_container.current_qid
+            if not self.require_write and not self.item_id:
+                self.item_id = self.fast_run_container.current_qid
         else:
             self.fast_run_container.load_item(self.data)
             # set item id based on fast run data
-            if not self.wd_item_id:
-                self.wd_item_id = self.fast_run_container.current_qid
+            if not self.item_id:
+                self.item_id = self.fast_run_container.current_qid
 
-    def get_wd_entity(self):
+    def get_entity(self):
         """
         retrieve a WD item in json representation from Wikidata
         :rtype: dict
@@ -299,44 +299,44 @@ class ItemEngine(object):
         params = {
             'action': 'wbgetentities',
             'sites': 'enwiki',
-            'ids': self.wd_item_id,
+            'ids': self.item_id,
             'format': 'json'
         }
         headers = {
             'User-Agent': self.user_agent
         }
         json_data = self.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
-        return self.parse_wd_json(wd_json=json_data['entities'][self.wd_item_id])
+        return self.parse_json(json_data=json_data['entities'][self.item_id])
 
-    def parse_wd_json(self, wd_json):
+    def parse_json(self, json_data):
         """
-        Parses a WD entity json and generates the datatype objects, sets self.wd_json_representation
-        :param wd_json: the json of a WD entity
-        :type wd_json: A Python Json representation of a WD item
+        Parses a WD entity json and generates the datatype objects, sets self.json_representation
+        :param json_data: the json of a WD entity
+        :type json_data: A Python Json representation of a WD item
         :return: returns the json representation containing 'labels', 'descriptions', 'claims', 'aliases', 'sitelinks'.
         """
-        wd_data = {x: wd_json[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in wd_json}
-        wd_data['sitelinks'] = dict()
-        self.entity_metadata = {x: wd_json[x] for x in wd_json if x not in
+        data = {x: json_data[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in json_data}
+        data['sitelinks'] = dict()
+        self.entity_metadata = {x: json_data[x] for x in json_data if x not in
                                 ('labels', 'descriptions', 'claims', 'aliases', 'sitelinks')}
-        self.sitelinks = wd_json.get('sitelinks', dict())
+        self.sitelinks = json_data.get('sitelinks', dict())
 
         self.statements = []
-        for prop in wd_data['claims']:
-            for z in wd_data['claims'][prop]:
+        for prop in data['claims']:
+            for z in data['claims'][prop]:
                 data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == z['mainsnak']['datatype']][0]
                 statement = data_type.from_json(z)
                 self.statements.append(statement)
 
-        self.wd_json_representation = wd_data
+        self.json_representation = data
         self.original_statements = copy.deepcopy(self.statements)
 
-        return wd_data
+        return data
 
     @staticmethod
-    def get_wd_search_results(search_string='', mediawiki_api_url=None,
-                              user_agent=None, max_results=500,
-                              language='en', dict_id_label=False):
+    def get_search_results(search_string='', mediawiki_api_url=None,
+                           user_agent=None, max_results=500,
+                           language='en', dict_id_label=False):
         """
         Performs a search in WD for a certain WD search string
         :param search_string: a string which should be searched for in WD
@@ -409,7 +409,7 @@ class ItemEngine(object):
 
         return list(property_list)
 
-    def __select_wd_item(self):
+    def __select_item(self):
         """
         The most likely WD item QID should be returned, after querying WDQ for all values in core_id properties
         :return: Either a single WD QID is returned, or an empty string if no suitable item in WD
@@ -424,7 +424,7 @@ class ItemEngine(object):
         mrt_pid = "PXXX"
 
         for statement in self.data:
-            wd_property = statement.get_prop_nr()
+            property_nr = statement.get_prop_nr()
 
             # only use this statement if mapping relation type is exact, or mrt is not specified
             mrt_qualifiers = [q for q in statement.get_qualifiers() if q.get_prop_nr() == mrt_pid]
@@ -437,10 +437,10 @@ class ItemEngine(object):
                 data_point = data_point[0]
 
             core_props = self.core_props
-            if wd_property in core_props:
+            if property_nr in core_props:
                 tmp_qids = set()
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
-                query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=wd_property,
+                query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
                                                       value=data_point.replace("'", r"\'"))
                 results = ItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)
 
@@ -452,14 +452,14 @@ class ItemEngine(object):
                 qid_list.update(tmp_qids)
 
                 # Protocol in what property the conflict arises
-                if wd_property in conflict_source:
-                    conflict_source[wd_property].append(tmp_qids)
+                if property_nr in conflict_source:
+                    conflict_source[property_nr].append(tmp_qids)
                 else:
-                    conflict_source[wd_property] = [tmp_qids]
+                    conflict_source[property_nr] = [tmp_qids]
 
                 if len(tmp_qids) > 1:
                     raise ManualInterventionReqException(
-                        'More than one WD item has the same property value', wd_property, tmp_qids)
+                        'More than one WD item has the same property value', property_nr, tmp_qids)
 
         if len(qid_list) == 0:
             self.create_new_item = True
@@ -477,7 +477,7 @@ class ItemEngine(object):
 
     def __construct_claim_json(self):
         """
-        Writes the properties from self.data to a new or existing json in self.wd_json_representation
+        Writes the properties from self.data to a new or existing json in self.json_representation
         :return: None
         """
 
@@ -658,12 +658,12 @@ class ItemEngine(object):
                 self.statements.remove(item)
 
         # regenerate claim json
-        self.wd_json_representation['claims'] = {}
+        self.json_representation['claims'] = {}
         for stat in self.statements:
             prop_nr = stat.get_prop_nr()
-            if prop_nr not in self.wd_json_representation['claims']:
-                self.wd_json_representation['claims'][prop_nr] = []
-            self.wd_json_representation['claims'][prop_nr].append(stat.get_json_representation())
+            if prop_nr not in self.json_representation['claims']:
+                self.json_representation['claims'][prop_nr] = []
+            self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
 
     def update(self, data, append_value=None):
         """
@@ -701,16 +701,16 @@ class ItemEngine(object):
             self.__construct_claim_json()
             self.__check_integrity()
 
-    def get_wd_json_representation(self):
+    def get_json_representation(self):
         """
         A method to access the internal json representation of the WD item, mainly for testing
         :return: returns a Python json representation object of the WD item at the current state of the instance
         """
-        return self.wd_json_representation
+        return self.json_representation
 
     def __check_integrity(self):
         """
-        A method to check if when invoking __select_wd_item() and the WD item does not exist yet, but another item
+        A method to check if when invoking __select_item() and the WD item does not exist yet, but another item
         has a property of the current domain with a value like submitted in the data dict, this item does not get
         selected but a ManualInterventionReqException() is raised. This check is dependent on the core identifiers
         of a certain domain.
@@ -748,7 +748,7 @@ class ItemEngine(object):
             nomatch_new = {k: v for k, v in nomatch_new.items() if v}
             raise CorePropIntegrityException('Retrieved item ({}) does not match provided core IDs. '
                                              'Matching count {}, non-matching count {}. '
-                                             .format(self.wd_item_id, core_prop_match_count,
+                                             .format(self.item_id, core_prop_match_count,
                                                      count_existing_ids - core_prop_match_count) +
                                              'existing unmatched core props: {}. '.format(nomatch_existing) +
                                              'statement unmatched core props: {}.'.format(nomatch_new))
@@ -763,9 +763,9 @@ class ItemEngine(object):
         :return: returns the label in the specified language, an empty string if the label does not exist
         """
         if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.wd_item_id, lang, 'label'))[0]
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'label'))[0]
         try:
-            return self.wd_json_representation['labels'][lang]['value']
+            return self.json_representation['labels'][lang]['value']
         except KeyError:
             return ''
 
@@ -779,7 +779,7 @@ class ItemEngine(object):
         :return: None
         """
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.wd_item_id,
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[label], lang=lang,
                                                                              lang_data_type='label')
             if self.require_write:
@@ -787,9 +787,9 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.wd_json_representation:
-            self.wd_json_representation['labels'] = {}
-        self.wd_json_representation['labels'][lang] = {
+        if 'labels' not in self.json_representation:
+            self.json_representation['labels'] = {}
+        self.json_representation['labels'][lang] = {
             'language': lang,
             'value': label
         }
@@ -801,11 +801,11 @@ class ItemEngine(object):
         :return: Returns a list of aliases, an empty list if none exist for the specified language
         """
         if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.wd_item_id, lang, 'aliases'))
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'aliases'))
 
         alias_list = []
-        if 'aliases' in self.wd_json_representation and lang in self.wd_json_representation['aliases']:
-            for alias in self.wd_json_representation['aliases'][lang]:
+        if 'aliases' in self.json_representation and lang in self.json_representation['aliases']:
+            for alias in self.json_representation['aliases'][lang]:
                 alias_list.append(alias['value'])
 
         return alias_list
@@ -819,7 +819,7 @@ class ItemEngine(object):
         :return: None
         """
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.wd_item_id,
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=aliases, lang=lang,
                                                                              lang_data_type='aliases')
             if self.require_write:
@@ -827,15 +827,15 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'aliases' not in self.wd_json_representation:
-            self.wd_json_representation['aliases'] = {}
+        if 'aliases' not in self.json_representation:
+            self.json_representation['aliases'] = {}
 
-        if not append or lang not in self.wd_json_representation['aliases']:
-            self.wd_json_representation['aliases'][lang] = []
+        if not append or lang not in self.json_representation['aliases']:
+            self.json_representation['aliases'][lang] = []
 
         for alias in aliases:
             found = False
-            for current_aliases in self.wd_json_representation['aliases'][lang]:
+            for current_aliases in self.json_representation['aliases'][lang]:
                 if alias.strip().lower() != current_aliases['value'].strip().lower():
                     continue
                 else:
@@ -843,7 +843,7 @@ class ItemEngine(object):
                     break
 
             if not found:
-                self.wd_json_representation['aliases'][lang].append({
+                self.json_representation['aliases'][lang].append({
                     'language': lang,
                     'value': alias
                 })
@@ -855,11 +855,11 @@ class ItemEngine(object):
         :return: Returns the description string
         """
         if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.wd_item_id, lang, 'description'))[0]
-        if 'descriptions' not in self.wd_json_representation or lang not in self.wd_json_representation['descriptions']:
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'description'))[0]
+        if 'descriptions' not in self.json_representation or lang not in self.json_representation['descriptions']:
             return ''
         else:
-            return self.wd_json_representation['descriptions'][lang]['value']
+            return self.json_representation['descriptions'][lang]['value']
 
     def set_description(self, description, lang='en'):
         """
@@ -871,7 +871,7 @@ class ItemEngine(object):
         :return: None
         """
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.wd_item_id,
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[description], lang=lang,
                                                                              lang_data_type='description')
             if self.require_write:
@@ -879,9 +879,9 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'descriptions' not in self.wd_json_representation:
-            self.wd_json_representation['descriptions'] = {}
-        self.wd_json_representation['descriptions'][lang] = {
+        if 'descriptions' not in self.json_representation:
+            self.json_representation['descriptions'] = {}
+        self.json_representation['descriptions'][lang] = {
             'language': lang,
             'value': description
         }
@@ -899,7 +899,7 @@ class ItemEngine(object):
             'title': title,
             'badges': badges
         }
-        self.wd_json_representation['sitelinks'][site] = sitelink
+        self.json_representation['sitelinks'][site] = sitelink
         self.sitelinks[site] = sitelink
 
     def get_sitelink(self, site):
@@ -936,16 +936,16 @@ class ItemEngine(object):
         :return: the WD QID on sucessful write
         """
         if not self.require_write:
-            return self.wd_item_id
+            return self.item_id
 
         if entity_type == 'property':
-            self.wd_json_representation['datatype'] = property_datatype
-            if 'sitelinks' in self.wd_json_representation:
-                del self.wd_json_representation['sitelinks']
+            self.json_representation['datatype'] = property_datatype
+            if 'sitelinks' in self.json_representation:
+                del self.json_representation['sitelinks']
 
         payload = {
             'action': 'wbeditentity',
-            'data': json.JSONEncoder().encode(self.wd_json_representation),
+            'data': json.JSONEncoder().encode(self.json_representation),
             'format': 'json',
             'token': login.get_edit_token(),
             'summary': edit_summary,
@@ -962,7 +962,7 @@ class ItemEngine(object):
         if self.create_new_item:
             payload.update({u'new': entity_type})
         else:
-            payload.update({u'id': self.wd_item_id})
+            payload.update({u'id': self.item_id})
 
         try:
             json_data = self.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
@@ -983,13 +983,13 @@ class ItemEngine(object):
 
         # after successful write, update this object with latest json, QID and parsed data types.
         self.create_new_item = False
-        self.wd_item_id = json_data['entity']['id']
-        self.parse_wd_json(wd_json=json_data['entity'])
+        self.item_id = json_data['entity']['id']
+        self.parse_json(json_data=json_data['entity'])
         self.data = []
         if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
             self.lastrevid = json_data["entity"]["lastrevid"]
         time.sleep(.5)
-        return self.wd_item_id
+        return self.item_id
 
     @staticmethod
     def mediawiki_api_call(method, mediawiki_api_url=None,
@@ -1066,12 +1066,12 @@ class ItemEngine(object):
 
     @classmethod
     def setup_logging(cls, log_dir="./logs", log_name=None, header=None, names=None,
-                      delimiter=";", logger_name='WD_logger'):
+                      delimiter=";", logger_name='logger'):
         """
         A static method which initiates log files compatible to .csv format, allowing for easy further analysis.
         :param log_dir: allows for setting relative or absolute path for logging, default is ./logs.
         :type log_dir: str
-        :param log_name: File name of log file to be written. e.g. "WD_bot_run-20160204.log". Default is "WD_bot_run"
+        :param log_name: File name of log file to be written. e.g. "bot_run-20160204.log". Default is "bot_run"
         and a timestamp of the current time
         :type log_name: str
         :param header: Log file will be prepended with header if given
@@ -1089,7 +1089,7 @@ class ItemEngine(object):
 
         if not log_name:
             run_id = time.strftime('%Y%m%d_%H:%M', time.localtime())
-            log_name = "WD_bot_run-{}.log".format(run_id)
+            log_name = "bot_run-{}.log".format(run_id)
 
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
@@ -1120,11 +1120,11 @@ class ItemEngine(object):
         :param message: The logging data which should be written to the log file. In order to achieve a csv-file
          compatible format, all fields must be separated by a colon. Furthermore, all strings which could contain
          colons, spaces or other special characters must be enclosed in double-quotes.
-         e.g. '{main_data_id}, "{exception_type}", "{message}", {wd_id}, {duration}'.format(
+         e.g. '{main_data_id}, "{exception_type}", "{message}", {item_id}, {duration}'.format(
                         main_data_id=<main_id>,
                         exception_type=<excpetion type>,
                         message=<exception message>,
-                        wd_id=<wikidata id>,
+                        item_id=<wikidata id>,
                         duration=<duration of action>
         :type message: str
         """
@@ -1137,8 +1137,7 @@ class ItemEngine(object):
         cls.logger.log(level=log_levels[level], msg=message)
 
     @classmethod
-    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None,
-                                user_agent=None):
+    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
         """
         A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
         tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
@@ -1176,7 +1175,7 @@ class ItemEngine(object):
 
         item_instances = []
         for qid, v in reply.json()['entities'].items():
-            ii = cls(wd_item_id=qid, item_data=v)
+            ii = cls(item_id=qid, item_data=v)
             ii.mediawiki_api_url = mediawiki_api_url
             item_instances.append((qid, ii))
 
@@ -1184,8 +1183,8 @@ class ItemEngine(object):
 
     @staticmethod
     @wbi_backoff()
-    def execute_sparql_query(query, prefix=None, endpoint=None,
-                             user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60):
+    def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000,
+                             retry_after=60):
         """
         Static method which can be used to execute any SPARQL query
         :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -1275,6 +1274,7 @@ class ItemEngine(object):
         schema = requests.get("https://www.wikidata.org/wiki/Special:EntitySchemaText/" + eid).text
         rdfdata = Graph()
         rdfdata.parse(config["CONCEPT_BASE_URI"] + qid + ".ttl")
+        shex_result = dict()
 
         for result in ShExEvaluator(rdf=rdfdata, schema=schema, focus=config["CONCEPT_BASE_URI"] + qid).evaluate():
             shex_result = dict()
@@ -1443,14 +1443,14 @@ class ItemEngine(object):
     @classmethod
     def _init_ref_system(cls, sparql_endpoint_url=None):
         db_query = '''
-        SELECT DISTINCT ?db ?wd_prop WHERE {
+        SELECT DISTINCT ?db ?prop WHERE {
             {?db wdt:P31 wd:Q2881060 . } UNION
             {?db wdt:P31 wd:Q4117139 . } UNION
             {?db wdt:P31 wd:Q8513 . } UNION
             {?db wdt:P31 wd:Q324254 .}
 
             OPTIONAL {
-              ?db wdt:P1687 ?wd_prop .
+              ?db wdt:P1687 ?prop .
             }
         }
         '''
@@ -1460,8 +1460,8 @@ class ItemEngine(object):
             if db_qid not in cls.databases:
                 cls.databases.update({db_qid: []})
 
-            if 'wd_prop' in x:
-                cls.databases[db_qid].append(x['wd_prop']['value'].split('/')[-1])
+            if 'prop' in x:
+                cls.databases[db_qid].append(x['prop']['value'].split('/')[-1])
 
     @staticmethod
     def delete_item(item, reason, login, mediawiki_api_url=None, user_agent=None):
@@ -1513,14 +1513,14 @@ class ItemEngine(object):
     @classmethod
     def count_references(cls, prop_id):
         counts = dict()
-        for claim in cls.get_wd_json_representation()['claims'][prop_id]:
+        for claim in cls.get_json_representation()['claims'][prop_id]:
             counts[claim['id']] = len(claim['references'])
         return counts
 
     @classmethod
     def get_reference_properties(cls, prop_id):
         references = []
-        for statements in cls.get_wd_json_representation()['claims'][prop_id]:
+        for statements in cls.get_json_representation()['claims'][prop_id]:
             for reference in statements['references']:
                 references.append(reference['snaks'].keys())
         return references
@@ -1528,7 +1528,7 @@ class ItemEngine(object):
     @classmethod
     def get_qualifier_properties(cls, prop_id):
         qualifiers = []
-        for statements in cls.get_wd_json_representation()['claims'][prop_id]:
+        for statements in cls.get_json_representation()['claims'][prop_id]:
             for reference in statements['qualifiers']:
                 qualifiers.append(reference['snaks'].keys())
         return qualifiers
@@ -1646,6 +1646,7 @@ class BaseDataType(object):
     """
     The base class for all Wikidata data types, they inherit from it
     """
+    DTYPE = 'base-data-type'
 
     # example sparql query
     """
@@ -1864,8 +1865,8 @@ class BaseDataType(object):
     def set_id(self, claim_id):
         self.id = claim_id
 
-    def set_hash(self, wd_hash):
-        self.hash = wd_hash
+    def set_hash(self, hash):
+        self.hash = hash
 
     def get_hash(self):
         return self.hash
@@ -2219,7 +2220,7 @@ class ItemID(BaseDataType):
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("Q"):
+        elif value is str and value.startswith("Q"):
             pattern = re.compile('[0-9]+')
             matches = pattern.match(value[1:])
 
@@ -3189,48 +3190,48 @@ class Sense(BaseDataType):
 
 
 class WDApiError(Exception):
-    def __init__(self, wd_error_message):
+    def __init__(self, error_message):
         """
         Base class for Wikidata error handling
-        :param wd_error_message: The error message returned by the WD API
-        :type wd_error_message: A Python json representation dictionary of the error message
+        :param error_message: The error message returned by the WD API
+        :type error_message: A Python json representation dictionary of the error message
         :return:
         """
-        self.wd_error_msg = wd_error_message
+        self.error_msg = error_message
 
     def __str__(self):
-        return repr(self.wd_error_msg)
+        return repr(self.error_msg)
 
 
 class NonUniqueLabelDescriptionPairError(WDApiError):
-    def __init__(self, wd_error_message):
+    def __init__(self, error_message):
         """
         This class handles errors returned from the WD API due to an attempt to create an item which has the same
          label and description as an existing item in a certain language.
-        :param wd_error_message: An WD API error mesage containing 'wikibase-validator-label-with-description-conflict'
+        :param error_message: An WD API error mesage containing 'wikibase-validator-label-with-description-conflict'
          as the message name.
-        :type wd_error_message: A Python json representation dictionary of the error message
+        :type error_message: A Python json representation dictionary of the error message
         :return:
         """
-        self.wd_error_msg = wd_error_message
+        self.error_msg = error_message
 
     def get_language(self):
         """
         :return: Returns a 2 letter Wikidata language string, indicating the language which triggered the error
         """
-        return self.wd_error_msg['error']['messages'][0]['parameters'][1]
+        return self.error_msg['error']['messages'][0]['parameters'][1]
 
     def get_conflicting_item_qid(self):
         """
         :return: Returns the QID string of the item which has the same label and description as the one which should
          be set.
         """
-        qid_string = self.wd_error_msg['error']['messages'][0]['parameters'][2]
+        qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
 
         return qid_string.split('|')[0][2:]
 
     def __str__(self):
-        return repr(self.wd_error_msg)
+        return repr(self.error_msg)
 
 
 class IDMissingError(Exception):
