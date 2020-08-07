@@ -3,7 +3,7 @@ from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
 
-from wikibaseintegrator.wdi_config import config
+from wikibaseintegrator.wbi_config import config
 
 example_Q14911732 = {'P1057':
                          {'Q14911732-23F268EB-2848-4A82-A248-CF4DF6B256BC':
@@ -457,7 +457,7 @@ class FastRunContainer(object):
                 PREFIX wdt: <**wikibase_url**/prop/direct/>
                 PREFIX p: <**wikibase_url**/prop/>
                 PREFIX ps: <**wikibase_url**/prop/statement/>
-                #Tool: wdi_core fastrun
+                #Tool: wbi_core fastrun
                 SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval WHERE {
                   {
                     SELECT ?item ?v ?sid where {
@@ -505,7 +505,7 @@ class FastRunContainer(object):
                 PREFIX p: <{0}/prop/>
                 PREFIX ps: <{0}/prop/statement/>
                 PREFIX psv: <{0}/prop/statement/value/>
-                #Tool: wdi_core fastrun
+                #Tool: wbi_core fastrun
                 select ?item ?qval ?pq ?sid ?v ?unit where {{
                   {1}
 
@@ -549,7 +549,7 @@ class FastRunContainer(object):
         PREFIX wdt: <{0}/prop/direct/>
         PREFIX p: <{0}/prop/>
         PREFIX ps: <{0}/prop/statement/>
-        #Tool: wdi_core fastrun
+        #Tool: wbi_core fastrun
         SELECT ?item ?label WHERE {{
             {1}
 

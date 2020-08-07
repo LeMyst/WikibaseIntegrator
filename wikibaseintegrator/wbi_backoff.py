@@ -9,7 +9,7 @@ from functools import partial
 import requests
 
 import backoff
-from wikibaseintegrator.wdi_config import config
+from wikibaseintegrator.wbi_config import config
 
 
 import simplejson as json
@@ -42,6 +42,6 @@ def check_json_decode_error(e):
 
 exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError,
               requests.HTTPError, JSONDecodeError)
-wdi_backoff = partial(backoff.on_exception, backoff.expo, exceptions, max_value=get_config("BACKOFF_MAX_VALUE"),
+wbi_backoff = partial(backoff.on_exception, backoff.expo, exceptions, max_value=get_config("BACKOFF_MAX_VALUE"),
                       giveup=check_json_decode_error, on_backoff=backoff_hdlr, jitter=None,
                       max_tries=get_config("BACKOFF_MAX_TRIES"))

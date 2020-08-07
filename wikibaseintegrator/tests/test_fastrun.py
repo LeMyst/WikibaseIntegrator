@@ -1,5 +1,5 @@
-from wikibaseintegrator import wdi_core, wdi_fastrun
-wdi_fastrun.FastRunContainer.debug = True
+from wikibaseintegrator import wbi_core, wbi_fastrun
+wbi_fastrun.FastRunContainer.debug = True
 
 
 def test_query_data():
@@ -10,8 +10,8 @@ def test_query_data():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     without getting references
     """
-    frc = wdi_fastrun.FastRunContainer(base_filter={'P699': ''},
-                                       base_data_type=wdi_core.WDBaseDataType, engine=wdi_core.WDItemEngine)
+    frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''},
+                                       base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine)
     # get a string value
     frc._query_data('P699')
     # wikidata-item value
@@ -46,8 +46,8 @@ def test_query_data_ref():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     WITH getting references
     """
-    frc = wdi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=wdi_core.WDBaseDataType,
-                                       engine=wdi_core.WDItemEngine, use_refs=True)
+    frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=wbi_core.WDBaseDataType,
+                                       engine=wbi_core.WDItemEngine, use_refs=True)
     frc._query_data('P699')
 
     # https://www.wikidata.org/wiki/Q10874
@@ -72,7 +72,7 @@ def test_query_data_ref():
     assert len(ref) > 1
 
 
-class frc_fake_query_data_ensembl(wdi_fastrun.FastRunContainer):
+class frc_fake_query_data_ensembl(wbi_fastrun.FastRunContainer):
     def __init__(self, *args, **kwargs):
         super(frc_fake_query_data_ensembl, self).__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
@@ -86,7 +86,7 @@ class frc_fake_query_data_ensembl(wdi_fastrun.FastRunContainer):
         self.rev_lookup = {'ENSG00000123374': {'Q14911732'}}
 
 
-class frc_fake_query_data_ensembl_no_ref(wdi_fastrun.FastRunContainer):
+class frc_fake_query_data_ensembl_no_ref(wbi_fastrun.FastRunContainer):
     def __init__(self, *args, **kwargs):
         super(frc_fake_query_data_ensembl_no_ref, self).__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
@@ -101,45 +101,45 @@ class frc_fake_query_data_ensembl_no_ref(wdi_fastrun.FastRunContainer):
 def test_fastrun_ref_ensembl():
     # fastrun checks refs
     frc = frc_fake_query_data_ensembl(base_filter={'P594': '', 'P703': 'Q15978631'},
-                                      base_data_type=wdi_core.WDBaseDataType, engine=wdi_core.WDItemEngine,
+                                      base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine,
                                       use_refs=True)
 
     # statement has no ref
     frc.debug = True
-    statements = [wdi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594')]
+    statements = [wbi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert frc.write_required(data=statements)
 
     # statement has the same ref
-    statements = [wdi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594',
-                                        references=[[wdi_core.WDItemID("Q29458763", "P248", is_reference=True),
-                                                     wdi_core.WDExternalID("ENSG00000123374", "P594",
+    statements = [wbi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594',
+                                        references=[[wbi_core.WDItemID("Q29458763", "P248", is_reference=True),
+                                                     wbi_core.WDExternalID("ENSG00000123374", "P594",
                                                                            is_reference=True)]])]
     assert not frc.write_required(data=statements)
 
     # new statement has an different stated in
-    statements = [wdi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594',
-                                        references=[[wdi_core.WDItemID("Q99999999999", "P248", is_reference=True),
-                                                     wdi_core.WDExternalID("ENSG00000123374", "P594",
+    statements = [wbi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594',
+                                        references=[[wbi_core.WDItemID("Q99999999999", "P248", is_reference=True),
+                                                     wbi_core.WDExternalID("ENSG00000123374", "P594",
                                                                            is_reference=True)]])]
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,
     frc = frc_fake_query_data_ensembl_no_ref(base_filter={'P594': '', 'P703': 'Q15978631'},
-                                             base_data_type=wdi_core.WDBaseDataType, engine=wdi_core.WDItemEngine,
+                                             base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine,
                                              use_refs=False)
-    statements = [wdi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594')]
+    statements = [wbi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert not frc.write_required(data=statements)
 
     # fastrun don't check references, statement has reference,
     frc = frc_fake_query_data_ensembl_no_ref(base_filter={'P594': '', 'P703': 'Q15978631'},
-                                             base_data_type=wdi_core.WDBaseDataType, engine=wdi_core.WDItemEngine,
+                                             base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine,
                                              use_refs=False)
-    statements = [wdi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594',
-                                        references=[[wdi_core.WDItemID("Q123", "P31", is_reference=True)]])]
+    statements = [wbi_core.WDExternalID(value='ENSG00000123374', prop_nr='P594',
+                                        references=[[wbi_core.WDItemID("Q123", "P31", is_reference=True)]])]
     assert not frc.write_required(data=statements)
 
 
-class fake_query_data_append_props(wdi_fastrun.FastRunContainer):
+class fake_query_data_append_props(wbi_fastrun.FastRunContainer):
     # an item with three values for the same property
     def __init__(self, *args, **kwargs):
         super(fake_query_data_append_props, self).__init__(*args, **kwargs)
@@ -174,16 +174,16 @@ def test_append_props():
     # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
-    statements = [wdi_core.WDItemID(value='Q24784025', prop_nr='P527')]
+    statements = [wbi_core.WDItemID(value='Q24784025', prop_nr='P527')]
     frc = fake_query_data_append_props(base_filter={'P352': '', 'P703': 'Q15978631'},
-                                       base_data_type=wdi_core.WDBaseDataType, engine=wdi_core.WDItemEngine)
+                                       base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine)
     assert frc.write_required(data=statements, append_props=['P527'], cqid=qid) is False
     assert frc.write_required(data=statements, cqid=qid)
 
     # if we are in append mode, and the refs are different, we should write
-    statements = [wdi_core.WDItemID(value='Q24784025', prop_nr='P527')]
+    statements = [wbi_core.WDItemID(value='Q24784025', prop_nr='P527')]
     frc = fake_query_data_append_props(base_filter={'P352': '', 'P703': 'Q15978631'},
-                                       base_data_type=wdi_core.WDBaseDataType, engine=wdi_core.WDItemEngine,
+                                       base_data_type=wbi_core.WDBaseDataType, engine=wbi_core.WDItemEngine,
                                        use_refs=True)
     assert frc.write_required(data=statements, append_props=['P527'], cqid=qid) is True
     assert frc.write_required(data=statements, cqid=qid)

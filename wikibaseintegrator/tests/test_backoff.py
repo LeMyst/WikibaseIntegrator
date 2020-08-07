@@ -2,9 +2,9 @@ import unittest
 import requests
 import sys
 
-from wikibaseintegrator import wdi_login
-from wikibaseintegrator.wdi_backoff import wdi_backoff
-from wikibaseintegrator.wdi_config import config
+from wikibaseintegrator import wbi_login
+from wikibaseintegrator.wbi_backoff import wbi_backoff
+from wikibaseintegrator.wbi_config import config
 pyv = sys.version_info.major
 if pyv == 3:
     import json
@@ -27,14 +27,14 @@ class TestMethods(unittest.TestCase):
             bad_json()
 
 
-@wdi_backoff()
+@wbi_backoff()
 def bad_http_code():
     r = requests.get("http://httpstat.us/400")
     r.raise_for_status()
     print(r.text)
 
 
-@wdi_backoff()
+@wbi_backoff()
 def good_http_code():
     r = requests.get("http://httpstat.us/200")
     r.raise_for_status()
@@ -42,18 +42,18 @@ def good_http_code():
     return r.text
 
 
-@wdi_backoff()
+@wbi_backoff()
 def bad_json():
     json.loads("<xml>I failed :(</xml>")
 
 
-@wdi_backoff()
+@wbi_backoff()
 def bad_request():
     requests.get("http://www.fakeurlgsdkjhjgfseg.com")
 
 
 def bad_login():
-    wdi_login.WDLogin("name", "pass", mediawiki_api_url="www.wikidataaaaaaaaa.org")
+    wbi_login.WDLogin("name", "pass", mediawiki_api_url="www.wikidataaaaaaaaa.org")
 
 
 if __name__ == "__main__":

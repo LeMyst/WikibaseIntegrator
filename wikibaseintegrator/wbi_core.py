@@ -15,9 +15,9 @@ from pyshex import ShExEvaluator
 from rdflib import Graph
 from shexer.shaper import Shaper
 
-from wikibaseintegrator.wdi_backoff import wdi_backoff
-from wikibaseintegrator.wdi_config import config
-from wikibaseintegrator.wdi_fastrun import FastRunContainer
+from wikibaseintegrator.wbi_backoff import wbi_backoff
+from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 """
 Authors:
@@ -717,12 +717,12 @@ class WDItemEngine(object):
         :return: boolean True if test passed
         """
         # all core props
-        wdi_core_props = self.core_props
+        wbi_core_props = self.core_props
         # core prop statements that exist on the item
-        cp_statements = [x for x in self.statements if x.get_prop_nr() in wdi_core_props]
+        cp_statements = [x for x in self.statements if x.get_prop_nr() in wbi_core_props]
         item_core_props = set(x.get_prop_nr() for x in cp_statements)
         # core prop statements we are loading
-        cp_data = [x for x in self.data if x.get_prop_nr() in wdi_core_props]
+        cp_data = [x for x in self.data if x.get_prop_nr() in wbi_core_props]
 
         # compare the claim values of the currently loaded QIDs to the data provided in self.data
         # this is the number of core_ids in self.data that are also on the item
@@ -1149,7 +1149,7 @@ class WDItemEngine(object):
         :type mediawiki_api_url: str
         :param login: An object of type WDLogin, which holds the credentials/session cookies required for >50 item bulk
             retrieval of items.
-        :type login: wdi_login.WDLogin
+        :type login: wbi_login.WDLogin
         :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
             instance of WDItemEngine with the corresponding item data.
         """
@@ -1183,7 +1183,7 @@ class WDItemEngine(object):
         return item_instances
 
     @staticmethod
-    @wdi_backoff()
+    @wbi_backoff()
     def execute_sparql_query(query, prefix=None, endpoint=None,
                              user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60):
         """
@@ -1206,7 +1206,7 @@ class WDItemEngine(object):
             query = prefix + '\n' + query
 
         params = {
-            'query': '#Tool: wdi_core fastrun\n' + query,
+            'query': '#Tool: wbi_core fastrun\n' + query,
             'format': 'json'
         }
 
@@ -1473,7 +1473,7 @@ class WDItemEngine(object):
         :param reason: short text about the reason for the deletion request
         :type reason: str
         :param login: A WDI login object which contains username and password the edit should be performed with.
-        :type login: wdi_login.WDLogin
+        :type login: wbi_login.WDLogin
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url

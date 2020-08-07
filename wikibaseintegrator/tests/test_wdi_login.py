@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 
-from wikibaseintegrator import wdi_login
+from wikibaseintegrator import wbi_login
 import os
 
 # look for environment variables. if none set, don't do anything
@@ -11,6 +11,6 @@ WDPASS = os.getenv("WDPASS")
 
 def test_login():
     if WDUSER and WDPASS:
-        login = wdi_login.WDLogin(WDUSER, WDPASS)
+        login = wbi_login.WDLogin(WDUSER, WDPASS)
     else:
         print("no WDUSER or WDPASS found in environment variables", file=sys.stderr)
