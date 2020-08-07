@@ -15,9 +15,9 @@ from pyshex import ShExEvaluator
 from rdflib import Graph
 from shexer.shaper import Shaper
 
-from wikibaseintegrator.wdi_backoff import wdi_backoff
-from wikibaseintegrator.wdi_config import config
-from wikibaseintegrator.wdi_fastrun import FastRunContainer
+from wikibaseintegrator.wbi_backoff import wbi_backoff
+from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 """
 Authors:
@@ -32,7 +32,7 @@ __author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller, Myst'
 __license__ = 'MIT'
 
 
-class WDItemEngine(object):
+class ItemEngine(object):
     databases = {}
     pmids = []
 
@@ -43,7 +43,7 @@ class WDItemEngine(object):
 
     logger = None
 
-    def __init__(self, wd_item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
+    def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
                  wikibase_url=None, concept_base_uri=None, append_value=None, fast_run=False, fast_run_base_filter=None,
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
                  keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None,
@@ -51,31 +51,31 @@ class WDItemEngine(object):
                  fast_run_case_insensitive=False, debug=False):
         """
         constructor
-        :param wd_item_id: Wikidata item id
+        :param item_id: Wikibase item id
         :param new_item: This parameter lets the user indicate if a new item should be created
         :type new_item: True or False
-        :param data: a dictionary with WD property strings as keys and the data which should be written to
-            a WD item as the property values
-        :type data: List[WDBaseDataType]
+        :param data: a dictionary with property strings as keys and the data which should be written to a item as the
+            property values
+        :type data: List[BaseDataType]
         :param append_value: a list of properties where potential existing values should not be overwritten by the data
             passed in the :parameter data.
         :type append_value: list of property number strings
         :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True
             should also specify the fast_run_base_filter for these item types
         :type fast_run: bool
-        :param fast_run_base_filter: A property value dict determining the Wikidata property and the corresponding value
+        :param fast_run_base_filter: A property value dict determining the Wikibase property and the corresponding value
             which should be used as a filter for this item type. Several filter criteria can be specified. The values
-            can be either Wikidata item QIDs, strings or empty strings if the value should be a variable in SPARQL.
+            can be either Wikibase item QIDs, strings or empty strings if the value should be a variable in SPARQL.
             Example: {'P352': '', 'P703': 'Q15978631'} if the basic common type of things this bot runs on is
             human proteins (specified by Uniprot IDs (P352) and 'found in taxon' homo sapiens 'Q15978631').
         :type fast_run_base_filter: dict
         :param fast_run_use_refs: If `True`, fastrun mode will consider references in determining if a statement should
-            be updated and written to Wikidata. Otherwise, only the value and qualifiers are used. Default: False
+            be updated and written to Wikibase. Otherwise, only the value and qualifiers are used. Default: False
         :type fast_run_use_refs: bool
         :param ref_handler: This parameter defines a function that will manage the reference handling in a custom
             manner. This argument should be a function handle that accepts two arguments, the old/current statement
             (first argument) and new/proposed/to be written statement (second argument), both of type: a subclass of
-            WDBaseDataType. The function should return an new item that is the item to be written. The item's values
+            BaseDataType. The function should return an new item that is the item to be written. The item's values
             properties or qualifiers should not be modified; only references. This function is also used in fastrun mode.
             This will only be used if the ref_mode is set to "CUSTOM".
         :type ref_handler: function
@@ -85,7 +85,7 @@ class WDItemEngine(object):
             defined in ref_handler
         :type global_ref_mode: str of value 'STRICT_KEEP', 'STRICT_KEEP_APPEND', 'STRICT_OVERWRITE', 'KEEP_GOOD', 'CUSTOM'
         :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries.
-            One block is a dictionary with  Wikidata properties as keys and potential values as the required value for
+            One block is a dictionary with Wikidata properties as keys and potential values as the required value for
             a property. There can be arbitrarily many key: value pairs in one reference block.
             Example: [{'P248': 'Q905695', 'P352': None, 'P407': None, 'P1476': None, 'P813': None}]
             This example contains one good reference block, stated in: Uniprot, Uniprot ID, title of Uniprot entry,
@@ -99,27 +99,27 @@ class WDItemEngine(object):
             good_refs list or by any other referencing mode.
         :type keep_good_ref_statements: bool
         :param search_only: If this flag is set to True, the data provided will only be used to search for the
-            corresponding Wikidata item, but no actual data updates will performed. This is useful, if certain states or
+            corresponding Wikibase item, but no actual data updates will performed. This is useful, if certain states or
             values on the target item need to be checked before certain data is written to it. In order to write new
-            data to the item, the method update() will take data, modify the Wikidata item and a write() call will
-            then perform the actual write to Wikidata.
+            data to the item, the method update() will take data, modify the Wikibase item and a write() call will
+            then perform the actual write to the Wikibase instance.
         :type search_only: bool
-        :param item_data: A Python JSON object corresponding to the Wikidata item in wd_item_id. This can be used in
-            conjunction with wd_item_id in order to provide raw data.
+        :param item_data: A Python JSON object corresponding to the item in item_id. This can be used in
+            conjunction with item_id in order to provide raw data.
         :param user_agent: The user agent string to use when making http requests
         :type user_agent: str
-        :param core_props: Core properties are used to retrieve a Wikidata item based on `data` if a `wd_item_id` is
-            not given. This is a set of PIDs to use. If None, all Wikidata properties with a distinct values
+        :param core_props: Core properties are used to retrieve an item based on `data` if a `item_id` is
+            not given. This is a set of PIDs to use. If None, all Wikibase properties with a distinct values
             constraint will be used. (see: get_core_props)
         :type core_props: set
         :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item
-            when the wd_item_id is not specified.
+            when the item_id is not specified.
         :type core_prop_match_thresh: float
         :param debug: Enable debug output.
         :type debug: boolean
         """
         self.core_prop_match_thresh = core_prop_match_thresh
-        self.wd_item_id = wd_item_id
+        self.item_id = item_id
         self.new_item = new_item
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
@@ -144,7 +144,7 @@ class WDItemEngine(object):
         self.user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
         self.create_new_item = False
-        self.wd_json_representation = {}
+        self.json_representation = {}
         self.statements = []
         self.original_statements = []
         self.entity_metadata = {}
@@ -177,11 +177,11 @@ class WDItemEngine(object):
                     else:
                         print('successful fastrun, because no full data match you need to update the item...')
                 else:
-                    print('successful fastrun, no write to Wikidata required')
+                    print('successful fastrun, no write to Wikibase instance required')
 
-        if self.wd_item_id != '' and self.create_new_item == True:
-            raise IDMissingError('Cannot create a new item, when a wikidata identifier is given')
-        elif self.new_item == True and len(self.data) > 0:
+        if self.item_id != '' and self.create_new_item:
+            raise IDMissingError('Cannot create a new item, when an identifier is given')
+        elif self.new_item and len(self.data) > 0:
             self.create_new_item = True
             self.__construct_claim_json()
         elif self.require_write:
@@ -226,20 +226,20 @@ class WDItemEngine(object):
         cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set(df.p)
 
     def init_data_load(self):
-        if self.wd_item_id and self.item_data:
-            self.wd_json_representation = self.parse_wd_json(self.item_data)
-        elif self.wd_item_id:
-            self.wd_json_representation = self.get_wd_entity()
+        if self.item_id and self.item_data:
+            self.json_representation = self.parse_json(self.item_data)
+        elif self.item_id:
+            self.json_representation = self.get_entity()
         else:
             qids_by_props = ''
             try:
-                qids_by_props = self.__select_wd_item()
-            except WDSearchError as e:
+                qids_by_props = self.__select_item()
+            except SearchError as e:
                 self.log('ERROR', str(e))
 
             if qids_by_props:
-                self.wd_item_id = qids_by_props
-                self.wd_json_representation = self.get_wd_entity()
+                self.item_id = qids_by_props
+                self.json_representation = self.get_entity()
                 self.__check_integrity()
 
         if not self.search_only:
@@ -249,13 +249,13 @@ class WDItemEngine(object):
 
     def init_fastrun(self):
         # We search if we already have a FastRunContainer with the same parameters to re-use it
-        for c in WDItemEngine.fast_run_store:
+        for c in ItemEngine.fast_run_store:
             if (c.base_filter == self.fast_run_base_filter) and (c.use_refs == self.fast_run_use_refs) and \
                     (c.sparql_endpoint_url == self.sparql_endpoint_url):
                 self.fast_run_container = c
                 self.fast_run_container.ref_handler = self.ref_handler
                 self.fast_run_container.current_qid = ''
-                self.fast_run_container.base_data_type = WDBaseDataType
+                self.fast_run_container.base_data_type = BaseDataType
                 self.fast_run_container.engine = self.__class__
                 self.fast_run_container.mediawiki_api_url = self.mediawiki_api_url
                 self.fast_run_container.wikibase_url = self.wikibase_url
@@ -266,7 +266,7 @@ class WDItemEngine(object):
 
         if not self.fast_run_container:
             self.fast_run_container = FastRunContainer(base_filter=self.fast_run_base_filter,
-                                                       base_data_type=WDBaseDataType,
+                                                       base_data_type=BaseDataType,
                                                        engine=self.__class__,
                                                        sparql_endpoint_url=self.sparql_endpoint_url,
                                                        mediawiki_api_url=self.mediawiki_api_url,
@@ -276,70 +276,70 @@ class WDItemEngine(object):
                                                        ref_handler=self.ref_handler,
                                                        case_insensitive=self.fast_run_case_insensitive,
                                                        debug=self.debug)
-            WDItemEngine.fast_run_store.append(self.fast_run_container)
+            ItemEngine.fast_run_store.append(self.fast_run_container)
 
         if not self.search_only:
             self.require_write = self.fast_run_container.write_required(self.data, append_props=self.append_value,
-                                                                        cqid=self.wd_item_id)
+                                                                        cqid=self.item_id)
             # set item id based on fast run data
-            if not self.require_write and not self.wd_item_id:
-                self.wd_item_id = self.fast_run_container.current_qid
+            if not self.require_write and not self.item_id:
+                self.item_id = self.fast_run_container.current_qid
         else:
             self.fast_run_container.load_item(self.data)
             # set item id based on fast run data
-            if not self.wd_item_id:
-                self.wd_item_id = self.fast_run_container.current_qid
+            if not self.item_id:
+                self.item_id = self.fast_run_container.current_qid
 
-    def get_wd_entity(self):
+    def get_entity(self):
         """
-        retrieve a WD item in json representation from Wikidata
+        retrieve an item in json representation from the Wikibase instance
         :rtype: dict
         :return: python complex dictionary represenation of a json
         """
         params = {
             'action': 'wbgetentities',
             'sites': 'enwiki',
-            'ids': self.wd_item_id,
+            'ids': self.item_id,
             'format': 'json'
         }
         headers = {
             'User-Agent': self.user_agent
         }
         json_data = self.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
-        return self.parse_wd_json(wd_json=json_data['entities'][self.wd_item_id])
+        return self.parse_json(json_data=json_data['entities'][self.item_id])
 
-    def parse_wd_json(self, wd_json):
+    def parse_json(self, json_data):
         """
-        Parses a WD entity json and generates the datatype objects, sets self.wd_json_representation
-        :param wd_json: the json of a WD entity
-        :type wd_json: A Python Json representation of a WD item
+        Parses an entity json and generates the datatype objects, sets self.json_representation
+        :param json_data: the json of an entity
+        :type json_data: A Python Json representation of an item
         :return: returns the json representation containing 'labels', 'descriptions', 'claims', 'aliases', 'sitelinks'.
         """
-        wd_data = {x: wd_json[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in wd_json}
-        wd_data['sitelinks'] = dict()
-        self.entity_metadata = {x: wd_json[x] for x in wd_json if x not in
+        data = {x: json_data[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in json_data}
+        data['sitelinks'] = dict()
+        self.entity_metadata = {x: json_data[x] for x in json_data if x not in
                                 ('labels', 'descriptions', 'claims', 'aliases', 'sitelinks')}
-        self.sitelinks = wd_json.get('sitelinks', dict())
+        self.sitelinks = json_data.get('sitelinks', dict())
 
         self.statements = []
-        for prop in wd_data['claims']:
-            for z in wd_data['claims'][prop]:
-                data_type = [x for x in WDBaseDataType.__subclasses__() if x.DTYPE == z['mainsnak']['datatype']][0]
+        for prop in data['claims']:
+            for z in data['claims'][prop]:
+                data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == z['mainsnak']['datatype']][0]
                 statement = data_type.from_json(z)
                 self.statements.append(statement)
 
-        self.wd_json_representation = wd_data
+        self.json_representation = data
         self.original_statements = copy.deepcopy(self.statements)
 
-        return wd_data
+        return data
 
     @staticmethod
-    def get_wd_search_results(search_string='', mediawiki_api_url=None,
-                              user_agent=None, max_results=500,
-                              language='en', dict_id_label=False):
+    def get_search_results(search_string='', mediawiki_api_url=None,
+                           user_agent=None, max_results=500,
+                           language='en', dict_id_label=False):
         """
-        Performs a search in WD for a certain WD search string
-        :param search_string: a string which should be searched for in WD
+        Performs a search in the Wikibase instance for a certain search string
+        :param search_string: a string which should be searched for in the Wikibase instance
         :type search_string: str
         :param mediawiki_api_url: Specify the mediawiki_api_url.
         :type mediawiki_api_url: str
@@ -380,7 +380,7 @@ class WDItemEngine(object):
             search_results = reply.json()
 
             if search_results['success'] != 1:
-                raise WDSearchError('WD search failed')
+                raise SearchError('WB search failed')
             else:
                 for i in search_results['search']:
                     if dict_id_label:
@@ -401,7 +401,7 @@ class WDItemEngine(object):
     def get_property_list(self):
         """
         List of properties on the current item
-        :return: a list of WD property ID strings (Pxxxx).
+        :return: a list of property ID strings (Pxxxx).
         """
         property_list = set()
         for x in self.statements:
@@ -409,10 +409,10 @@ class WDItemEngine(object):
 
         return list(property_list)
 
-    def __select_wd_item(self):
+    def __select_item(self):
         """
-        The most likely WD item QID should be returned, after querying WDQ for all values in core_id properties
-        :return: Either a single WD QID is returned, or an empty string if no suitable item in WD
+        The most likely item QID should be returned, after querying the Wikibase instance for all values in core_id properties
+        :return: Either a single QID is returned, or an empty string if no suitable item in the Wikibase instance
         """
         qid_list = set()
         conflict_source = {}
@@ -424,7 +424,7 @@ class WDItemEngine(object):
         mrt_pid = "PXXX"
 
         for statement in self.data:
-            wd_property = statement.get_prop_nr()
+            property_nr = statement.get_prop_nr()
 
             # only use this statement if mapping relation type is exact, or mrt is not specified
             mrt_qualifiers = [q for q in statement.get_qualifiers() if q.get_prop_nr() == mrt_pid]
@@ -437,12 +437,12 @@ class WDItemEngine(object):
                 data_point = data_point[0]
 
             core_props = self.core_props
-            if wd_property in core_props:
+            if property_nr in core_props:
                 tmp_qids = set()
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
-                query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=wd_property,
+                query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
                                                       value=data_point.replace("'", r"\'"))
-                results = WDItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)
+                results = ItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)
 
                 for i in results['results']['bindings']:
                     qid = i['item_id']['value'].split('/')[-1]
@@ -452,14 +452,14 @@ class WDItemEngine(object):
                 qid_list.update(tmp_qids)
 
                 # Protocol in what property the conflict arises
-                if wd_property in conflict_source:
-                    conflict_source[wd_property].append(tmp_qids)
+                if property_nr in conflict_source:
+                    conflict_source[property_nr].append(tmp_qids)
                 else:
-                    conflict_source[wd_property] = [tmp_qids]
+                    conflict_source[property_nr] = [tmp_qids]
 
                 if len(tmp_qids) > 1:
                     raise ManualInterventionReqException(
-                        'More than one WD item has the same property value', wd_property, tmp_qids)
+                        'More than one item has the same property value', property_nr, tmp_qids)
 
         if len(qid_list) == 0:
             self.create_new_item = True
@@ -470,14 +470,14 @@ class WDItemEngine(object):
 
         unique_qids = set(qid_list)
         if len(unique_qids) > 1:
-            raise ManualInterventionReqException('More than one WD item has the same property value',
+            raise ManualInterventionReqException('More than one item has the same property value',
                                                  conflict_source, unique_qids)
         elif len(unique_qids) == 1:
             return list(unique_qids)[0]
 
     def __construct_claim_json(self):
         """
-        Writes the properties from self.data to a new or existing json in self.wd_json_representation
+        Writes the properties from self.data to a new or existing json in self.json_representation
         :return: None
         """
 
@@ -487,8 +487,8 @@ class WDItemEngine(object):
 
         def is_good_ref(ref_block):
 
-            if len(WDItemEngine.databases) == 0:
-                WDItemEngine._init_ref_system()
+            if len(ItemEngine.databases) == 0:
+                ItemEngine._init_ref_system()
 
             prop_nrs = [x.get_prop_nr() for x in ref_block]
             values = [x.get_value() for x in ref_block]
@@ -528,10 +528,10 @@ class WDItemEngine(object):
                 pn = ref.get_prop_nr()
                 value = ref.get_value()
 
-                if pn == 'P248' and value not in WDItemEngine.databases and 'P854' not in prop_nrs:
+                if pn == 'P248' and value not in ItemEngine.databases and 'P854' not in prop_nrs:
                     return False
-                elif pn == 'P248' and value in WDItemEngine.databases:
-                    db_props = WDItemEngine.databases[value]
+                elif pn == 'P248' and value in ItemEngine.databases:
+                    db_props = ItemEngine.databases[value]
                     if not any([False if x not in prop_nrs else True for x in db_props]) and 'P854' not in prop_nrs:
                         return False
 
@@ -540,10 +540,10 @@ class WDItemEngine(object):
         def handle_references(old_item, new_item):
             """
             Local function to handle references
-            :param old_item: An item containing the data as currently in WD
-            :type old_item: A child of WDBaseDataType
-            :param new_item: An item containing the new data which should be written to WD
-            :type new_item: A child of WDBaseDataType
+            :param old_item: An item containing the data as currently in the Wikibase instance
+            :type old_item: A child of BaseDataType
+            :param new_item: An item containing the new data which should be written to the Wikibase instance
+            :type new_item: A child of BaseDataType
             """
             # stated in, title, language of work, retrieved, imported from
             ref_properties = ['P248', 'P1476', 'P407', 'P813', 'P143']
@@ -583,13 +583,13 @@ class WDItemEngine(object):
                 refs.extend(new_references)
                 old_item.set_references(refs)
 
-        # sort the incoming data according to the WD property number
+        # sort the incoming data according to the property number
         self.data.sort(key=lambda z: z.get_prop_nr().lower())
 
         # collect all statements which should be deleted
         statements_for_deletion = []
         for item in self.data:
-            if item.get_value() == '' and isinstance(item, WDBaseDataType):
+            if item.get_value() == '' and isinstance(item, BaseDataType):
                 statements_for_deletion.append(item.get_prop_nr())
 
         if self.create_new_item:
@@ -658,12 +658,12 @@ class WDItemEngine(object):
                 self.statements.remove(item)
 
         # regenerate claim json
-        self.wd_json_representation['claims'] = {}
+        self.json_representation['claims'] = {}
         for stat in self.statements:
             prop_nr = stat.get_prop_nr()
-            if prop_nr not in self.wd_json_representation['claims']:
-                self.wd_json_representation['claims'][prop_nr] = []
-            self.wd_json_representation['claims'][prop_nr].append(stat.get_json_representation())
+            if prop_nr not in self.json_representation['claims']:
+                self.json_representation['claims'][prop_nr] = []
+            self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
 
     def update(self, data, append_value=None):
         """
@@ -672,7 +672,7 @@ class WDItemEngine(object):
         allows for checking the item data before deciding which new data should be written to the Wikidata item.
         The actual write to Wikidata only happens on calling of the write() method. If data has been provided already
         via the constructor, data provided via the update() method will be appended to these data.
-        :param data: A list of Wikidata statment items inheriting from WDBaseDataType
+        :param data: A list of Wikidata statment items inheriting from BaseDataType
         :type data: list
         :param append_value: list with Wikidata property strings where the values should only be appended,
             not overwritten.
@@ -701,28 +701,28 @@ class WDItemEngine(object):
             self.__construct_claim_json()
             self.__check_integrity()
 
-    def get_wd_json_representation(self):
+    def get_json_representation(self):
         """
-        A method to access the internal json representation of the WD item, mainly for testing
-        :return: returns a Python json representation object of the WD item at the current state of the instance
+        A method to access the internal json representation of the item, mainly for testing
+        :return: returns a Python json representation object of the item at the current state of the instance
         """
-        return self.wd_json_representation
+        return self.json_representation
 
     def __check_integrity(self):
         """
-        A method to check if when invoking __select_wd_item() and the WD item does not exist yet, but another item
+        A method to check if when invoking __select_item() and the item does not exist yet, but another item
         has a property of the current domain with a value like submitted in the data dict, this item does not get
         selected but a ManualInterventionReqException() is raised. This check is dependent on the core identifiers
         of a certain domain.
         :return: boolean True if test passed
         """
         # all core props
-        wdi_core_props = self.core_props
+        wbi_core_props = self.core_props
         # core prop statements that exist on the item
-        cp_statements = [x for x in self.statements if x.get_prop_nr() in wdi_core_props]
+        cp_statements = [x for x in self.statements if x.get_prop_nr() in wbi_core_props]
         item_core_props = set(x.get_prop_nr() for x in cp_statements)
         # core prop statements we are loading
-        cp_data = [x for x in self.data if x.get_prop_nr() in wdi_core_props]
+        cp_data = [x for x in self.data if x.get_prop_nr() in wbi_core_props]
 
         # compare the claim values of the currently loaded QIDs to the data provided in self.data
         # this is the number of core_ids in self.data that are also on the item
@@ -748,7 +748,7 @@ class WDItemEngine(object):
             nomatch_new = {k: v for k, v in nomatch_new.items() if v}
             raise CorePropIntegrityException('Retrieved item ({}) does not match provided core IDs. '
                                              'Matching count {}, non-matching count {}. '
-                                             .format(self.wd_item_id, core_prop_match_count,
+                                             .format(self.item_id, core_prop_match_count,
                                                      count_existing_ids - core_prop_match_count) +
                                              'existing unmatched core props: {}. '.format(nomatch_existing) +
                                              'statement unmatched core props: {}.'.format(nomatch_new))
@@ -763,15 +763,15 @@ class WDItemEngine(object):
         :return: returns the label in the specified language, an empty string if the label does not exist
         """
         if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.wd_item_id, lang, 'label'))[0]
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'label'))[0]
         try:
-            return self.wd_json_representation['labels'][lang]['value']
+            return self.json_representation['labels'][lang]['value']
         except KeyError:
             return ''
 
     def set_label(self, label, lang='en'):
         """
-        Set the label for a WD item in a certain language
+        Set the label for an item in a certain language
         :param label: The description of the item in a certain language
         :type label: str
         :param lang: The language a label should be set for.
@@ -779,7 +779,7 @@ class WDItemEngine(object):
         :return: None
         """
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.wd_item_id,
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[label], lang=lang,
                                                                              lang_data_type='label')
             if self.require_write:
@@ -787,9 +787,9 @@ class WDItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.wd_json_representation:
-            self.wd_json_representation['labels'] = {}
-        self.wd_json_representation['labels'][lang] = {
+        if 'labels' not in self.json_representation:
+            self.json_representation['labels'] = {}
+        self.json_representation['labels'][lang] = {
             'language': lang,
             'value': label
         }
@@ -797,29 +797,29 @@ class WDItemEngine(object):
     def get_aliases(self, lang='en'):
         """
         Retrieve the aliases in a certain language
-        :param lang: The Wikidata language the description should be retrieved for
+        :param lang: The language the description should be retrieved for
         :return: Returns a list of aliases, an empty list if none exist for the specified language
         """
         if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.wd_item_id, lang, 'aliases'))
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'aliases'))
 
         alias_list = []
-        if 'aliases' in self.wd_json_representation and lang in self.wd_json_representation['aliases']:
-            for alias in self.wd_json_representation['aliases'][lang]:
+        if 'aliases' in self.json_representation and lang in self.json_representation['aliases']:
+            for alias in self.json_representation['aliases'][lang]:
                 alias_list.append(alias['value'])
 
         return alias_list
 
     def set_aliases(self, aliases, lang='en', append=True):
         """
-        set the aliases for a WD item
-        :param aliases: a list of strings representing the aliases of a WD item
+        set the aliases for an item
+        :param aliases: a list of strings representing the aliases of an item
         :param lang: The language a description should be set for
         :param append: If true, append a new alias to the list of existing aliases, else, overwrite. Default: True
         :return: None
         """
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.wd_item_id,
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=aliases, lang=lang,
                                                                              lang_data_type='aliases')
             if self.require_write:
@@ -827,15 +827,15 @@ class WDItemEngine(object):
             else:
                 return
 
-        if 'aliases' not in self.wd_json_representation:
-            self.wd_json_representation['aliases'] = {}
+        if 'aliases' not in self.json_representation:
+            self.json_representation['aliases'] = {}
 
-        if not append or lang not in self.wd_json_representation['aliases']:
-            self.wd_json_representation['aliases'][lang] = []
+        if not append or lang not in self.json_representation['aliases']:
+            self.json_representation['aliases'][lang] = []
 
         for alias in aliases:
             found = False
-            for current_aliases in self.wd_json_representation['aliases'][lang]:
+            for current_aliases in self.json_representation['aliases'][lang]:
                 if alias.strip().lower() != current_aliases['value'].strip().lower():
                     continue
                 else:
@@ -843,7 +843,7 @@ class WDItemEngine(object):
                     break
 
             if not found:
-                self.wd_json_representation['aliases'][lang].append({
+                self.json_representation['aliases'][lang].append({
                     'language': lang,
                     'value': alias
                 })
@@ -851,19 +851,19 @@ class WDItemEngine(object):
     def get_description(self, lang='en'):
         """
         Retrieve the description in a certain language
-        :param lang: The Wikidata language the description should be retrieved for
+        :param lang: The language the description should be retrieved for
         :return: Returns the description string
         """
         if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.wd_item_id, lang, 'description'))[0]
-        if 'descriptions' not in self.wd_json_representation or lang not in self.wd_json_representation['descriptions']:
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'description'))[0]
+        if 'descriptions' not in self.json_representation or lang not in self.json_representation['descriptions']:
             return ''
         else:
-            return self.wd_json_representation['descriptions'][lang]['value']
+            return self.json_representation['descriptions'][lang]['value']
 
     def set_description(self, description, lang='en'):
         """
-        Set the description for a WD item in a certain language
+        Set the description for an item in a certain language
         :param description: The description of the item in a certain language
         :type description: str
         :param lang: The language a description should be set for.
@@ -871,7 +871,7 @@ class WDItemEngine(object):
         :return: None
         """
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.wd_item_id,
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[description], lang=lang,
                                                                              lang_data_type='description')
             if self.require_write:
@@ -879,9 +879,9 @@ class WDItemEngine(object):
             else:
                 return
 
-        if 'descriptions' not in self.wd_json_representation:
-            self.wd_json_representation['descriptions'] = {}
-        self.wd_json_representation['descriptions'][lang] = {
+        if 'descriptions' not in self.json_representation:
+            self.json_representation['descriptions'] = {}
+        self.json_representation['descriptions'][lang] = {
             'language': lang,
             'value': description
         }
@@ -899,7 +899,7 @@ class WDItemEngine(object):
             'title': title,
             'badges': badges
         }
-        self.wd_json_representation['sitelinks'][site] = sitelink
+        self.json_representation['sitelinks'][site] = sitelink
         self.sitelinks[site] = sitelink
 
     def get_sitelink(self, site):
@@ -916,8 +916,8 @@ class WDItemEngine(object):
     def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string',
               max_retries=1000, retry_after=60):
         """
-        Writes the WD item Json to WD and after successful write, updates the object with new ids and hashes generated
-        by WD. For new items, also returns the new QIDs.
+        Writes the item Json to the Wikibase instance and after successful write, updates the object with new ids and
+        hashes generated by the Wikibase instance. For new items, also returns the new QIDs.
         :param login: a instance of the class PBB_login which provides edit-cookies and edit-tokens
         :param bot_account: Tell the Wikidata API whether the script should be run as part of a bot account or not.
         :type bot_account: bool
@@ -933,19 +933,19 @@ class WDItemEngine(object):
         :type max_retries: int
         :param retry_after: Number of seconds to wait before retrying request (see max_retries)
         :type retry_after: int
-        :return: the WD QID on sucessful write
+        :return: the QID on sucessful write
         """
         if not self.require_write:
-            return self.wd_item_id
+            return self.item_id
 
         if entity_type == 'property':
-            self.wd_json_representation['datatype'] = property_datatype
-            if 'sitelinks' in self.wd_json_representation:
-                del self.wd_json_representation['sitelinks']
+            self.json_representation['datatype'] = property_datatype
+            if 'sitelinks' in self.json_representation:
+                del self.json_representation['sitelinks']
 
         payload = {
             'action': 'wbeditentity',
-            'data': json.JSONEncoder().encode(self.wd_json_representation),
+            'data': json.JSONEncoder().encode(self.json_representation),
             'format': 'json',
             'token': login.get_edit_token(),
             'summary': edit_summary,
@@ -962,7 +962,7 @@ class WDItemEngine(object):
         if self.create_new_item:
             payload.update({u'new': entity_type})
         else:
-            payload.update({u'id': self.wd_item_id})
+            payload.update({u'id': self.item_id})
 
         try:
             json_data = self.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
@@ -974,22 +974,22 @@ class WDItemEngine(object):
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
                     raise NonUniqueLabelDescriptionPairError(json_data)
                 else:
-                    raise WDApiError(json_data)
+                    raise MWApiError(json_data)
             elif 'error' in json_data.keys():
-                raise WDApiError(json_data)
+                raise MWApiError(json_data)
         except Exception:
-            print('Error while writing to Wikidata')
+            print('Error while writing to the Wikibase instance')
             raise
 
         # after successful write, update this object with latest json, QID and parsed data types.
         self.create_new_item = False
-        self.wd_item_id = json_data['entity']['id']
-        self.parse_wd_json(wd_json=json_data['entity'])
+        self.item_id = json_data['entity']['id']
+        self.parse_json(json_data=json_data['entity'])
         self.data = []
         if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
             self.lastrevid = json_data["entity"]["lastrevid"]
         time.sleep(.5)
-        return self.wd_item_id
+        return self.item_id
 
     @staticmethod
     def mediawiki_api_call(method, mediawiki_api_url=None,
@@ -1026,7 +1026,7 @@ class WDItemEngine(object):
             response.raise_for_status()
             json_data = response.json()
             """
-            wikidata api response has code = 200 even if there are errors.
+            Mediawiki api response has code = 200 even if there are errors.
             rate limit doesn't return HTTP 429 either. may in the future
             https://phabricator.wikimedia.org/T172293
             """
@@ -1050,7 +1050,7 @@ class WDItemEngine(object):
 
                 # readonly
                 if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
-                    print('Wikidata currently is in readonly mode, waiting for {} seconds'.format(retry_after))
+                    print('The wikibase instance is currently in readonly mode, waiting for {} seconds'.format(retry_after))
                     time.sleep(retry_after)
                     continue
 
@@ -1060,18 +1060,18 @@ class WDItemEngine(object):
             # the first time I've ever used for - else!!
             # else executes if the for loop completes normally. i.e. does not encouter a `break`
             # in this case, that means it tried this api call 10 times
-            raise WDApiError(response.json() if response else dict())
+            raise MWApiError(response.json() if response else dict())
 
         return json_data
 
     @classmethod
     def setup_logging(cls, log_dir="./logs", log_name=None, header=None, names=None,
-                      delimiter=";", logger_name='WD_logger'):
+                      delimiter=";", logger_name='logger'):
         """
         A static method which initiates log files compatible to .csv format, allowing for easy further analysis.
         :param log_dir: allows for setting relative or absolute path for logging, default is ./logs.
         :type log_dir: str
-        :param log_name: File name of log file to be written. e.g. "WD_bot_run-20160204.log". Default is "WD_bot_run"
+        :param log_name: File name of log file to be written. e.g. "bot_run-20160204.log". Default is "bot_run"
         and a timestamp of the current time
         :type log_name: str
         :param header: Log file will be prepended with header if given
@@ -1089,7 +1089,7 @@ class WDItemEngine(object):
 
         if not log_name:
             run_id = time.strftime('%Y%m%d_%H:%M', time.localtime())
-            log_name = "WD_bot_run-{}.log".format(run_id)
+            log_name = "bot_run-{}.log".format(run_id)
 
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
@@ -1120,11 +1120,11 @@ class WDItemEngine(object):
         :param message: The logging data which should be written to the log file. In order to achieve a csv-file
          compatible format, all fields must be separated by a colon. Furthermore, all strings which could contain
          colons, spaces or other special characters must be enclosed in double-quotes.
-         e.g. '{main_data_id}, "{exception_type}", "{message}", {wd_id}, {duration}'.format(
+         e.g. '{main_data_id}, "{exception_type}", "{message}", {item_id}, {duration}'.format(
                         main_data_id=<main_id>,
                         exception_type=<excpetion type>,
                         message=<exception message>,
-                        wd_id=<wikidata id>,
+                        item_id=<wikibase id>,
                         duration=<duration of action>
         :type message: str
         """
@@ -1137,21 +1137,21 @@ class WDItemEngine(object):
         cls.logger.log(level=log_levels[level], msg=message)
 
     @classmethod
-    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None,
-                                user_agent=None):
+    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
         """
         A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
         tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
-        WDItemEngine containing all the data of the item. This is most useful for mass retrieval of WD items.
+        ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
+        :param user_agent: A custom user agent
         :param items: A list of QIDs or property IDs
         :type items: list
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
-        :param login: An object of type WDLogin, which holds the credentials/session cookies required for >50 item bulk
+        :param login: An object of type Login, which holds the credentials/session cookies required for >50 item bulk
             retrieval of items.
-        :type login: wdi_login.WDLogin
+        :type login: wbi_login.Login
         :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
-            instance of WDItemEngine with the corresponding item data.
+            instance of ItemEngine with the corresponding item data.
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1176,26 +1176,27 @@ class WDItemEngine(object):
 
         item_instances = []
         for qid, v in reply.json()['entities'].items():
-            ii = cls(wd_item_id=qid, item_data=v)
+            ii = cls(item_id=qid, item_data=v)
             ii.mediawiki_api_url = mediawiki_api_url
             item_instances.append((qid, ii))
 
         return item_instances
 
     @staticmethod
-    @wdi_backoff()
-    def execute_sparql_query(query, prefix=None, endpoint=None,
-                             user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60):
+    @wbi_backoff()
+    def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000,
+                             retry_after=60):
         """
         Static method which can be used to execute any SPARQL query
         :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
         :param query: The actual SPARQL query string
         :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
-        :param user_agent: Set a user agent string for the HTTP header to let the WDQS know who you are.
+        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :param as_dataframe: Return result as pandas dataframe
         :type user_agent: str
         :param max_retries: The number time this function should retry in case of header reports.
-        :param retry_after: the number of seconds should wait upon receiving either an error code or the WDQS is not reachable.
+        :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service
+         is not reachable.
         :return: The results of the query are returned in JSON format
         """
 
@@ -1206,7 +1207,7 @@ class WDItemEngine(object):
             query = prefix + '\n' + query
 
         params = {
-            'query': '#Tool: wdi_core fastrun\n' + query,
+            'query': '#Tool: wbi_core fastrun\n' + query,
             'format': 'json'
         }
 
@@ -1237,7 +1238,7 @@ class WDItemEngine(object):
             results = response.json()
 
             if as_dataframe:
-                return WDItemEngine._sparql_query_result_to_df(results)
+                return ItemEngine._sparql_query_result_to_df(results)
             else:
                 return results
 
@@ -1275,6 +1276,7 @@ class WDItemEngine(object):
         schema = requests.get("https://www.wikidata.org/wiki/Special:EntitySchemaText/" + eid).text
         rdfdata = Graph()
         rdfdata.parse(config["CONCEPT_BASE_URI"] + qid + ".ttl")
+        shex_result = dict()
 
         for result in ShExEvaluator(rdf=rdfdata, schema=schema, focus=config["CONCEPT_BASE_URI"] + qid).evaluate():
             shex_result = dict()
@@ -1344,8 +1346,7 @@ class WDItemEngine(object):
                         namespaces_to_ignore=namespaces_to_ignore if just_direct_properties else None,
                         namespaces_for_qualifier_props=["http://www.wikidata.org/prop/"],
                         depth_for_building_subgraph=2 if extract_shape_of_qualifiers else 1)
-        return shaper.shex_graph(string_output=True,
-                                 acceptance_threshold=0)
+        return shaper.shex_graph(string_output=True, acceptance_threshold=0)
 
     @staticmethod
     def get_linked_by(qid, mediawiki_api_url=None):
@@ -1375,7 +1376,7 @@ class WDItemEngine(object):
     @staticmethod
     def get_rdf(qid, format="turtle", mediawiki_api_url=None):
         """
-            :param qid: Wikidata identifier to extract the RDF of
+            :param qid: Wikibase identifier to extract the RDF of
             :format RDF from to return takes (turtle, ntriples, rdfxml, see https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
             :param mediawiki_api_url: default to wikidata's api, but can be changed to any wikibase
             :return:
@@ -1391,13 +1392,13 @@ class WDItemEngine(object):
     def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None,
                     ignore_conflicts='', user_agent=None):
         """
-        A static method to merge two Wikidata items
+        A static method to merge two items
         :param from_id: The QID which should be merged into another item
         :type from_id: string with 'Q' prefix
         :param to_id: The QID into which another item should be merged
         :type to_id: string with 'Q' prefix
         :param login_obj: The object containing the login credentials and cookies
-        :type login_obj: instance of PBB_login.WDLogin
+        :type login_obj: instance of wbi_login.Login
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated
@@ -1443,14 +1444,14 @@ class WDItemEngine(object):
     @classmethod
     def _init_ref_system(cls, sparql_endpoint_url=None):
         db_query = '''
-        SELECT DISTINCT ?db ?wd_prop WHERE {
+        SELECT DISTINCT ?db ?prop WHERE {
             {?db wdt:P31 wd:Q2881060 . } UNION
             {?db wdt:P31 wd:Q4117139 . } UNION
             {?db wdt:P31 wd:Q8513 . } UNION
             {?db wdt:P31 wd:Q324254 .}
 
             OPTIONAL {
-              ?db wdt:P1687 ?wd_prop .
+              ?db wdt:P1687 ?prop .
             }
         }
         '''
@@ -1460,20 +1461,19 @@ class WDItemEngine(object):
             if db_qid not in cls.databases:
                 cls.databases.update({db_qid: []})
 
-            if 'wd_prop' in x:
-                cls.databases[db_qid].append(x['wd_prop']['value'].split('/')[-1])
+            if 'prop' in x:
+                cls.databases[db_qid].append(x['prop']['value'].split('/')[-1])
 
     @staticmethod
     def delete_item(item, reason, login, mediawiki_api_url=None, user_agent=None):
         """
-        Takes a list of items and posts them for deletion by Wikidata moderators, appends at the end of the deletion
-        request page.
+        Delete an item
         :param item: a QID which should be deleted
         :type item: string
         :param reason: short text about the reason for the deletion request
         :type reason: str
-        :param login: A WDI login object which contains username and password the edit should be performed with.
-        :type login: wdi_login.WDLogin
+        :param login: A wbi_login.Login object which contains username and password the edit should be performed with.
+        :type login: wbi_login.Login
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1493,8 +1493,11 @@ class WDItemEngine(object):
         print(r.json())
 
     @staticmethod
-    def delete_statement(statement_id, revision, login, mediawiki_api_url='https://www.wikidata.org/w/api.php',
-                         user_agent=config['USER_AGENT_DEFAULT']):
+    def delete_statement(statement_id, revision, login, mediawiki_api_url=None, user_agent=None):
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+
         params = {
             'action': 'wbremoveclaims',
             'claim': statement_id,
@@ -1513,14 +1516,14 @@ class WDItemEngine(object):
     @classmethod
     def count_references(cls, prop_id):
         counts = dict()
-        for claim in cls.get_wd_json_representation()['claims'][prop_id]:
+        for claim in cls.get_json_representation()['claims'][prop_id]:
             counts[claim['id']] = len(claim['references'])
         return counts
 
     @classmethod
     def get_reference_properties(cls, prop_id):
         references = []
-        for statements in cls.get_wd_json_representation()['claims'][prop_id]:
+        for statements in cls.get_json_representation()['claims'][prop_id]:
             for reference in statements['references']:
                 references.append(reference['snaks'].keys())
         return references
@@ -1528,21 +1531,20 @@ class WDItemEngine(object):
     @classmethod
     def get_qualifier_properties(cls, prop_id):
         qualifiers = []
-        for statements in cls.get_wd_json_representation()['claims'][prop_id]:
+        for statements in cls.get_json_representation()['claims'][prop_id]:
             for reference in statements['qualifiers']:
                 qualifiers.append(reference['snaks'].keys())
         return qualifiers
 
     @classmethod
-    def wikibase_item_engine_factory(cls, mediawiki_api_url=config['MEDIAWIKI_API_URL'],
-                                     sparql_endpoint_url=config['SPARQL_ENDPOINT_URL'], name='LocalItemEngine'):
+    def wikibase_item_engine_factory(cls, mediawiki_api_url=None, sparql_endpoint_url=None, name='LocalItemEngine'):
         """
-        Helper function for creating a WDItemEngine class with arguments set for a different Wikibase instance than
+        Helper function for creating a ItemEngine class with arguments set for a different Wikibase instance than
         Wikidata.
         :param mediawiki_api_url: Mediawiki api url. For wikidata, this is: 'https://www.wikidata.org/w/api.php'
         :param sparql_endpoint_url: sparql endpoint url. For wikidata, this is: 'https://query.wikidata.org/sparql'
         :param name: name of the resulting class
-        :return: a subclass of WDItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
+        :return: a subclass of ItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1636,16 +1638,17 @@ class JsonParser(object):
             return self.get_class_representation(jsn=self.json_representation)
 
     def get_class_representation(self, jsn):
-        data_type = [x for x in WDBaseDataType.__subclasses__() if x.DTYPE == jsn['datatype']][0]
+        data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == jsn['datatype']][0]
         self.final = True
         self.current_type = data_type
         return data_type.from_json(jsn)
 
 
-class WDBaseDataType(object):
+class BaseDataType(object):
     """
-    The base class for all Wikidata data types, they inherit from it
+    The base class for all Wikibase data types, they inherit from it
     """
+    DTYPE = 'base-data-type'
 
     # example sparql query
     """
@@ -1673,26 +1676,26 @@ class WDBaseDataType(object):
                  check_qualifier_equality):
         """
         Constructor, will be called by all data types.
-        :param value: Data value of the WD data snak
+        :param value: Data value of the Wikibase data snak
         :type value: str or int or tuple
-        :param snak_type: The snak type of the WD data snak, three values possible, depending if the value is a
-                            known (value), not existent (novalue) or unknown (somevalue). See WD documentation.
+        :param snak_type: The snak type of the Wikibase data snak, three values possible, depending if the value is a
+                            known (value), not existent (novalue) or unknown (somevalue). See Wikibase documentation.
         :type snak_type: a str of either 'value', 'novalue' or 'somevalue'
-        :param data_type: The WD data type declaration of this snak
+        :param data_type: The Wikibase data type declaration of this snak
         :type data_type: str
         :param is_reference: States if the snak is a reference, mutually exclusive with qualifier
         :type is_reference: boolean
         :param is_qualifier: States if the snak is a qualifier, mutually exlcusive with reference
         :type is_qualifier: boolean
-        :param references: A one level nested list with reference WD snaks of base type WDBaseDataType, e.g.
-                            references=[[<WDBaseDataType>, <WDBaseDataType>], [<WDBaseDataType>]]
+        :param references: A one level nested list with reference Wikibase snaks of base type BaseDataType, e.g.
+                            references=[[<BaseDataType>, <BaseDataType>], [<BaseDataType>]]
                             This will create two references, the first one with two statements, the second with one
-        :type references: A one level nested list with instances of WDBaseDataType or children of it.
-        :param qualifiers: A list of qualifiers for the WD mainsnak
-        :type qualifiers: A list with instances of WDBaseDataType or children of it.
-        :param rank: The rank of a WD mainsnak, should determine the status of a value
+        :type references: A one level nested list with instances of BaseDataType or children of it.
+        :param qualifiers: A list of qualifiers for the Wikibase mainsnak
+        :type qualifiers: A list with instances of BaseDataType or children of it.
+        :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
-        :param prop_nr: The WD property number a WD snak belongs to
+        :param prop_nr: The property number a Wikibase snak belongs to
         :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID)
         :return:
         """
@@ -1726,7 +1729,7 @@ class WDBaseDataType(object):
         # Flag to allow complete overwrite of existing references for a value
         self._overwrite_references = False
 
-        # WD internal ID and hash are issued by the WD servers
+        # Internal ID and hash are issued by the Wikibase instance
         self.id = ''
         self.hash = ''
 
@@ -1835,7 +1838,7 @@ class WDBaseDataType(object):
         return self.qualifiers
 
     def set_qualifiers(self, qualifiers):
-        # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in WD
+        # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in Wikibase
         if len(qualifiers) > 0 and (self.is_qualifier or self.is_reference):
             raise ValueError('Qualifiers or references cannot have references')
 
@@ -1864,8 +1867,8 @@ class WDBaseDataType(object):
     def set_id(self, claim_id):
         self.id = claim_id
 
-    def set_hash(self, wd_hash):
-        self.hash = wd_hash
+    def set_hash(self, hash):
+        self.hash = hash
 
     def get_hash(self):
         return self.hash
@@ -1951,11 +1954,11 @@ class WDBaseDataType(object):
     @classmethod
     def delete_statement(cls, prop_nr):
         """
-        This serves as an alternative constructor for WDBaseDataType with the only purpose of holding a WD property
+        This serves as an alternative constructor for BaseDataType with the only purpose of holding a WB property
         number and an empty string value in order to indicate that the whole statement with this property number of a
-        WD item should be deleted.
-        :param prop_nr: A WD property number as string
-        :return: An instance of WDBaseDataType
+        WB item should be deleted.
+        :param prop_nr: A WB property number as string
+        :return: An instance of BaseDataType
         """
         return cls(value='', snak_type='value', data_type='', is_reference=False, is_qualifier=False, references=[],
                    qualifiers=[], rank='', prop_nr=prop_nr, check_qualifier_equality=True)
@@ -1970,12 +1973,12 @@ class WDBaseDataType(object):
         where each reference is a list of statements
         """
         if not include_ref:
-            # return the result of WDBaseDataType.__eq__, which is testing for equality of value and qualifiers
+            # return the result of BaseDataType.__eq__, which is testing for equality of value and qualifiers
             return self == that
         if include_ref and self != that:
             return False
         if include_ref and fref is None:
-            fref = WDBaseDataType.refs_equal
+            fref = BaseDataType.refs_equal
         return fref(self, that)
 
     @staticmethod
@@ -2004,19 +2007,19 @@ class WDBaseDataType(object):
         )
 
 
-class WDString(WDBaseDataType):
+class String(BaseDataType):
     """
-    Implements the Wikidata data type 'string'
+    Implements the Wikibase data type 'string'
     """
     DTYPE = 'string'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2025,17 +2028,17 @@ class WDString(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDString, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                       is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                       qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                       check_qualifier_equality=check_qualifier_equality)
+        super(String, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                     is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                     check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2048,7 +2051,7 @@ class WDString(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDString, self).set_value(value=value)
+        super(String, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2058,19 +2061,19 @@ class WDString(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDMath(WDBaseDataType):
+class Math(BaseDataType):
     """
-    Implements the Wikidata data type 'math' for mathematical formula in TEX format
+    Implements the Wikibase data type 'math' for mathematical formula in TEX format
     """
     DTYPE = 'math'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2079,16 +2082,16 @@ class WDMath(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDMath, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
-                                     is_qualifier=is_qualifier, references=references, qualifiers=qualifiers,
-                                     rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+        super(Math, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
+                                   is_qualifier=is_qualifier, references=references, qualifiers=qualifiers,
+                                   rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2101,7 +2104,7 @@ class WDMath(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDMath, self).set_value(value=value)
+        super(Math, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2111,19 +2114,19 @@ class WDMath(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDExternalID(WDBaseDataType):
+class ExternalID(BaseDataType):
     """
-    Implements the Wikidata data type 'external-id'
+    Implements the Wikibase data type 'external-id'
     """
     DTYPE = 'external-id'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2132,17 +2135,17 @@ class WDExternalID(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDExternalID, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                           is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                           qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                           check_qualifier_equality=check_qualifier_equality)
+        super(ExternalID, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                         is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                         qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                         check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2155,7 +2158,7 @@ class WDExternalID(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDExternalID, self).set_value(value=value)
+        super(ExternalID, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2165,9 +2168,9 @@ class WDExternalID(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDItemID(WDBaseDataType):
+class ItemID(BaseDataType):
     """
-    Implements the Wikidata data type with a value being another WD item ID
+    Implements the Wikibase data type with a value being another item ID
     """
     DTYPE = 'wikibase-item'
     sparql_query = '''
@@ -2186,10 +2189,10 @@ class WDItemID(WDBaseDataType):
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
-        :param value: The WD item ID to serve as the value
+        Constructor, calls the superclass BaseDataType
+        :param value: The item ID to serve as the value
         :type value: str with a 'Q' prefix, followed by several digits or only the digits without the 'Q' prefix
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2198,17 +2201,17 @@ class WDItemID(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDItemID, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                       is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                       qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                       check_qualifier_equality=check_qualifier_equality)
+        super(ItemID, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                     is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                     check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2220,15 +2223,15 @@ class WDItemID(WDBaseDataType):
         elif isinstance(value, int):
             self.value = value
         elif value.startswith("Q"):
-            pattern = re.compile('[0-9]+')
+            pattern = re.compile(r'[0-9]+')
             matches = pattern.match(value[1:])
 
             if len(value[1:]) == len(matches.group(0)):
                 self.value = int(value[1:])
             else:
-                raise ValueError('Invalid WD item ID, format must be "Q[0-9]*"')
+                raise ValueError('Invalid item ID, format must be "Q[0-9]*"')
         else:
-            raise ValueError('Invalid WD item ID, format must be "Q[0-9]*"')
+            raise ValueError('Invalid item ID, format must be "Q[0-9]*"')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2239,7 +2242,7 @@ class WDItemID(WDBaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(WDItemID, self).set_value(value=value)
+        super(ItemID, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2249,9 +2252,9 @@ class WDItemID(WDBaseDataType):
         return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
 
 
-class WDProperty(WDBaseDataType):
+class Property(BaseDataType):
     """
-    Implements the Wikidata data type with value 'property'
+    Implements the Wikibase data type with value 'property'
     """
     DTYPE = 'wikibase-property'
     sparql_query = '''
@@ -2270,10 +2273,10 @@ class WDProperty(WDBaseDataType):
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
-        :param value: The WD property number to serve as a value
+        Constructor, calls the superclass BaseDataType
+        :param value: The property number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The WD property number for this claim
+        :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2282,17 +2285,17 @@ class WDProperty(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDProperty, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                         is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                         qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                         check_qualifier_equality=check_qualifier_equality)
+        super(Property, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                       is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                       qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                       check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2304,15 +2307,15 @@ class WDProperty(WDBaseDataType):
         elif isinstance(value, int):
             self.value = value
         elif value.startswith("P"):
-            pattern = re.compile('[0-9]+')
+            pattern = re.compile(r'[0-9]+')
             matches = pattern.match(value[1:])
 
             if len(value[1:]) == len(matches.group(0)):
                 self.value = int(value[1:])
             else:
-                raise ValueError('Invalid WD property ID, format must be "P[0-9]*"')
+                raise ValueError('Invalid property ID, format must be "P[0-9]*"')
         else:
-            raise ValueError('Invalid WD property ID, format must be "P[0-9]*"')
+            raise ValueError('Invalid property ID, format must be "P[0-9]*"')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2323,7 +2326,7 @@ class WDProperty(WDBaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(WDProperty, self).set_value(value=value)
+        super(Property, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2333,9 +2336,9 @@ class WDProperty(WDBaseDataType):
         return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
 
 
-class WDTime(WDBaseDataType):
+class Time(BaseDataType):
     """
-    Implements the Wikidata data type with date and time values
+    Implements the Wikibase data type with date and time values
     """
     DTYPE = 'time'
 
@@ -2343,16 +2346,17 @@ class WDTime(WDBaseDataType):
                  concept_base_uri=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param time: A time representation string in the following format: '+%Y-%m-%dT%H:%M:%SZ'
         :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z'
-        :param prop_nr: The WD property number for this claim
+        :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param precision: Precision value for dates and time as specified in the WD data model (https://www.mediawiki.org/wiki/Wikibase/DataModel#Dates_and_times)
+        :param precision: Precision value for dates and time as specified in the Wikibase data model
+                          (https://www.mediawiki.org/wiki/Wikibase/DataModel#Dates_and_times)
         :type precision: int
-        :param timezone: The timezone which applies to the date and time as specified in the WD data model
+        :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
         :type timezone: int
-        :param calendarmodel: The calendar model used for the date. URL to the WD calendar model item or the QID.
+        :param calendarmodel: The calendar model used for the date. URL to the Wikibase calendar model item or the QID.
         :type calendarmodel: str
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2361,10 +2365,10 @@ class WDTime(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
@@ -2374,12 +2378,12 @@ class WDTime(WDBaseDataType):
         if calendarmodel.startswith('Q'):
             calendarmodel = concept_base_uri + calendarmodel
 
-        # the value is composed of what is requried to define the WD time object
+        # the value is composed of what is requried to define the time object
         value = (time, timezone, precision, calendarmodel)
 
-        super(WDTime, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
-                                     is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                                     prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+        super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
+                                   is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
+                                   prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2397,11 +2401,11 @@ class WDTime(WDBaseDataType):
             'type': 'time'
         }
 
-        super(WDTime, self).set_value(value=self.time)
+        super(Time, self).set_value(value=self.time)
 
         if self.time is not None:
             assert isinstance(self.time, str), \
-                "WDTime time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'"
+                "Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'"
             if self.precision < 0 or self.precision > 14:
                 raise ValueError('Invalid value for time precision, '
                                  'see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
@@ -2419,19 +2423,19 @@ class WDTime(WDBaseDataType):
                    timezone=value['timezone'], calendarmodel=value['calendarmodel'])
 
 
-class WDUrl(WDBaseDataType):
+class Url(BaseDataType):
     """
-    Implements the Wikidata data type for URL strings
+    Implements the Wikibase data type for URL strings
     """
     DTYPE = 'url'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The URL to be used as the value
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2440,16 +2444,16 @@ class WDUrl(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDUrl, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
-                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                                    prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+        super(Url, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
+                                  is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
+                                  prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value)
 
@@ -2468,7 +2472,7 @@ class WDUrl(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDUrl, self).set_value(value=self.value)
+        super(Url, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2479,21 +2483,21 @@ class WDUrl(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDMonolingualText(WDBaseDataType):
+class MonolingualText(BaseDataType):
     """
-    Implements the Wikidata data type for Monolingual Text strings
+    Implements the Wikibase data type for Monolingual Text strings
     """
     DTYPE = 'monolingualtext'
 
     def __init__(self, value, prop_nr, language='en', is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The language specific string to be used as the value
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param language: Specifies the WD language the value belongs to
+        :param language: Specifies the language the value belongs to
         :type language: str
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2502,17 +2506,17 @@ class WDMonolingualText(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
         self.language = language
         value = (value, language)
 
-        super(WDMonolingualText, self) \
+        super(MonolingualText, self) \
             .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                       is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
                       prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
@@ -2530,7 +2534,7 @@ class WDMonolingualText(WDBaseDataType):
             'type': 'monolingualtext'
         }
 
-        super(WDMonolingualText, self).set_value(value=value)
+        super(MonolingualText, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2542,9 +2546,9 @@ class WDMonolingualText(WDBaseDataType):
         return cls(value=value['text'], prop_nr=jsn['property'], language=value['language'])
 
 
-class WDQuantity(WDBaseDataType):
+class Quantity(BaseDataType):
     """
-    Implements the Wikidata data type for quantities
+    Implements the Wikibase data type for quantities
     """
     DTYPE = 'quantity'
 
@@ -2552,18 +2556,17 @@ class WDQuantity(WDBaseDataType):
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True, concept_base_uri=None):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The quantity value
         :type value: float, str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
         :type upper_bound: float, str
         :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
         :type lower_bound: float, str
-        :param unit: The WD unit item URL or the QID a certain quantity has been measured
-                        in (https://www.wikidata.org/wiki/Wikidata:Units). The default is dimensionless, represented by
-                        a '1'
+        :param unit: The unit item URL or the QID a certain quantity has been measured in
+            (https://www.wikidata.org/wiki/Wikidata:Units). The default is dimensionless, represented by a '1'
         :type unit: str
         :type is_reference: boolean
         :param is_qualifier: Whether this snak is a qualifier
@@ -2571,10 +2574,10 @@ class WDQuantity(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
@@ -2585,10 +2588,10 @@ class WDQuantity(WDBaseDataType):
 
         v = (value, unit, upper_bound, lower_bound)
 
-        super(WDQuantity, self).__init__(value=v, snak_type=snak_type, data_type=self.DTYPE,
-                                         is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                         qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                         check_qualifier_equality=check_qualifier_equality)
+        super(Quantity, self).__init__(value=v, snak_type=snak_type, data_type=self.DTYPE,
+                                       is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                       qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                       check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(v)
 
@@ -2636,7 +2639,7 @@ class WDQuantity(WDBaseDataType):
             del self.json_representation['datavalue']['value']['lowerBound']
 
         self.value = (value, unit, upper_bound, lower_bound)
-        super(WDQuantity, self).set_value(value)
+        super(Quantity, self).set_value(value)
 
     @classmethod
     @JsonParser
@@ -2664,19 +2667,19 @@ class WDQuantity(WDBaseDataType):
         return str(amount)
 
 
-class WDCommonsMedia(WDBaseDataType):
+class CommonsMedia(BaseDataType):
     """
-    Implements the Wikidata data type for Wikimedia commons media files
+    Implements the Wikibase data type for Wikimedia commons media files
     """
     DTYPE = 'commonsMedia'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The media file name from Wikimedia commons to be used as the value
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2685,17 +2688,17 @@ class WDCommonsMedia(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDCommonsMedia, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                             is_reference=is_reference, is_qualifier=is_qualifier,
-                                             references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                             check_qualifier_equality=check_qualifier_equality)
+        super(CommonsMedia, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                           is_reference=is_reference, is_qualifier=is_qualifier,
+                                           references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                           check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value)
 
@@ -2706,7 +2709,7 @@ class WDCommonsMedia(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDCommonsMedia, self).set_value(value)
+        super(CommonsMedia, self).set_value(value)
 
     @classmethod
     @JsonParser
@@ -2716,9 +2719,9 @@ class WDCommonsMedia(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDGlobeCoordinate(WDBaseDataType):
+class GlobeCoordinate(BaseDataType):
     """
-    Implements the Wikidata data type for globe coordinates
+    Implements the Wikibase data type for globe coordinates
     """
     DTYPE = 'globe-coordinate'
 
@@ -2726,14 +2729,14 @@ class WDGlobeCoordinate(WDBaseDataType):
                  concept_base_uri=None, is_reference=False, is_qualifier=False,
                  snak_type='value', references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
         :type latitude: float
         :param longitude: Longitude in decimal format
         :type longitude: float
         :param precision: Precision of the position measurement
         :type precision: float
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2742,10 +2745,10 @@ class WDGlobeCoordinate(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
@@ -2757,7 +2760,7 @@ class WDGlobeCoordinate(WDBaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(WDGlobeCoordinate, self) \
+        super(GlobeCoordinate, self) \
             .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                       is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
                       prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
@@ -2779,7 +2782,7 @@ class WDGlobeCoordinate(WDBaseDataType):
             'type': 'globecoordinate'
         }
 
-        super(WDGlobeCoordinate, self).set_value(self.latitude)
+        super(GlobeCoordinate, self).set_value(self.latitude)
 
         self.value = value
 
@@ -2795,19 +2798,19 @@ class WDGlobeCoordinate(WDBaseDataType):
                    prop_nr=jsn['property'])
 
 
-class WDGeoShape(WDBaseDataType):
+class GeoShape(BaseDataType):
     """
-    Implements the Wikidata data type 'geo-shape'
+    Implements the Wikibase data type 'geo-shape'
     """
     DTYPE = 'geo-shape'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2816,23 +2819,23 @@ class WDGeoShape(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDGeoShape, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                         is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                         qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                         check_qualifier_equality=check_qualifier_equality)
+        super(GeoShape, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                       is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                       qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                       check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile('Data:((?![:|#]).)+\.map')
+        pattern = re.compile(r'Data:((?![:|#]).)+\.map')
         matches = pattern.match(value)
 
         if not matches:
@@ -2846,7 +2849,7 @@ class WDGeoShape(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDGeoShape, self).set_value(value=value)
+        super(GeoShape, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2856,19 +2859,19 @@ class WDGeoShape(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDMusicalNotation(WDBaseDataType):
+class MusicalNotation(BaseDataType):
     """
-    Implements the Wikidata data type 'string'
+    Implements the Wikibase data type 'string'
     """
     DTYPE = 'musical-notation'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: Values for that data type are strings describing music following LilyPond syntax.
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2877,18 +2880,18 @@ class WDMusicalNotation(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDMusicalNotation, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                                is_reference=is_reference, is_qualifier=is_qualifier,
-                                                references=references,
-                                                qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                                check_qualifier_equality=check_qualifier_equality)
+        super(MusicalNotation, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                              is_reference=is_reference, is_qualifier=is_qualifier,
+                                              references=references,
+                                              qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                              check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -2901,7 +2904,7 @@ class WDMusicalNotation(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDMusicalNotation, self).set_value(value=value)
+        super(MusicalNotation, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2911,19 +2914,19 @@ class WDMusicalNotation(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDTabularData(WDBaseDataType):
+class TabularData(BaseDataType):
     """
-    Implements the Wikidata data type 'tabular-data'
+    Implements the Wikibase data type 'tabular-data'
     """
     DTYPE = 'tabular-data'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
+        Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
         :type value: str
-        :param prop_nr: The WD item ID for this claim
+        :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -2932,23 +2935,23 @@ class WDTabularData(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDTabularData, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                            is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                            qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                            check_qualifier_equality=check_qualifier_equality)
+        super(TabularData, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                          is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                          qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                          check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile('Data:((?![:|#]).)+\.tab')
+        pattern = re.compile(r'Data:((?![:|#]).)+\.tab')
         matches = pattern.match(value)
 
         if not matches:
@@ -2962,7 +2965,7 @@ class WDTabularData(WDBaseDataType):
             'type': 'string'
         }
 
-        super(WDTabularData, self).set_value(value=value)
+        super(TabularData, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2972,9 +2975,9 @@ class WDTabularData(WDBaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
-class WDLexeme(WDBaseDataType):
+class Lexeme(BaseDataType):
     """
-    Implements the Wikidata data type with value 'wikibase-lexeme'
+    Implements the Wikibase data type with value 'wikibase-lexeme'
     """
     DTYPE = 'wikibase-lexeme'
     sparql_query = '''
@@ -2993,10 +2996,10 @@ class WDLexeme(WDBaseDataType):
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
-        :param value: The WD lexeme number to serve as a value
+        Constructor, calls the superclass BaseDataType
+        :param value: The lexeme number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The WD property number for this claim
+        :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -3005,17 +3008,17 @@ class WDLexeme(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDLexeme, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                       is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                       qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                       check_qualifier_equality=check_qualifier_equality)
+        super(Lexeme, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                     is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                     check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -3027,15 +3030,15 @@ class WDLexeme(WDBaseDataType):
         elif isinstance(value, int):
             self.value = value
         elif value.startswith("L"):
-            pattern = re.compile('[0-9]+')
+            pattern = re.compile(r'[0-9]+')
             matches = pattern.match(value[1:])
 
             if len(value[1:]) == len(matches.group(0)):
                 self.value = int(value[1:])
             else:
-                raise ValueError('Invalid WD lexeme ID, format must be "L[0-9]*"')
+                raise ValueError('Invalid lexeme ID, format must be "L[0-9]*"')
         else:
-            raise ValueError('Invalid WD lexeme ID, format must be "L[0-9]*"')
+            raise ValueError('Invalid lexeme ID, format must be "L[0-9]*"')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -3046,7 +3049,7 @@ class WDLexeme(WDBaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(WDLexeme, self).set_value(value=value)
+        super(Lexeme, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -3056,19 +3059,19 @@ class WDLexeme(WDBaseDataType):
         return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
 
 
-class WDForm(WDBaseDataType):
+class Form(BaseDataType):
     """
-    Implements the Wikidata data type with value 'wikibase-form'
+    Implements the Wikibase data type with value 'wikibase-form'
     """
     DTYPE = 'wikibase-form'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
-        :param value: The WD form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
+        Constructor, calls the superclass BaseDataType
+        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The WD property number for this claim
+        :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -3077,17 +3080,17 @@ class WDForm(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDForm, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                     is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                     check_qualifier_equality=check_qualifier_equality)
+        super(Form, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                   is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                   qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                   check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -3096,13 +3099,13 @@ class WDForm(WDBaseDataType):
         if value is None:
             self.value = value
         elif value.startswith("L"):
-            pattern = re.compile('^L[0-9]+-F[0-9]+$')
+            pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid WD form ID, format must be "L[0-9]+-F[0-9]+"')
+                raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
         else:
-            raise ValueError('Invalid WD form ID, format must be "L[0-9]+-F[0-9]+"')
+            raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -3112,7 +3115,7 @@ class WDForm(WDBaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(WDForm, self).set_value(value=value)
+        super(Form, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -3122,19 +3125,19 @@ class WDForm(WDBaseDataType):
         return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
 
 
-class WDSense(WDBaseDataType):
+class Sense(BaseDataType):
     """
-    Implements the Wikidata data type with value 'wikibase-sense'
+    Implements the Wikibase data type with value 'wikibase-sense'
     """
     DTYPE = 'wikibase-sense'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
-        Constructor, calls the superclass WDBaseDataType
-        :param value: The WD form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
+        Constructor, calls the superclass BaseDataType
+        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The WD property number for this claim
+        :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
         :type is_reference: boolean
@@ -3143,17 +3146,17 @@ class WDSense(WDBaseDataType):
         :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snak_type: str
         :param references: List with reference objects
-        :type references: A WD data type with subclass of WDBaseDataType
+        :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
-        :type qualifiers: A WD data type with subclass of WDBaseDataType
-        :param rank: WD rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
         """
 
-        super(WDSense, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
-                                      is_reference=is_reference, is_qualifier=is_qualifier, references=references,
-                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                      check_qualifier_equality=check_qualifier_equality)
+        super(Sense, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                    is_reference=is_reference, is_qualifier=is_qualifier, references=references,
+                                    qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                    check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value=value)
 
@@ -3162,13 +3165,13 @@ class WDSense(WDBaseDataType):
         if value is None:
             self.value = value
         elif value.startswith("L"):
-            pattern = re.compile('^L[0-9]+-S[0-9]+$')
+            pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid WD sense ID, format must be "L[0-9]+-S[0-9]+"')
+                raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
         else:
-            raise ValueError('Invalid WD sense ID, format must be "L[0-9]+-S[0-9]+"')
+            raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -3178,7 +3181,7 @@ class WDSense(WDBaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(WDSense, self).set_value(value=value)
+        super(Sense, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -3188,49 +3191,49 @@ class WDSense(WDBaseDataType):
         return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
 
 
-class WDApiError(Exception):
-    def __init__(self, wd_error_message):
+class MWApiError(Exception):
+    def __init__(self, error_message):
         """
-        Base class for Wikidata error handling
-        :param wd_error_message: The error message returned by the WD API
-        :type wd_error_message: A Python json representation dictionary of the error message
+        Base class for Mediawiki API error handling
+        :param error_message: The error message returned by the Mediawiki API
+        :type error_message: A Python json representation dictionary of the error message
         :return:
         """
-        self.wd_error_msg = wd_error_message
+        self.error_msg = error_message
 
     def __str__(self):
-        return repr(self.wd_error_msg)
+        return repr(self.error_msg)
 
 
-class NonUniqueLabelDescriptionPairError(WDApiError):
-    def __init__(self, wd_error_message):
+class NonUniqueLabelDescriptionPairError(MWApiError):
+    def __init__(self, error_message):
         """
-        This class handles errors returned from the WD API due to an attempt to create an item which has the same
+        This class handles errors returned from the API due to an attempt to create an item which has the same
          label and description as an existing item in a certain language.
-        :param wd_error_message: An WD API error mesage containing 'wikibase-validator-label-with-description-conflict'
+        :param error_message: An API error message containing 'wikibase-validator-label-with-description-conflict'
          as the message name.
-        :type wd_error_message: A Python json representation dictionary of the error message
+        :type error_message: A Python json representation dictionary of the error message
         :return:
         """
-        self.wd_error_msg = wd_error_message
+        self.error_msg = error_message
 
     def get_language(self):
         """
-        :return: Returns a 2 letter Wikidata language string, indicating the language which triggered the error
+        :return: Returns a 2 letter language string, indicating the language which triggered the error
         """
-        return self.wd_error_msg['error']['messages'][0]['parameters'][1]
+        return self.error_msg['error']['messages'][0]['parameters'][1]
 
     def get_conflicting_item_qid(self):
         """
         :return: Returns the QID string of the item which has the same label and description as the one which should
          be set.
         """
-        qid_string = self.wd_error_msg['error']['messages'][0]['parameters'][2]
+        qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
 
         return qid_string.split('|')[0][2:]
 
     def __str__(self):
-        return repr(self.wd_error_msg)
+        return repr(self.error_msg)
 
 
 class IDMissingError(Exception):
@@ -3241,7 +3244,7 @@ class IDMissingError(Exception):
         return repr(self.value)
 
 
-class WDSearchError(Exception):
+class SearchError(Exception):
     def __init__(self, value):
         self.value = value
 

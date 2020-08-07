@@ -1,5 +1,6 @@
 import unittest
-from wikibaseintegrator import wdi_core
+
+from wikibaseintegrator import wbi_core
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
 __license__ = 'AGPLv3'
@@ -8,7 +9,7 @@ __license__ = 'AGPLv3'
 class TestWDSearch(unittest.TestCase):
 
     def test_wd_search(self):
-        t = wdi_core.WDItemEngine.get_wd_search_results('rivaroxaban')
+        t = wbi_core.ItemEngine.get_search_results('rivaroxaban')
 
         print(t)
         print('Number of results: ', len(t))

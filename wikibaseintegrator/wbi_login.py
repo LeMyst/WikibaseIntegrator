@@ -1,12 +1,12 @@
 import time
-import requests
 import webbrowser
 
+import requests
 from mwoauth import ConsumerToken, Handshaker
 from requests_oauthlib import OAuth1
-from wikibaseintegrator.wdi_config import config
 
-from wikibaseintegrator.wdi_backoff import wdi_backoff
+from wikibaseintegrator.wbi_backoff import wbi_backoff
+from wikibaseintegrator.wbi_config import config
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher, Tim Putman, Andra Waagmeester'
 __license__ = 'AGPLv3'
@@ -16,12 +16,12 @@ Login class for Wikidata. Takes username and password and stores the session coo
 """
 
 
-class WDLogin(object):
+class Login(object):
     """
     A class which handles the login to Wikidata and the generation of edit-tokens
     """
 
-    @wdi_backoff()
+    @wbi_backoff()
     def __init__(self, user=None, pwd=None, mediawiki_api_url=None, mediawiki_index_url=None, token_renew_period=1800,
                  use_clientlogin=False, consumer_key=None, consumer_secret=None, callback_url='oob', user_agent=None,
                  debug=False):
