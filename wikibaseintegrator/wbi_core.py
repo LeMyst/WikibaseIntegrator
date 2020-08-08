@@ -769,13 +769,14 @@ class ItemEngine(object):
         except KeyError:
             return ''
 
-    def set_label(self, label, lang='en'):
+    def set_label(self, label, lang='en', if_exist='REPLACE'):
         """
         Set the label for an item in a certain language
         :param label: The description of the item in a certain language
         :type label: str
         :param lang: The language a label should be set for.
         :type lang: str
+        :param if_exist: If a label already exist, REPLACE it or KEEP it.
         :return: None
         """
         if self.fast_run and not self.require_write:
@@ -787,12 +788,14 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.json_representation:
+        if 'labels' not in self.json_representation or if_exist == 'REPLACE':
             self.json_representation['labels'] = {}
-        self.json_representation['labels'][lang] = {
-            'language': lang,
-            'value': label
-        }
+            self.json_representation['labels'][lang] = {
+                'language': lang,
+                'value': label
+            }
+        elif if_exist != 'KEEP':
+            raise ValueError('{} is not a valid value for if_exist (REPLACE or KEEP)'.format(if_exist))
 
     def get_aliases(self, lang='en'):
         """
@@ -1050,7 +1053,8 @@ class ItemEngine(object):
 
                 # readonly
                 if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
-                    print('The wikibase instance is currently in readonly mode, waiting for {} seconds'.format(retry_after))
+                    print('The wikibase instance is currently in readonly mode, waiting for {} seconds'.format(
+                        retry_after))
                     time.sleep(retry_after)
                     continue
 
