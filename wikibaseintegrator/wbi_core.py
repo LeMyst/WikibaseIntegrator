@@ -819,14 +819,17 @@ class ItemEngine(object):
 
         return alias_list
 
-    def set_aliases(self, aliases, lang='en', append=True):
+    def set_aliases(self, aliases, lang='en', if_exist='APPEND'):
         """
         set the aliases for an item
         :param aliases: a list of strings representing the aliases of an item
         :param lang: The language a description should be set for
-        :param append: If true, append a new alias to the list of existing aliases, else, overwrite. Default: True
+        :param if_exist: If aliases already exist, APPEND or REPLACE
         :return: None
         """
+        if if_exist != 'APPEND' and if_exist != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exist (REPLACE or APPEND)'.format(if_exist))
+
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=aliases, lang=lang,
@@ -839,7 +842,7 @@ class ItemEngine(object):
         if 'aliases' not in self.json_representation:
             self.json_representation['aliases'] = {}
 
-        if not append or lang not in self.json_representation['aliases']:
+        if if_exist != 'APPEND' or lang not in self.json_representation['aliases']:
             self.json_representation['aliases'][lang] = []
 
         for alias in aliases:
@@ -895,6 +898,17 @@ class ItemEngine(object):
             'value': description
         }
 
+    def get_sitelink(self, site):
+        """
+        A method to access the interwiki links in the json.model
+        :param site: The Wikipedia site the interwiki/sitelink should be returned for
+        :return: The interwiki/sitelink string for the specified Wikipedia will be returned.
+        """
+        if site in self.sitelinks:
+            return self.sitelinks[site]
+        else:
+            return None
+
     def set_sitelink(self, site, title, badges=()):
         """
         Set sitelinks to corresponding Wikipedia pages
@@ -910,17 +924,6 @@ class ItemEngine(object):
         }
         self.json_representation['sitelinks'][site] = sitelink
         self.sitelinks[site] = sitelink
-
-    def get_sitelink(self, site):
-        """
-        A method to access the interwiki links in the json.model
-        :param site: The Wikipedia site the interwiki/sitelink should be returned for
-        :return: The interwiki/sitelink string for the specified Wikipedia will be returned.
-        """
-        if site in self.sitelinks:
-            return self.sitelinks[site]
-        else:
-            return None
 
     def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string',
               max_retries=1000, retry_after=60):
