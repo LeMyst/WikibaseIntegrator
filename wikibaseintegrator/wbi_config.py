@@ -30,5 +30,6 @@ config = {
     'MEDIAWIKI_API_URL': 'https://www.wikidata.org/w/api.php',
     'MEDIAWIKI_INDEX_URL': 'https://www.wikidata.org/w/index.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
-    'WIKIBASE_URL': 'http://www.wikidata.org'
+    'WIKIBASE_URL': 'http://www.wikidata.org',
+    'DEFAULT_LANGUAGE': 'en'
 }
