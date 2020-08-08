@@ -1270,7 +1270,7 @@ class ItemEngine(object):
         df = pd.DataFrame(results)
         return df
 
-    ## SHEX related functions
+    # SHEX related functions
     @staticmethod
     def check_shex_conformance(qid, eid, sparql_endpoint_url=None, output='confirm'):
         """
@@ -1289,7 +1289,8 @@ class ItemEngine(object):
         rdfdata.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
         shex_result = dict()
 
-        for result in ShExEvaluator(rdf=rdfdata, schema=schema, focus=config["WIKIBASE_URL"] + "/entity/" + qid).evaluate():
+        for result in ShExEvaluator(rdf=rdfdata, schema=schema,
+                                    focus=config["WIKIBASE_URL"] + "/entity/" + qid).evaluate():
             shex_result = dict()
             if result.result:
                 shex_result["result"] = True
