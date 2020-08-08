@@ -18,7 +18,7 @@ example_Q14911732 = {'P1057':
 
 class FastRunContainer(object):
     def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None,
-                 concept_base_uri=None, base_filter=None, use_refs=False, ref_handler=None, case_insensitive=False,
+                 base_filter=None, use_refs=False, ref_handler=None, case_insensitive=False,
                  debug=False):
         self.prop_data = {}
         self.loaded_langs = {}
@@ -34,7 +34,6 @@ class FastRunContainer(object):
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
         self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-        self.concept_base_uri = config['CONCEPT_BASE_URI'] if concept_base_uri is None else concept_base_uri
         self.case_insensitive = case_insensitive
         self.debug = debug
         self.reconstructed_statements = []
@@ -84,8 +83,7 @@ class FastRunContainer(object):
                      self.prop_dt_map[prop_nr]][0]
                 if self.prop_dt_map[prop_nr] == 'quantity' and d['unit'] != '1':
                     reconstructed_statements.append(
-                        f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit'],
-                          concept_base_uri=self.concept_base_uri))
+                        f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
                     reconstructed_statements.append(
                         f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
