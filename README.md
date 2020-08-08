@@ -45,6 +45,7 @@ Wikidata is always the default endpoint for all functions.
   * wd_item_id -> item_id
 * ItemEngine attribute changes:
   * wd_item_id -> item_id
+* Change wbi_core.set_aliases parameter named 'append' to 'if_exists' with a value of APPEND (default) or REPLACE
 * Remove CONCEPT_BASE_URI wbi_config option and classes' parameter. It's now derived from WIKIBASE_URL.
 
 # Installation #

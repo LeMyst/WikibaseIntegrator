@@ -308,7 +308,7 @@ class FastRunContainer(object):
 
         for s in lang_data:
             if s.strip().lower() not in all_lang_strings:
-                print('fastrun failed at label: {}, string: {}'.format(lang_data_type, s))
+                print('fastrun failed at: {}, string: {}'.format(lang_data_type, s))
                 return True
 
         return False
