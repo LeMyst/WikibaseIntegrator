@@ -775,18 +775,18 @@ class ItemEngine(object):
         except KeyError:
             return ''
 
-    def set_label(self, label, lang='en', if_exist='REPLACE'):
+    def set_label(self, label, lang='en', if_exists='REPLACE'):
         """
         Set the label for an item in a certain language
         :param label: The description of the item in a certain language
         :type label: str
         :param lang: The language a label should be set for.
         :type lang: str
-        :param if_exist: If a label already exist, REPLACE it or KEEP it.
+        :param if_exists: If a label already exist, REPLACE it or KEEP it.
         :return: None
         """
-        if if_exist != 'KEEP' and if_exist != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exist (REPLACE or KEEP)'.format(if_exist))
+        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
@@ -797,7 +797,7 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.json_representation or if_exist == 'REPLACE':
+        if 'labels' not in self.json_representation or if_exists == 'REPLACE':
             self.json_representation['labels'] = {}
             self.json_representation['labels'][lang] = {
                 'language': lang,
@@ -820,16 +820,16 @@ class ItemEngine(object):
 
         return alias_list
 
-    def set_aliases(self, aliases, lang='en', if_exist='APPEND'):
+    def set_aliases(self, aliases, lang='en', if_exists='APPEND'):
         """
         set the aliases for an item
         :param aliases: a list of strings representing the aliases of an item
         :param lang: The language a description should be set for
-        :param if_exist: If aliases already exist, APPEND or REPLACE
+        :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: None
         """
-        if if_exist != 'APPEND' and if_exist != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exist (REPLACE or APPEND)'.format(if_exist))
+        if if_exists != 'APPEND' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
 
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
@@ -843,7 +843,7 @@ class ItemEngine(object):
         if 'aliases' not in self.json_representation:
             self.json_representation['aliases'] = {}
 
-        if if_exist != 'APPEND' or lang not in self.json_representation['aliases']:
+        if if_exists != 'APPEND' or lang not in self.json_representation['aliases']:
             self.json_representation['aliases'][lang] = []
 
         for alias in aliases:
