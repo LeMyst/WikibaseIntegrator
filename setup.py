@@ -28,18 +28,13 @@ setup(
         "Topic :: Utilities",
     ],
     install_requires=[
-        'requests',
-        'python-dateutil',
         'simplejson',
+        'requests',
         'pandas',
-        'tqdm',
         'mwoauth',
-        'oauthlib',
-        'sparql_slurper',
-        'ShExJSG',
-        'jsonasobj',
         'pyshex',
         'backoff',
-        'shexer'
+        'shexer',
+        'rdflib'
     ],
 )
