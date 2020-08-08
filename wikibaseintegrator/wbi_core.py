@@ -785,6 +785,9 @@ class ItemEngine(object):
         :param if_exist: If a label already exist, REPLACE it or KEEP it.
         :return: None
         """
+        if if_exist != 'KEEP' and if_exist != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exist (REPLACE or KEEP)'.format(if_exist))
+
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[label], lang=lang,
@@ -800,8 +803,6 @@ class ItemEngine(object):
                 'language': lang,
                 'value': label
             }
-        elif if_exist != 'KEEP':
-            raise ValueError('{} is not a valid value for if_exist (REPLACE or KEEP)'.format(if_exist))
 
     def get_aliases(self, lang='en'):
         """
