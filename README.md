@@ -45,6 +45,7 @@ Wikidata is always the default endpoint for all functions.
   * wd_item_id -> item_id
 * ItemEngine attribute changes:
   * wd_item_id -> item_id
+* Remove CONCEPT_BASE_URI wbi_config option and classes' parameter. It's now derived from WIKIBASE_URL.
 
 # Installation #
 The easiest way to install WikibaseIntegrator is using `pip` or `pip3`. WikibaseIntegrator supports python 3.6 and higher, hence the suggestion for pip3. If python2 is installed pip will lead to an error indicating missing dependencies. 

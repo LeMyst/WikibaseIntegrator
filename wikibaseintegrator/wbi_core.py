@@ -44,7 +44,7 @@ class ItemEngine(object):
     logger = None
 
     def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
-                 wikibase_url=None, concept_base_uri=None, append_value=None, fast_run=False, fast_run_base_filter=None,
+                 wikibase_url=None, append_value=None, fast_run=False, fast_run_base_filter=None,
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
                  keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None,
                  core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None,
@@ -124,7 +124,6 @@ class ItemEngine(object):
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
         self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-        self.concept_base_uri = config['CONCEPT_BASE_URI'] if concept_base_uri is None else concept_base_uri
         self.property_constraint_pid = config[
             'PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
         self.distinct_values_constraint_qid = config[
@@ -259,7 +258,6 @@ class ItemEngine(object):
                 self.fast_run_container.engine = self.__class__
                 self.fast_run_container.mediawiki_api_url = self.mediawiki_api_url
                 self.fast_run_container.wikibase_url = self.wikibase_url
-                self.fast_run_container.concept_base_uri = self.concept_base_uri
                 self.fast_run_container.debug = self.debug
                 if self.debug:
                     print('Found an already existing FastRunContainer')
@@ -271,7 +269,6 @@ class ItemEngine(object):
                                                        sparql_endpoint_url=self.sparql_endpoint_url,
                                                        mediawiki_api_url=self.mediawiki_api_url,
                                                        wikibase_url=self.wikibase_url,
-                                                       concept_base_uri=self.concept_base_uri,
                                                        use_refs=self.fast_run_use_refs,
                                                        ref_handler=self.ref_handler,
                                                        case_insensitive=self.fast_run_case_insensitive,
@@ -1275,10 +1272,10 @@ class ItemEngine(object):
 
         schema = requests.get("https://www.wikidata.org/wiki/Special:EntitySchemaText/" + eid).text
         rdfdata = Graph()
-        rdfdata.parse(config["CONCEPT_BASE_URI"] + qid + ".ttl")
+        rdfdata.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
         shex_result = dict()
 
-        for result in ShExEvaluator(rdf=rdfdata, schema=schema, focus=config["CONCEPT_BASE_URI"] + qid).evaluate():
+        for result in ShExEvaluator(rdf=rdfdata, schema=schema, focus=config["WIKIBASE_URL"] + "/entity/" + qid).evaluate():
             shex_result = dict()
             if result.result:
                 shex_result["result"] = True
@@ -1385,7 +1382,7 @@ class ItemEngine(object):
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
 
         localcopy = Graph()
-        localcopy.parse(config["CONCEPT_BASE_URI"] + qid + ".ttl")
+        localcopy.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
         return (localcopy.serialize(format=format))
 
     @staticmethod
@@ -2343,7 +2340,7 @@ class Time(BaseDataType):
     DTYPE = 'time'
 
     def __init__(self, time, prop_nr, precision=11, timezone=0, calendarmodel=None,
-                 concept_base_uri=None, is_reference=False, is_qualifier=False, snak_type='value',
+                 wikibase_url=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2373,10 +2370,10 @@ class Time(BaseDataType):
         """
 
         calendarmodel = config['CALENDAR_MODEL_QID'] if calendarmodel is None else calendarmodel
-        concept_base_uri = config['CONCEPT_BASE_URI'] if concept_base_uri is None else concept_base_uri
+        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if calendarmodel.startswith('Q'):
-            calendarmodel = concept_base_uri + calendarmodel
+            calendarmodel = wikibase_url + '/entity' + calendarmodel
 
         # the value is composed of what is requried to define the time object
         value = (time, timezone, precision, calendarmodel)
@@ -2554,7 +2551,7 @@ class Quantity(BaseDataType):
 
     def __init__(self, value, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
-                 check_qualifier_equality=True, concept_base_uri=None):
+                 check_qualifier_equality=True, wikibase_url=None):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The quantity value
@@ -2581,10 +2578,10 @@ class Quantity(BaseDataType):
         :type rank: str
         """
 
-        concept_base_uri = config['CONCEPT_BASE_URI'] if concept_base_uri is None else concept_base_uri
+        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if unit.startswith('Q'):
-            unit = concept_base_uri + unit
+            unit = wikibase_url + 'entity' + unit
 
         v = (value, unit, upper_bound, lower_bound)
 
@@ -2726,7 +2723,7 @@ class GlobeCoordinate(BaseDataType):
     DTYPE = 'globe-coordinate'
 
     def __init__(self, latitude, longitude, precision, prop_nr, globe=None,
-                 concept_base_uri=None, is_reference=False, is_qualifier=False,
+                 wikibase_url=None, is_reference=False, is_qualifier=False,
                  snak_type='value', references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2753,10 +2750,10 @@ class GlobeCoordinate(BaseDataType):
         """
 
         globe = config['COORDINATE_GLOBE_QID'] if globe is None else globe
-        concept_base_uri = config['CONCEPT_BASE_URI'] if concept_base_uri is None else concept_base_uri
+        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if globe.startswith('Q'):
-            globe = concept_base_uri + globe
+            globe = wikibase_url + 'entity' + globe
 
         value = (latitude, longitude, precision, globe)
 
