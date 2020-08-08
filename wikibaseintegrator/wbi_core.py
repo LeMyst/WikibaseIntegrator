@@ -227,10 +227,16 @@ class ItemEngine(object):
 
     def init_data_load(self):
         if self.item_id and self.item_data:
+            if self.debug:
+                print('Load item from item_data')
             self.json_representation = self.parse_json(self.item_data)
         elif self.item_id:
+            if self.debug:
+                print('Load item from MW API from item_id')
             self.json_representation = self.get_entity()
         else:
+            if self.debug:
+                print('Try to guess item QID from props')
             qids_by_props = ''
             try:
                 qids_by_props = self.__select_item()
