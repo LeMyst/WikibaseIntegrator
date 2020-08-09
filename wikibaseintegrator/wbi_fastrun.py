@@ -587,9 +587,8 @@ class FastRunContainer(object):
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
 
-    """A mixin implementing a simple __repr__."""
-
     def __repr__(self):
+        """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
