@@ -339,7 +339,7 @@ class ItemEngine(object):
     @staticmethod
     def get_search_results(search_string='', mediawiki_api_url=None,
                            user_agent=None, max_results=500,
-                           language='en', dict_id_label=False):
+                           language=None, dict_id_label=False):
         """
         Performs a search in the Wikibase instance for a certain search string
         :param search_string: a string which should be searched for in the Wikibase instance
@@ -350,7 +350,7 @@ class ItemEngine(object):
         :type user_agent: str
         :param max_results: The maximum number of search results returned. Default 500
         :type max_results: int
-        :param language: The language in which to perform the search. Default 'en'
+        :param language: The language in which to perform the search.
         :type language: str
         :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
         :type dict_id_label: boolean
@@ -359,6 +359,7 @@ class ItemEngine(object):
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+        language = config['DEFAULT_LANGUAGE'] if language is None else language
 
         params = {
             'action': 'wbsearchentities',
@@ -758,13 +759,15 @@ class ItemEngine(object):
         else:
             return True
 
-    def get_label(self, lang='en'):
+    def get_label(self, lang=None):
         """
         Returns the label for a certain language
         :param lang:
         :type lang: str
         :return: returns the label in the specified language, an empty string if the label does not exist
         """
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
         if self.fast_run:
             return list(self.fast_run_container.get_language_data(self.item_id, lang, 'label'))[0]
         try:
@@ -772,7 +775,7 @@ class ItemEngine(object):
         except KeyError:
             return ''
 
-    def set_label(self, label, lang='en', if_exists='REPLACE'):
+    def set_label(self, label, lang=None, if_exists='REPLACE'):
         """
         Set the label for an item in a certain language
         :param label: The description of the item in a certain language
@@ -782,6 +785,8 @@ class ItemEngine(object):
         :param if_exists: If a label already exist, REPLACE it or KEEP it.
         :return: None
         """
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
@@ -801,12 +806,14 @@ class ItemEngine(object):
                 'value': label
             }
 
-    def get_aliases(self, lang='en'):
+    def get_aliases(self, lang=None):
         """
         Retrieve the aliases in a certain language
         :param lang: The language the description should be retrieved for
         :return: Returns a list of aliases, an empty list if none exist for the specified language
         """
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
         if self.fast_run:
             return list(self.fast_run_container.get_language_data(self.item_id, lang, 'aliases'))
 
@@ -817,7 +824,7 @@ class ItemEngine(object):
 
         return alias_list
 
-    def set_aliases(self, aliases, lang='en', if_exists='APPEND'):
+    def set_aliases(self, aliases, lang=None, if_exists='APPEND'):
         """
         set the aliases for an item
         :param aliases: a list of strings representing the aliases of an item
@@ -825,6 +832,8 @@ class ItemEngine(object):
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: None
         """
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
 
@@ -858,12 +867,14 @@ class ItemEngine(object):
                     'value': alias
                 })
 
-    def get_description(self, lang='en'):
+    def get_description(self, lang=None):
         """
         Retrieve the description in a certain language
         :param lang: The language the description should be retrieved for
         :return: Returns the description string
         """
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
         if self.fast_run:
             return list(self.fast_run_container.get_language_data(self.item_id, lang, 'description'))[0]
         if 'descriptions' not in self.json_representation or lang not in self.json_representation['descriptions']:
@@ -871,7 +882,7 @@ class ItemEngine(object):
         else:
             return self.json_representation['descriptions'][lang]['value']
 
-    def set_description(self, description, lang='en'):
+    def set_description(self, description, lang=None):
         """
         Set the description for an item in a certain language
         :param description: The description of the item in a certain language
@@ -880,6 +891,8 @@ class ItemEngine(object):
         :type lang: str
         :return: None
         """
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[description], lang=lang,
@@ -2501,7 +2514,7 @@ class MonolingualText(BaseDataType):
     """
     DTYPE = 'monolingualtext'
 
-    def __init__(self, value, prop_nr, language='en', is_reference=False, is_qualifier=False, snak_type='value',
+    def __init__(self, value, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2525,8 +2538,9 @@ class MonolingualText(BaseDataType):
         :type rank: str
         """
 
-        self.language = language
-        value = (value, language)
+        self.language = config['DEFAULT_LANGUAGE'] if language is None else language
+
+        value = (value, self.language)
 
         super(MonolingualText, self) \
             .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
