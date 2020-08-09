@@ -18,8 +18,7 @@ example_Q14911732 = {'P1057':
 
 class FastRunContainer(object):
     def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None,
-                 base_filter=None, use_refs=False, ref_handler=None, case_insensitive=False,
-                 debug=False):
+                 base_filter=None, use_refs=False, ref_handler=None, case_insensitive=False, debug=False):
         self.prop_data = {}
         self.loaded_langs = {}
         self.statements = []

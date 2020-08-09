@@ -255,8 +255,9 @@ class ItemEngine(object):
     def init_fastrun(self):
         # We search if we already have a FastRunContainer with the same parameters to re-use it
         for c in ItemEngine.fast_run_store:
-            if (c.base_filter == self.fast_run_base_filter) and (c.use_refs == self.fast_run_use_refs) and \
-                    (c.sparql_endpoint_url == self.sparql_endpoint_url):
+            if (c.base_filter == self.fast_run_base_filter) \
+                    and (c.use_refs == self.fast_run_use_refs) \
+                    and (c.sparql_endpoint_url == self.sparql_endpoint_url):
                 self.fast_run_container = c
                 self.fast_run_container.ref_handler = self.ref_handler
                 self.fast_run_container.current_qid = ''
