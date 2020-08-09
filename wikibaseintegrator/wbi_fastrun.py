@@ -36,7 +36,7 @@ class FastRunContainer(object):
                 if v:
                     self.base_filter_string += '?item wdt:{0} wd:{1} . \n'.format(k, v)
                 else:
-                    self.base_filter_string += '?item wdt:{0} ?zz . \n'.format(k)
+                    self.base_filter_string += '?item wdt:{0} ?zz{0} . \n'.format(k)
 
     def reconstruct_statements(self, qid):
         reconstructed_statements = []
