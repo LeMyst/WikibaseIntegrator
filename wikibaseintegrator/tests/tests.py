@@ -95,8 +95,6 @@ class TestFastRun(unittest.TestCase):
     """
 
     def test_fast_run(self):
-        qid = 'Q27552312'
-
         statements = [
             wbi_core.ExternalID(value='P40095', prop_nr='P352'),
             wbi_core.ExternalID(value='YER158C', prop_nr='P705')
@@ -146,7 +144,7 @@ class TestFastRun(unittest.TestCase):
         item.set_label("Earth")
         item.set_label("xfgfdsg")
         assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
-        item.set_aliases(["fake alias"], append=True)
+        item.set_aliases(["fake alias"], if_exists='APPEND')
         assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
 
         # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
@@ -161,7 +159,7 @@ class TestFastRun(unittest.TestCase):
         item.get_aliases("ak")
         item.set_label("label", lang="ak")
         item.set_description("d", lang="ak")
-        item.set_aliases(["a"], lang="ak", append=True)
+        item.set_aliases(["a"], lang="ak", if_exists='APPEND')
 
 
 def test_sitelinks():

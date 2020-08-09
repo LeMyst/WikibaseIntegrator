@@ -550,8 +550,6 @@ class ItemEngine(object):
             :param new_item: An item containing the new data which should be written to the Wikibase instance
             :type new_item: A child of BaseDataType
             """
-            # stated in, title, language of work, retrieved, imported from
-            ref_properties = ['P248', 'P1476', 'P407', 'P813', 'P143']
             new_references = new_item.get_references()
             old_references = old_item.get_references()
 
@@ -1217,8 +1215,8 @@ class ItemEngine(object):
         :param query: The actual SPARQL query string
         :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-        :param as_dataframe: Return result as pandas dataframe
         :type user_agent: str
+        :param as_dataframe: Return result as pandas dataframe
         :param max_retries: The number time this function should retry in case of header reports.
         :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service
          is not reachable.
@@ -1240,7 +1238,6 @@ class ItemEngine(object):
             'Accept': 'application/sparql-results+json',
             'User-Agent': user_agent
         }
-        response = None
 
         for n in range(max_retries):
             try:
@@ -1286,19 +1283,16 @@ class ItemEngine(object):
 
     # SHEX related functions
     @staticmethod
-    def check_shex_conformance(qid, eid, sparql_endpoint_url=None, output='confirm'):
+    def check_shex_conformance(qid, eid, output='confirm'):
         """
-                Static method which can be used to check for conformance of a Wikidata item to an EntitySchema any SPARQL query
-                :param qid: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
-                :param eid: The EntitySchema identifier from Wikidata
-                :param sparql_endpoint_url: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
-                :param output: results of a test of conformance on a given shape expression
-                :return: The results of the query are returned in string format
+        Static method which can be used to check for conformance of a Wikidata item to an EntitySchema any SPARQL query
+        :param qid: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
+        :param eid: The EntitySchema identifier from Wikidata
+        :param output: results of a test of conformance on a given shape expression
+        :return: The results of the query are returned in string format
         """
 
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
-
-        schema = requests.get("https://www.wikidata.org/wiki/Special:EntitySchemaText/" + eid).text
+        schema = requests.get(config["WIKIBASE_URL"] + "/wiki/Special:EntitySchemaText/" + eid).text
         rdfdata = Graph()
         rdfdata.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
         shex_result = dict()
@@ -1322,7 +1316,7 @@ class ItemEngine(object):
 
     @staticmethod
     def extract_shex(qid, extract_shape_of_qualifiers=False, just_direct_properties=True,
-                     comments=False, endpoint="https://query.wikidata.org/sparql"):
+                     comments=False, sparql_endpoint_url=None):
         """
         It extracts a shape tor the entity specified in qid. The shape is built w.r.t the outgoing
         properties of the selected Wikidata entity.
@@ -1331,16 +1325,20 @@ class ItemEngine(object):
 
         :param qid: Wikidata identifier to which other wikidata items link
         :param extract_shape_of_qualifiers: It it is set to True, the result will contain the shape of the qid
-                selected but also the shapes of its qualifiers.
-        :param just_direct_properties: If it set to True, the shape obtained will just contain direct properties to other
-                Wikidata items. It will ignore qualifiers. Do not set to True if extract_shape_of_qualifiers is True
+            selected but also the shapes of its qualifiers.
+        :param just_direct_properties: If it set to True, the shape obtained will just contain direct properties to
+            other Wikidata items. It will ignore qualifiers. Do not set to True if extract_shape_of_qualifiers is True
         :param comments: If it is set to True, each triple constraint will have an associated comment that indicates
-               the trustworthiness of each triple constraint. This is usefull for shapes that have been extracted
-               w.r.t to the properties of more than one entity.
-        :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
+            the trustworthiness of each triple constraint. This is usefull for shapes that have been extracted
+            w.r.t to the properties of more than one entity.
+        :param sparql_endpoint_url: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL
+            endpoint
 
         :return: shex content in String format
         """
+
+        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+
         namespaces_dict = {
             "http://www.w3.org/2000/01/rdf-schema#": "rdfs",
             "http://www.wikidata.org/prop/": "p",
@@ -1365,12 +1363,12 @@ class ItemEngine(object):
 
         shape_map = "<http://www.wikidata.org/entity/{qid}>@<{qid}>".format(qid=qid)
         shaper = Shaper(shape_map_raw=shape_map,
-                        url_endpoint=endpoint,
+                        url_endpoint=sparql_endpoint_url,
                         disable_comments=not comments,
                         shape_qualifiers_mode=extract_shape_of_qualifiers,
                         namespaces_dict=namespaces_dict,
                         namespaces_to_ignore=namespaces_to_ignore if just_direct_properties else None,
-                        namespaces_for_qualifier_props=["http://www.wikidata.org/prop/"],
+                        namespaces_for_qualifier_props=[config["WIKIBASE_URL"] + "/prop/"],
                         depth_for_building_subgraph=2 if extract_shape_of_qualifiers else 1)
         return shaper.shex_graph(string_output=True, acceptance_threshold=0)
 
@@ -1400,15 +1398,13 @@ class ItemEngine(object):
         return (linkedby)
 
     @staticmethod
-    def get_rdf(qid, format="turtle", mediawiki_api_url=None):
+    def get_rdf(qid, format="turtle"):
         """
             :param qid: Wikibase identifier to extract the RDF of
             :format RDF from to return takes (turtle, ntriples, rdfxml, see https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
             :param mediawiki_api_url: default to wikidata's api, but can be changed to any wikibase
             :return:
         """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
 
         localcopy = Graph()
         localcopy.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
@@ -1430,6 +1426,8 @@ class ItemEngine(object):
         :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated
                 by a pipe ('|') if using more than one of those.
         :type ignore_conflicts: str
+        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
+        :type user_agent: str
         """
 
         url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1500,6 +1498,10 @@ class ItemEngine(object):
         :type reason: str
         :param login: A wbi_login.Login object which contains username and password the edit should be performed with.
         :type login: wbi_login.Login
+        :param mediawiki_api_url: The MediaWiki url which should be used
+        :type mediawiki_api_url: str
+        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
+        :type user_agent: str
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1520,7 +1522,21 @@ class ItemEngine(object):
 
     @staticmethod
     def delete_statement(statement_id, revision, login, mediawiki_api_url=None, user_agent=None):
-
+        """
+        Delete an item
+        :param statement_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed.
+            All claims must belong to the same entity.
+        :type statement_id: string
+        :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting
+            conflicts during save.
+        :type revision: str
+        :param login: A wbi_login.Login object which contains username and password the edit should be performed with.
+        :type login: wbi_login.Login
+        :param mediawiki_api_url: The MediaWiki url which should be used
+        :type mediawiki_api_url: str
+        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
+        :type user_agent: str
+        """
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
@@ -2396,6 +2412,7 @@ class Time(BaseDataType):
         :type rank: str
         """
 
+        self.time, self.timezone, self.precision, self.calendarmodel = None
         calendarmodel = config['CALENDAR_MODEL_QID'] if calendarmodel is None else calendarmodel
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
@@ -2636,7 +2653,7 @@ class Quantity(BaseDataType):
                 for i in [value, upper_bound, lower_bound]:
                     if i:
                         float(i)
-            except ValueError as e:
+            except ValueError:
                 raise ValueError('Value, bounds and units must parse as integers or float')
 
             if (lower_bound and upper_bound) and (float(lower_bound) > float(upper_bound)
@@ -2779,6 +2796,8 @@ class GlobeCoordinate(BaseDataType):
 
         globe = config['COORDINATE_GLOBE_QID'] if globe is None else globe
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+
+        self.latitude, self.longitude, self.precision, self.globe = None
 
         if globe.startswith('Q'):
             globe = wikibase_url + 'entity' + globe
