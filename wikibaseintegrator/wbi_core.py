@@ -2412,9 +2412,13 @@ class Time(BaseDataType):
         :type rank: str
         """
 
-        self.time, self.timezone, self.precision, self.calendarmodel = None
         calendarmodel = config['CALENDAR_MODEL_QID'] if calendarmodel is None else calendarmodel
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+
+        self.time = None
+        self.timezone = None
+        self.precision = None
+        self.calendarmodel = None
 
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity' + calendarmodel
@@ -2797,7 +2801,10 @@ class GlobeCoordinate(BaseDataType):
         globe = config['COORDINATE_GLOBE_QID'] if globe is None else globe
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
-        self.latitude, self.longitude, self.precision, self.globe = None
+        self.latitude = None
+        self.longitude = None
+        self.precision = None
+        self.globe = None
 
         if globe.startswith('Q'):
             globe = wikibase_url + 'entity' + globe
