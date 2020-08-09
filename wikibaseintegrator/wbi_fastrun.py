@@ -5,16 +5,6 @@ from itertools import chain
 
 from wikibaseintegrator.wbi_config import config
 
-example_Q14911732 = {'P1057':
-                         {'Q14911732-23F268EB-2848-4A82-A248-CF4DF6B256BC':
-                              {'v': 'Q847102',
-                               'ref': {'9d96507726508344ef1b8f59092fb350171b3d99':
-                                           {('P248', 'Q29458763'), ('P594', 'ENSG00000123374')}},
-                               'qual': {('P659', 'Q21067546'), ('P659', 'Q20966585')},
-                               }
-                          }
-                     }
-
 
 class FastRunContainer(object):
     def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None,
@@ -50,9 +40,11 @@ class FastRunContainer(object):
 
     def reconstruct_statements(self, qid):
         reconstructed_statements = []
+
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements
             return reconstructed_statements
+
         for prop_nr, dt in self.prop_data[qid].items():
             # get datatypes for qualifier props
             q_props = set(chain(*[[x[0] for x in d['qual']] for d in dt.values()]))
