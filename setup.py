@@ -35,6 +35,7 @@ setup(
         'pyshex',
         'backoff',
         'shexer',
-        'rdflib'
+        'rdflib',
+        'Flask'
     ],
 )
