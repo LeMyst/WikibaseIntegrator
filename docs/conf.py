@@ -33,6 +33,7 @@ release = 'v0.8.2'
 # ones.
 extensions = [
     'readthedocs_ext.readthedocs',
+    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
