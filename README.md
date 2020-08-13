@@ -47,6 +47,7 @@ Wikidata is always the default endpoint for all functions.
   * wd_item_id -> item_id
 * Change wbi_core.set_aliases parameter named 'append' to 'if_exists' with a value of APPEND (default) or REPLACE
 * Remove CONCEPT_BASE_URI wbi_config option and classes' parameter. It's now derived from WIKIBASE_URL.
+* wbi_core.log() has been removed. Please use your own logging implementation.
 
 # Installation #
 The easiest way to install WikibaseIntegrator is using `pip` or `pip3`. WikibaseIntegrator supports python 3.6 and higher, hence the suggestion for pip3. If python2 is installed pip will lead to an error indicating missing dependencies. 
@@ -165,11 +166,6 @@ query string (query), optional prefixes (prefix) if you do not want to use the s
 and you can also specify a user agent for the http header sent to the SPARQL server (user_agent). The latter is very useful to let
 the operators of the endpoint know who you are, especially if you execute many queries on the endpoint. This allows the operators of
 the endpoint to contact you (e.g. specify a email address or the URL to your bot code repository.)
-
-## Logging ##
-The method wbi_core.ItemEngine.log() allows for using the Python built in logging functionality to collect errors and other logs.
-It takes two parameters, the log level (level) and the log message (message). It is advisable to separate log file columns by colons
-and always use the same number of fields, as this allows you to load the log file into databases or dataframes of R or Python.
 
 ## Wikidata Search ##
 The method wbi_core.ItemEngine.get_search_results() allows for string search in a Wikibase instance. This means that

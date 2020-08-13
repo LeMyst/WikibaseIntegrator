@@ -240,7 +240,7 @@ class ItemEngine(object):
             try:
                 qids_by_props = self.__select_item()
             except SearchError as e:
-                self.log('ERROR', str(e))
+                print('ERROR init_data_load: ', str(e))
 
             if qids_by_props:
                 self.item_id = qids_by_props
@@ -1086,78 +1086,6 @@ class ItemEngine(object):
             raise MWApiError(response.json() if response else dict())
 
         return json_data
-
-    @classmethod
-    def setup_logging(cls, log_dir="./logs", log_name=None, header=None, names=None,
-                      delimiter=";", logger_name='logger'):
-        """
-        A static method which initiates log files compatible to .csv format, allowing for easy further analysis.
-        :param log_dir: allows for setting relative or absolute path for logging, default is ./logs.
-        :type log_dir: str
-        :param log_name: File name of log file to be written. e.g. "bot_run-20160204.log". Default is "bot_run"
-        and a timestamp of the current time
-        :type log_name: str
-        :param header: Log file will be prepended with header if given
-        :type header: str
-        :param names: Column names for the log file
-        :type names: list
-        :param delimiter: Log file will be delimited with `delimiter`
-        :type delimiter: str
-        """
-        names = ["level", "timestamp", "external_id", "external_id_prop", "wdid", "msg", "msg_type",
-                 "revid"] if names is None else names
-
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-
-        if not log_name:
-            run_id = time.strftime('%Y%m%d_%H:%M', time.localtime())
-            log_name = "bot_run-{}.log".format(run_id)
-
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)
-
-        log_file_name = os.path.join(log_dir, log_name)
-
-        file_handler = logging.FileHandler(log_file_name, mode='a')
-        file_handler.setLevel(logging.DEBUG)
-
-        fmt = '%(levelname)s{delimiter}%(asctime)s{delimiter}%(message)s'.format(delimiter=delimiter)
-        if header:
-            header = header if header.startswith("#") else "#" + header
-            header += "\n" + delimiter.join(names)
-            formatter = FormatterWithHeader(header, fmt=fmt, datefmt='%m/%d/%Y %H:%M:%S')
-        else:
-            formatter = FormatterWithHeader(delimiter.join(names), fmt=fmt, datefmt='%m/%d/%Y %H:%M:%S')
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-
-        cls.logger = logger
-
-    @classmethod
-    def log(cls, level, message):
-        """
-        :param level: The log level as in the Python logging documentation, 5 different possible values with increasing
-         severity
-        :type level: String of value 'DEBUG', 'INFO', 'WARNING', 'ERROR' or 'CRITICAL'.
-        :param message: The logging data which should be written to the log file. In order to achieve a csv-file
-         compatible format, all fields must be separated by a colon. Furthermore, all strings which could contain
-         colons, spaces or other special characters must be enclosed in double-quotes.
-         e.g. '{main_data_id}, "{exception_type}", "{message}", {item_id}, {duration}'.format(
-                        main_data_id=<main_id>,
-                        exception_type=<excpetion type>,
-                        message=<exception message>,
-                        item_id=<wikibase id>,
-                        duration=<duration of action>
-        :type message: str
-        """
-        if cls.logger is None:
-            cls.setup_logging()
-
-        log_levels = {'DEBUG': logging.DEBUG, 'ERROR': logging.ERROR, 'INFO': logging.INFO, 'WARNING': logging.WARNING,
-                      'CRITICAL': logging.CRITICAL}
-
-        cls.logger.log(level=log_levels[level], msg=message)
 
     @classmethod
     def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
