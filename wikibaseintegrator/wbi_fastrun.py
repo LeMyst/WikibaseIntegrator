@@ -441,29 +441,28 @@ class FastRunContainer(object):
         while True:
             query = '''
                 #Tool: wbi_fastrun _query_data_refs
-                SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval WHERE {
-                  {
-                    SELECT ?item ?v ?sid where {
+                SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval WHERE {{
+                  {{
+                    SELECT ?item ?v ?sid where {{
                       {base_filter}
                       ?item <{wb_url}/prop/{prop_nr}> ?sid .
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                    } GROUP BY ?item ?v ?sid
+                    }} GROUP BY ?item ?v ?sid
                     ORDER BY ?sid
                     OFFSET {offset}
                     LIMIT {page_size}
-                  }
-                  OPTIONAL {
+                  }}
+                  OPTIONAL {{
                     ?sid ?pq ?qval .
                     [] wikibase:qualifier ?pq
-                  }
-                  OPTIONAL {
+                  }}
+                  OPTIONAL {{
                     ?sid prov:wasDerivedFrom ?ref .
                     ?ref ?pr ?rval .
                     [] wikibase:reference ?pr
-                  }
-                }'''
-            query = query.format(offset=str(page_count * page_size), base_filter=self.base_filter_string,
-                                 prop_nr=prop_nr, page_size=str(page_size), wb_url=self.wikibase_url)
+                  }}
+                }}'''.format(offset=str(page_count * page_size), base_filter=self.base_filter_string, prop_nr=prop_nr,
+                             page_size=str(page_size), wb_url=self.wikibase_url)
 
             if self.debug:
                 print(query)
