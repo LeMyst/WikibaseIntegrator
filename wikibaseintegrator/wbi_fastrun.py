@@ -34,9 +34,11 @@ class FastRunContainer(object):
 
             for k, v in self.base_filter.items():
                 if v:
-                    self.base_filter_string += '?item wdt:{0} wd:{1} . \n'.format(k, v)
+                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> . \n'\
+                        .format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
                 else:
-                    self.base_filter_string += '?item wdt:{0} ?zz{0} . \n'.format(k)
+                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} . \n'\
+                        .format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid):
         reconstructed_statements = []
@@ -423,15 +425,11 @@ class FastRunContainer(object):
         num_pages = None
         if self.debug:
             # get the number of pages/queries so we can show a progress bar
-            query = """PREFIX wd: <{0}/entity/>
-            PREFIX wdt: <{0}/prop/direct/>
-            PREFIX p: <{0}/prop/>
-            PREFIX ps: <{0}/prop/statement/>
-
+            query = """
             SELECT (COUNT(?item) as ?c) where {{
-                  {1}
-                  ?item p:{2} ?sid .
-            }}""".format(self.wikibase_url, self.base_filter_string, prop_nr)
+                  {base_filter}
+                  ?item <{wb_url}/prop/{prop_nr}> ?sid .
+            }}""".format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
 
             if self.debug:
                 print(query)
@@ -441,36 +439,30 @@ class FastRunContainer(object):
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
         while True:
-            query = """
-                PREFIX wd: <**wikibase_url**/entity/>
-                PREFIX wdt: <**wikibase_url**/prop/direct/>
-                PREFIX p: <**wikibase_url**/prop/>
-                PREFIX ps: <**wikibase_url**/prop/statement/>
-                #Tool: wbi_core fastrun
-                SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval WHERE {
-                  {
-                    SELECT ?item ?v ?sid where {
-                      **base_filter_string**
-                      ?item p:**prop_nr** ?sid .
-                      ?sid ps:**prop_nr** ?v .
-                    } GROUP BY ?item ?v ?sid
+            query = '''
+                #Tool: wbi_fastrun _query_data_refs
+                SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval WHERE {{
+                  {{
+                    SELECT ?item ?v ?sid where {{
+                      {base_filter}
+                      ?item <{wb_url}/prop/{prop_nr}> ?sid .
+                      ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                    }} GROUP BY ?item ?v ?sid
                     ORDER BY ?sid
-                    OFFSET **offset**
-                    LIMIT **page_size**
-                  }
-                  OPTIONAL {
+                    OFFSET {offset}
+                    LIMIT {page_size}
+                  }}
+                  OPTIONAL {{
                     ?sid ?pq ?qval .
                     [] wikibase:qualifier ?pq
-                  }
-                  OPTIONAL {
+                  }}
+                  OPTIONAL {{
                     ?sid prov:wasDerivedFrom ?ref .
                     ?ref ?pr ?rval .
                     [] wikibase:reference ?pr
-                  }
-                }""".replace("**offset**", str(page_count * page_size)). \
-                replace("**base_filter_string**", self.base_filter_string). \
-                replace("**prop_nr**", prop_nr).replace("**page_size**", str(page_size)). \
-                replace("**wikibase_url**", self.wikibase_url)
+                  }}
+                }}'''.format(offset=str(page_count * page_size), base_filter=self.base_filter_string, prop_nr=prop_nr,
+                             page_size=str(page_size), wb_url=self.wikibase_url)
 
             if self.debug:
                 print(query)
@@ -489,28 +481,23 @@ class FastRunContainer(object):
             self._query_data_refs(prop_nr)
         else:
             query = '''
-                PREFIX wd: <{0}/entity/>
-                PREFIX wdt: <{0}/prop/direct/>
-                PREFIX p: <{0}/prop/>
-                PREFIX ps: <{0}/prop/statement/>
-                PREFIX psv: <{0}/prop/statement/value/>
-                #Tool: wbi_core fastrun
+                #Tool: wbi_fastrun _query_data
                 select ?item ?qval ?pq ?sid ?v ?unit where {{
-                  {1}
+                  {base_filter}
 
-                  ?item p:{2} ?sid .
+                  ?item <{wb_url}/prop/{prop_nr}> ?sid .
 
-                  ?sid ps:{2} ?v .
+                  ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                   OPTIONAL {{
                     ?sid ?pq ?qval .
                     [] wikibase:qualifier ?pq
                   }}
                   OPTIONAL {{
-                    ?sid psv:{2} ?valuenode .
+                    ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
                     ?valuenode wikibase:quantityUnit ?unit
                   }}
                 }}
-                '''.format(self.wikibase_url, self.base_filter_string, prop_nr)
+                '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
 
             if self.debug:
                 print(query)
@@ -534,19 +521,15 @@ class FastRunContainer(object):
         }
 
         query = '''
-        PREFIX wd: <{0}/entity/>
-        PREFIX wdt: <{0}/prop/direct/>
-        PREFIX p: <{0}/prop/>
-        PREFIX ps: <{0}/prop/statement/>
-        #Tool: wbi_core fastrun
+        #Tool: wbi_fastrun _query_lang
         SELECT ?item ?label WHERE {{
-            {1}
+            {base_filter}
 
             OPTIONAL {{
-                ?item {2} ?label FILTER (lang(?label) = "{3}") .
+                ?item {lang_data_type} ?label FILTER (lang(?label) = "{lang}") .
             }}
         }}
-        '''.format(self.wikibase_url, self.base_filter_string, lang_data_type_dict[lang_data_type], lang)
+        '''.format(base_filter=self.base_filter_string, lang_data_type=lang_data_type_dict[lang_data_type], lang=lang)
 
         if self.debug:
             print(query)
