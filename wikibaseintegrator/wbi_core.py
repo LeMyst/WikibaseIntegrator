@@ -1691,15 +1691,6 @@ class BaseDataType(object):
     """
     DTYPE = 'base-data-type'
 
-    # example sparql query
-    """
-    SELECT * WHERE {
-      ?item_id p:P492 ?s .
-      ?s ps:P492 '614212' .
-      OPTIONAL {?s pq:P4390 ?mrt}
-    }
-    """
-
     sparql_query = '''
         PREFIX wd: <{wb_url}/entity/>
         PREFIX wdt: <{wb_url}/prop/direct/>
