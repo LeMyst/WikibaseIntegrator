@@ -1401,13 +1401,12 @@ class ItemEngine(object):
     def get_rdf(qid, format="turtle"):
         """
             :param qid: Wikibase identifier to extract the RDF of
-            :format RDF from to return takes (turtle, ntriples, rdfxml, see https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
-            :param mediawiki_api_url: default to wikidata's api, but can be changed to any wikibase
+            :param format: RDF from to return takes (turtle, ntriples, rdfxml, see https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
             :return:
         """
 
         localcopy = Graph()
-        localcopy.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
+        localcopy.parse(config["WIKIBASE_URL"] + "/wiki/Special:EntityData/" + qid + ".ttl")
         return (localcopy.serialize(format=format))
 
     @staticmethod
@@ -2412,7 +2411,7 @@ class Time(BaseDataType):
         self.calendarmodel = None
 
         if calendarmodel.startswith('Q'):
-            calendarmodel = wikibase_url + '/entity' + calendarmodel
+            calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
         # the value is composed of what is requried to define the time object
         value = (time, timezone, precision, calendarmodel)
@@ -2621,7 +2620,7 @@ class Quantity(BaseDataType):
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if unit.startswith('Q'):
-            unit = wikibase_url + 'entity' + unit
+            unit = wikibase_url + '/entity/' + unit
 
         v = (value, unit, upper_bound, lower_bound)
 
@@ -2798,7 +2797,7 @@ class GlobeCoordinate(BaseDataType):
         self.globe = None
 
         if globe.startswith('Q'):
-            globe = wikibase_url + 'entity' + globe
+            globe = wikibase_url + '/entity/' + globe
 
         value = (latitude, longitude, precision, globe)
 
