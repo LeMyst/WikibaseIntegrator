@@ -1326,7 +1326,8 @@ class ItemEngine(object):
     def get_rdf(qid, format="turtle"):
         """
             :param qid: Wikibase identifier to extract the RDF of
-            :param format: RDF from to return takes (turtle, ntriples, rdfxml, see https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
+            :param format: RDF format to return takes (turtle, ntriples, rdfxml, see
+            https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
             :return:
         """
 
@@ -1940,10 +1941,11 @@ class BaseDataType(object):
         oldrefs = olditem.references
         newrefs = newitem.references
 
-        ref_equal = lambda oldref, newref: True if (len(oldref) == len(newref)) and all(
-            x in oldref for x in newref) else False
-        if len(oldrefs) == len(newrefs) and all(
-                any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
+        def ref_equal(oldref, newref):
+            return True if (len(oldref) == len(newref)) and all(x in oldref for x in newref) else False
+
+        if len(oldrefs) == len(newrefs) and \
+                all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
             return True
         else:
             return False
@@ -2323,7 +2325,7 @@ class Time(BaseDataType):
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        # the value is composed of what is requried to define the time object
+        # the value is composed of what is required to define the Time object
         value = (time, timezone, precision, calendarmodel)
 
         super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
