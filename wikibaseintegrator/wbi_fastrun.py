@@ -204,7 +204,8 @@ class FastRunContainer(object):
             bool_vec = []
             for x in tmp_rs:
                 if (x.get_value() == date.get_value() or (
-                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and x.get_prop_nr() not in del_props:
+                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and \
+                        x.get_prop_nr() not in del_props:
                     if self.use_refs and self.ref_handler:
                         to_be = copy.deepcopy(x)
                         self.ref_handler(to_be, date)
@@ -268,7 +269,7 @@ class FastRunContainer(object):
     def get_language_data(self, qid, lang, lang_data_type):
         """
         get language data for specified qid
-        :param qid:
+        :param qid:  Wikibase item id
         :param lang: language code
         :param lang_data_type: 'label', 'description' or 'aliases'
         :return: list of strings
@@ -288,6 +289,7 @@ class FastRunContainer(object):
     def check_language_data(self, qid, lang_data, lang, lang_data_type):
         """
         Method to check if certain language data exists as a label, description or aliases
+        :param qid: Wikibase item id
         :param lang_data: list of string values to check
         :type lang_data: list
         :param lang: language code
@@ -373,7 +375,8 @@ class FastRunContainer(object):
                 else:
                     i['rval'] = i['rval']['value']
 
-    def format_amount(self, amount):
+    @staticmethod
+    def format_amount(amount):
         # Remove .0 by casting to int
         if float(amount) % 1 == 0:
             amount = int(float(amount))
