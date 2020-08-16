@@ -207,13 +207,10 @@ class ItemEngine(object):
         dvcqid = distinct_values_constraint_qid
 
         query = '''
-        PREFIX wd: <{0}/entity/>
-        PREFIX wdt: <{0}/prop/direct/>
-
         SELECT ?p WHERE {{
-            ?p wdt:{1} wd:{2}
+            ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
         }}
-        '''.format(wikibase_url, pcpid, dvcqid)
+        '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
         df = cls.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
         if df.empty:
             warnings.warn("Warning: No distinct value properties found\n" +
@@ -1230,7 +1227,7 @@ class ItemEngine(object):
             query = prefix + '\n' + query
 
         params = {
-            'query': '#Tool: wbi_core fastrun\n' + query,
+            'query': '#Tool: wbi_core execute_sparql_query\n' + query,
             'format': 'json'
         }
 
@@ -1691,15 +1688,10 @@ class BaseDataType(object):
     DTYPE = 'base-data-type'
 
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} '{value}' .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}' .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2204,15 +2196,10 @@ class ItemID(BaseDataType):
     """
     DTYPE = 'wikibase-item'
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} wd:Q{value} .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/Q{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2288,15 +2275,10 @@ class Property(BaseDataType):
     """
     DTYPE = 'wikibase-property'
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} wd:P{value} .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/P{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -3022,15 +3004,10 @@ class Lexeme(BaseDataType):
     """
     DTYPE = 'wikibase-lexeme'
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} wd:L{value} .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
