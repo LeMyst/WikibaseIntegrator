@@ -34,10 +34,10 @@ class FastRunContainer(object):
 
             for k, v in self.base_filter.items():
                 if v:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> . \n'\
+                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> . \n' \
                         .format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
                 else:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} . \n'\
+                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} . \n' \
                         .format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid):
