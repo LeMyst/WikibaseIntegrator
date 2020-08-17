@@ -1,8 +1,6 @@
 import copy
 import datetime
 import json
-import logging
-import os
 import re
 import time
 import warnings
@@ -207,13 +205,10 @@ class ItemEngine(object):
         dvcqid = distinct_values_constraint_qid
 
         query = '''
-        PREFIX wd: <{0}/entity/>
-        PREFIX wdt: <{0}/prop/direct/>
-
         SELECT ?p WHERE {{
-            ?p wdt:{1} wd:{2}
+            ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
         }}
-        '''.format(wikibase_url, pcpid, dvcqid)
+        '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
         df = cls.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
         if df.empty:
             warnings.warn("Warning: No distinct value properties found\n" +
@@ -240,7 +235,7 @@ class ItemEngine(object):
             try:
                 qids_by_props = self.__select_item()
             except SearchError as e:
-                self.log('ERROR', str(e))
+                print('ERROR init_data_load: ', str(e))
 
             if qids_by_props:
                 self.item_id = qids_by_props
@@ -416,7 +411,8 @@ class ItemEngine(object):
 
     def __select_item(self):
         """
-        The most likely item QID should be returned, after querying the Wikibase instance for all values in core_id properties
+        The most likely item QID should be returned, after querying the Wikibase instance for all values in core_id
+        properties
         :return: Either a single QID is returned, or an empty string if no suitable item in the Wikibase instance
         """
         qid_list = set()
@@ -1088,78 +1084,6 @@ class ItemEngine(object):
         return json_data
 
     @classmethod
-    def setup_logging(cls, log_dir="./logs", log_name=None, header=None, names=None,
-                      delimiter=";", logger_name='logger'):
-        """
-        A static method which initiates log files compatible to .csv format, allowing for easy further analysis.
-        :param log_dir: allows for setting relative or absolute path for logging, default is ./logs.
-        :type log_dir: str
-        :param log_name: File name of log file to be written. e.g. "bot_run-20160204.log". Default is "bot_run"
-        and a timestamp of the current time
-        :type log_name: str
-        :param header: Log file will be prepended with header if given
-        :type header: str
-        :param names: Column names for the log file
-        :type names: list
-        :param delimiter: Log file will be delimited with `delimiter`
-        :type delimiter: str
-        """
-        names = ["level", "timestamp", "external_id", "external_id_prop", "wdid", "msg", "msg_type",
-                 "revid"] if names is None else names
-
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-
-        if not log_name:
-            run_id = time.strftime('%Y%m%d_%H:%M', time.localtime())
-            log_name = "bot_run-{}.log".format(run_id)
-
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)
-
-        log_file_name = os.path.join(log_dir, log_name)
-
-        file_handler = logging.FileHandler(log_file_name, mode='a')
-        file_handler.setLevel(logging.DEBUG)
-
-        fmt = '%(levelname)s{delimiter}%(asctime)s{delimiter}%(message)s'.format(delimiter=delimiter)
-        if header:
-            header = header if header.startswith("#") else "#" + header
-            header += "\n" + delimiter.join(names)
-            formatter = FormatterWithHeader(header, fmt=fmt, datefmt='%m/%d/%Y %H:%M:%S')
-        else:
-            formatter = FormatterWithHeader(delimiter.join(names), fmt=fmt, datefmt='%m/%d/%Y %H:%M:%S')
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-
-        cls.logger = logger
-
-    @classmethod
-    def log(cls, level, message):
-        """
-        :param level: The log level as in the Python logging documentation, 5 different possible values with increasing
-         severity
-        :type level: String of value 'DEBUG', 'INFO', 'WARNING', 'ERROR' or 'CRITICAL'.
-        :param message: The logging data which should be written to the log file. In order to achieve a csv-file
-         compatible format, all fields must be separated by a colon. Furthermore, all strings which could contain
-         colons, spaces or other special characters must be enclosed in double-quotes.
-         e.g. '{main_data_id}, "{exception_type}", "{message}", {item_id}, {duration}'.format(
-                        main_data_id=<main_id>,
-                        exception_type=<excpetion type>,
-                        message=<exception message>,
-                        item_id=<wikibase id>,
-                        duration=<duration of action>
-        :type message: str
-        """
-        if cls.logger is None:
-            cls.setup_logging()
-
-        log_levels = {'DEBUG': logging.DEBUG, 'ERROR': logging.ERROR, 'INFO': logging.INFO, 'WARNING': logging.WARNING,
-                      'CRITICAL': logging.CRITICAL}
-
-        cls.logger.log(level=log_levels[level], msg=message)
-
-    @classmethod
     def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
         """
         A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
@@ -1230,7 +1154,7 @@ class ItemEngine(object):
             query = prefix + '\n' + query
 
         params = {
-            'query': '#Tool: wbi_core fastrun\n' + query,
+            'query': '#Tool: wbi_core execute_sparql_query\n' + query,
             'format': 'json'
         }
 
@@ -1395,20 +1319,20 @@ class ItemEngine(object):
             for link in whatlinkshere["query"]["backlinks"]:
                 if link["title"].startswith("Q"):
                     linkedby.append(link["title"])
-        return (linkedby)
+        return linkedby
 
     @staticmethod
-    def get_rdf(qid, format="turtle"):
+    def get_rdf(qid, rdf_format="turtle"):
         """
             :param qid: Wikibase identifier to extract the RDF of
-            :format RDF from to return takes (turtle, ntriples, rdfxml, see https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
-            :param mediawiki_api_url: default to wikidata's api, but can be changed to any wikibase
+            :param rdf_format: RDF format to return takes (turtle, ntriples, rdfxml, see
+            https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
             :return:
         """
 
         localcopy = Graph()
-        localcopy.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
-        return (localcopy.serialize(format=format))
+        localcopy.parse(config["WIKIBASE_URL"] + "/wiki/Special:EntityData/" + qid + ".ttl")
+        return localcopy.serialize(format=rdf_format)
 
     @staticmethod
     def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None,
@@ -1555,25 +1479,22 @@ class ItemEngine(object):
         print(r.json())
 
     # References
-    @classmethod
-    def count_references(cls, prop_id):
+    def count_references(self, prop_id):
         counts = dict()
-        for claim in cls.get_json_representation()['claims'][prop_id]:
+        for claim in self.get_json_representation()['claims'][prop_id]:
             counts[claim['id']] = len(claim['references'])
         return counts
 
-    @classmethod
-    def get_reference_properties(cls, prop_id):
+    def get_reference_properties(self, prop_id):
         references = []
-        for statements in cls.get_json_representation()['claims'][prop_id]:
+        for statements in self.get_json_representation()['claims'][prop_id]:
             for reference in statements['references']:
                 references.append(reference['snaks'].keys())
         return references
 
-    @classmethod
-    def get_qualifier_properties(cls, prop_id):
+    def get_qualifier_properties(self, prop_id):
         qualifiers = []
-        for statements in cls.get_json_representation()['claims'][prop_id]:
+        for statements in self.get_json_representation()['claims'][prop_id]:
             for reference in statements['qualifiers']:
                 qualifiers.append(reference['snaks'].keys())
         return qualifiers
@@ -1691,25 +1612,11 @@ class BaseDataType(object):
     """
     DTYPE = 'base-data-type'
 
-    # example sparql query
-    """
-    SELECT * WHERE {
-      ?item_id p:P492 ?s .
-      ?s ps:P492 '614212' .
-      OPTIONAL {?s pq:P4390 ?mrt}
-    }
-    """
-
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} '{value}' .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}' .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -1908,8 +1815,8 @@ class BaseDataType(object):
     def set_id(self, claim_id):
         self.id = claim_id
 
-    def set_hash(self, hash):
-        self.hash = hash
+    def set_hash(self, claim_hash):
+        self.hash = claim_hash
 
     def get_hash(self):
         return self.hash
@@ -2030,10 +1937,11 @@ class BaseDataType(object):
         oldrefs = olditem.references
         newrefs = newitem.references
 
-        ref_equal = lambda oldref, newref: True if (len(oldref) == len(newref)) and all(
-            x in oldref for x in newref) else False
-        if len(oldrefs) == len(newrefs) and all(
-                any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
+        def ref_equal(oldref, newref):
+            return True if (len(oldref) == len(newref)) and all(x in oldref for x in newref) else False
+
+        if len(oldrefs) == len(newrefs) and \
+                all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
             return True
         else:
             return False
@@ -2214,15 +2122,10 @@ class ItemID(BaseDataType):
     """
     DTYPE = 'wikibase-item'
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} wd:Q{value} .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/Q{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2298,15 +2201,10 @@ class Property(BaseDataType):
     """
     DTYPE = 'wikibase-property'
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} wd:P{value} .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/P{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2421,9 +2319,9 @@ class Time(BaseDataType):
         self.calendarmodel = None
 
         if calendarmodel.startswith('Q'):
-            calendarmodel = wikibase_url + '/entity' + calendarmodel
+            calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        # the value is composed of what is requried to define the time object
+        # the value is composed of what is required to define the Time object
         value = (time, timezone, precision, calendarmodel)
 
         super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
@@ -2630,7 +2528,7 @@ class Quantity(BaseDataType):
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if unit.startswith('Q'):
-            unit = wikibase_url + 'entity' + unit
+            unit = wikibase_url + '/entity/' + unit
 
         v = (value, unit, upper_bound, lower_bound)
 
@@ -2700,7 +2598,8 @@ class Quantity(BaseDataType):
         return cls(value=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound,
                    lower_bound=lower_bound, unit=value['unit'])
 
-    def format_amount(self, amount):
+    @staticmethod
+    def format_amount(amount):
         # Remove .0 by casting to int
         if float(amount) % 1 == 0:
             amount = int(float(amount))
@@ -2807,7 +2706,7 @@ class GlobeCoordinate(BaseDataType):
         self.globe = None
 
         if globe.startswith('Q'):
-            globe = wikibase_url + 'entity' + globe
+            globe = wikibase_url + '/entity/' + globe
 
         value = (latitude, longitude, precision, globe)
 
@@ -2890,8 +2789,8 @@ class GeoShape(BaseDataType):
         matches = pattern.match(value)
 
         if not matches:
-            raise ValueError(
-                'Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.')
+            raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
+                             'characters like colon, hash or pipe.')
 
         self.value = value
 
@@ -3006,8 +2905,8 @@ class TabularData(BaseDataType):
         matches = pattern.match(value)
 
         if not matches:
-            raise ValueError(
-                'Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.')
+            raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
+                             'characters like colon, hash or pipe.')
 
         self.value = value
 
@@ -3032,15 +2931,10 @@ class Lexeme(BaseDataType):
     """
     DTYPE = 'wikibase-lexeme'
     sparql_query = '''
-        PREFIX wd: <{wb_url}/entity/>
-        PREFIX wdt: <{wb_url}/prop/direct/>
-        PREFIX p: <{wb_url}/prop/>
-        PREFIX ps: <{wb_url}/prop/statement/>
-        PREFIX pq: <{wb_url}/prop/qualifier/>
         SELECT * WHERE {{
-          ?item_id p:{pid} ?s .
-          ?s ps:{pid} wd:L{value} .
-          OPTIONAL {{?s pq:{mrt_pid} ?mrt}}
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -3325,17 +3219,3 @@ class MergeError(Exception):
 
     def __str__(self):
         return repr(self.value)
-
-
-class FormatterWithHeader(logging.Formatter):
-    # http://stackoverflow.com/questions/33468174/write-header-to-a-python-log-file-but-only-if-a-record-gets-written
-    def __init__(self, header, **kwargs):
-        super(FormatterWithHeader, self).__init__(**kwargs)
-        self.header = header
-        # Override the normal format method
-        self.format = self.first_line_format
-
-    def first_line_format(self, record):
-        # First time in, switch back to the normal format function
-        self.format = super(FormatterWithHeader, self).format
-        return self.header + "\n" + self.format(record)
