@@ -2,7 +2,6 @@
 [![Build Status](https://travis-ci.org/Mystou/WikibaseIntegrator.svg?branch=master)](https://travis-ci.org/Mystou/WikibaseIntegrator)
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Mystou/WikibaseIntegrator/master)
 
 # WikibaseIntegrator / WikidataIntegrator #
 WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose purpose is to be focused on Wikibase only.
