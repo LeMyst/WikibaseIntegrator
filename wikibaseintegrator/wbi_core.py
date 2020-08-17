@@ -2,7 +2,6 @@ import copy
 import datetime
 import json
 import logging
-import os
 import re
 import time
 import warnings
@@ -413,7 +412,8 @@ class ItemEngine(object):
 
     def __select_item(self):
         """
-        The most likely item QID should be returned, after querying the Wikibase instance for all values in core_id properties
+        The most likely item QID should be returned, after querying the Wikibase instance for all values in core_id
+        properties
         :return: Either a single QID is returned, or an empty string if no suitable item in the Wikibase instance
         """
         qid_list = set()
@@ -1320,20 +1320,20 @@ class ItemEngine(object):
             for link in whatlinkshere["query"]["backlinks"]:
                 if link["title"].startswith("Q"):
                     linkedby.append(link["title"])
-        return (linkedby)
+        return linkedby
 
     @staticmethod
-    def get_rdf(qid, format="turtle"):
+    def get_rdf(qid, rdf_format="turtle"):
         """
             :param qid: Wikibase identifier to extract the RDF of
-            :param format: RDF format to return takes (turtle, ntriples, rdfxml, see
+            :param rdf_format: RDF format to return takes (turtle, ntriples, rdfxml, see
             https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
             :return:
         """
 
         localcopy = Graph()
         localcopy.parse(config["WIKIBASE_URL"] + "/wiki/Special:EntityData/" + qid + ".ttl")
-        return (localcopy.serialize(format=format))
+        return localcopy.serialize(format=rdf_format)
 
     @staticmethod
     def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None,
@@ -1480,25 +1480,22 @@ class ItemEngine(object):
         print(r.json())
 
     # References
-    @classmethod
-    def count_references(cls, prop_id):
+    def count_references(self, prop_id):
         counts = dict()
-        for claim in cls.get_json_representation()['claims'][prop_id]:
+        for claim in self.get_json_representation()['claims'][prop_id]:
             counts[claim['id']] = len(claim['references'])
         return counts
 
-    @classmethod
-    def get_reference_properties(cls, prop_id):
+    def get_reference_properties(self, prop_id):
         references = []
-        for statements in cls.get_json_representation()['claims'][prop_id]:
+        for statements in self.get_json_representation()['claims'][prop_id]:
             for reference in statements['references']:
                 references.append(reference['snaks'].keys())
         return references
 
-    @classmethod
-    def get_qualifier_properties(cls, prop_id):
+    def get_qualifier_properties(self, prop_id):
         qualifiers = []
-        for statements in cls.get_json_representation()['claims'][prop_id]:
+        for statements in self.get_json_representation()['claims'][prop_id]:
             for reference in statements['qualifiers']:
                 qualifiers.append(reference['snaks'].keys())
         return qualifiers
@@ -1819,8 +1816,8 @@ class BaseDataType(object):
     def set_id(self, claim_id):
         self.id = claim_id
 
-    def set_hash(self, hash):
-        self.hash = hash
+    def set_hash(self, claim_hash):
+        self.hash = claim_hash
 
     def get_hash(self):
         return self.hash
@@ -2602,7 +2599,8 @@ class Quantity(BaseDataType):
         return cls(value=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound,
                    lower_bound=lower_bound, unit=value['unit'])
 
-    def format_amount(self, amount):
+    @staticmethod
+    def format_amount(amount):
         # Remove .0 by casting to int
         if float(amount) % 1 == 0:
             amount = int(float(amount))
@@ -2792,8 +2790,8 @@ class GeoShape(BaseDataType):
         matches = pattern.match(value)
 
         if not matches:
-            raise ValueError(
-                'Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.')
+            raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
+                             'characters like colon, hash or pipe.')
 
         self.value = value
 
@@ -2908,8 +2906,8 @@ class TabularData(BaseDataType):
         matches = pattern.match(value)
 
         if not matches:
-            raise ValueError(
-                'Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.')
+            raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
+                             'characters like colon, hash or pipe.')
 
         self.value = value
 
@@ -3222,17 +3220,3 @@ class MergeError(Exception):
 
     def __str__(self):
         return repr(self.value)
-
-
-class FormatterWithHeader(logging.Formatter):
-    # http://stackoverflow.com/questions/33468174/write-header-to-a-python-log-file-but-only-if-a-record-gets-written
-    def __init__(self, header, **kwargs):
-        super(FormatterWithHeader, self).__init__(**kwargs)
-        self.header = header
-        # Override the normal format method
-        self.format = self.first_line_format
-
-    def first_line_format(self, record):
-        # First time in, switch back to the normal format function
-        self.format = super(FormatterWithHeader, self).format
-        return self.header + "\n" + self.format(record)
