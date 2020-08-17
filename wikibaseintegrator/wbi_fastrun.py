@@ -382,18 +382,6 @@ class FastRunContainer(object):
                 else:
                     i['rval'] = i['rval']['value']
 
-            # handle qualifier unit
-            # if 'qunit' in i:
-            #    qunit_prop_dt = self.get_prop_datatype(prop_nr=i['pq'])
-            #    from pprint import pprint
-            #    print('ccc')
-            #    pprint(i['qunit'])
-            #    pprint(qunit_prop_dt)
-            #    if i['qunit']['type'] == 'uri' and qunit_prop_dt == 'wikibase-item':
-            #        i['qunit'] = i['qunit']['value'].split('/')[-1]
-            #    else:
-            #        i['qunit'] = i['qunit']['value']
-
     @staticmethod
     def format_amount(amount):
         # Remove .0 by casting to int
