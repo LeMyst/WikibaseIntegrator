@@ -34,10 +34,10 @@ class FastRunContainer(object):
 
             for k, v in self.base_filter.items():
                 if v:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> . \n' \
+                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n' \
                         .format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
                 else:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} . \n' \
+                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n' \
                         .format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid):
@@ -61,7 +61,10 @@ class FastRunContainer(object):
                 for q in d['qual']:
                     f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
                          self.prop_dt_map[q[0]]][0]
-                    qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True))
+                    if self.prop_dt_map[q[0]] == 'quantity' and q[2] != '1':
+                        qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
+                    else:
+                        qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True))
 
                 references = []
                 for ref_id, refs in d['ref'].items():
@@ -329,7 +332,7 @@ class FastRunContainer(object):
         """
         prop_dt = self.get_prop_datatype(prop_nr)
         for i in r:
-            for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit'}:
+            for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
                 if value in i:
                     # these are always URIs for the local wikibase
                     i[value] = i[value]['value'].split('/')[-1]
@@ -366,6 +369,8 @@ class FastRunContainer(object):
                 qual_prop_dt = self.get_prop_datatype(prop_nr=i['pq'])
                 if i['qval']['type'] == 'uri' and qual_prop_dt == 'wikibase-item':
                     i['qval'] = i['qval']['value'].split('/')[-1]
+                elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
+                    i['qval'] = self.format_amount(i['qval']['value'])
                 else:
                     i['qval'] = i['qval']['value']
 
@@ -376,6 +381,18 @@ class FastRunContainer(object):
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 else:
                     i['rval'] = i['rval']['value']
+
+            # handle qualifier unit
+            # if 'qunit' in i:
+            #    qunit_prop_dt = self.get_prop_datatype(prop_nr=i['pq'])
+            #    from pprint import pprint
+            #    print('ccc')
+            #    pprint(i['qunit'])
+            #    pprint(qunit_prop_dt)
+            #    if i['qunit']['type'] == 'uri' and qunit_prop_dt == 'wikibase-item':
+            #        i['qunit'] = i['qunit']['value'].split('/')[-1]
+            #    else:
+            #        i['qunit'] = i['qunit']['value']
 
     @staticmethod
     def format_amount(amount):
@@ -408,7 +425,10 @@ class FastRunContainer(object):
             if 'qual' not in self.prop_data[qid][prop_nr][i['sid']]:
                 self.prop_data[qid][prop_nr][i['sid']]['qual'] = set()
             if 'pq' in i and 'qval' in i:
-                self.prop_data[qid][prop_nr][i['sid']]['qual'].add((i['pq'], i['qval']))
+                if 'qunit' in i:
+                    self.prop_data[qid][prop_nr][i['sid']]['qual'].add((i['pq'], i['qval'], i['qunit']))
+                else:
+                    self.prop_data[qid][prop_nr][i['sid']]['qual'].add((i['pq'], i['qval'], '1'))
 
             if 'ref' not in self.prop_data[qid][prop_nr][i['sid']]:
                 self.prop_data[qid][prop_nr][i['sid']]['ref'] = dict()
@@ -485,15 +505,16 @@ class FastRunContainer(object):
         else:
             query = '''
                 #Tool: wbi_fastrun _query_data
-                select ?item ?qval ?pq ?sid ?v ?unit where {{
+                select ?item ?qval ?pq ?sid ?v ?unit ?qunit where {{
                   {base_filter}
 
                   ?item <{wb_url}/prop/{prop_nr}> ?sid .
 
                   ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                   OPTIONAL {{
-                    ?sid ?pq ?qval .
-                    [] wikibase:qualifier ?pq
+                    ?sid ?pq ?qnode .
+                    ?qnode wikibase:quantityAmount ?qval ;
+                           wikibase:quantityUnit ?qunit .
                   }}
                   OPTIONAL {{
                     ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
