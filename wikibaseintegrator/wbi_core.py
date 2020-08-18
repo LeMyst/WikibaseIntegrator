@@ -785,6 +785,10 @@ class ItemEngine(object):
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
+        # Skip set_label if we the item already have one and if_exists is at 'KEEP'
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') and if_exists == 'KEEP':
+            return
+
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=[label], lang=lang,
@@ -850,7 +854,7 @@ class ItemEngine(object):
         for alias in aliases:
             found = False
             for current_aliases in self.json_representation['aliases'][lang]:
-                if alias.strip().lower() != current_aliases['value'].strip().lower():
+                if alias.strip().casefold() != current_aliases['value'].strip().casefold():
                     continue
                 else:
                     found = True
