@@ -839,7 +839,8 @@ class ItemEngine(object):
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=aliases, lang=lang,
-                                                                             lang_data_type='aliases')
+                                                                             lang_data_type='aliases',
+                                                                             if_exists=if_exists)
             if self.require_write:
                 self.init_data_load()
             else:
@@ -848,23 +849,28 @@ class ItemEngine(object):
         if 'aliases' not in self.json_representation:
             self.json_representation['aliases'] = {}
 
-        if if_exists != 'APPEND' or lang not in self.json_representation['aliases']:
+        if if_exists == 'REPLACE' or lang not in self.json_representation['aliases']:
             self.json_representation['aliases'][lang] = []
-
-        for alias in aliases:
-            found = False
-            for current_aliases in self.json_representation['aliases'][lang]:
-                if alias.strip().casefold() != current_aliases['value'].strip().casefold():
-                    continue
-                else:
-                    found = True
-                    break
-
-            if not found:
+            for alias in aliases:
                 self.json_representation['aliases'][lang].append({
                     'language': lang,
                     'value': alias
                 })
+        else:
+            for alias in aliases:
+                found = False
+                for current_aliases in self.json_representation['aliases'][lang]:
+                    if alias.strip().casefold() != current_aliases['value'].strip().casefold():
+                        continue
+                    else:
+                        found = True
+                        break
+
+                if not found:
+                    self.json_representation['aliases'][lang].append({
+                        'language': lang,
+                        'value': alias
+                    })
 
     def get_description(self, lang=None):
         """

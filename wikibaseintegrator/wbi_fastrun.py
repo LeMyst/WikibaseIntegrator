@@ -1,3 +1,4 @@
+import collections
 import copy
 from collections import defaultdict
 from functools import lru_cache
@@ -291,7 +292,7 @@ class FastRunContainer(object):
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid, lang_data, lang, lang_data_type):
+    def check_language_data(self, qid, lang_data, lang, lang_data_type, if_exists='APPEND'):
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
@@ -300,14 +301,19 @@ class FastRunContainer(object):
         :param lang: language code
         :type lang: str
         :param lang_data_type: What kind of data is it? 'label', 'description' or 'aliases'?
+        :param if_exists: If aliases already exist, APPEND or REPLACE
         :return:
         """
         all_lang_strings = set(x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type))
 
-        for s in lang_data:
-            if s.strip().casefold() not in all_lang_strings:
-                print('fastrun failed at: {}, string: {}'.format(lang_data_type, s))
-                return True
+        if if_exists == 'REPLACE':
+            def compare(x, y): return collections.Counter(x) == collections.Counter(y)
+            return not compare(all_lang_strings, lang_data_type)
+        else:
+            for s in lang_data:
+                if s.strip().casefold() not in all_lang_strings:
+                    print('fastrun failed at: {}, string: {}'.format(lang_data_type, s))
+                    return True
 
         return False
 
