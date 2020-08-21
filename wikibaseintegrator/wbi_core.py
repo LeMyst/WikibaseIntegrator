@@ -1698,8 +1698,7 @@ class BaseDataType(object):
             "datatype": self.data_type
         }
 
-        self.snak_types = ['value', 'novalue', 'somevalue']
-        if snak_type not in self.snak_types:
+        if snak_type not in ['value', 'novalue', 'somevalue']:
             raise ValueError('{} is not a valid snak type'.format(snak_type))
 
         if self.is_qualifier and self.is_reference:
