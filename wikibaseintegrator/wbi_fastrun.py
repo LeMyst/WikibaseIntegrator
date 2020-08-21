@@ -307,8 +307,8 @@ class FastRunContainer(object):
         all_lang_strings = set(x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type))
 
         if if_exists == 'REPLACE':
-            def compare(x, y): return collections.Counter(x) == collections.Counter(y)
-            return not compare(all_lang_strings, lang_data)
+            return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(),
+                                                                                        lang_data))
         else:
             for s in lang_data:
                 if s.strip().casefold() not in all_lang_strings:
