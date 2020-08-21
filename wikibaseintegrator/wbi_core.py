@@ -549,9 +549,7 @@ class ItemEngine(object):
             new_references = new_item.get_references()
             old_references = old_item.get_references()
 
-            if any([z.overwrite_references for y in new_references for z in y]) \
-                    or sum(map(lambda z: len(z), old_references)) == 0 \
-                    or self.global_ref_mode == 'STRICT_OVERWRITE':
+            if sum(map(lambda z: len(z), old_references)) == 0 or self.global_ref_mode == 'STRICT_OVERWRITE':
                 old_item.set_references(new_references)
 
             elif self.global_ref_mode == 'STRICT_KEEP' or new_item.statement_ref_mode == 'STRICT_KEEP':
@@ -1678,9 +1676,6 @@ class BaseDataType(object):
         else:
             self.prop_nr = 'P' + prop_nr
 
-        # Flag to allow complete overwrite of existing references for a value
-        self._overwrite_references = False
-
         # Internal ID and hash are issued by the Wikibase instance
         self.id = ''
         self.hash = ''
@@ -1740,17 +1735,6 @@ class BaseDataType(object):
             return True
         else:
             return False
-
-    # DEPRECATED: the property overwrite_references will be deprecated ASAP and should not be used
-    @property
-    def overwrite_references(self):
-        return self._overwrite_references
-
-    @overwrite_references.setter
-    def overwrite_references(self, value):
-        assert (value is True or value is False)
-        print('DEPRECATED!!! Calls to overwrite_references should not be used')
-        self._overwrite_references = value
 
     @property
     def statement_ref_mode(self):
