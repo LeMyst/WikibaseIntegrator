@@ -308,11 +308,12 @@ class FastRunContainer(object):
 
         if if_exists == 'REPLACE':
             def compare(x, y): return collections.Counter(x) == collections.Counter(y)
-            return not compare(all_lang_strings, lang_data_type)
+            return not compare(all_lang_strings, lang_data)
         else:
             for s in lang_data:
                 if s.strip().casefold() not in all_lang_strings:
-                    print('fastrun failed at: {}, string: {}'.format(lang_data_type, s))
+                    if self.debug:
+                        print('fastrun failed at: {}, string: {}'.format(lang_data_type, s))
                     return True
 
         return False
