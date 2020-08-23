@@ -12,7 +12,6 @@ class FastRunContainer(object):
         self.prop_data = {}
         self.loaded_langs = {}
         self.statements = []
-        self.base_filter = {}
         self.base_filter_string = ''
         self.prop_dt_map = {}
         self.current_qid = ''
@@ -30,9 +29,7 @@ class FastRunContainer(object):
         self.ref_handler = ref_handler
 
         if base_filter and any(base_filter):
-            self.base_filter = base_filter
-
-            for k, v in self.base_filter.items():
+            for k, v in base_filter.items():
                 if v:
                     self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n' \
                         .format(wb_url=self.wikibase_url, prop_nr=k, entity=v)

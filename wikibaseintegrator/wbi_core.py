@@ -1886,6 +1886,7 @@ class BaseDataType(object):
     def from_json(cls, json_representation):
         pass
 
+    # TODO: Useless method???
     @classmethod
     def delete_statement(cls, prop_nr):
         """
