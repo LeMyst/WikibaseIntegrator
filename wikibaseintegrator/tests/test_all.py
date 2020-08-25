@@ -26,7 +26,7 @@ class TestMediawikiApiCall(unittest.TestCase):
 
 class TestDataType(unittest.TestCase):
     def test_wd_quantity(self):
-        dt = wbi_core.Quantity(value='34', prop_nr='P43')
+        dt = wbi_core.Quantity(value='34.5', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
 
@@ -35,26 +35,26 @@ class TestDataType(unittest.TestCase):
 
         value = dt_json['mainsnak']['datavalue']
 
-        if not value['value']['amount'] == '+34':
+        if not value['value']['amount'] == '+34.5':
             raise
 
         if not value['value']['unit'] == '1':
             raise
 
-        dt2 = wbi_core.Quantity(value='34', prop_nr='P43', upper_bound='35', lower_bound='33')
+        dt2 = wbi_core.Quantity(value='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
 
         value = dt2.get_json_representation()['mainsnak']['datavalue']
 
-        if not value['value']['amount'] == '+34':
+        if not value['value']['amount'] == '+34.5':
             raise
 
-        if not value['value']['unit'] == '1':
+        if not value['value']['unit'] == 'http://www.wikidata.org/entity/Q11573':
             raise
 
-        if not value['value']['upperBound'] == '+35':
+        if not value['value']['upperBound'] == '+35.3':
             raise
 
-        if not value['value']['lowerBound'] == '+33':
+        if not value['value']['lowerBound'] == '+33.7':
             raise
 
     def test_wd_geoshape(self):

@@ -66,7 +66,7 @@ class Login(object):
             self.user_agent = user_agent
         else:
             # if a user is given append " (User:USER)" to the UA string and update that value in CONFIG
-            if user and user.lower() not in config['USER_AGENT_DEFAULT'].lower():
+            if user and user.casefold() not in config['USER_AGENT_DEFAULT'].casefold():
                 config['USER_AGENT_DEFAULT'] += " (User:{})".format(user)
             self.user_agent = config['USER_AGENT_DEFAULT']
         self.s.headers.update({

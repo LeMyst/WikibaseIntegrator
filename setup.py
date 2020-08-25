@@ -9,7 +9,7 @@ setup(
     description='Python package for reading and writing to/from Wikibase',
     license='MIT',
     keywords='Wikibase',
-    url='https://github.com/Mystou/WikibaseIntegrator',
+    url='https://github.com/LeMyst/WikibaseIntegrator',
     packages=find_packages(),
     include_package_data=True,
     # long_description=read('README.md'),
@@ -32,10 +32,12 @@ setup(
         'requests',
         'pandas',
         'mwoauth',
-        'pyshex',
         'backoff',
-        'shexer',
-        'rdflib',
         'Flask'
     ],
+    extras_require={
+        'dev': [
+            'pytest'
+        ]
+    }
 )
