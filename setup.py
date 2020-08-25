@@ -34,4 +34,9 @@ setup(
         'mwoauth',
         'backoff'
     ],
+    extras_require={
+        'dev': [
+            'pytest'
+        ]
+    }
 )
