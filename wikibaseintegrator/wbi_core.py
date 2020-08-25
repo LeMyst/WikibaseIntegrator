@@ -3,15 +3,11 @@ import datetime
 import json
 import re
 import time
-import warnings
 from collections import defaultdict
-from typing import List
+from warnings import warn
 
-import pandas as pd
+import pandas
 import requests
-from pyshex import ShExEvaluator
-from rdflib import Graph
-from shexer.shaper import Shaper
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
@@ -31,7 +27,6 @@ __license__ = 'MIT'
 
 
 class ItemEngine(object):
-    databases = {}
     pmids = []
 
     log_file_name = ''
@@ -211,9 +206,9 @@ class ItemEngine(object):
         '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
         df = cls.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
         if df.empty:
-            warnings.warn("Warning: No distinct value properties found\n" +
-                          "Please set P2302 and Q21502410 in your wikibase or set `core_props` manually.\n" +
-                          "Continuing with no core_props")
+            warn("Warning: No distinct value properties found\n" +
+                 "Please set P2302 and Q21502410 in your wikibase or set `core_props` manually.\n" +
+                 "Continuing with no core_props")
             cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set()
             return None
         df.p = df.p.str.rsplit("/", 1).str[-1]
@@ -488,9 +483,6 @@ class ItemEngine(object):
 
         def is_good_ref(ref_block):
 
-            if len(ItemEngine.databases) == 0:
-                ItemEngine._init_ref_system()
-
             prop_nrs = [x.get_prop_nr() for x in ref_block]
             values = [x.get_value() for x in ref_block]
             good_ref = True
@@ -512,6 +504,7 @@ class ItemEngine(object):
 
                 return False
 
+            # TODO: Rework this part for Wikibase
             # stated in, title, retrieved
             ref_properties = ['P248', 'P1476', 'P813']
 
@@ -529,12 +522,8 @@ class ItemEngine(object):
                 pn = ref.get_prop_nr()
                 value = ref.get_value()
 
-                if pn == 'P248' and value not in ItemEngine.databases and 'P854' not in prop_nrs:
+                if pn == 'P248' and 'P854' not in prop_nrs:
                     return False
-                elif pn == 'P248' and value in ItemEngine.databases:
-                    db_props = ItemEngine.databases[value]
-                    if not any([False if x not in prop_nrs else True for x in db_props]) and 'P854' not in prop_nrs:
-                        return False
 
             return good_ref
 
@@ -549,9 +538,7 @@ class ItemEngine(object):
             new_references = new_item.get_references()
             old_references = old_item.get_references()
 
-            if any([z.overwrite_references for y in new_references for z in y]) \
-                    or sum(map(lambda z: len(z), old_references)) == 0 \
-                    or self.global_ref_mode == 'STRICT_OVERWRITE':
+            if sum(map(lambda z: len(z), old_references)) == 0 or self.global_ref_mode == 'STRICT_OVERWRITE':
                 old_item.set_references(new_references)
 
             elif self.global_ref_mode == 'STRICT_KEEP' or new_item.statement_ref_mode == 'STRICT_KEEP':
@@ -1212,137 +1199,8 @@ class ItemEngine(object):
 
         results = results['results']['bindings']
         results = [{k: parse_value(v) for k, v in item.items()} for item in results]
-        df = pd.DataFrame(results)
+        df = pandas.DataFrame(results)
         return df
-
-    # SHEX related functions
-    @staticmethod
-    def check_shex_conformance(qid, eid, output='confirm'):
-        """
-        Static method which can be used to check for conformance of a Wikidata item to an EntitySchema any SPARQL query
-        :param qid: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
-        :param eid: The EntitySchema identifier from Wikidata
-        :param output: results of a test of conformance on a given shape expression
-        :return: The results of the query are returned in string format
-        """
-
-        schema = requests.get(config["WIKIBASE_URL"] + "/wiki/Special:EntitySchemaText/" + eid).text
-        rdfdata = Graph()
-        rdfdata.parse(config["WIKIBASE_URL"] + "/entity/" + qid + ".ttl")
-        shex_result = dict()
-
-        for result in ShExEvaluator(rdf=rdfdata, schema=schema,
-                                    focus=config["WIKIBASE_URL"] + "/entity/" + qid).evaluate():
-            shex_result = dict()
-            if result.result:
-                shex_result["result"] = True
-            else:
-                shex_result["result"] = False
-            shex_result["reason"] = result.reason
-            shex_result["focus"] = result.focus
-
-        if output == "confirm":
-            return shex_result["result"]
-        elif output == "reason":
-            return shex_result["reason"]
-        else:
-            return shex_result
-
-    @staticmethod
-    def extract_shex(qid, extract_shape_of_qualifiers=False, just_direct_properties=True,
-                     comments=False, sparql_endpoint_url=None):
-        """
-        It extracts a shape tor the entity specified in qid. The shape is built w.r.t the outgoing
-        properties of the selected Wikidata entity.
-
-        Optionally, it generates as well a shape for each qualifier.
-
-        :param qid: Wikidata identifier to which other wikidata items link
-        :param extract_shape_of_qualifiers: It it is set to True, the result will contain the shape of the qid
-            selected but also the shapes of its qualifiers.
-        :param just_direct_properties: If it set to True, the shape obtained will just contain direct properties to
-            other Wikidata items. It will ignore qualifiers. Do not set to True if extract_shape_of_qualifiers is True
-        :param comments: If it is set to True, each triple constraint will have an associated comment that indicates
-            the trustworthiness of each triple constraint. This is usefull for shapes that have been extracted
-            w.r.t to the properties of more than one entity.
-        :param sparql_endpoint_url: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL
-            endpoint
-
-        :return: shex content in String format
-        """
-
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
-
-        namespaces_dict = {
-            "http://www.w3.org/2000/01/rdf-schema#": "rdfs",
-            "http://www.wikidata.org/prop/": "p",
-            "http://www.wikidata.org/prop/direct/": "wdt",
-            "http://www.wikidata.org/entity/": "wd",
-            "http://www.w3.org/2001/XMLSchema#": "xsd",
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf",
-            "http://www.w3.org/XML/1998/namespace": "xml",
-            "http://wikiba.se/ontology#": "wikibase",
-            "http://schema.org/": "schema",
-            "http://www.w3.org/2004/02/skos/core#": "skos"
-        }
-        namespaces_to_ignore = [  # Ignoring these namespaces, mainly just direct properties are considered.
-            "http://www.wikidata.org/prop/",
-            "http://www.wikidata.org/prop/direct-normalized/",
-            "http://schema.org/",
-            "http://www.w3.org/2004/02/skos/core#",
-            "http://wikiba.se/ontology#",
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-            "http://www.w3.org/2000/01/rdf-schema#"
-        ]
-
-        shape_map = "<http://www.wikidata.org/entity/{qid}>@<{qid}>".format(qid=qid)
-        shaper = Shaper(shape_map_raw=shape_map,
-                        url_endpoint=sparql_endpoint_url,
-                        disable_comments=not comments,
-                        shape_qualifiers_mode=extract_shape_of_qualifiers,
-                        namespaces_dict=namespaces_dict,
-                        namespaces_to_ignore=namespaces_to_ignore if just_direct_properties else None,
-                        namespaces_for_qualifier_props=[config["WIKIBASE_URL"] + "/prop/"],
-                        depth_for_building_subgraph=2 if extract_shape_of_qualifiers else 1)
-        return shaper.shex_graph(string_output=True, acceptance_threshold=0)
-
-    @staticmethod
-    def get_linked_by(qid, mediawiki_api_url=None):
-        """
-            :param qid: Wikidata identifier to which other wikidata items link
-            :param mediawiki_api_url: default to wikidata's api, but can be changed to any wikibase
-            :return:
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-
-        linkedby = []
-        whatlinkshere = json.loads(requests.get(
-            mediawiki_api_url + "?action=query&list=backlinks&format=json&bllimit=500&bltitle=" + qid).text)
-        for link in whatlinkshere["query"]["backlinks"]:
-            if link["title"].startswith("Q"):
-                linkedby.append(link["title"])
-        while 'continue' in whatlinkshere.keys():
-            whatlinkshere = json.loads(requests.get(
-                mediawiki_api_url + "?action=query&list=backlinks&blcontinue=" +
-                whatlinkshere['continue']['blcontinue'] + "&format=json&bllimit=50&bltitle=" + "Q42").text)
-            for link in whatlinkshere["query"]["backlinks"]:
-                if link["title"].startswith("Q"):
-                    linkedby.append(link["title"])
-        return linkedby
-
-    @staticmethod
-    def get_rdf(qid, rdf_format="turtle"):
-        """
-            :param qid: Wikibase identifier to extract the RDF of
-            :param rdf_format: RDF format to return takes (turtle, ntriples, rdfxml, see
-            https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html)
-            :return:
-        """
-
-        localcopy = Graph()
-        localcopy.parse(config["WIKIBASE_URL"] + "/wiki/Special:EntityData/" + qid + ".ttl")
-        return localcopy.serialize(format=rdf_format)
 
     @staticmethod
     def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None,
@@ -1397,30 +1255,6 @@ class ItemEngine(object):
             return {'error': 'HTTPError'}
 
         return merge_reply.json()
-
-    # TODO: adapt this function for wikibase (if possible)
-    @classmethod
-    def _init_ref_system(cls, sparql_endpoint_url=None):
-        db_query = '''
-        SELECT DISTINCT ?db ?prop WHERE {
-            {?db wdt:P31 wd:Q2881060 . } UNION
-            {?db wdt:P31 wd:Q4117139 . } UNION
-            {?db wdt:P31 wd:Q8513 . } UNION
-            {?db wdt:P31 wd:Q324254 .}
-
-            OPTIONAL {
-              ?db wdt:P1687 ?prop .
-            }
-        }
-        '''
-
-        for x in cls.execute_sparql_query(db_query, endpoint=sparql_endpoint_url)['results']['bindings']:
-            db_qid = x['db']['value'].split('/')[-1]
-            if db_qid not in cls.databases:
-                cls.databases.update({db_qid: []})
-
-            if 'prop' in x:
-                cls.databases[db_qid].append(x['prop']['value'].split('/')[-1])
 
     @staticmethod
     def delete_item(item, reason, login, mediawiki_api_url=None, user_agent=None):
@@ -1684,9 +1518,6 @@ class BaseDataType(object):
         else:
             self.prop_nr = 'P' + prop_nr
 
-        # Flag to allow complete overwrite of existing references for a value
-        self._overwrite_references = False
-
         # Internal ID and hash are issued by the Wikibase instance
         self.id = ''
         self.hash = ''
@@ -1746,17 +1577,6 @@ class BaseDataType(object):
             return True
         else:
             return False
-
-    # DEPRECATED: the property overwrite_references will be deprecated ASAP and should not be used
-    @property
-    def overwrite_references(self):
-        return self._overwrite_references
-
-    @overwrite_references.setter
-    def overwrite_references(self, value):
-        assert (value is True or value is False)
-        print('DEPRECATED!!! Calls to overwrite_references should not be used')
-        self._overwrite_references = value
 
     @property
     def statement_ref_mode(self):
@@ -1907,18 +1727,6 @@ class BaseDataType(object):
     @JsonParser
     def from_json(cls, json_representation):
         pass
-
-    @classmethod
-    def delete_statement(cls, prop_nr):
-        """
-        This serves as an alternative constructor for BaseDataType with the only purpose of holding a WB property
-        number and an empty string value in order to indicate that the whole statement with this property number of a
-        WB item should be deleted.
-        :param prop_nr: A WB property number as string
-        :return: An instance of BaseDataType
-        """
-        return cls(value='', snak_type='value', data_type='', is_reference=False, is_qualifier=False, references=[],
-                   qualifiers=[], rank='', prop_nr=prop_nr, check_qualifier_equality=True)
 
     def equals(self, that, include_ref=False, fref=None):
         """

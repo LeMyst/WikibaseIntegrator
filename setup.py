@@ -32,9 +32,11 @@ setup(
         'requests',
         'pandas',
         'mwoauth',
-        'pyshex',
-        'backoff',
-        'shexer',
-        'rdflib'
+        'backoff'
     ],
+    extras_require={
+        'dev': [
+            'pytest'
+        ]
+    }
 )

@@ -2,9 +2,6 @@ simplejson~=3.17.2
 requests~=2.24.0
 pandas~=1.1.1
 mwoauth~=0.3.7
-pyshex~=0.7.14
 backoff~=1.10.0
-shexer~=0.0.8
-rdflib~=5.0.0
-
+pytest~=6.0.1
 setuptools~=49.6.0
