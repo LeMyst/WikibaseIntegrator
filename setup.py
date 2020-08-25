@@ -32,9 +32,6 @@ setup(
         'requests',
         'pandas',
         'mwoauth',
-        'pyshex',
-        'backoff',
-        'shexer',
-        'rdflib'
+        'backoff'
     ],
 )
