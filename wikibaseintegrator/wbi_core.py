@@ -772,7 +772,7 @@ class ItemEngine(object):
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
-        # Skip set_label if we the item already have one and if_exists is at 'KEEP'
+        # Skip set_label if the item already have one and if_exists is at 'KEEP'
         if self.fast_run_container.get_language_data(self.item_id, lang, 'label') != [''] and if_exists == 'KEEP':
             return
 
@@ -787,10 +787,11 @@ class ItemEngine(object):
 
         if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
             self.json_representation['labels'] = {}
-            self.json_representation['labels'][lang] = {
-                'language': lang,
-                'value': label
-            }
+
+        self.json_representation['labels'][lang] = {
+            'language': lang,
+            'value': label
+        }
 
     def get_aliases(self, lang=None):
         """
@@ -877,28 +878,37 @@ class ItemEngine(object):
         else:
             return self.json_representation['descriptions'][lang]['value']
 
-    def set_description(self, description, lang=None):
+    def set_description(self, description, lang=None, if_exists='REPLACE'):
         """
         Set the description for an item in a certain language
         :param description: The description of the item in a certain language
         :type description: str
         :param lang: The language a description should be set for.
         :type lang: str
+        :param if_exists: If a description already exist, REPLACE it or KEEP it.
         :return: None
         """
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
+        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
+
+        # Skip set_description if the item already have one and if_exists is at 'KEEP'
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'description') != [''] and if_exists == 'KEEP':
+            return
+
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
-                                                                             lang_data=[description], lang=lang,
-                                                                             lang_data_type='description')
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description],
+                                                                             lang=lang, lang_data_type='description')
             if self.require_write:
                 self.init_data_load()
             else:
                 return
 
-        if 'descriptions' not in self.json_representation:
+        if 'descriptions' not in self.json_representation or not self.json_representation['descriptions'] \
+                or if_exists == 'REPLACE':
             self.json_representation['descriptions'] = {}
+
         self.json_representation['descriptions'][lang] = {
             'language': lang,
             'value': description
