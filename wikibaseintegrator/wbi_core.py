@@ -773,7 +773,7 @@ class ItemEngine(object):
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
         # Skip set_label if we the item already have one and if_exists is at 'KEEP'
-        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') and if_exists == 'KEEP':
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') != [''] and if_exists == 'KEEP':
             return
 
         if self.fast_run and not self.require_write:
@@ -785,7 +785,7 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.json_representation or if_exists == 'REPLACE':
+        if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
             self.json_representation['labels'] = {}
             self.json_representation['labels'][lang] = {
                 'language': lang,
@@ -819,6 +819,9 @@ class ItemEngine(object):
         :return: None
         """
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if not isinstance(aliases, list):
+            raise ValueError('aliases must be a list')
 
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
