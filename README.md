@@ -4,7 +4,7 @@
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
 # WikibaseIntegrator / WikidataIntegrator #
-WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose purpose is to be focused on Wikibase only.
+WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose purpose is to be focused on Wikibase compatibility.
 The main changes are :
 * Rename the files from wdi_ to wbi_ to avoid confusion
 * Removal of wdi_helpers from the repository
