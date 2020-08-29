@@ -429,7 +429,7 @@ class FastRunContainer(object):
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data_refs(self, prop_nr):
+    def _query_data(self, prop_nr):
         page_size = 10000
         page_count = 0
         num_pages = None
@@ -449,35 +449,70 @@ class FastRunContainer(object):
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
         while True:
-            query = '''
-                #Tool: wbi_fastrun _query_data_refs
-                SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval WHERE {{
-                  {{
-                    SELECT ?item ?v ?sid where {{
-                      {base_filter}
-                      ?item <{wb_url}/prop/{prop_nr}> ?sid .
-                      ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                    }} GROUP BY ?item ?v ?sid
-                    ORDER BY ?sid
-                    OFFSET {offset}
-                    LIMIT {page_size}
-                  }}
-                  OPTIONAL {{
-                    ?sid ?pq ?qval .
-                    [] wikibase:qualifier ?pq
-                  }}
-                  OPTIONAL {{
-                    ?sid prov:wasDerivedFrom ?ref .
-                    ?ref ?pr ?rval .
-                    [] wikibase:reference ?pr
-                  }}
-                }}'''.format(offset=str(page_count * page_size), base_filter=self.base_filter_string, prop_nr=prop_nr,
-                             page_size=str(page_size), wb_url=self.wikibase_url)
+            if self.use_refs:
+                query = '''
+                    #Tool: wbi_fastrun _query_data_refs
+                    SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval ?unit ?qunit WHERE {{
+                      {{
+                        SELECT ?item ?v ?sid WHERE {{
+                          {base_filter}
+
+                          ?item <{wb_url}/prop/{prop_nr}> ?sid .
+                          ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                        }} GROUP BY ?item ?v ?sid
+                        ORDER BY ?sid
+                        OFFSET {offset}
+                        LIMIT {page_size}
+                      }}
+                      OPTIONAL {{
+                        ?sid ?pq ?qnode .
+                        ?qnode wikibase:quantityAmount ?qval ;
+                               wikibase:quantityUnit ?qunit .
+                      }}
+                      OPTIONAL {{
+                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
+                        ?valuenode wikibase:quantityUnit ?unit
+                      }}
+                      OPTIONAL {{
+                        ?sid prov:wasDerivedFrom ?ref .
+                        ?ref ?pr ?rval .
+                        [] wikibase:reference ?pr
+                      }}
+                    }}
+                    '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr,
+                               offset=str(page_count * page_size), page_size=str(page_size))
+            else:
+                query = '''
+                    #Tool: wbi_fastrun _query_data
+                    SELECT ?item ?qval ?pq ?sid ?v ?unit ?qunit WHERE {{
+                      {{
+                        SELECT ?item ?v ?sid WHERE {{
+                          {base_filter}
+    
+                          ?item <{wb_url}/prop/{prop_nr}> ?sid .
+                          ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                        }} GROUP BY ?item ?v ?sid
+                        ORDER BY ?sid
+                        OFFSET {offset}
+                        LIMIT {page_size}
+                      }}
+                      OPTIONAL {{
+                        ?sid ?pq ?qnode .
+                        ?qnode wikibase:quantityAmount ?qval ;
+                               wikibase:quantityUnit ?qunit .
+                      }}
+                      OPTIONAL {{
+                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
+                        ?valuenode wikibase:quantityUnit ?unit
+                      }}
+                    }}
+                    '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr,
+                               offset=str(page_count * page_size), page_size=str(page_size))
 
             if self.debug:
                 print(query)
 
-            results = self.engine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = self.engine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -485,37 +520,6 @@ class FastRunContainer(object):
                 print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
             if len(results) == 0:
                 break
-
-    def _query_data(self, prop_nr):
-        if self.use_refs:
-            self._query_data_refs(prop_nr)
-        else:
-            query = '''
-                #Tool: wbi_fastrun _query_data
-                select ?item ?qval ?pq ?sid ?v ?unit ?qunit where {{
-                  {base_filter}
-
-                  ?item <{wb_url}/prop/{prop_nr}> ?sid .
-
-                  ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                  OPTIONAL {{
-                    ?sid ?pq ?qnode .
-                    ?qnode wikibase:quantityAmount ?qval ;
-                           wikibase:quantityUnit ?qunit .
-                  }}
-                  OPTIONAL {{
-                    ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
-                    ?valuenode wikibase:quantityUnit ?unit
-                  }}
-                }}
-                '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
-
-            if self.debug:
-                print(query)
-
-            r = self.engine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
-            self.format_query_results(r, prop_nr)
-            self.update_frc_from_query(r, prop_nr)
 
     def _query_lang(self, lang, lang_data_type):
         """
