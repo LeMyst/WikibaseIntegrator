@@ -19,7 +19,6 @@ Authors:
   Gregory Stupp (stuppie' at 'gmail.com)
   Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com)
   Myst
-
 """
 
 __author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller, Myst'

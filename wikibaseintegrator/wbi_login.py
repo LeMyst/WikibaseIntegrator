@@ -29,7 +29,9 @@ class Login(object):
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
         :param user: the username which should be used for the login
+        :type user: str
         :param pwd: the password which should be used for the login
+        :type pwd: str
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :type token_renew_period: int
         :param use_clientlogin: use authmanager based login method instead of standard login.
