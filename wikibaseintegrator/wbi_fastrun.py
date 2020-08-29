@@ -301,7 +301,7 @@ class FastRunContainer(object):
         :type lang: str
         :param lang_data_type: What kind of data is it? 'label', 'description' or 'aliases'?
         :param if_exists: If aliases already exist, APPEND or REPLACE
-        :return:
+        :return: boolean
         """
         all_lang_strings = set(x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type))
 
@@ -335,6 +335,7 @@ class FastRunContainer(object):
             pr: reference property
             rval: reference value
             unit: property unit
+            qunit: qualifier unit
         """
         prop_dt = self.get_prop_datatype(prop_nr)
         for i in r:
