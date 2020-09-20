@@ -234,10 +234,9 @@ class FastRunContainer(object):
                     if date == x and x.get_prop_nr() not in del_props:
                         print(x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
                         print(date.get_prop_nr(), date.get_value(), [z.get_value() for z in date.get_qualifiers()])
-                    else:
-                        if x.get_prop_nr() == date.get_prop_nr():
-                            print(x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
-                            print(date.get_prop_nr(), date.get_value(), [z.get_value() for z in date.get_qualifiers()])
+                    elif x.get_prop_nr() == date.get_prop_nr():
+                        print(x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
+                        print(date.get_prop_nr(), date.get_value(), [z.get_value() for z in date.get_qualifiers()])
 
             if not any(bool_vec):
                 if self.debug:
@@ -245,6 +244,8 @@ class FastRunContainer(object):
                     print('fast run failed at', date.get_prop_nr())
                 write_required = True
             else:
+                if self.debug:
+                    print('fast run success')
                 tmp_rs.pop(bool_vec.index(True))
 
         if len(tmp_rs) > 0:
@@ -326,16 +327,16 @@ class FastRunContainer(object):
         `prop_nr` is needed to get the property datatype to determine how to format the value
 
         `r` is a list of dicts. The keys are:
+            sid: statement ID
             item: the subject. the item this statement is on
             v: the object. The value for this statement
-            sid: statement ID
+            unit: property unit
             pq: qualifier property
             qval: qualifier value
+            qunit: qualifier unit
             ref: reference ID
             pr: reference property
             rval: reference value
-            unit: property unit
-            qunit: qualifier unit
         """
         prop_dt = self.get_prop_datatype(prop_nr)
         for i in r:
@@ -460,60 +461,98 @@ class FastRunContainer(object):
             if self.use_refs:
                 query = '''
                     #Tool: wbi_fastrun _query_data_refs
-                    SELECT ?item ?qval ?pq ?sid ?v ?ref ?pr ?rval ?unit ?qunit WHERE {{
-                      {{
-                        SELECT ?item ?v ?sid WHERE {{
-                          {base_filter}
+                    SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit ?ref ?pr ?rval
+                    WHERE
+                    {{
+                      VALUES ?property {{ <{wb_url}/entity/{prop_nr}> }}
+                      {base_filter}
 
-                          ?item <{wb_url}/prop/{prop_nr}> ?sid .
-                          ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                        }} GROUP BY ?item ?v ?sid
-                        ORDER BY ?sid
-                        OFFSET {offset}
-                        LIMIT {page_size}
+                      ?property wikibase:claim ?claim .
+                      ?property wikibase:statementValue ?statementValue .
+
+                      # Get amount and unit for the statement
+                      ?item ?claim ?sid .
+                      {{
+                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                        ?property wikibase:propertyType ?property_type .
+                        FILTER (?property_type != wikibase:Quantity)
                       }}
-                      OPTIONAL {{
-                        ?sid ?pq ?qnode .
-                        ?qnode wikibase:quantityAmount ?qval ;
-                               wikibase:quantityUnit ?qunit .
+                      UNION
+                      {{
+                        ?sid ?statementValue [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
                       }}
-                      OPTIONAL {{
-                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
-                        ?valuenode wikibase:quantityUnit ?unit
+
+                      # Get qualifiers
+                      OPTIONAL
+                      {{
+                        {{
+                          # Get simple values for qualifiers which are not of type quantity
+                          ?sid ?pq ?qval .
+                          ?qualifier wikibase:qualifier ?pq .
+                          ?qualifier wikibase:propertyType ?qualifer_property_type .
+                          FILTER (?qualifer_property_type != wikibase:Quantity)
+                        }}
+                        UNION
+                        {{
+                          # Get amount and unit for qualifiers of type quantity
+                          ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
+                          ?qualifier wikibase:qualifierValue ?pqv .
+                          ?qualifier wikibase:qualifier ?pq .
+                        }}
                       }}
+
+                      # get references
                       OPTIONAL {{
                         ?sid prov:wasDerivedFrom ?ref .
                         ?ref ?pr ?rval .
                         [] wikibase:reference ?pr
                       }}
-                    }}
+                    }} OFFSET {offset} LIMIT {page_size}
                     '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr,
                                offset=str(page_count * page_size), page_size=str(page_size))
             else:
                 query = '''
                     #Tool: wbi_fastrun _query_data
-                    SELECT ?item ?qval ?pq ?sid ?v ?unit ?qunit WHERE {{
+                    SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit
+                    WHERE
+                    {{
+                      VALUES ?property {{ <{wb_url}/entity/{prop_nr}> }}
+                      {base_filter}
+
+                      ?property wikibase:claim ?claim .
+                      ?property wikibase:statementValue ?statementValue .
+
+                      # Get amount and unit for the statement
+                      ?item ?claim ?sid .
                       {{
-                        SELECT ?item ?v ?sid WHERE {{
-                          {base_filter}
-    
-                          ?item <{wb_url}/prop/{prop_nr}> ?sid .
-                          ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                        }} GROUP BY ?item ?v ?sid
-                        ORDER BY ?sid
-                        OFFSET {offset}
-                        LIMIT {page_size}
+                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                        ?property wikibase:propertyType ?property_type .
+                        FILTER (?property_type != wikibase:Quantity)
                       }}
-                      OPTIONAL {{
-                        ?sid ?pq ?qnode .
-                        ?qnode wikibase:quantityAmount ?qval ;
-                               wikibase:quantityUnit ?qunit .
+                      UNION
+                      {{
+                        ?sid ?statementValue [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
                       }}
-                      OPTIONAL {{
-                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> ?valuenode .
-                        ?valuenode wikibase:quantityUnit ?unit
+
+                      # Get qualifiers
+                      OPTIONAL
+                      {{
+                        {{
+                          # Get simple values for qualifiers which are not of type quantity
+                          ?sid ?pq ?qval .
+                          ?qualifier wikibase:qualifier ?pq .
+                          ?qualifier wikibase:propertyType ?qualifer_property_type .
+                          FILTER (?qualifer_property_type != wikibase:Quantity)
+                        }}
+                        UNION
+                        {{
+                          # Get amount and unit for qualifiers of type quantity
+                          ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
+                          ?qualifier wikibase:qualifierValue ?pqv .
+                          ?qualifier wikibase:qualifier ?pq .
+                        }}
                       }}
-                    }}
+                    }} OFFSET {offset} LIMIT {page_size}
                     '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr,
                                offset=str(page_count * page_size), page_size=str(page_size))
 
@@ -526,7 +565,7 @@ class FastRunContainer(object):
             page_count += 1
             if num_pages:
                 print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
-            if len(results) == 0:
+            if len(results) == 0 or len(results) < page_size:
                 break
 
     def _query_lang(self, lang, lang_data_type):
