@@ -468,17 +468,18 @@ class FastRunContainer(object):
                       {base_filter}
 
                       ?property wikibase:claim ?claim .
-                      ?property wikibase:statementValue ?statementValue .
 
                       # Get amount and unit for the statement
                       ?item ?claim ?sid .
                       {{
-                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                         ?property wikibase:propertyType ?property_type .
                         FILTER (?property_type != wikibase:Quantity)
+                        ?property wikibase:statementProperty ?propertyStatement .
+                        ?sid ?propertyStatement ?v .
                       }}
                       UNION
                       {{
+                        ?property wikibase:statementValue ?statementValue .
                         ?sid ?statementValue [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
                       }}
 
@@ -487,17 +488,16 @@ class FastRunContainer(object):
                       {{
                         {{
                           # Get simple values for qualifiers which are not of type quantity
-                          ?sid ?pq ?qval .
-                          ?qualifier wikibase:qualifier ?pq .
-                          ?qualifier wikibase:propertyType ?qualifer_property_type .
+                          ?sid ?propQualifier ?qval .
+                          ?pq wikibase:qualifier ?propQualifier .
+                          ?pq wikibase:propertyType ?qualifer_property_type .
                           FILTER (?qualifer_property_type != wikibase:Quantity)
                         }}
                         UNION
                         {{
                           # Get amount and unit for qualifiers of type quantity
                           ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
-                          ?qualifier wikibase:qualifierValue ?pqv .
-                          ?qualifier wikibase:qualifier ?pq .
+                          ?pq wikibase:qualifierValue ?pqv .
                         }}
                       }}
 
@@ -540,17 +540,16 @@ class FastRunContainer(object):
                       {{
                         {{
                           # Get simple values for qualifiers which are not of type quantity
-                          ?sid ?pq ?qval .
-                          ?qualifier wikibase:qualifier ?pq .
-                          ?qualifier wikibase:propertyType ?qualifer_property_type .
+                          ?sid ?propQualifier ?qval .
+                          ?pq wikibase:qualifier ?propQualifier .
+                          ?pq wikibase:propertyType ?qualifer_property_type .
                           FILTER (?qualifer_property_type != wikibase:Quantity)
                         }}
                         UNION
                         {{
                           # Get amount and unit for qualifiers of type quantity
                           ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
-                          ?qualifier wikibase:qualifierValue ?pqv .
-                          ?qualifier wikibase:qualifier ?pq .
+                          ?pq wikibase:qualifierValue ?pqv .
                         }}
                       }}
                     }} OFFSET {offset} LIMIT {page_size}
