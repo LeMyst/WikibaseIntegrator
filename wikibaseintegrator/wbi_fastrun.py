@@ -550,6 +550,7 @@ class FastRunContainer(object):
                           # Get amount and unit for qualifiers of type quantity
                           ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
                           ?qualifier wikibase:qualifierValue ?pqv .
+                          ?qualifier wikibase:qualifier ?pq .
                         }}
                       }}
                     }} OFFSET {offset} LIMIT {page_size}
