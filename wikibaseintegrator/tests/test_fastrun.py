@@ -12,7 +12,7 @@ def test_query_data():
     without getting references
     """
     frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''},
-                                       base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine)
+                                       base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine, debug=True)
     # get a string value
     frc._query_data('P699')
     # wikidata-item value
