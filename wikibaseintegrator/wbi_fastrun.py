@@ -33,12 +33,20 @@ class FastRunContainer(object):
         if base_filter and any(base_filter):
             self.base_filter = base_filter
             for k, v in self.base_filter.items():
+                ks = []
+                if k.count('/') == 1:
+                    ks = k.split('/')
                 if v:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n' \
-                        .format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
+                    if ks:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                    else:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
+
                 else:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n' \
-                        .format(wb_url=self.wikibase_url, prop_nr=k)
+                    if ks:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                    else:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
 
     def reconstruct_statements(self, qid):
         reconstructed_statements = []
