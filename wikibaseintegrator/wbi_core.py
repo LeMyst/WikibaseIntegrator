@@ -19,7 +19,6 @@ Authors:
   Gregory Stupp (stuppie' at 'gmail.com)
   Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com)
   Myst
-
 """
 
 __author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller, Myst'
@@ -772,8 +771,8 @@ class ItemEngine(object):
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
-        # Skip set_label if we the item already have one and if_exists is at 'KEEP'
-        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') and if_exists == 'KEEP':
+        # Skip set_label if the item already have one and if_exists is at 'KEEP'
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') != [''] and if_exists == 'KEEP':
             return
 
         if self.fast_run and not self.require_write:
@@ -785,12 +784,13 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.json_representation or if_exists == 'REPLACE':
+        if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
             self.json_representation['labels'] = {}
-            self.json_representation['labels'][lang] = {
-                'language': lang,
-                'value': label
-            }
+
+        self.json_representation['labels'][lang] = {
+            'language': lang,
+            'value': label
+        }
 
     def get_aliases(self, lang=None):
         """
@@ -820,13 +820,17 @@ class ItemEngine(object):
         """
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
+        if not isinstance(aliases, list):
+            raise ValueError('aliases must be a list')
+
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
 
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
                                                                              lang_data=aliases, lang=lang,
-                                                                             lang_data_type='aliases')
+                                                                             lang_data_type='aliases',
+                                                                             if_exists=if_exists)
             if self.require_write:
                 self.init_data_load()
             else:
@@ -835,23 +839,28 @@ class ItemEngine(object):
         if 'aliases' not in self.json_representation:
             self.json_representation['aliases'] = {}
 
-        if if_exists != 'APPEND' or lang not in self.json_representation['aliases']:
+        if if_exists == 'REPLACE' or lang not in self.json_representation['aliases']:
             self.json_representation['aliases'][lang] = []
-
-        for alias in aliases:
-            found = False
-            for current_aliases in self.json_representation['aliases'][lang]:
-                if alias.strip().casefold() != current_aliases['value'].strip().casefold():
-                    continue
-                else:
-                    found = True
-                    break
-
-            if not found:
+            for alias in aliases:
                 self.json_representation['aliases'][lang].append({
                     'language': lang,
                     'value': alias
                 })
+        else:
+            for alias in aliases:
+                found = False
+                for current_aliases in self.json_representation['aliases'][lang]:
+                    if alias.strip().casefold() != current_aliases['value'].strip().casefold():
+                        continue
+                    else:
+                        found = True
+                        break
+
+                if not found:
+                    self.json_representation['aliases'][lang].append({
+                        'language': lang,
+                        'value': alias
+                    })
 
     def get_description(self, lang=None):
         """
@@ -868,28 +877,37 @@ class ItemEngine(object):
         else:
             return self.json_representation['descriptions'][lang]['value']
 
-    def set_description(self, description, lang=None):
+    def set_description(self, description, lang=None, if_exists='REPLACE'):
         """
         Set the description for an item in a certain language
         :param description: The description of the item in a certain language
         :type description: str
         :param lang: The language a description should be set for.
         :type lang: str
+        :param if_exists: If a description already exist, REPLACE it or KEEP it.
         :return: None
         """
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
+        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
+
+        # Skip set_description if the item already have one and if_exists is at 'KEEP'
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'description') != [''] and if_exists == 'KEEP':
+            return
+
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
-                                                                             lang_data=[description], lang=lang,
-                                                                             lang_data_type='description')
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description],
+                                                                             lang=lang, lang_data_type='description')
             if self.require_write:
                 self.init_data_load()
             else:
                 return
 
-        if 'descriptions' not in self.json_representation:
+        if 'descriptions' not in self.json_representation or not self.json_representation['descriptions'] \
+                or if_exists == 'REPLACE':
             self.json_representation['descriptions'] = {}
+
         self.json_representation['descriptions'][lang] = {
             'language': lang,
             'value': description

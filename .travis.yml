@@ -1,8 +1,15 @@
 language: python
 python:
-  - '3.6'
-  - '3.7'
-  - '3.8'
+  - '3.6.12'
+  - '3.7.9'
+  - '3.8.5'
+  - '3.9-dev'
+jobs:
+  include:
+    - arch: arm64
+      python: '3.8.5'
+  allow_failures:
+    - python: '3.9-dev'
 install:
   - pip install -r requirements.txt
 script: pytest
