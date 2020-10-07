@@ -31,14 +31,14 @@ class TestMethods(unittest.TestCase):
 
 @wbi_backoff()
 def bad_http_code():
-    r = requests.get("http://httpstat.us/400")
+    r = requests.get("http://httpbin.org/status/400")
     r.raise_for_status()
     print(r.text)
 
 
 @wbi_backoff()
 def good_http_code():
-    r = requests.get("http://httpstat.us/200")
+    r = requests.get("http://httpbin.org/status/200")
     r.raise_for_status()
     print(r.text)
     return r.text
