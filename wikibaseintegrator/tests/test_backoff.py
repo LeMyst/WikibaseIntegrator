@@ -23,7 +23,7 @@ class TestMethods(unittest.TestCase):
         with self.assertRaises(requests.RequestException):
             bad_login()
 
-        assert good_http_code() == "200"
+        assert good_http_code() == 200
 
         with self.assertRaises(json.JSONDecodeError):
             bad_json()
