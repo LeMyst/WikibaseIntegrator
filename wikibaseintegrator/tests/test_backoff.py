@@ -23,7 +23,7 @@ class TestMethods(unittest.TestCase):
         with self.assertRaises(requests.RequestException):
             bad_login()
 
-        assert good_http_code() == "200 OK"
+        assert good_http_code() == "200"
 
         with self.assertRaises(json.JSONDecodeError):
             bad_json()
@@ -33,15 +33,16 @@ class TestMethods(unittest.TestCase):
 def bad_http_code():
     r = requests.get("http://httpbin.org/status/400")
     r.raise_for_status()
-    print(r.text)
+    print(r.status_code)
+    return r.status_code
 
 
 @wbi_backoff()
 def good_http_code():
     r = requests.get("http://httpbin.org/status/200")
     r.raise_for_status()
-    print(r.text)
-    return r.text
+    print(r.status_code)
+    return r.status_code
 
 
 @wbi_backoff()
