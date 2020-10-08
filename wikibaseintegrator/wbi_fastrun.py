@@ -472,23 +472,18 @@ class FastRunContainer(object):
                     SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit ?ref ?pr ?rval
                     WHERE
                     {{
-                      VALUES ?property {{ <{wb_url}/entity/{prop_nr}> }}
                       {base_filter}
 
-                      ?property wikibase:claim ?claim .
-
                       # Get amount and unit for the statement
-                      ?item ?claim ?sid .
+                      ?item <{wb_url}/prop/{prop_nr}> ?sid .
                       {{
-                        ?property wikibase:propertyType ?property_type .
+                        <http://www.wikidata.org/entity/{prop_nr}> wikibase:propertyType ?property_type .
                         FILTER (?property_type != wikibase:Quantity)
-                        ?property wikibase:statementProperty ?propertyStatement .
-                        ?sid ?propertyStatement ?v .
+                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                       }}
                       UNION
                       {{
-                        ?property wikibase:statementValue ?statementValue .
-                        ?sid ?statementValue [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
+                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
                       }}
 
                       # Get qualifiers
@@ -515,7 +510,7 @@ class FastRunContainer(object):
                         ?ref ?pr ?rval .
                         [] wikibase:reference ?pr
                       }}
-                    }} OFFSET {offset} LIMIT {page_size}
+                    }} ORDER BY ?sid OFFSET {offset} LIMIT {page_size}
                     '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr,
                                offset=str(page_count * page_size), page_size=str(page_size))
             else:
@@ -524,23 +519,18 @@ class FastRunContainer(object):
                     SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit
                     WHERE
                     {{
-                      VALUES ?property {{ <{wb_url}/entity/{prop_nr}> }}
                       {base_filter}
 
-                      ?property wikibase:claim ?claim .
-
                       # Get amount and unit for the statement
-                      ?item ?claim ?sid .
+                      ?item <{wb_url}/prop/{prop_nr}> ?sid .
                       {{
-                        ?property wikibase:propertyType ?property_type .
+                        <http://www.wikidata.org/entity/{prop_nr}> wikibase:propertyType ?property_type .
                         FILTER (?property_type != wikibase:Quantity)
-                        ?property wikibase:statementProperty ?propertyStatement .
-                        ?sid ?propertyStatement ?v .
+                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                       }}
                       UNION
                       {{
-                        ?property wikibase:statementValue ?statementValue .
-                        ?sid ?statementValue [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
+                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
                       }}
 
                       # Get qualifiers
@@ -560,7 +550,7 @@ class FastRunContainer(object):
                           ?pq wikibase:qualifierValue ?pqv .
                         }}
                       }}
-                    }} OFFSET {offset} LIMIT {page_size}
+                    }} ORDER BY ?sid OFFSET {offset} LIMIT {page_size}
                     '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr,
                                offset=str(page_count * page_size), page_size=str(page_size))
 
