@@ -18,7 +18,7 @@ class TestMediawikiApiCall(unittest.TestCase):
                                                    max_retries=3, retry_after=1,
                                                    params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
         with self.assertRaises(requests.HTTPError):
-            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://httpstat.us/400", max_retries=3, retry_after=1)
+            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://httpbin.org/status/400", max_retries=3, retry_after=1)
 
         wbi_core.ItemEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
                                                params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
