@@ -477,7 +477,7 @@ class FastRunContainer(object):
                       # Get amount and unit for the statement
                       ?item <{wb_url}/prop/{prop_nr}> ?sid .
                       {{
-                        <http://www.wikidata.org/entity/{prop_nr}> wikibase:propertyType ?property_type .
+                        <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
                         FILTER (?property_type != wikibase:Quantity)
                         ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                       }}
@@ -524,7 +524,7 @@ class FastRunContainer(object):
                       # Get amount and unit for the statement
                       ?item <{wb_url}/prop/{prop_nr}> ?sid .
                       {{
-                        <http://www.wikidata.org/entity/{prop_nr}> wikibase:propertyType ?property_type .
+                        <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
                         FILTER (?property_type != wikibase:Quantity)
                         ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                       }}
