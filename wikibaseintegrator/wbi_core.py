@@ -440,7 +440,8 @@ class ItemEngine(object):
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
                 query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
                                                       value=data_point.replace("'", r"\'"))
-                results = ItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)
+                results = ItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url,
+                                                          debug=self.debug)
 
                 for i in results['results']['bindings']:
                     qid = i['item_id']['value'].split('/')[-1]
@@ -1144,7 +1145,7 @@ class ItemEngine(object):
     @staticmethod
     @wbi_backoff()
     def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000,
-                             retry_after=60):
+                             retry_after=60, debug=False):
         """
         Static method which can be used to execute any SPARQL query
         :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -1156,6 +1157,8 @@ class ItemEngine(object):
         :param max_retries: The number time this function should retry in case of header reports.
         :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service
          is not reachable.
+        :param debug: Enable debug output.
+        :type debug: boolean
         :return: The results of the query are returned in JSON format
         """
 
@@ -1174,6 +1177,9 @@ class ItemEngine(object):
             'Accept': 'application/sparql-results+json',
             'User-Agent': user_agent
         }
+
+        if debug:
+            print(params['query'])
 
         for n in range(max_retries):
             try:
