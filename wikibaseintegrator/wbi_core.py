@@ -140,7 +140,10 @@ class ItemEngine(object):
         self.original_statements = []
         self.entity_metadata = {}
         self.fast_run_container = None
-        self.require_write = True
+        if self.search_only:
+            self.require_write = False
+        else:
+            self.require_write = True
         self.sitelinks = dict()
         self.lastrevid = None  # stores last revisionid after a write occurs
 
