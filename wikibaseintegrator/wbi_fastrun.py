@@ -149,7 +149,7 @@ class FastRunContainer(object):
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
             if self.debug:
-                print('no matches')
+                print('no matches ({})'.format(len(matching_qids)))
             return True
 
         qid = matching_qids.pop()
