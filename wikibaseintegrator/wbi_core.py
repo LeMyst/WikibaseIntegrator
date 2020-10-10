@@ -667,6 +667,10 @@ class ItemEngine(object):
             not overwritten.
         :type: list
         """
+
+        if self.search_only:
+            raise SearchOnlyError
+
         assert type(data) == list
 
         if append_value:
@@ -770,6 +774,9 @@ class ItemEngine(object):
         :param if_exists: If a label already exist, REPLACE it or KEEP it.
         :return: None
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
@@ -822,6 +829,9 @@ class ItemEngine(object):
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: None
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if not isinstance(aliases, list):
@@ -891,6 +901,9 @@ class ItemEngine(object):
         :param if_exists: If a description already exist, REPLACE it or KEEP it.
         :return: None
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
@@ -936,6 +949,9 @@ class ItemEngine(object):
         :param badges: An iterable containing Wikipedia badge strings.
         :return:
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         sitelink = {
             'site': site,
             'title': title,
@@ -966,6 +982,10 @@ class ItemEngine(object):
         :type retry_after: int
         :return: the QID on sucessful write
         """
+
+        if self.search_only:
+            raise SearchOnlyError
+
         if not self.require_write:
             return self.item_id
 
@@ -3057,3 +3077,8 @@ class MergeError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
+
+class SearchOnlyError(Exception):
+    """Raised when the ItemEngine is in search_only mode"""
+    pass
