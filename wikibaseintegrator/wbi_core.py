@@ -13,17 +13,6 @@ from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
-"""
-Authors:
-  Andra Waagmeester (andra' at ' micelio.be)
-  Gregory Stupp (stuppie' at 'gmail.com)
-  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com)
-  Myst
-"""
-
-__author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller, Myst'
-__license__ = 'MIT'
-
 
 class ItemEngine(object):
     pmids = []
@@ -206,7 +195,7 @@ class ItemEngine(object):
             ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
         }}
         '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
-        df = cls.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
+        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
         if df.empty:
             warn("Warning: No distinct value properties found\n" +
                  "Please set P2302 and Q21502410 in your wikibase or set `core_props` manually.\n" +
@@ -301,7 +290,7 @@ class ItemEngine(object):
         headers = {
             'User-Agent': self.user_agent
         }
-        json_data = self.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
+        json_data = FunctionsEngine.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
         return self.parse_json(json_data=json_data['entities'][self.item_id])
 
     def parse_json(self, json_data):
@@ -328,72 +317,6 @@ class ItemEngine(object):
         self.original_statements = copy.deepcopy(self.statements)
 
         return data
-
-    @staticmethod
-    def get_search_results(search_string='', mediawiki_api_url=None,
-                           user_agent=None, max_results=500,
-                           language=None, dict_id_label=False):
-        """
-        Performs a search in the Wikibase instance for a certain search string
-        :param search_string: a string which should be searched for in the Wikibase instance
-        :type search_string: str
-        :param mediawiki_api_url: Specify the mediawiki_api_url.
-        :type mediawiki_api_url: str
-        :param user_agent: The user agent string transmitted in the http header
-        :type user_agent: str
-        :param max_results: The maximum number of search results returned. Default 500
-        :type max_results: int
-        :param language: The language in which to perform the search.
-        :type language: str
-        :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
-        :type dict_id_label: boolean
-        :return: function return a list with a dict of id and label
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
-        language = config['DEFAULT_LANGUAGE'] if language is None else language
-
-        params = {
-            'action': 'wbsearchentities',
-            'language': language,
-            'search': search_string,
-            'format': 'json',
-            'limit': 50
-        }
-
-        headers = {
-            'User-Agent': user_agent
-        }
-
-        cont_count = 1
-        results = []
-
-        while cont_count > 0:
-            params.update({'continue': 0 if cont_count == 1 else cont_count})
-
-            reply = requests.get(mediawiki_api_url, params=params, headers=headers)
-            reply.raise_for_status()
-            search_results = reply.json()
-
-            if search_results['success'] != 1:
-                raise SearchError('WB search failed')
-            else:
-                for i in search_results['search']:
-                    if dict_id_label:
-                        results.append({'id': i['id'], 'label': i['label']})
-                    else:
-                        results.append(i['id'])
-
-            if 'search-continue' not in search_results:
-                cont_count = 0
-            else:
-                cont_count = search_results['search-continue']
-
-            if cont_count > max_results:
-                break
-
-        return results
 
     def get_property_list(self):
         """
@@ -440,8 +363,8 @@ class ItemEngine(object):
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
                 query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
                                                       value=data_point.replace("'", r"\'"))
-                results = ItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url,
-                                                          debug=self.debug)
+                results = FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url,
+                                                               debug=self.debug)
 
                 for i in results['results']['bindings']:
                     qid = i['item_id']['value'].split('/')[-1]
@@ -1016,9 +939,9 @@ class ItemEngine(object):
             payload.update({u'id': self.item_id})
 
         try:
-            json_data = self.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
-                                                max_retries=max_retries, retry_after=retry_after,
-                                                headers=headers, data=payload)
+            json_data = FunctionsEngine.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
+                                                           max_retries=max_retries, retry_after=retry_after,
+                                                           headers=headers, data=payload)
 
             if 'error' in json_data and 'messages' in json_data['error']:
                 error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
@@ -1041,6 +964,107 @@ class ItemEngine(object):
             self.lastrevid = json_data["entity"]["lastrevid"]
         time.sleep(.5)
         return self.item_id
+
+    @classmethod
+    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
+        """
+        A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
+        tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
+        ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
+        :param user_agent: A custom user agent
+        :param items: A list of QIDs or property IDs
+        :type items: list
+        :param mediawiki_api_url: The MediaWiki url which should be used
+        :type mediawiki_api_url: str
+        :param login: An object of type Login, which holds the credentials/session cookies required for >50 item bulk
+            retrieval of items.
+        :type login: wbi_login.Login
+        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
+            instance of ItemEngine with the corresponding item data.
+        """
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+
+        assert type(items) == list
+
+        url = mediawiki_api_url
+        params = {
+            'action': 'wbgetentities',
+            'ids': '|'.join(items),
+            'format': 'json'
+        }
+        headers = {
+            'User-Agent': user_agent
+        }
+
+        if login:
+            reply = login.get_session().get(url, params=params, headers=headers)
+        else:
+            reply = requests.get(url, params=params)
+
+        item_instances = []
+        for qid, v in reply.json()['entities'].items():
+            ii = cls(item_id=qid, item_data=v)
+            ii.mediawiki_api_url = mediawiki_api_url
+            item_instances.append((qid, ii))
+
+        return item_instances
+
+    # References
+    def count_references(self, prop_id):
+        counts = dict()
+        for claim in self.get_json_representation()['claims'][prop_id]:
+            counts[claim['id']] = len(claim['references'])
+        return counts
+
+    def get_reference_properties(self, prop_id):
+        references = []
+        for statements in self.get_json_representation()['claims'][prop_id]:
+            for reference in statements['references']:
+                references.append(reference['snaks'].keys())
+        return references
+
+    def get_qualifier_properties(self, prop_id):
+        qualifiers = []
+        for statements in self.get_json_representation()['claims'][prop_id]:
+            for reference in statements['qualifiers']:
+                qualifiers.append(reference['snaks'].keys())
+        return qualifiers
+
+    @classmethod
+    def wikibase_item_engine_factory(cls, mediawiki_api_url=None, sparql_endpoint_url=None, name='LocalItemEngine'):
+        """
+        Helper function for creating a ItemEngine class with arguments set for a different Wikibase instance than
+        Wikidata.
+        :param mediawiki_api_url: Mediawiki api url. For wikidata, this is: 'https://www.wikidata.org/w/api.php'
+        :param sparql_endpoint_url: sparql endpoint url. For wikidata, this is: 'https://query.wikidata.org/sparql'
+        :param name: name of the resulting class
+        :return: a subclass of ItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
+        """
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+
+        class SubCls(cls):
+            def __init__(self, *args, **kwargs):
+                kwargs['mediawiki_api_url'] = mediawiki_api_url
+                kwargs['sparql_endpoint_url'] = sparql_endpoint_url
+                super(SubCls, self).__init__(*args, **kwargs)
+
+        SubCls.__name__ = name
+        return SubCls
+
+    def __repr__(self):
+        """A mixin implementing a simple __repr__."""
+        return "<{klass} @{id:x} {attrs}>".format(
+            klass=self.__class__.__name__,
+            id=id(self) & 0xFFFFFF,
+            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+        )
+
+
+class FunctionsEngine(object):
 
     @staticmethod
     def mediawiki_api_call(method, mediawiki_api_url=None,
@@ -1116,52 +1140,6 @@ class ItemEngine(object):
 
         return json_data
 
-    @classmethod
-    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
-        """
-        A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
-        tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
-        ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
-        :param user_agent: A custom user agent
-        :param items: A list of QIDs or property IDs
-        :type items: list
-        :param mediawiki_api_url: The MediaWiki url which should be used
-        :type mediawiki_api_url: str
-        :param login: An object of type Login, which holds the credentials/session cookies required for >50 item bulk
-            retrieval of items.
-        :type login: wbi_login.Login
-        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
-            instance of ItemEngine with the corresponding item data.
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
-
-        assert type(items) == list
-
-        url = mediawiki_api_url
-        params = {
-            'action': 'wbgetentities',
-            'ids': '|'.join(items),
-            'format': 'json'
-        }
-        headers = {
-            'User-Agent': user_agent
-        }
-
-        if login:
-            reply = login.get_session().get(url, params=params, headers=headers)
-        else:
-            reply = requests.get(url, params=params)
-
-        item_instances = []
-        for qid, v in reply.json()['entities'].items():
-            ii = cls(item_id=qid, item_data=v)
-            ii.mediawiki_api_url = mediawiki_api_url
-            item_instances.append((qid, ii))
-
-        return item_instances
-
     @staticmethod
     @wbi_backoff()
     def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000,
@@ -1222,7 +1200,7 @@ class ItemEngine(object):
             results = response.json()
 
             if as_dataframe:
-                return ItemEngine._sparql_query_result_to_df(results)
+                return FunctionsEngine._sparql_query_result_to_df(results)
             else:
                 return results
 
@@ -1363,57 +1341,71 @@ class ItemEngine(object):
         r = requests.post(url=mediawiki_api_url, data=params, cookies=login.get_edit_cookie(), headers=headers)
         print(r.json())
 
-    # References
-    def count_references(self, prop_id):
-        counts = dict()
-        for claim in self.get_json_representation()['claims'][prop_id]:
-            counts[claim['id']] = len(claim['references'])
-        return counts
-
-    def get_reference_properties(self, prop_id):
-        references = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['references']:
-                references.append(reference['snaks'].keys())
-        return references
-
-    def get_qualifier_properties(self, prop_id):
-        qualifiers = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['qualifiers']:
-                qualifiers.append(reference['snaks'].keys())
-        return qualifiers
-
-    @classmethod
-    def wikibase_item_engine_factory(cls, mediawiki_api_url=None, sparql_endpoint_url=None, name='LocalItemEngine'):
+    @staticmethod
+    def get_search_results(search_string='', mediawiki_api_url=None,
+                           user_agent=None, max_results=500,
+                           language=None, dict_id_label=False):
         """
-        Helper function for creating a ItemEngine class with arguments set for a different Wikibase instance than
-        Wikidata.
-        :param mediawiki_api_url: Mediawiki api url. For wikidata, this is: 'https://www.wikidata.org/w/api.php'
-        :param sparql_endpoint_url: sparql endpoint url. For wikidata, this is: 'https://query.wikidata.org/sparql'
-        :param name: name of the resulting class
-        :return: a subclass of ItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
+        Performs a search in the Wikibase instance for a certain search string
+        :param search_string: a string which should be searched for in the Wikibase instance
+        :type search_string: str
+        :param mediawiki_api_url: Specify the mediawiki_api_url.
+        :type mediawiki_api_url: str
+        :param user_agent: The user agent string transmitted in the http header
+        :type user_agent: str
+        :param max_results: The maximum number of search results returned. Default 500
+        :type max_results: int
+        :param language: The language in which to perform the search.
+        :type language: str
+        :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
+        :type dict_id_label: boolean
+        :return: function return a list with a dict of id and label
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+        language = config['DEFAULT_LANGUAGE'] if language is None else language
 
-        class SubCls(cls):
-            def __init__(self, *args, **kwargs):
-                kwargs['mediawiki_api_url'] = mediawiki_api_url
-                kwargs['sparql_endpoint_url'] = sparql_endpoint_url
-                super(SubCls, self).__init__(*args, **kwargs)
+        params = {
+            'action': 'wbsearchentities',
+            'language': language,
+            'search': search_string,
+            'format': 'json',
+            'limit': 50
+        }
 
-        SubCls.__name__ = name
-        return SubCls
+        headers = {
+            'User-Agent': user_agent
+        }
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
+        cont_count = 1
+        results = []
+
+        while cont_count > 0:
+            params.update({'continue': 0 if cont_count == 1 else cont_count})
+
+            reply = requests.get(mediawiki_api_url, params=params, headers=headers)
+            reply.raise_for_status()
+            search_results = reply.json()
+
+            if search_results['success'] != 1:
+                raise SearchError('WB search failed')
+            else:
+                for i in search_results['search']:
+                    if dict_id_label:
+                        results.append({'id': i['id'], 'label': i['label']})
+                    else:
+                        results.append(i['id'])
+
+            if 'search-continue' not in search_results:
+                cont_count = 0
+            else:
+                cont_count = search_results['search-continue']
+
+            if cont_count > max_results:
+                break
+
+        return results
 
 
 class JsonParser(object):

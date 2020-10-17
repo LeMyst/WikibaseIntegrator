@@ -14,14 +14,16 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
-                                                   max_retries=3, retry_after=1,
-                                                   params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
+                                                        max_retries=3, retry_after=1,
+                                                        params={'format': 'json', 'action': 'wbgetentities',
+                                                                'ids': 'Q42'})
         with self.assertRaises(requests.HTTPError):
-            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://httpbin.org/status/400", max_retries=3, retry_after=1)
+            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://httpbin.org/status/400", max_retries=3,
+                                                        retry_after=1)
 
-        wbi_core.ItemEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
-                                               params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+        wbi_core.FunctionsEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
+                                                    params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
 
 
 class TestDataType(unittest.TestCase):
@@ -184,7 +186,7 @@ def test_nositelinks():
 
 
 ####
-## tests for statement equality, with and without refs
+# tests for statement equality, with and without refs
 ####
 def test_ref_equals():
     # statements are identical

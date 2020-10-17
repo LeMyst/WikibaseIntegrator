@@ -4,6 +4,7 @@ from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
 
+from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config
 
 
@@ -38,15 +39,19 @@ class FastRunContainer(object):
                     ks = k.split('/')
                 if v:
                     if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k, entity=v)
 
                 else:
                     if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k, entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k, entity=v)
 
     def reconstruct_statements(self, qid):
         reconstructed_statements = []
@@ -461,7 +466,8 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = self.engine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results'][
+                'bindings']
             count = int(r[0]['c']['value'])
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
@@ -557,7 +563,8 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            results = self.engine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)[
+                'results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -594,7 +601,8 @@ class FastRunContainer(object):
         if self.debug:
             print(query)
 
-        return self.engine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+        return wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results'][
+            'bindings']
 
     @staticmethod
     def _process_lang(result):
