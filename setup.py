@@ -6,7 +6,7 @@ setup(
     name='wikibaseintegrator',
     version=VERSION,
     author='Myst and WikidataIntegrator authors',
-    description='Python package for reading and writing to/from Wikibase',
+    description='Python package for reading and writing to/from a Wikibase instance',
     license='MIT',
     keywords='Wikibase',
     url='https://github.com/LeMyst/WikibaseIntegrator',
@@ -27,6 +27,7 @@ setup(
         "Intended Audience :: Information Technology",
         "Intended Audience :: Developers",
         "Topic :: Utilities",
+        "Topic :: Software Development :: Libraries :: Python Modules"
     ],
     install_requires=[
         'simplejson',
