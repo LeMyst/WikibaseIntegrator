@@ -14,10 +14,8 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
-                                                        max_retries=3, retry_after=1,
-                                                        params={'format': 'json', 'action': 'wbgetentities',
-                                                                'ids': 'Q42'})
+            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaa.org", max_retries=3, retry_after=1,
+                                                   params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
         with self.assertRaises(requests.HTTPError):
             wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://httpbin.org/status/400", max_retries=3,
                                                         retry_after=1)
@@ -93,7 +91,7 @@ class TestDataType(unittest.TestCase):
 class TestFastRun(unittest.TestCase):
     """
     some basic tests for fastrun mode
-    
+
     """
 
     def test_fast_run(self):

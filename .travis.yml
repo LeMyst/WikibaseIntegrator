@@ -2,12 +2,12 @@ language: python
 python:
   - '3.6.12'
   - '3.7.9'
-  - '3.8.5'
+  - '3.8.6'
   - '3.9-dev'
 jobs:
   include:
     - arch: arm64
-      python: '3.8.5'
+      python: '3.8.6'
   allow_failures:
     - python: '3.9-dev'
 install:
