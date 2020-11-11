@@ -1,8 +1,3 @@
-"""
-Set up backoff module for wikibaseintegrator
-
-"""
-
 import sys
 from functools import partial
 
