@@ -1,5 +1,5 @@
 simplejson~=3.17.2
-requests~=2.24.0
+requests~=2.25.0
 pandas~=1.1.4
 mwoauth~=0.3.7
 backoff~=1.10.0
