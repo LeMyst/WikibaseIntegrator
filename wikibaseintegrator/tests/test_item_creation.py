@@ -24,7 +24,8 @@ class TestItemCreation(unittest.TestCase):
             wbi_core.MusicalNotation("\relative c' { c d e f | g2 g | a4 a a a | g1 |}", prop_nr="P16"),
             wbi_core.Lexeme("L123", prop_nr="P17"),
             wbi_core.Form("L123-F123", prop_nr="P18"),
-            wbi_core.Sense("L123-S123", prop_nr="P19")
+            wbi_core.Sense("L123-S123", prop_nr="P19"),
+            wbi_core.LocalMedia("DemoCat 2.png", prop_nr="P20")
         ]
         core_props = set(["P{}".format(x) for x in range(20)])
 
