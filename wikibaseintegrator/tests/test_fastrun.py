@@ -16,9 +16,9 @@ def test_query_data():
     # get a string value
     frc._query_data('P699')
     # wikidata-item value
-    frc._query_data('P31')
+    frc._query_data('P828')
     # uri value
-    frc._query_data('P1709')
+    # frc._query_data('P1709')
 
     # https://www.wikidata.org/wiki/Q10874
     assert 'Q10874' in frc.prop_data
