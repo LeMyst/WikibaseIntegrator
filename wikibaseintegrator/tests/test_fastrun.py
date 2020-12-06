@@ -31,7 +31,7 @@ def test_query_data():
     assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('DOID:')
 
     # item
-    assert list(frc.prop_data['Q10874']['P31'].values())[0]['v'] == "Q12136"
+    assert list(frc.prop_data['Q10874']['P828'].values())[0]['v'] == "Q18228398"
 
     # uri
     # temporarily stop of test below
