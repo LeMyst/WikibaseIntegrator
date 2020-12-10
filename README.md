@@ -172,6 +172,7 @@ The data types currently implemented:
 * wbi_core.GlobeCoordinate
 * wbi_core.ItemID
 * wbi_core.Lexeme
+* wbi_core.LocalMedia
 * wbi_core.Math
 * wbi_core.MonolingualText
 * wbi_core.MusicalNotation
