@@ -1,6 +1,6 @@
 simplejson~=3.17.2
 requests~=2.25.0
-pandas~=1.1.4
+pandas~=1.1.5
 mwoauth~=0.3.7
 backoff~=1.10.0
 pytest~=6.1.2
