@@ -355,7 +355,7 @@ class FastRunContainer(object):
         for i in r:
             for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
                 if value in i:
-                    # these are always URIs for the local wikibase
+                    # these are always URIs for the local Wikibase
                     i[value] = i[value]['value'].split('/')[-1]
 
             # make sure datetimes are formatted correctly.

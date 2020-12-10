@@ -2,8 +2,8 @@ import copy
 import datetime
 import json
 import re
-import time
 from collections import defaultdict
+from time import sleep
 from warnings import warn
 
 import pandas
@@ -143,7 +143,7 @@ class ItemEngine(object):
 
         if self.ref_handler:
             assert callable(self.ref_handler)
-        if self.global_ref_mode == "CUSTOM" and self.ref_handler is None:
+        if self.global_ref_mode == 'CUSTOM' and self.ref_handler is None:
             raise ValueError("If using a custom ref mode, ref_handler must be set")
 
         if (core_props is None) and (self.sparql_endpoint_url not in self.DISTINCT_VALUE_PROPS):
@@ -156,14 +156,14 @@ class ItemEngine(object):
             if self.debug:
                 if self.require_write:
                     if search_only:
-                        print('successful fastrun, search_only mode, we can\'t determine if data is up to date')
+                        print('Successful fastrun, search_only mode, we can\'t determine if data is up to date.')
                     else:
-                        print('successful fastrun, because no full data match you need to update the item...')
+                        print('Successful fastrun, because no full data match you need to update the item.')
                 else:
-                    print('successful fastrun, no write to Wikibase instance required')
+                    print('Successful fastrun, no write to Wikibase instance required.')
 
         if self.item_id != '' and self.create_new_item:
-            raise IDMissingError('Cannot create a new item, when an identifier is given')
+            raise IDMissingError('Cannot create a new item, when an identifier is given.')
         elif self.new_item and len(self.data) > 0:
             self.create_new_item = True
             self.__construct_claim_json()
@@ -198,7 +198,7 @@ class ItemEngine(object):
         df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
         if df.empty:
             warn("Warning: No distinct value properties found\n" +
-                 "Please set P2302 and Q21502410 in your wikibase or set `core_props` manually.\n" +
+                 "Please set P2302 and Q21502410 in your Wikibase or set `core_props` manually.\n" +
                  "Continuing with no core_props")
             cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set()
             return None
@@ -341,8 +341,8 @@ class ItemEngine(object):
         # mapping relation type PID or the exact match QID. If we set mrt_pid to "Pxxx", then no qualifier will
         # ever match it (and exact_qid will never get checked), and so what happens is exactly what would
         # happen if the statement had no mapping relation qualifiers
-        exact_qid = "Q0"
-        mrt_pid = "PXXX"
+        exact_qid = 'Q0'
+        mrt_pid = 'PXXX'
 
         for statement in self.data:
             property_nr = statement.get_prop_nr()
@@ -392,8 +392,8 @@ class ItemEngine(object):
 
         unique_qids = set(qid_list)
         if len(unique_qids) > 1:
-            raise ManualInterventionReqException('More than one item has the same property value',
-                                                 conflict_source, unique_qids)
+            raise ManualInterventionReqException('More than one item has the same property value', conflict_source,
+                                                 unique_qids)
         elif len(unique_qids) == 1:
             return list(unique_qids)[0]
 
@@ -408,7 +408,6 @@ class ItemEngine(object):
                 old_item.set_qualifiers(new_item.get_qualifiers())
 
         def is_good_ref(ref_block):
-
             prop_nrs = [x.get_prop_nr() for x in ref_block]
             values = [x.get_value() for x in ref_block]
             good_ref = True
@@ -962,7 +961,6 @@ class ItemEngine(object):
         self.data = []
         if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
             self.lastrevid = json_data["entity"]["lastrevid"]
-        time.sleep(.5)
         return self.item_id
 
     @classmethod
@@ -1067,8 +1065,7 @@ class ItemEngine(object):
 class FunctionsEngine(object):
 
     @staticmethod
-    def mediawiki_api_call(method, mediawiki_api_url=None,
-                           session=None, max_retries=1000, retry_after=60, **kwargs):
+    def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries=1000, retry_after=60, **kwargs):
         """
         :param method: 'GET' or 'POST'
         :param mediawiki_api_url:
@@ -1091,11 +1088,11 @@ class FunctionsEngine(object):
                 response = session.request(method, mediawiki_api_url, **kwargs)
             except requests.exceptions.ConnectionError as e:
                 print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
-                time.sleep(retry_after)
+                sleep(retry_after)
                 continue
             if response.status_code == 503:
                 print("service unavailable. sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
+                sleep(retry_after)
                 continue
 
             response.raise_for_status()
@@ -1113,21 +1110,21 @@ class FunctionsEngine(object):
                 if 'actionthrottledtext' in error_msg_names:
                     sleep_sec = int(response.headers.get('retry-after', retry_after))
                     print("{}: rate limited. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
-                    time.sleep(sleep_sec)
+                    sleep(sleep_sec)
                     continue
 
                 # maxlag
                 if 'code' in json_data['error'] and json_data['error']['code'] == 'maxlag':
                     sleep_sec = json_data['error'].get('lag', retry_after)
                     print("{}: maxlag. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
-                    time.sleep(sleep_sec)
+                    sleep(sleep_sec)
                     continue
 
                 # readonly
                 if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
-                    print('The wikibase instance is currently in readonly mode, waiting for {} seconds'.format(
+                    print('The Wikibase instance is currently in readonly mode, waiting for {} seconds'.format(
                         retry_after))
-                    time.sleep(retry_after)
+                    sleep(retry_after)
                     continue
 
             # there is no error or waiting. break out of this loop and parse response
@@ -1144,7 +1141,7 @@ class FunctionsEngine(object):
     def get_linked_by(qid, mediawiki_api_url=None):
         """
             :param qid: Wikidata identifier to which other wikidata items link
-            :param mediawiki_api_url: default to wikidata's api, but can be changed to any wikibase
+            :param mediawiki_api_url: default to wikidata's api, but can be changed to any Wikibase
             :return:
         """
 
@@ -1209,17 +1206,17 @@ class FunctionsEngine(object):
                 response = requests.post(sparql_endpoint_url, params=params, headers=headers)
             except requests.exceptions.ConnectionError as e:
                 print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
-                time.sleep(retry_after)
+                sleep(retry_after)
                 continue
             if response.status_code == 503:
-                print("service unavailable. sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
+                print("Service unavailable (503). Sleeping for {} seconds".format(retry_after))
+                sleep(retry_after)
                 continue
             if response.status_code == 429:
                 if "retry-after" in response.headers.keys():
                     retry_after = response.headers["retry-after"]
-                print("service unavailable. sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
+                print("Service unavailable (429). Sleeping for {} seconds".format(retry_after))
+                sleep(retry_after)
                 continue
             response.raise_for_status()
             results = response.json()
@@ -1247,8 +1244,7 @@ class FunctionsEngine(object):
         return df
 
     @staticmethod
-    def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None,
-                    ignore_conflicts='', user_agent=None):
+    def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None, ignore_conflicts='', user_agent=None):
         """
         A static method to merge two items
         :param from_id: The QID which should be merged into another item
@@ -1367,9 +1363,8 @@ class FunctionsEngine(object):
         print(r.json())
 
     @staticmethod
-    def get_search_results(search_string='', mediawiki_api_url=None,
-                           user_agent=None, max_results=500,
-                           language=None, dict_id_label=False):
+    def get_search_results(search_string='', mediawiki_api_url=None, user_agent=None, max_results=500, language=None,
+                           dict_id_label=False):
         """
         Performs a search in the Wikibase instance for a certain search string
         :param search_string: a string which should be searched for in the Wikibase instance
@@ -1546,7 +1541,7 @@ class BaseDataType(object):
         :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
         :param prop_nr: The property number a Wikibase snak belongs to
-        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID)
+        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
         :return:
         """
         self.value = value
@@ -1569,12 +1564,16 @@ class BaseDataType(object):
         if not self.qualifiers:
             self.qualifiers = list()
 
-        if type(prop_nr) is int:
-            self.prop_nr = 'P' + str(prop_nr)
-        elif prop_nr.startswith('P'):
-            self.prop_nr = prop_nr
+        if isinstance(prop_nr, int):
+            self.prop_nr = value
         else:
-            self.prop_nr = 'P' + prop_nr
+            pattern = re.compile(r'^P?([0-9]+)$')
+            matches = pattern.match(prop_nr)
+
+            if not matches:
+                raise ValueError('Invalid prop_nr, format must be "P[0-9]+"')
+            else:
+                self.prop_nr = 'P' + str(matches.group(1))
 
         # Internal ID and hash are issued by the Wikibase instance
         self.id = ''
@@ -2035,21 +2034,19 @@ class ItemID(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+            'Expected str or int, found {} ({})'.format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("Q"):
-            pattern = re.compile(r'[0-9]+')
-            matches = pattern.match(value[1:])
-
-            if len(value[1:]) == len(matches.group(0)):
-                self.value = int(value[1:])
-            else:
-                raise ValueError('Invalid item ID, format must be "Q[0-9]*"')
         else:
-            raise ValueError('Invalid item ID, format must be "Q[0-9]*"')
+            pattern = re.compile(r'^Q?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError('Invalid item ID, format must be "Q[0-9]+"')
+            else:
+                self.value = int(matches.group(1))
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2119,16 +2116,14 @@ class Property(BaseDataType):
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("P"):
-            pattern = re.compile(r'[0-9]+')
-            matches = pattern.match(value[1:])
-
-            if len(value[1:]) == len(matches.group(0)):
-                self.value = int(value[1:])
-            else:
-                raise ValueError('Invalid property ID, format must be "P[0-9]*"')
         else:
-            raise ValueError('Invalid property ID, format must be "P[0-9]*"')
+            pattern = re.compile(r'^P?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError('Invalid property ID, format must be "P[0-9]+"')
+            else:
+                self.value = int(matches.group(1))
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2155,17 +2150,24 @@ class Time(BaseDataType):
     """
     DTYPE = 'time'
 
-    def __init__(self, time, prop_nr, precision=11, timezone=0, calendarmodel=None,
-                 wikibase_url=None, is_reference=False, is_qualifier=False, snak_type='value',
-                 references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
+    def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
+                 wikibase_url=None,
+                 is_reference=False, is_qualifier=False, snak_type='value', references=None, qualifiers=None,
+                 rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
-        :param time: A time representation string in the following format: '+%Y-%m-%dT%H:%M:%SZ'
+        :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
         :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z'
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
+        :param before: explicit integer value for how many units after the given time it could be.
+                       The unit is given by the precision.
+        :type before: int
+        :param after: explicit integer value for how many units before the given time it could be.
+                      The unit is given by the precision.
+        :type after: int
         :param precision: Precision value for dates and time as specified in the Wikibase data model
-                          (https://www.mediawiki.org/wiki/Wikibase/DataModel#Dates_and_times)
+                          (https://www.wikidata.org/wiki/Special:ListDatatypes#time)
         :type precision: int
         :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
         :type timezone: int
@@ -2189,37 +2191,39 @@ class Time(BaseDataType):
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         self.time = None
-        self.timezone = None
+        self.before = None
+        self.after = None
         self.precision = None
+        self.timezone = None
         self.calendarmodel = None
 
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        # the value is composed of what is required to define the Time object
-        value = (time, timezone, precision, calendarmodel)
+        value = (time, before, after, precision, timezone, calendarmodel)
 
         super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
                                    prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
-        self.time, self.timezone, self.precision, self.calendarmodel = value
+        # TODO: Introduce validity checks for time, etc.
+        self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
         self.json_representation['datavalue'] = {
             'value': {
                 'time': self.time,
-                'timezone': self.timezone,
-                'before': 0,
-                'after': 0,
+                'before': self.before,
+                'after': self.after,
                 'precision': self.precision,
+                'timezone': self.timezone,
                 'calendarmodel': self.calendarmodel
             },
             'type': 'time'
         }
 
-        super(Time, self).set_value(value=self.time)
+        super(Time, self).set_value(value=value)
 
         if self.time is not None:
             assert isinstance(self.time, str), \
@@ -2237,8 +2241,8 @@ class Time(BaseDataType):
             return cls(time=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
-        return cls(time=value['time'], prop_nr=jsn['property'], precision=value['precision'],
-                   timezone=value['timezone'], calendarmodel=value['calendarmodel'])
+        return cls(time=value['time'], prop_nr=jsn['property'], before=value['before'], after=value['after'],
+                   precision=value['precision'], timezone=value['timezone'], calendarmodel=value['calendarmodel'])
 
 
 class Url(BaseDataType):
@@ -2276,28 +2280,24 @@ class Url(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        if value is None:
-            self.value = None
-        else:
-            protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-            if True not in [True for x in protocols if value.startswith(x)]:
-                raise ValueError('Invalid URL')
-
-            self.value = value
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
+        if True not in [True for x in protocols if value.startswith(x)]:
+            raise ValueError('Invalid URL')
+        self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
             'type': 'string'
         }
 
-        super(Url, self).set_value(value=self.value)
+        super(Url, self).set_value(value=value)
 
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
@@ -2307,12 +2307,12 @@ class MonolingualText(BaseDataType):
     """
     DTYPE = 'monolingualtext'
 
-    def __init__(self, value, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
+    def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The language specific string to be used as the value
-        :type value: str
+        :param text: The language specific string to be used as the value
+        :type text: str
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param language: Specifies the language the value belongs to
@@ -2331,9 +2331,10 @@ class MonolingualText(BaseDataType):
         :type rank: str
         """
 
+        self.text = None
         self.language = config['DEFAULT_LANGUAGE'] if language is None else language
 
-        value = (value, self.language)
+        value = (text, self.language)
 
         super(MonolingualText, self) \
             .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
@@ -2343,11 +2344,14 @@ class MonolingualText(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        value = value[0]
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        text, language = value
+        assert isinstance(text, str) or self.text is None, "Expected str, found {} ({})".format(type(text), text)
+        self.text = text
+        self.language = language
+
         self.json_representation['datavalue'] = {
             'value': {
-                'text': value,
+                'text': self.text,
                 'language': self.language
             },
             'type': 'monolingualtext'
@@ -2359,10 +2363,10 @@ class MonolingualText(BaseDataType):
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+            return cls(text=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
-        return cls(value=value['text'], prop_nr=jsn['property'], language=value['language'])
+        return cls(text=value['text'], prop_nr=jsn['property'], language=value['language'])
 
 
 class Quantity(BaseDataType):
@@ -2371,13 +2375,13 @@ class Quantity(BaseDataType):
     """
     DTYPE = 'quantity'
 
-    def __init__(self, value, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
+    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True, wikibase_url=None):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The quantity value
-        :type value: float, str
+        :param quantity: The quantity value
+        :type quantity: float, str
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
@@ -2405,73 +2409,78 @@ class Quantity(BaseDataType):
         if unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
-        v = (value, unit, upper_bound, lower_bound)
+        self.quantity = None
+        self.unit = None
+        self.upper_bound = None
+        self.lower_bound = None
 
-        super(Quantity, self).__init__(value=v, snak_type=snak_type, data_type=self.DTYPE,
+        value = (quantity, unit, upper_bound, lower_bound)
+
+        super(Quantity, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                        is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                        check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(v)
+        self.set_value(value)
 
-    def set_value(self, v):
-        value, unit, upper_bound, lower_bound = v
+    def set_value(self, value):
+        # TODO: Introduce validity checks for quantity, etc.
+        self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
-        if value is not None:
-            value = self.format_amount(value)
-            unit = str(unit)
-            if upper_bound:
-                upper_bound = self.format_amount(upper_bound)
-            if lower_bound:
-                lower_bound = self.format_amount(lower_bound)
+        if self.quantity is not None:
+            self.quantity = self.format_amount(self.quantity)
+            self.unit = str(self.unit)
+            if self.upper_bound:
+                self.upper_bound = self.format_amount(self.upper_bound)
+            if self.lower_bound:
+                self.lower_bound = self.format_amount(self.lower_bound)
 
             # Integrity checks for value and bounds
             try:
-                for i in [value, upper_bound, lower_bound]:
+                for i in [self.quantity, self.upper_bound, self.lower_bound]:
                     if i:
                         float(i)
             except ValueError:
                 raise ValueError('Value, bounds and units must parse as integers or float')
 
-            if (lower_bound and upper_bound) and (float(lower_bound) > float(upper_bound)
-                                                  or float(lower_bound) > float(value)):
+            if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
+                                                            or float(self.lower_bound) > float(self.quantity)):
                 raise ValueError('Lower bound too large')
 
-            if upper_bound and float(upper_bound) < float(value):
+            if self.upper_bound and float(self.upper_bound) < float(self.quantity):
                 raise ValueError('Upper bound too small')
 
         self.json_representation['datavalue'] = {
             'value': {
-                'amount': value,
-                'unit': unit,
-                'upperBound': upper_bound,
-                'lowerBound': lower_bound
+                'amount': self.quantity,
+                'unit': self.unit,
+                'upperBound': self.upper_bound,
+                'lowerBound': self.lower_bound
             },
             'type': 'quantity'
         }
 
         # remove bounds from json if they are undefined
-        if not upper_bound:
+        if not self.upper_bound:
             del self.json_representation['datavalue']['value']['upperBound']
 
-        if not lower_bound:
+        if not self.lower_bound:
             del self.json_representation['datavalue']['value']['lowerBound']
 
-        self.value = (value, unit, upper_bound, lower_bound)
-        super(Quantity, self).set_value(value)
+        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
+        super(Quantity, self).set_value(value=value)
 
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, upper_bound=None, lower_bound=None, prop_nr=jsn['property'],
-                       snak_type=jsn['snaktype'])
+            return cls(quantity=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
         upper_bound = value['upperBound'] if 'upperBound' in value else None
         lower_bound = value['lowerBound'] if 'lowerBound' in value else None
-        return cls(value=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound,
-                   lower_bound=lower_bound, unit=value['unit'])
+        return cls(quantity=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound, lower_bound=lower_bound,
+                   unit=value['unit'])
 
     @staticmethod
     def format_amount(amount):
@@ -2515,6 +2524,8 @@ class CommonsMedia(BaseDataType):
         :type rank: str
         """
 
+        self.value = None
+
         super(CommonsMedia, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                            is_reference=is_reference, is_qualifier=is_qualifier,
                                            references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
@@ -2524,12 +2535,14 @@ class CommonsMedia(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        self.value = value
+
         self.json_representation['datavalue'] = {
-            'value': value,
+            'value': self.value,
             'type': 'string'
         }
 
-        super(CommonsMedia, self).set_value(value)
+        super(CommonsMedia, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2545,9 +2558,9 @@ class GlobeCoordinate(BaseDataType):
     """
     DTYPE = 'globe-coordinate'
 
-    def __init__(self, latitude, longitude, precision, prop_nr, globe=None,
-                 wikibase_url=None, is_reference=False, is_qualifier=False,
-                 snak_type='value', references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
+    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
+                 is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
+                 check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
@@ -2585,16 +2598,15 @@ class GlobeCoordinate(BaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(GlobeCoordinate, self) \
-            .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
-                      is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                      prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+        super(GlobeCoordinate, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                              is_reference=is_reference, is_qualifier=is_qualifier,
+                                              references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                              check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value)
 
     def set_value(self, value):
-        # TODO: Introduce validity checks for coordinates
-
+        # TODO: Introduce validity checks for coordinates, etc.
         self.latitude, self.longitude, self.precision, self.globe = value
 
         self.json_representation['datavalue'] = {
@@ -2607,7 +2619,7 @@ class GlobeCoordinate(BaseDataType):
             'type': 'globecoordinate'
         }
 
-        super(GlobeCoordinate, self).set_value(self.latitude)
+        super(GlobeCoordinate, self).set_value(value=value)
 
         self.value = value
 
@@ -2660,14 +2672,15 @@ class GeoShape(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile(r'Data:((?![:|#]).)+\.map')
-        matches = pattern.match(value)
-
-        if not matches:
-            raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
-                             'characters like colon, hash or pipe.')
-
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
+                                 'characters like colon, hash or pipe.')
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2776,14 +2789,15 @@ class TabularData(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile(r'Data:((?![:|#]).)+\.tab')
-        matches = pattern.match(value)
-
-        if not matches:
-            raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
-                             'characters like colon, hash or pipe.')
-
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
+                                 'characters like colon, hash or pipe.')
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2897,22 +2911,19 @@ class Lexeme(BaseDataType):
         self.set_value(value=value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("L"):
-            pattern = re.compile(r'[0-9]+')
-            matches = pattern.match(value[1:])
-
-            if len(value[1:]) == len(matches.group(0)):
-                self.value = int(value[1:])
-            else:
-                raise ValueError('Invalid lexeme ID, format must be "L[0-9]*"')
         else:
-            raise ValueError('Invalid lexeme ID, format must be "L[0-9]*"')
+            pattern = re.compile(r'^L?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError('Invalid lexeme ID, format must be "L[0-9]+"')
+            else:
+                self.value = int(matches.group(1))
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2972,14 +2983,14 @@ class Form(BaseDataType):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
-        elif value.startswith("L"):
+        else:
             pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
-        else:
-            raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
+
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -3009,7 +3020,7 @@ class Sense(BaseDataType):
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
+        :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
@@ -3038,14 +3049,14 @@ class Sense(BaseDataType):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
-        elif value.startswith("L"):
+        else:
             pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
-        else:
-            raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
+
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': {
