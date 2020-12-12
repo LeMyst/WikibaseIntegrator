@@ -2857,7 +2857,8 @@ class Lexeme(BaseDataType):
         self.set_value(value=value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
+                                                                                                           value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
