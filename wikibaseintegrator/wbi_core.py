@@ -909,7 +909,7 @@ class ItemEngine(object):
         :type max_retries: int
         :param retry_after: Number of seconds to wait before retrying request (see max_retries)
         :type retry_after: int
-        :return: the QID on sucessful write
+        :return: the entity ID on successful write
         """
 
         if self.search_only:
