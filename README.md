@@ -167,17 +167,17 @@ The data types currently implemented:
 
 * wbi_core.CommonsMedia
 * wbi_core.ExternalID
-* wbi_core.Form
+* wbi_core.Form (this is part of the lexicographic data model)
 * wbi_core.GeoShape
 * wbi_core.GlobeCoordinate
-* wbi_core.ItemID
-* wbi_core.Lexeme
+* wbi_core.ItemID (only accepts QID objects aka items)
+* wbi_core.Lexeme (only accepts LID objects)
 * wbi_core.Math
 * wbi_core.MonolingualText
 * wbi_core.MusicalNotation
-* wbi_core.Property
+* wbi_core.Property (only accepts PID objects)
 * wbi_core.Quantity
-* wbi_core.Sense
+* wbi_core.Sense (this is part of the lexicographic data model)
 * wbi_core.String
 * wbi_core.TabularData
 * wbi_core.Time
