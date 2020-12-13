@@ -269,9 +269,18 @@ for entrez_id, ensembl in raw_data.items():
 
     # data goes into a list, because many data objects can be provided to 
     data = [entrez_gene_id, ensembl_transcript_id]
+    
+    # add one reference
+    references = [
+      [
+        wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+        wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+        wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+      ]
+    ]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data)
+    wd_item = wbi_core.ItemEngine(data=data, references=references)
     wd_item.write(login_instance)
 ```
 
@@ -322,9 +331,18 @@ for entrez_id, ensembl in raw_data.items():
 
     # data goes into a list, because many data objects can be provided to 
     data = [entrez_gene_id, ensembl_transcript_id]
+    
+    # add one reference
+    references = [
+      [
+        wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+        wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+        wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+      ]
+    ]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
+    wd_item = wbi_core.ItemEngine(data=data, references=references, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
     wd_item.write(login_instance)
 ```
 
