@@ -37,7 +37,7 @@ class ItemEngine(object):
         :type new_item: True or False
         :param data: a dictionary with property strings as keys and the data which should be written to a item as the
             property values
-        :type data: List[BaseDataType]
+        :type data: List[BaseDataType] or BaseDataType
         :param append_value: a list of properties where potential existing values should not be overwritten by the data
             passed in the :parameter data.
         :type append_value: list of property number strings
@@ -109,7 +109,14 @@ class ItemEngine(object):
             'PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
         self.distinct_values_constraint_qid = config[
             'DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
-        self.data = [] if data is None else data
+        if data is None:
+            self.data = []
+        elif isinstance(data, BaseDataType):
+            self.data = [data]
+        elif not isinstance(data, list):
+            raise TypeError("data must be a list or an instance of BaseDataType")
+        else:
+            self.data = data
         self.append_value = [] if append_value is None else append_value
         self.fast_run = fast_run
         self.fast_run_base_filter = fast_run_base_filter
@@ -757,7 +764,7 @@ class ItemEngine(object):
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if not isinstance(aliases, list):
-            raise ValueError('aliases must be a list')
+            raise TypeError('aliases must be a list')
 
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
