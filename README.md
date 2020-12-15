@@ -2,7 +2,6 @@
 
 ![Python package](https://github.com/LeMyst/WikibaseIntegrator/workflows/Python%20package/badge.svg)
 ![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/workflows/CodeQL/badge.svg)
-[![Build Status](https://travis-ci.org/LeMyst/WikibaseIntegrator.svg?branch=master)](https://travis-ci.org/LeMyst/WikibaseIntegrator)
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
