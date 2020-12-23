@@ -25,7 +25,7 @@ class ItemEngine(object):
     logger = None
 
     def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
-                 wikibase_url=None, append_value=None, fast_run=False, fast_run_base_filter=None,
+                 wikibase_url=None, fast_run=False, fast_run_base_filter=None,
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
                  keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None,
                  core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None,
@@ -38,9 +38,6 @@ class ItemEngine(object):
         :param data: a dictionary with property strings as keys and the data which should be written to a item as the
             property values
         :type data: List[BaseDataType] or BaseDataType
-        :param append_value: a list of properties where potential existing values should not be overwritten by the data
-            passed in the :parameter data.
-        :type append_value: list of property number strings
         :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True
             should also specify the fast_run_base_filter for these item types
         :type fast_run: bool
@@ -117,7 +114,6 @@ class ItemEngine(object):
             raise TypeError("data must be a list or an instance of BaseDataType")
         else:
             self.data = data
-        self.append_value = [] if append_value is None else append_value
         self.fast_run = fast_run
         self.fast_run_base_filter = fast_run_base_filter
         self.fast_run_use_refs = fast_run_use_refs
@@ -522,7 +518,7 @@ class ItemEngine(object):
                 insert_pos = len(prop_pos) - (prop_pos.index(True) if any(prop_pos) else 0)
 
                 # If value should be appended, check if values exists, if not, append
-                if prop_nr in self.append_value:
+                if stat.if_exists == 'APPEND':
                     equal_items = [stat == x for x in prop_data]
                     if True not in equal_items:
                         self.statements.insert(insert_pos + 1, stat)
@@ -583,7 +579,7 @@ class ItemEngine(object):
                 self.json_representation['claims'][prop_nr] = []
             self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
 
-    def update(self, data, append_value=None):
+    def update(self, data):
         """
         This method takes data, and modifies the Wikidata item. This works together with the data already provided via
         the constructor or if the constructor is being instantiated with search_only=True. In the latter case, this
@@ -592,19 +588,12 @@ class ItemEngine(object):
         via the constructor, data provided via the update() method will be appended to these data.
         :param data: A list of Wikidata statment items inheriting from BaseDataType
         :type data: list
-        :param append_value: list with Wikidata property strings where the values should only be appended,
-            not overwritten.
-        :type: list
         """
 
         if self.search_only:
             raise SearchOnlyError
 
         assert type(data) == list
-
-        if append_value:
-            assert type(append_value) == list
-            self.append_value.extend(append_value)
 
         self.data.extend(data)
         self.statements = copy.deepcopy(self.original_statements)
@@ -1525,7 +1514,7 @@ class BaseDataType(object):
     '''
 
     def __init__(self, value, snak_type, data_type, is_reference, is_qualifier, references, qualifiers, rank, prop_nr,
-                 check_qualifier_equality):
+                 check_qualifier_equality, if_exists):
         """
         Constructor, will be called by all data types.
         :param value: Data value of the Wikibase data snak
@@ -1563,6 +1552,7 @@ class BaseDataType(object):
         self.is_qualifier = is_qualifier
         self.rank = rank
         self.check_qualifier_equality = check_qualifier_equality
+        self.if_exists = if_exists
 
         self._statement_ref_mode = 'KEEP_GOOD'
 
@@ -1843,7 +1833,7 @@ class String(BaseDataType):
     DTYPE = 'string'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
@@ -1867,7 +1857,7 @@ class String(BaseDataType):
         super(String, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                      is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                     check_qualifier_equality=check_qualifier_equality)
+                                     check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -1897,7 +1887,7 @@ class Math(BaseDataType):
     DTYPE = 'math'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
@@ -1920,7 +1910,7 @@ class Math(BaseDataType):
 
         super(Math, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers,
-                                   rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+                                   rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -1950,7 +1940,7 @@ class ExternalID(BaseDataType):
     DTYPE = 'external-id'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
@@ -1974,7 +1964,7 @@ class ExternalID(BaseDataType):
         super(ExternalID, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                          is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                          qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                         check_qualifier_equality=check_qualifier_equality)
+                                         check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2011,7 +2001,7 @@ class ItemID(BaseDataType):
     '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The item ID to serve as the value
@@ -2035,7 +2025,7 @@ class ItemID(BaseDataType):
         super(ItemID, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                      is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                     check_qualifier_equality=check_qualifier_equality)
+                                     check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2088,7 +2078,7 @@ class Property(BaseDataType):
     '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The property number to serve as a value
@@ -2112,7 +2102,7 @@ class Property(BaseDataType):
         super(Property, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                        is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                       check_qualifier_equality=check_qualifier_equality)
+                                       check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2158,9 +2148,8 @@ class Time(BaseDataType):
     DTYPE = 'time'
 
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
-                 wikibase_url=None,
-                 is_reference=False, is_qualifier=False, snak_type='value', references=None, qualifiers=None,
-                 rank='normal', check_qualifier_equality=True):
+                 wikibase_url=None, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
@@ -2211,7 +2200,7 @@ class Time(BaseDataType):
 
         super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                                   prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+                                   prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2259,7 +2248,7 @@ class Url(BaseDataType):
     DTYPE = 'url'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The URL to be used as the value
@@ -2282,7 +2271,7 @@ class Url(BaseDataType):
 
         super(Url, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                   is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                                  prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+                                  prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2315,7 +2304,7 @@ class MonolingualText(BaseDataType):
     DTYPE = 'monolingualtext'
 
     def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
-                 references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 references=None, qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param text: The language specific string to be used as the value
@@ -2346,7 +2335,7 @@ class MonolingualText(BaseDataType):
         super(MonolingualText, self) \
             .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                       is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                      prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+                      prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2384,7 +2373,7 @@ class Quantity(BaseDataType):
 
     def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
-                 check_qualifier_equality=True, wikibase_url=None):
+                 check_qualifier_equality=True, wikibase_url=None, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param quantity: The quantity value
@@ -2426,7 +2415,7 @@ class Quantity(BaseDataType):
         super(Quantity, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                        is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                       check_qualifier_equality=check_qualifier_equality)
+                                       check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2510,7 +2499,7 @@ class CommonsMedia(BaseDataType):
     DTYPE = 'commonsMedia'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The media file name from Wikimedia commons to be used as the value
@@ -2536,7 +2525,7 @@ class CommonsMedia(BaseDataType):
         super(CommonsMedia, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                            is_reference=is_reference, is_qualifier=is_qualifier,
                                            references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                           check_qualifier_equality=check_qualifier_equality)
+                                           check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2567,7 +2556,7 @@ class GlobeCoordinate(BaseDataType):
 
     def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
-                 check_qualifier_equality=True):
+                 check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
@@ -2608,7 +2597,7 @@ class GlobeCoordinate(BaseDataType):
         super(GlobeCoordinate, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                               is_reference=is_reference, is_qualifier=is_qualifier,
                                               references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                              check_qualifier_equality=check_qualifier_equality)
+                                              check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2649,7 +2638,7 @@ class GeoShape(BaseDataType):
     DTYPE = 'geo-shape'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
@@ -2673,7 +2662,7 @@ class GeoShape(BaseDataType):
         super(GeoShape, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                        is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                       check_qualifier_equality=check_qualifier_equality)
+                                       check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2711,7 +2700,7 @@ class MusicalNotation(BaseDataType):
     DTYPE = 'musical-notation'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Values for that data type are strings describing music following LilyPond syntax.
@@ -2736,7 +2725,7 @@ class MusicalNotation(BaseDataType):
                                               is_reference=is_reference, is_qualifier=is_qualifier,
                                               references=references,
                                               qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                              check_qualifier_equality=check_qualifier_equality)
+                                              check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2766,7 +2755,7 @@ class TabularData(BaseDataType):
     DTYPE = 'tabular-data'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
@@ -2790,7 +2779,7 @@ class TabularData(BaseDataType):
         super(TabularData, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                           is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                           qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                          check_qualifier_equality=check_qualifier_equality)
+                                          check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2835,7 +2824,7 @@ class Lexeme(BaseDataType):
     '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The lexeme number to serve as a value
@@ -2859,7 +2848,7 @@ class Lexeme(BaseDataType):
         super(Lexeme, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                      is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                     check_qualifier_equality=check_qualifier_equality)
+                                     check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2905,7 +2894,7 @@ class Form(BaseDataType):
     DTYPE = 'wikibase-form'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
@@ -2929,7 +2918,7 @@ class Form(BaseDataType):
         super(Form, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                    is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                    qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                   check_qualifier_equality=check_qualifier_equality)
+                                   check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2971,7 +2960,7 @@ class Sense(BaseDataType):
     DTYPE = 'wikibase-sense'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True):
+                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
@@ -2995,7 +2984,7 @@ class Sense(BaseDataType):
         super(Sense, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                     is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
-                                    check_qualifier_equality=check_qualifier_equality)
+                                    check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
         self.set_value(value=value)
 
