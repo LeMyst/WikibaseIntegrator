@@ -160,11 +160,10 @@ class FastRunContainer(object):
         qid = matching_qids.pop()
         self.current_qid = qid
 
-    def write_required(self, data, append_props=None, cqid=None):
+    def write_required(self, data, cqid=None):
         del_props = set()
         data_props = set()
-        if not append_props:
-            append_props = []
+        append_props = [x.get_prop_nr() for x in data if x.if_exists == 'APPEND']
 
         for x in data:
             if x.value and x.data_type:
@@ -211,6 +210,7 @@ class FastRunContainer(object):
                 continue
 
             if date.get_prop_nr() in append_props:
+                # TODO: check if value already exist and already have the same value
                 continue
 
             if not date.get_value() and not date.data_type:

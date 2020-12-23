@@ -267,8 +267,7 @@ class ItemEngine(object):
             ItemEngine.fast_run_store.append(self.fast_run_container)
 
         if not self.search_only:
-            self.require_write = self.fast_run_container.write_required(self.data, append_props=self.append_value,
-                                                                        cqid=self.item_id)
+            self.require_write = self.fast_run_container.write_required(self.data, cqid=self.item_id)
             # set item id based on fast run data
             if not self.require_write and not self.item_id:
                 self.item_id = self.fast_run_container.current_qid
@@ -1910,7 +1909,8 @@ class Math(BaseDataType):
 
         super(Math, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers,
-                                   rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
+                                   rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality,
+                                   if_exists=if_exists)
 
         self.set_value(value=value)
 
@@ -2200,7 +2200,8 @@ class Time(BaseDataType):
 
         super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                                   prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
+                                   prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality,
+                                   if_exists=if_exists)
 
         self.set_value(value)
 
@@ -2271,7 +2272,8 @@ class Url(BaseDataType):
 
         super(Url, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                   is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                                  prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
+                                  prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality,
+                                  if_exists=if_exists)
 
         self.set_value(value)
 
