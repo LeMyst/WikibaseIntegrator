@@ -163,7 +163,7 @@ class FastRunContainer(object):
     def write_required(self, data, cqid=None):
         del_props = set()
         data_props = set()
-        append_props = [x.get_prop_nr() for x in data if x.if_exists == 'APPEND']
+        append_props = [x.get_prop_nr() for x in data if 'APPEND' in x.if_exists]
 
         for x in data:
             if x.value and x.data_type:
@@ -187,7 +187,7 @@ class FastRunContainer(object):
                             self.ref_handler(to_be, x)
                         else:
                             to_be = x
-                        if y.equals(to_be, include_ref=self.use_refs):
+                        if y.equals(to_be, include_ref=self.use_refs) and x.if_exists != 'FORCE_APPEND':
                             comp.append(True)
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]

@@ -517,9 +517,9 @@ class ItemEngine(object):
                 insert_pos = len(prop_pos) - (prop_pos.index(True) if any(prop_pos) else 0)
 
                 # If value should be appended, check if values exists, if not, append
-                if stat.if_exists == 'APPEND':
+                if 'APPEND' in stat.if_exists:
                     equal_items = [stat == x for x in prop_data]
-                    if True not in equal_items:
+                    if True not in equal_items or stat.if_exists == 'FORCE_APPEND':
                         self.statements.insert(insert_pos + 1, stat)
                     else:
                         # if item exists, modify rank
@@ -1537,6 +1537,8 @@ class BaseDataType(object):
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
         :param prop_nr: The property number a Wikibase snak belongs to
         :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
+        :param if_exists: Replace or append the statement. You can force an append if the statement already exists.
+        :type if_exists: A string of one of three allowed values: 'REPLACE', 'APPEND', 'FORCE_APPEND'
         :return:
         """
         self.value = value
@@ -1582,8 +1584,11 @@ class BaseDataType(object):
             "datatype": self.data_type
         }
 
-        if snak_type not in ['value', 'novalue', 'somevalue']:
-            raise ValueError('{} is not a valid snak type'.format(snak_type))
+        if self.snak_type not in ['value', 'novalue', 'somevalue']:
+            raise ValueError('{} is not a valid snak type'.format(self.snak_type))
+
+        if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND']:
+            raise ValueError('{} is not a valid if_exists value'.format(self.if_exists))
 
         if self.is_qualifier and self.is_reference:
             raise ValueError('A claim cannot be a reference and a qualifer at the same time')

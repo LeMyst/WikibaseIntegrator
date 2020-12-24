@@ -181,9 +181,12 @@ def test_append_props():
     # with append
     statements = [wbi_core.ItemID(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
     assert frc.write_required(data=statements, cqid=qid) is False
+    # with force append
+    statements = [wbi_core.ItemID(value='Q24784025', prop_nr='P527', if_exists='FORCE_APPEND')]
+    assert frc.write_required(data=statements, cqid=qid) is True
     # without append
     statements = [wbi_core.ItemID(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, cqid=qid)
+    assert frc.write_required(data=statements, cqid=qid) is True
 
     # if we are in append mode, and the refs are different, we should write
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'},
@@ -191,7 +194,7 @@ def test_append_props():
                                    use_refs=True)
     # with append
     statements = [wbi_core.ItemID(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
-    assert frc.write_required(data=statements, cqid=qid)
+    assert frc.write_required(data=statements, cqid=qid) is True
     # without append
     statements = [wbi_core.ItemID(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, cqid=qid)
+    assert frc.write_required(data=statements, cqid=qid) is True
