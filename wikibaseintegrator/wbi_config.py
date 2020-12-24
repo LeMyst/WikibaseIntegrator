@@ -2,8 +2,8 @@ import pkg_resources
 
 try:
     __version__ = pkg_resources.get_distribution("wikibaseintegrator").version
-except Exception as e:
-    __version__ = ""
+except pkg_resources.DistributionNotFound as e:
+    __version__ = "dev"
 
 """
 Config global options
