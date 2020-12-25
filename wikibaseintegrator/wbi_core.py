@@ -593,8 +593,8 @@ class ItemEngine(object):
         :param data: A list of Wikidata statment items inheriting from BaseDataType
         :type data: list
         :param append_value: list with Wikidata property strings where the values should only be appended,
-            not overwritten.
-        :type: list
+        not overwritten.
+        :type append_value: list
         """
 
         if self.search_only:
@@ -898,7 +898,7 @@ class ItemEngine(object):
         :param bot_account: Tell the Wikidata API whether the script should be run as part of a bot account or not.
         :type bot_account: bool
         :param edit_summary: A short (max 250 characters) summary of the purpose of the edit. This will be displayed as
-            the revision summary of the Wikidata item.
+        the revision summary of the Wikidata item.
         :type edit_summary: str
         :param entity_type: Decides wether the object will become an item (default) or a property (with 'property')
         :type entity_type: str
@@ -982,10 +982,10 @@ class ItemEngine(object):
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param login: An object of type Login, which holds the credentials/session cookies required for >50 item bulk
-            retrieval of items.
+        retrieval of items.
         :type login: wbi_login.Login
         :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
-            instance of ItemEngine with the corresponding item data.
+        instance of ItemEngine with the corresponding item data.
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1183,7 +1183,7 @@ class FunctionsEngine(object):
         :param as_dataframe: Return result as pandas dataframe
         :param max_retries: The number time this function should retry in case of header reports.
         :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service
-         is not reachable.
+        is not reachable.
         :param debug: Enable debug output.
         :type debug: boolean
         :return: The results of the query are returned in JSON format
@@ -1263,7 +1263,7 @@ class FunctionsEngine(object):
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated
-                by a pipe ('|') if using more than one of those.
+        by a pipe ('|') if using more than one of those.
         :type ignore_conflicts: str
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :type user_agent: str
@@ -1340,10 +1340,10 @@ class FunctionsEngine(object):
         """
         Delete an item
         :param statement_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed.
-            All claims must belong to the same entity.
+        All claims must belong to the same entity.
         :type statement_id: string
-        :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting
-            conflicts during save.
+        :param revision: The numeric identifier for the revision to base the modification on.
+        This is used for detecting conflicts during save.
         :type revision: str
         :param login: A wbi_login.Login object which contains username and password the edit should be performed with.
         :type login: wbi_login.Login

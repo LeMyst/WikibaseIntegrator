@@ -1,32 +1,8 @@
 wikibaseintegrator package
 ==========================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   wikibaseintegrator.tests
-
 Submodules
 ----------
-
-wikibaseintegrator.wbi\_backoff module
---------------------------------------
-
-.. automodule:: wikibaseintegrator.wbi_backoff
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-wikibaseintegrator.wbi\_config module
--------------------------------------
-
-.. automodule:: wikibaseintegrator.wbi_config
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 wikibaseintegrator.wbi\_core module
 -----------------------------------
