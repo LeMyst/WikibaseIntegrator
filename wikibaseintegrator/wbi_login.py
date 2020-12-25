@@ -8,9 +8,6 @@ from requests_oauthlib import OAuth1
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 
-__author__ = 'Sebastian Burgstaller-Muehlbacher, Tim Putman, Andra Waagmeester'
-__license__ = 'AGPLv3'
-
 """
 Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
 """

@@ -14,19 +14,20 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaaaa.org",
-                                                   max_retries=3, retry_after=1,
-                                                   params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaa.org", max_retries=3,
+                                                        retry_after=1, params={'format': 'json',
+                                                                               'action': 'wbgetentities', 'ids': 'Q42'})
         with self.assertRaises(requests.HTTPError):
-            wbi_core.ItemEngine.mediawiki_api_call("GET", "http://httpstat.us/400", max_retries=3, retry_after=1)
+            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://httpbin.org/status/400", max_retries=3,
+                                                        retry_after=1)
 
-        wbi_core.ItemEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
-                                               params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+        wbi_core.FunctionsEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
+                                                    params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
 
 
 class TestDataType(unittest.TestCase):
     def test_wd_quantity(self):
-        dt = wbi_core.Quantity(value='34.5', prop_nr='P43')
+        dt = wbi_core.Quantity(quantity='34.5', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
 
@@ -41,7 +42,7 @@ class TestDataType(unittest.TestCase):
         if not value['value']['unit'] == '1':
             raise
 
-        dt2 = wbi_core.Quantity(value='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
+        dt2 = wbi_core.Quantity(quantity='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
 
         value = dt2.get_json_representation()['mainsnak']['datavalue']
 
@@ -91,7 +92,7 @@ class TestDataType(unittest.TestCase):
 class TestFastRun(unittest.TestCase):
     """
     some basic tests for fastrun mode
-    
+
     """
 
     def test_fast_run(self):
@@ -119,8 +120,7 @@ class TestFastRun(unittest.TestCase):
         # tests fastrun label, description and aliases, and label in another language
         data = [wbi_core.ExternalID('/m/02j71', 'P646')]
         fast_run_base_filter = {'P361': 'Q18589965'}
-        item = wbi_core.ItemEngine(item_id="Q2", data=data, fast_run=True,
-                                   fast_run_base_filter=fast_run_base_filter)
+        item = wbi_core.ItemEngine(item_id="Q2", data=data, fast_run=True, fast_run_base_filter=fast_run_base_filter)
 
         frc = wbi_core.ItemEngine.fast_run_store[0]
         frc.debug = True
@@ -184,13 +184,13 @@ def test_nositelinks():
 
 
 ####
-## tests for statement equality, with and without refs
+# tests for statement equality, with and without refs
 ####
 def test_ref_equals():
     # statements are identical
     oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352'),
               wbi_core.ItemID(value='Q24784025', prop_nr='P527'),
-              wbi_core.Time('+2001-12-31T12:01:13Z', prop_nr='P813')]
+              wbi_core.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813')]
     olditem = wbi_core.ItemID("Q123", "P123", references=[oldref])
     newitem = copy.deepcopy(olditem)
     assert olditem.equals(newitem, include_ref=False)
@@ -198,7 +198,7 @@ def test_ref_equals():
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references[0][2] = wbi_core.Time('+2002-1-31T12:01:13Z', prop_nr='P813')
+    newitem.references[0][2] = wbi_core.Time(time='+2002-1-31T12:01:13Z', prop_nr='P813')
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 

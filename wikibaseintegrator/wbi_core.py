@@ -2,8 +2,8 @@ import copy
 import datetime
 import json
 import re
-import time
 from collections import defaultdict
+from time import sleep
 from warnings import warn
 
 import pandas
@@ -12,17 +12,6 @@ import requests
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
-
-"""
-Authors:
-  Andra Waagmeester (andra' at ' micelio.be)
-  Gregory Stupp (stuppie' at 'gmail.com)
-  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com)
-  Myst
-"""
-
-__author__ = 'Andra Waagmeester, Gregory Stupp, Sebastian Burgstaller, Myst'
-__license__ = 'MIT'
 
 
 class ItemEngine(object):
@@ -48,7 +37,7 @@ class ItemEngine(object):
         :type new_item: True or False
         :param data: a dictionary with property strings as keys and the data which should be written to a item as the
             property values
-        :type data: List[BaseDataType]
+        :type data: List[BaseDataType] or BaseDataType
         :param append_value: a list of properties where potential existing values should not be overwritten by the data
             passed in the :parameter data.
         :type append_value: list of property number strings
@@ -120,7 +109,14 @@ class ItemEngine(object):
             'PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
         self.distinct_values_constraint_qid = config[
             'DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
-        self.data = [] if data is None else data
+        if data is None:
+            self.data = []
+        elif isinstance(data, BaseDataType):
+            self.data = [data]
+        elif not isinstance(data, list):
+            raise TypeError("data must be a list or an instance of BaseDataType")
+        else:
+            self.data = data
         self.append_value = [] if append_value is None else append_value
         self.fast_run = fast_run
         self.fast_run_base_filter = fast_run_base_filter
@@ -140,7 +136,10 @@ class ItemEngine(object):
         self.original_statements = []
         self.entity_metadata = {}
         self.fast_run_container = None
-        self.require_write = True
+        if self.search_only:
+            self.require_write = False
+        else:
+            self.require_write = True
         self.sitelinks = dict()
         self.lastrevid = None  # stores last revisionid after a write occurs
 
@@ -151,7 +150,7 @@ class ItemEngine(object):
 
         if self.ref_handler:
             assert callable(self.ref_handler)
-        if self.global_ref_mode == "CUSTOM" and self.ref_handler is None:
+        if self.global_ref_mode == 'CUSTOM' and self.ref_handler is None:
             raise ValueError("If using a custom ref mode, ref_handler must be set")
 
         if (core_props is None) and (self.sparql_endpoint_url not in self.DISTINCT_VALUE_PROPS):
@@ -164,14 +163,14 @@ class ItemEngine(object):
             if self.debug:
                 if self.require_write:
                     if search_only:
-                        print('successful fastrun, search_only mode, we can\'t determine if data is up to date')
+                        print('Successful fastrun, search_only mode, we can\'t determine if data is up to date.')
                     else:
-                        print('successful fastrun, because no full data match you need to update the item...')
+                        print('Successful fastrun, because no full data match you need to update the item.')
                 else:
-                    print('successful fastrun, no write to Wikibase instance required')
+                    print('Successful fastrun, no write to Wikibase instance required.')
 
         if self.item_id != '' and self.create_new_item:
-            raise IDMissingError('Cannot create a new item, when an identifier is given')
+            raise IDMissingError('Cannot create a new item, when an identifier is given.')
         elif self.new_item and len(self.data) > 0:
             self.create_new_item = True
             self.__construct_claim_json()
@@ -203,10 +202,10 @@ class ItemEngine(object):
             ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
         }}
         '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
-        df = cls.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
+        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
         if df.empty:
             warn("Warning: No distinct value properties found\n" +
-                 "Please set P2302 and Q21502410 in your wikibase or set `core_props` manually.\n" +
+                 "Please set P2302 and Q21502410 in your Wikibase or set `core_props` manually.\n" +
                  "Continuing with no core_props")
             cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set()
             return None
@@ -298,7 +297,7 @@ class ItemEngine(object):
         headers = {
             'User-Agent': self.user_agent
         }
-        json_data = self.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
+        json_data = FunctionsEngine.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
         return self.parse_json(json_data=json_data['entities'][self.item_id])
 
     def parse_json(self, json_data):
@@ -326,72 +325,6 @@ class ItemEngine(object):
 
         return data
 
-    @staticmethod
-    def get_search_results(search_string='', mediawiki_api_url=None,
-                           user_agent=None, max_results=500,
-                           language=None, dict_id_label=False):
-        """
-        Performs a search in the Wikibase instance for a certain search string
-        :param search_string: a string which should be searched for in the Wikibase instance
-        :type search_string: str
-        :param mediawiki_api_url: Specify the mediawiki_api_url.
-        :type mediawiki_api_url: str
-        :param user_agent: The user agent string transmitted in the http header
-        :type user_agent: str
-        :param max_results: The maximum number of search results returned. Default 500
-        :type max_results: int
-        :param language: The language in which to perform the search.
-        :type language: str
-        :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
-        :type dict_id_label: boolean
-        :return: function return a list with a dict of id and label
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
-        language = config['DEFAULT_LANGUAGE'] if language is None else language
-
-        params = {
-            'action': 'wbsearchentities',
-            'language': language,
-            'search': search_string,
-            'format': 'json',
-            'limit': 50
-        }
-
-        headers = {
-            'User-Agent': user_agent
-        }
-
-        cont_count = 1
-        results = []
-
-        while cont_count > 0:
-            params.update({'continue': 0 if cont_count == 1 else cont_count})
-
-            reply = requests.get(mediawiki_api_url, params=params, headers=headers)
-            reply.raise_for_status()
-            search_results = reply.json()
-
-            if search_results['success'] != 1:
-                raise SearchError('WB search failed')
-            else:
-                for i in search_results['search']:
-                    if dict_id_label:
-                        results.append({'id': i['id'], 'label': i['label']})
-                    else:
-                        results.append(i['id'])
-
-            if 'search-continue' not in search_results:
-                cont_count = 0
-            else:
-                cont_count = search_results['search-continue']
-
-            if cont_count > max_results:
-                break
-
-        return results
-
     def get_property_list(self):
         """
         List of properties on the current item
@@ -415,8 +348,8 @@ class ItemEngine(object):
         # mapping relation type PID or the exact match QID. If we set mrt_pid to "Pxxx", then no qualifier will
         # ever match it (and exact_qid will never get checked), and so what happens is exactly what would
         # happen if the statement had no mapping relation qualifiers
-        exact_qid = "Q0"
-        mrt_pid = "PXXX"
+        exact_qid = 'Q0'
+        mrt_pid = 'PXXX'
 
         for statement in self.data:
             property_nr = statement.get_prop_nr()
@@ -437,7 +370,8 @@ class ItemEngine(object):
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
                 query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
                                                       value=data_point.replace("'", r"\'"))
-                results = ItemEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)
+                results = FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url,
+                                                               debug=self.debug)
 
                 for i in results['results']['bindings']:
                     qid = i['item_id']['value'].split('/')[-1]
@@ -465,8 +399,8 @@ class ItemEngine(object):
 
         unique_qids = set(qid_list)
         if len(unique_qids) > 1:
-            raise ManualInterventionReqException('More than one item has the same property value',
-                                                 conflict_source, unique_qids)
+            raise ManualInterventionReqException('More than one item has the same property value', conflict_source,
+                                                 unique_qids)
         elif len(unique_qids) == 1:
             return list(unique_qids)[0]
 
@@ -481,7 +415,6 @@ class ItemEngine(object):
                 old_item.set_qualifiers(new_item.get_qualifiers())
 
         def is_good_ref(ref_block):
-
             prop_nrs = [x.get_prop_nr() for x in ref_block]
             values = [x.get_value() for x in ref_block]
             good_ref = True
@@ -663,6 +596,10 @@ class ItemEngine(object):
             not overwritten.
         :type: list
         """
+
+        if self.search_only:
+            raise SearchOnlyError
+
         assert type(data) == list
 
         if append_value:
@@ -766,6 +703,9 @@ class ItemEngine(object):
         :param if_exists: If a label already exist, REPLACE it or KEEP it.
         :return: None
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
@@ -818,10 +758,13 @@ class ItemEngine(object):
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: None
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if not isinstance(aliases, list):
-            raise ValueError('aliases must be a list')
+            raise TypeError('aliases must be a list')
 
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
@@ -887,6 +830,9 @@ class ItemEngine(object):
         :param if_exists: If a description already exist, REPLACE it or KEEP it.
         :return: None
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
@@ -932,6 +878,9 @@ class ItemEngine(object):
         :param badges: An iterable containing Wikipedia badge strings.
         :return:
         """
+        if self.search_only:
+            raise SearchOnlyError
+
         sitelink = {
             'site': site,
             'title': title,
@@ -960,8 +909,12 @@ class ItemEngine(object):
         :type max_retries: int
         :param retry_after: Number of seconds to wait before retrying request (see max_retries)
         :type retry_after: int
-        :return: the QID on sucessful write
+        :return: the entity ID on successful write
         """
+
+        if self.search_only:
+            raise SearchOnlyError
+
         if not self.require_write:
             return self.item_id
 
@@ -992,9 +945,9 @@ class ItemEngine(object):
             payload.update({u'id': self.item_id})
 
         try:
-            json_data = self.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
-                                                max_retries=max_retries, retry_after=retry_after,
-                                                headers=headers, data=payload)
+            json_data = FunctionsEngine.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
+                                                           max_retries=max_retries, retry_after=retry_after,
+                                                           headers=headers, data=payload)
 
             if 'error' in json_data and 'messages' in json_data['error']:
                 error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
@@ -1015,82 +968,7 @@ class ItemEngine(object):
         self.data = []
         if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
             self.lastrevid = json_data["entity"]["lastrevid"]
-        time.sleep(.5)
         return self.item_id
-
-    @staticmethod
-    def mediawiki_api_call(method, mediawiki_api_url=None,
-                           session=None, max_retries=1000, retry_after=60, **kwargs):
-        """
-        :param method: 'GET' or 'POST'
-        :param mediawiki_api_url:
-        :param session: If a session is passed, it will be used. Otherwise a new requests session is created
-        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
-        `max_retries` times
-        :type max_retries: int
-        :param retry_after: Number of seconds to wait before retrying request (see max_retries)
-        :type retry_after: int
-        :param kwargs: Passed to requests.request
-        :return:
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-
-        response = None
-        session = session if session else requests.session()
-        for n in range(max_retries):
-            try:
-                response = session.request(method, mediawiki_api_url, **kwargs)
-            except requests.exceptions.ConnectionError as e:
-                print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
-                time.sleep(retry_after)
-                continue
-            if response.status_code == 503:
-                print("service unavailable. sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
-                continue
-
-            response.raise_for_status()
-            json_data = response.json()
-            """
-            Mediawiki api response has code = 200 even if there are errors.
-            rate limit doesn't return HTTP 429 either. may in the future
-            https://phabricator.wikimedia.org/T172293
-            """
-            if 'error' in json_data:
-                # rate limiting
-                error_msg_names = set()
-                if 'messages' in json_data['error']:
-                    error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
-                if 'actionthrottledtext' in error_msg_names:
-                    sleep_sec = int(response.headers.get('retry-after', retry_after))
-                    print("{}: rate limited. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
-                    time.sleep(sleep_sec)
-                    continue
-
-                # maxlag
-                if 'code' in json_data['error'] and json_data['error']['code'] == 'maxlag':
-                    sleep_sec = json_data['error'].get('lag', retry_after)
-                    print("{}: maxlag. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
-                    time.sleep(sleep_sec)
-                    continue
-
-                # readonly
-                if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
-                    print('The wikibase instance is currently in readonly mode, waiting for {} seconds'.format(
-                        retry_after))
-                    time.sleep(retry_after)
-                    continue
-
-            # there is no error or waiting. break out of this loop and parse response
-            break
-        else:
-            # the first time I've ever used for - else!!
-            # else executes if the for loop completes normally. i.e. does not encouter a `break`
-            # in this case, that means it tried this api call 10 times
-            raise MWApiError(response.json() if response else dict())
-
-        return json_data
 
     @classmethod
     def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
@@ -1138,10 +1016,163 @@ class ItemEngine(object):
 
         return item_instances
 
+    # References
+    def count_references(self, prop_id):
+        counts = dict()
+        for claim in self.get_json_representation()['claims'][prop_id]:
+            counts[claim['id']] = len(claim['references'])
+        return counts
+
+    def get_reference_properties(self, prop_id):
+        references = []
+        for statements in self.get_json_representation()['claims'][prop_id]:
+            for reference in statements['references']:
+                references.append(reference['snaks'].keys())
+        return references
+
+    def get_qualifier_properties(self, prop_id):
+        qualifiers = []
+        for statements in self.get_json_representation()['claims'][prop_id]:
+            for reference in statements['qualifiers']:
+                qualifiers.append(reference['snaks'].keys())
+        return qualifiers
+
+    @classmethod
+    def wikibase_item_engine_factory(cls, mediawiki_api_url=None, sparql_endpoint_url=None, name='LocalItemEngine'):
+        """
+        Helper function for creating a ItemEngine class with arguments set for a different Wikibase instance than
+        Wikidata.
+        :param mediawiki_api_url: Mediawiki api url. For wikidata, this is: 'https://www.wikidata.org/w/api.php'
+        :param sparql_endpoint_url: sparql endpoint url. For wikidata, this is: 'https://query.wikidata.org/sparql'
+        :param name: name of the resulting class
+        :return: a subclass of ItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
+        """
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+
+        class SubCls(cls):
+            def __init__(self, *args, **kwargs):
+                kwargs['mediawiki_api_url'] = mediawiki_api_url
+                kwargs['sparql_endpoint_url'] = sparql_endpoint_url
+                super(SubCls, self).__init__(*args, **kwargs)
+
+        SubCls.__name__ = name
+        return SubCls
+
+    def __repr__(self):
+        """A mixin implementing a simple __repr__."""
+        return "<{klass} @{id:x} {attrs}>".format(
+            klass=self.__class__.__name__,
+            id=id(self) & 0xFFFFFF,
+            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+        )
+
+
+class FunctionsEngine(object):
+
+    @staticmethod
+    def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries=1000, retry_after=60, **kwargs):
+        """
+        :param method: 'GET' or 'POST'
+        :param mediawiki_api_url:
+        :param session: If a session is passed, it will be used. Otherwise a new requests session is created
+        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
+        `max_retries` times
+        :type max_retries: int
+        :param retry_after: Number of seconds to wait before retrying request (see max_retries)
+        :type retry_after: int
+        :param kwargs: Passed to requests.request
+        :return:
+        """
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+
+        response = None
+        session = session if session else requests.session()
+        for n in range(max_retries):
+            try:
+                response = session.request(method, mediawiki_api_url, **kwargs)
+            except requests.exceptions.ConnectionError as e:
+                print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
+                sleep(retry_after)
+                continue
+            if response.status_code == 503:
+                print("service unavailable. sleeping for {} seconds".format(retry_after))
+                sleep(retry_after)
+                continue
+
+            response.raise_for_status()
+            json_data = response.json()
+            """
+            Mediawiki api response has code = 200 even if there are errors.
+            rate limit doesn't return HTTP 429 either. may in the future
+            https://phabricator.wikimedia.org/T172293
+            """
+            if 'error' in json_data:
+                # rate limiting
+                error_msg_names = set()
+                if 'messages' in json_data['error']:
+                    error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
+                if 'actionthrottledtext' in error_msg_names:
+                    sleep_sec = int(response.headers.get('retry-after', retry_after))
+                    print("{}: rate limited. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
+                    sleep(sleep_sec)
+                    continue
+
+                # maxlag
+                if 'code' in json_data['error'] and json_data['error']['code'] == 'maxlag':
+                    sleep_sec = json_data['error'].get('lag', retry_after)
+                    print("{}: maxlag. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
+                    sleep(sleep_sec)
+                    continue
+
+                # readonly
+                if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
+                    print('The Wikibase instance is currently in readonly mode, waiting for {} seconds'.format(
+                        retry_after))
+                    sleep(retry_after)
+                    continue
+
+            # there is no error or waiting. break out of this loop and parse response
+            break
+        else:
+            # the first time I've ever used for - else!!
+            # else executes if the for loop completes normally. i.e. does not encouter a `break`
+            # in this case, that means it tried this api call 10 times
+            raise MWApiError(response.json() if response else dict())
+
+        return json_data
+
+    @staticmethod
+    def get_linked_by(qid, mediawiki_api_url=None):
+        """
+            :param qid: Wikidata identifier to which other wikidata items link
+            :param mediawiki_api_url: default to wikidata's api, but can be changed to any Wikibase
+            :return:
+        """
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+
+        linkedby = []
+        whatlinkshere = json.loads(requests.get(
+            mediawiki_api_url + "?action=query&list=backlinks&format=json&bllimit=500&bltitle=" + qid).text)
+        for link in whatlinkshere["query"]["backlinks"]:
+            if link["title"].startswith("Q"):
+                linkedby.append(link["title"])
+        while 'continue' in whatlinkshere.keys():
+            whatlinkshere = json.loads(requests.get(
+                mediawiki_api_url + "?action=query&list=backlinks&blcontinue=" +
+                whatlinkshere['continue']['blcontinue'] + "&format=json&bllimit=500&bltitle=" + qid).text)
+            for link in whatlinkshere["query"]["backlinks"]:
+                if link["title"].startswith("Q"):
+                    linkedby.append(link["title"])
+        return linkedby
+
     @staticmethod
     @wbi_backoff()
     def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000,
-                             retry_after=60):
+                             retry_after=60, debug=False):
         """
         Static method which can be used to execute any SPARQL query
         :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -1153,6 +1184,8 @@ class ItemEngine(object):
         :param max_retries: The number time this function should retry in case of header reports.
         :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service
          is not reachable.
+        :param debug: Enable debug output.
+        :type debug: boolean
         :return: The results of the query are returned in JSON format
         """
 
@@ -1172,28 +1205,31 @@ class ItemEngine(object):
             'User-Agent': user_agent
         }
 
+        if debug:
+            print(params['query'])
+
         for n in range(max_retries):
             try:
                 response = requests.post(sparql_endpoint_url, params=params, headers=headers)
             except requests.exceptions.ConnectionError as e:
                 print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
-                time.sleep(retry_after)
+                sleep(retry_after)
                 continue
             if response.status_code == 503:
-                print("service unavailable. sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
+                print("Service unavailable (503). Sleeping for {} seconds".format(retry_after))
+                sleep(retry_after)
                 continue
             if response.status_code == 429:
                 if "retry-after" in response.headers.keys():
                     retry_after = response.headers["retry-after"]
-                print("service unavailable. sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
+                print("Service unavailable (429). Sleeping for {} seconds".format(retry_after))
+                sleep(retry_after)
                 continue
             response.raise_for_status()
             results = response.json()
 
             if as_dataframe:
-                return ItemEngine._sparql_query_result_to_df(results)
+                return FunctionsEngine._sparql_query_result_to_df(results)
             else:
                 return results
 
@@ -1215,8 +1251,7 @@ class ItemEngine(object):
         return df
 
     @staticmethod
-    def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None,
-                    ignore_conflicts='', user_agent=None):
+    def merge_items(from_id, to_id, login_obj, mediawiki_api_url=None, ignore_conflicts='', user_agent=None):
         """
         A static method to merge two items
         :param from_id: The QID which should be merged into another item
@@ -1334,57 +1369,70 @@ class ItemEngine(object):
         r = requests.post(url=mediawiki_api_url, data=params, cookies=login.get_edit_cookie(), headers=headers)
         print(r.json())
 
-    # References
-    def count_references(self, prop_id):
-        counts = dict()
-        for claim in self.get_json_representation()['claims'][prop_id]:
-            counts[claim['id']] = len(claim['references'])
-        return counts
-
-    def get_reference_properties(self, prop_id):
-        references = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['references']:
-                references.append(reference['snaks'].keys())
-        return references
-
-    def get_qualifier_properties(self, prop_id):
-        qualifiers = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['qualifiers']:
-                qualifiers.append(reference['snaks'].keys())
-        return qualifiers
-
-    @classmethod
-    def wikibase_item_engine_factory(cls, mediawiki_api_url=None, sparql_endpoint_url=None, name='LocalItemEngine'):
+    @staticmethod
+    def get_search_results(search_string='', mediawiki_api_url=None, user_agent=None, max_results=500, language=None,
+                           dict_id_label=False):
         """
-        Helper function for creating a ItemEngine class with arguments set for a different Wikibase instance than
-        Wikidata.
-        :param mediawiki_api_url: Mediawiki api url. For wikidata, this is: 'https://www.wikidata.org/w/api.php'
-        :param sparql_endpoint_url: sparql endpoint url. For wikidata, this is: 'https://query.wikidata.org/sparql'
-        :param name: name of the resulting class
-        :return: a subclass of ItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
+        Performs a search in the Wikibase instance for a certain search string
+        :param search_string: a string which should be searched for in the Wikibase instance
+        :type search_string: str
+        :param mediawiki_api_url: Specify the mediawiki_api_url.
+        :type mediawiki_api_url: str
+        :param user_agent: The user agent string transmitted in the http header
+        :type user_agent: str
+        :param max_results: The maximum number of search results returned. Default 500
+        :type max_results: int
+        :param language: The language in which to perform the search.
+        :type language: str
+        :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
+        :type dict_id_label: boolean
+        :return: function return a list with a dict of id and label
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+        language = config['DEFAULT_LANGUAGE'] if language is None else language
 
-        class SubCls(cls):
-            def __init__(self, *args, **kwargs):
-                kwargs['mediawiki_api_url'] = mediawiki_api_url
-                kwargs['sparql_endpoint_url'] = sparql_endpoint_url
-                super(SubCls, self).__init__(*args, **kwargs)
+        params = {
+            'action': 'wbsearchentities',
+            'language': language,
+            'search': search_string,
+            'format': 'json',
+            'limit': 50
+        }
 
-        SubCls.__name__ = name
-        return SubCls
+        headers = {
+            'User-Agent': user_agent
+        }
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
+        cont_count = 1
+        results = []
+
+        while cont_count > 0:
+            params.update({'continue': 0 if cont_count == 1 else cont_count})
+
+            reply = requests.get(mediawiki_api_url, params=params, headers=headers)
+            reply.raise_for_status()
+            search_results = reply.json()
+
+            if search_results['success'] != 1:
+                raise SearchError('WB search failed')
+            else:
+                for i in search_results['search']:
+                    if dict_id_label:
+                        results.append({'id': i['id'], 'label': i['label']})
+                    else:
+                        results.append(i['id'])
+
+            if 'search-continue' not in search_results:
+                cont_count = 0
+            else:
+                cont_count = search_results['search-continue']
+
+            if cont_count > max_results:
+                break
+
+        return results
 
 
 class JsonParser(object):
@@ -1500,7 +1548,7 @@ class BaseDataType(object):
         :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
         :param prop_nr: The property number a Wikibase snak belongs to
-        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID)
+        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
         :return:
         """
         self.value = value
@@ -1523,12 +1571,16 @@ class BaseDataType(object):
         if not self.qualifiers:
             self.qualifiers = list()
 
-        if type(prop_nr) is int:
-            self.prop_nr = 'P' + str(prop_nr)
-        elif prop_nr.startswith('P'):
-            self.prop_nr = prop_nr
+        if isinstance(prop_nr, int):
+            self.prop_nr = value
         else:
-            self.prop_nr = 'P' + prop_nr
+            pattern = re.compile(r'^P?([0-9]+)$')
+            matches = pattern.match(prop_nr)
+
+            if not matches:
+                raise ValueError('Invalid prop_nr, format must be "P[0-9]+"')
+            else:
+                self.prop_nr = 'P' + str(matches.group(1))
 
         # Internal ID and hash are issued by the Wikibase instance
         self.id = ''
@@ -1989,21 +2041,19 @@ class ItemID(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+            'Expected str or int, found {} ({})'.format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("Q"):
-            pattern = re.compile(r'[0-9]+')
-            matches = pattern.match(value[1:])
-
-            if len(value[1:]) == len(matches.group(0)):
-                self.value = int(value[1:])
-            else:
-                raise ValueError('Invalid item ID, format must be "Q[0-9]*"')
         else:
-            raise ValueError('Invalid item ID, format must be "Q[0-9]*"')
+            pattern = re.compile(r'^Q?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError('Invalid item ID, format must be "Q[0-9]+"')
+            else:
+                self.value = int(matches.group(1))
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2073,16 +2123,14 @@ class Property(BaseDataType):
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("P"):
-            pattern = re.compile(r'[0-9]+')
-            matches = pattern.match(value[1:])
-
-            if len(value[1:]) == len(matches.group(0)):
-                self.value = int(value[1:])
-            else:
-                raise ValueError('Invalid property ID, format must be "P[0-9]*"')
         else:
-            raise ValueError('Invalid property ID, format must be "P[0-9]*"')
+            pattern = re.compile(r'^P?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError('Invalid property ID, format must be "P[0-9]+"')
+            else:
+                self.value = int(matches.group(1))
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2109,17 +2157,24 @@ class Time(BaseDataType):
     """
     DTYPE = 'time'
 
-    def __init__(self, time, prop_nr, precision=11, timezone=0, calendarmodel=None,
-                 wikibase_url=None, is_reference=False, is_qualifier=False, snak_type='value',
-                 references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
+    def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
+                 wikibase_url=None,
+                 is_reference=False, is_qualifier=False, snak_type='value', references=None, qualifiers=None,
+                 rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
-        :param time: A time representation string in the following format: '+%Y-%m-%dT%H:%M:%SZ'
+        :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
         :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z'
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
+        :param before: explicit integer value for how many units after the given time it could be.
+                       The unit is given by the precision.
+        :type before: int
+        :param after: explicit integer value for how many units before the given time it could be.
+                      The unit is given by the precision.
+        :type after: int
         :param precision: Precision value for dates and time as specified in the Wikibase data model
-                          (https://www.mediawiki.org/wiki/Wikibase/DataModel#Dates_and_times)
+                          (https://www.wikidata.org/wiki/Special:ListDatatypes#time)
         :type precision: int
         :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
         :type timezone: int
@@ -2143,37 +2198,39 @@ class Time(BaseDataType):
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         self.time = None
-        self.timezone = None
+        self.before = None
+        self.after = None
         self.precision = None
+        self.timezone = None
         self.calendarmodel = None
 
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        # the value is composed of what is required to define the Time object
-        value = (time, timezone, precision, calendarmodel)
+        value = (time, before, after, precision, timezone, calendarmodel)
 
         super(Time, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
                                    prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
-        self.time, self.timezone, self.precision, self.calendarmodel = value
+        # TODO: Introduce validity checks for time, etc.
+        self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
         self.json_representation['datavalue'] = {
             'value': {
                 'time': self.time,
-                'timezone': self.timezone,
-                'before': 0,
-                'after': 0,
+                'before': self.before,
+                'after': self.after,
                 'precision': self.precision,
+                'timezone': self.timezone,
                 'calendarmodel': self.calendarmodel
             },
             'type': 'time'
         }
 
-        super(Time, self).set_value(value=self.time)
+        super(Time, self).set_value(value=value)
 
         if self.time is not None:
             assert isinstance(self.time, str), \
@@ -2191,8 +2248,8 @@ class Time(BaseDataType):
             return cls(time=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
-        return cls(time=value['time'], prop_nr=jsn['property'], precision=value['precision'],
-                   timezone=value['timezone'], calendarmodel=value['calendarmodel'])
+        return cls(time=value['time'], prop_nr=jsn['property'], before=value['before'], after=value['after'],
+                   precision=value['precision'], timezone=value['timezone'], calendarmodel=value['calendarmodel'])
 
 
 class Url(BaseDataType):
@@ -2230,28 +2287,24 @@ class Url(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        if value is None:
-            self.value = None
-        else:
-            protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-            if True not in [True for x in protocols if value.startswith(x)]:
-                raise ValueError('Invalid URL')
-
-            self.value = value
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
+        if True not in [True for x in protocols if value.startswith(x)]:
+            raise ValueError('Invalid URL')
+        self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
             'type': 'string'
         }
 
-        super(Url, self).set_value(value=self.value)
+        super(Url, self).set_value(value=value)
 
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
@@ -2261,12 +2314,12 @@ class MonolingualText(BaseDataType):
     """
     DTYPE = 'monolingualtext'
 
-    def __init__(self, value, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
+    def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The language specific string to be used as the value
-        :type value: str
+        :param text: The language specific string to be used as the value
+        :type text: str
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param language: Specifies the language the value belongs to
@@ -2285,9 +2338,10 @@ class MonolingualText(BaseDataType):
         :type rank: str
         """
 
+        self.text = None
         self.language = config['DEFAULT_LANGUAGE'] if language is None else language
 
-        value = (value, self.language)
+        value = (text, self.language)
 
         super(MonolingualText, self) \
             .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
@@ -2297,11 +2351,14 @@ class MonolingualText(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        value = value[0]
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        text, language = value
+        assert isinstance(text, str) or self.text is None, "Expected str, found {} ({})".format(type(text), text)
+        self.text = text
+        self.language = language
+
         self.json_representation['datavalue'] = {
             'value': {
-                'text': value,
+                'text': self.text,
                 'language': self.language
             },
             'type': 'monolingualtext'
@@ -2313,10 +2370,10 @@ class MonolingualText(BaseDataType):
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+            return cls(text=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
-        return cls(value=value['text'], prop_nr=jsn['property'], language=value['language'])
+        return cls(text=value['text'], prop_nr=jsn['property'], language=value['language'])
 
 
 class Quantity(BaseDataType):
@@ -2325,13 +2382,13 @@ class Quantity(BaseDataType):
     """
     DTYPE = 'quantity'
 
-    def __init__(self, value, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
+    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True, wikibase_url=None):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The quantity value
-        :type value: float, str
+        :param quantity: The quantity value
+        :type quantity: float, str
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
@@ -2359,73 +2416,78 @@ class Quantity(BaseDataType):
         if unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
-        v = (value, unit, upper_bound, lower_bound)
+        self.quantity = None
+        self.unit = None
+        self.upper_bound = None
+        self.lower_bound = None
 
-        super(Quantity, self).__init__(value=v, snak_type=snak_type, data_type=self.DTYPE,
+        value = (quantity, unit, upper_bound, lower_bound)
+
+        super(Quantity, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                        is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                        check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(v)
+        self.set_value(value)
 
-    def set_value(self, v):
-        value, unit, upper_bound, lower_bound = v
+    def set_value(self, value):
+        # TODO: Introduce validity checks for quantity, etc.
+        self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
-        if value is not None:
-            value = self.format_amount(value)
-            unit = str(unit)
-            if upper_bound:
-                upper_bound = self.format_amount(upper_bound)
-            if lower_bound:
-                lower_bound = self.format_amount(lower_bound)
+        if self.quantity is not None:
+            self.quantity = self.format_amount(self.quantity)
+            self.unit = str(self.unit)
+            if self.upper_bound:
+                self.upper_bound = self.format_amount(self.upper_bound)
+            if self.lower_bound:
+                self.lower_bound = self.format_amount(self.lower_bound)
 
             # Integrity checks for value and bounds
             try:
-                for i in [value, upper_bound, lower_bound]:
+                for i in [self.quantity, self.upper_bound, self.lower_bound]:
                     if i:
                         float(i)
             except ValueError:
                 raise ValueError('Value, bounds and units must parse as integers or float')
 
-            if (lower_bound and upper_bound) and (float(lower_bound) > float(upper_bound)
-                                                  or float(lower_bound) > float(value)):
+            if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
+                                                            or float(self.lower_bound) > float(self.quantity)):
                 raise ValueError('Lower bound too large')
 
-            if upper_bound and float(upper_bound) < float(value):
+            if self.upper_bound and float(self.upper_bound) < float(self.quantity):
                 raise ValueError('Upper bound too small')
 
         self.json_representation['datavalue'] = {
             'value': {
-                'amount': value,
-                'unit': unit,
-                'upperBound': upper_bound,
-                'lowerBound': lower_bound
+                'amount': self.quantity,
+                'unit': self.unit,
+                'upperBound': self.upper_bound,
+                'lowerBound': self.lower_bound
             },
             'type': 'quantity'
         }
 
         # remove bounds from json if they are undefined
-        if not upper_bound:
+        if not self.upper_bound:
             del self.json_representation['datavalue']['value']['upperBound']
 
-        if not lower_bound:
+        if not self.lower_bound:
             del self.json_representation['datavalue']['value']['lowerBound']
 
-        self.value = (value, unit, upper_bound, lower_bound)
-        super(Quantity, self).set_value(value)
+        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
+        super(Quantity, self).set_value(value=value)
 
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, upper_bound=None, lower_bound=None, prop_nr=jsn['property'],
-                       snak_type=jsn['snaktype'])
+            return cls(quantity=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
         upper_bound = value['upperBound'] if 'upperBound' in value else None
         lower_bound = value['lowerBound'] if 'lowerBound' in value else None
-        return cls(value=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound,
-                   lower_bound=lower_bound, unit=value['unit'])
+        return cls(quantity=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound, lower_bound=lower_bound,
+                   unit=value['unit'])
 
     @staticmethod
     def format_amount(amount):
@@ -2469,6 +2531,8 @@ class CommonsMedia(BaseDataType):
         :type rank: str
         """
 
+        self.value = None
+
         super(CommonsMedia, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
                                            is_reference=is_reference, is_qualifier=is_qualifier,
                                            references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
@@ -2478,12 +2542,14 @@ class CommonsMedia(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        self.value = value
+
         self.json_representation['datavalue'] = {
-            'value': value,
+            'value': self.value,
             'type': 'string'
         }
 
-        super(CommonsMedia, self).set_value(value)
+        super(CommonsMedia, self).set_value(value=value)
 
     @classmethod
     @JsonParser
@@ -2499,9 +2565,9 @@ class GlobeCoordinate(BaseDataType):
     """
     DTYPE = 'globe-coordinate'
 
-    def __init__(self, latitude, longitude, precision, prop_nr, globe=None,
-                 wikibase_url=None, is_reference=False, is_qualifier=False,
-                 snak_type='value', references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
+    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
+                 is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
+                 check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
@@ -2539,16 +2605,15 @@ class GlobeCoordinate(BaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(GlobeCoordinate, self) \
-            .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
-                      is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                      prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+        super(GlobeCoordinate, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+                                              is_reference=is_reference, is_qualifier=is_qualifier,
+                                              references=references, qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
+                                              check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value)
 
     def set_value(self, value):
-        # TODO: Introduce validity checks for coordinates
-
+        # TODO: Introduce validity checks for coordinates, etc.
         self.latitude, self.longitude, self.precision, self.globe = value
 
         self.json_representation['datavalue'] = {
@@ -2561,7 +2626,7 @@ class GlobeCoordinate(BaseDataType):
             'type': 'globecoordinate'
         }
 
-        super(GlobeCoordinate, self).set_value(self.latitude)
+        super(GlobeCoordinate, self).set_value(value=value)
 
         self.value = value
 
@@ -2614,14 +2679,15 @@ class GeoShape(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile(r'Data:((?![:|#]).)+\.map')
-        matches = pattern.match(value)
-
-        if not matches:
-            raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
-                             'characters like colon, hash or pipe.')
-
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
+                                 'characters like colon, hash or pipe.')
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2730,14 +2796,15 @@ class TabularData(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        pattern = re.compile(r'Data:((?![:|#]).)+\.tab')
-        matches = pattern.match(value)
-
-        if not matches:
-            raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
-                             'characters like colon, hash or pipe.')
-
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
+                                 'characters like colon, hash or pipe.')
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2797,22 +2864,20 @@ class Lexeme(BaseDataType):
         self.set_value(value=value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
+                                                                                                           value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
             self.value = value
-        elif value.startswith("L"):
-            pattern = re.compile(r'[0-9]+')
-            matches = pattern.match(value[1:])
-
-            if len(value[1:]) == len(matches.group(0)):
-                self.value = int(value[1:])
-            else:
-                raise ValueError('Invalid lexeme ID, format must be "L[0-9]*"')
         else:
-            raise ValueError('Invalid lexeme ID, format must be "L[0-9]*"')
+            pattern = re.compile(r'^L?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError('Invalid lexeme ID, format must be "L[0-9]+"')
+            else:
+                self.value = int(matches.group(1))
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2872,14 +2937,14 @@ class Form(BaseDataType):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
-        elif value.startswith("L"):
+        else:
             pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
-        else:
-            raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
+
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2909,7 +2974,7 @@ class Sense(BaseDataType):
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
+        :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
@@ -2938,14 +3003,14 @@ class Sense(BaseDataType):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
-        elif value.startswith("L"):
+        else:
             pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
-        else:
-            raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
+
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -3048,3 +3113,8 @@ class MergeError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
+
+class SearchOnlyError(Exception):
+    """Raised when the ItemEngine is in search_only mode"""
+    pass
