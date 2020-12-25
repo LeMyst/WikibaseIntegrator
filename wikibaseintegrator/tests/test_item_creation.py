@@ -40,7 +40,11 @@ class TestItemCreation(unittest.TestCase):
         for d in data:
             item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=core_props)
             assert item.get_json_representation()
+            item = wbi_core.ItemEngine(new_item=True, data=d, core_props=core_props)
+            assert item.get_json_representation()
             item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=set())
+            assert item.get_json_representation()
+            item = wbi_core.ItemEngine(new_item=True, data=d, core_props=set())
             assert item.get_json_representation()
 
         item = wbi_core.ItemEngine(new_item=True, data=data, core_props=core_props)

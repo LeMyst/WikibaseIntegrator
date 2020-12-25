@@ -2,7 +2,6 @@
 
 ![Python package](https://github.com/LeMyst/WikibaseIntegrator/workflows/Python%20package/badge.svg)
 ![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/workflows/CodeQL/badge.svg)
-[![Build Status](https://travis-ci.org/LeMyst/WikibaseIntegrator.svg?branch=master)](https://travis-ci.org/LeMyst/WikibaseIntegrator)
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
@@ -56,12 +55,11 @@ Wikidata is always the default endpoint for all functions.
 
 # Installation #
 
-The easiest way to install WikibaseIntegrator is using `pip` or `pip3`. WikibaseIntegrator supports python 3.6 and
-higher, hence the suggestion for pip3. If python2 is installed pip will lead to an error indicating missing
-dependencies.
+The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.6 and higher. If
+Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash
-pip3 install wikibaseintegrator
+pip install wikibaseintegrator
 ```
 
 You can also clone the repo and execute with administrator rights or install into a virtualenv.
@@ -71,10 +69,10 @@ git clone https://github.com/LeMyst/WikibaseIntegrator.git
 
 cd WikibaseIntegrator
 
-python3 setup.py install
+python setup.py install
 ```
 
-To test for correct installation, start a python console and execute the following (Will retrieve the Wikidata item
+To test for correct installation, start a Python console and execute the following (Will retrieve the Wikidata item
 for ['Human'](https://www.wikidata.org/entity/Q5)):
 
 ```python
@@ -88,13 +86,14 @@ print(my_first_wikidata_item.get_json_representation())
 
 # The Core Parts #
 
-wbi_core supports two modes it can be operated in, a normal mode, updating each item at a time and a 'fastrun' mode,
+wbi_core supports two modes it can be operated in, a normal mode, updating each item at a time and, a fast run mode,
 which is pre-loading data locally and then just updating items if the new data provided is differing from what is in
 Wikidata. The latter mode allows for great speedups (measured up to 9x) when tens of thousand of Wikidata items need to
 be checked if they require updates but only a small number will finally be updated, a situation usually encountered when
 keeping Wikidata in sync with an external resource.
 
-wbi_core consists of a central class called ItemEngine and Login for authenticating with Wikidata/Wikipedia.
+wbi_core consists of a central class called ItemEngine and Login for authenticating with a MediaWiki isntance (like
+Wikidata).
 
 ## wbi_core.ItemEngine ##
 
@@ -125,11 +124,11 @@ Examples below illustrate the usage of ItemEngine.
 
 ## wbi_login.Login ##
 
-### Login with username and password ###
+### Login with a username and a password ###
 
 wbi_login.Login provides the login functionality and also stores the cookies and edit tokens required (For security
 reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
-password. Additionally, the server (default wikidata.org) and the the token renewal periods can be specified.
+password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified.
 
 ```python
 from wikibaseintegrator import wbi_login
@@ -139,11 +138,11 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 ### Login using OAuth1 ###
 
-The Wikimedia universe currently only support authentication via OAuth1. If WBI should be used as a backend for a webapp
-or the bot should use OAuth for authentication, WBI supports this, you just need to specify consumer key and consumer
-secret when instantiating wbi_login.Login. In contrast to username and password login, OAuth is a 2 step process as
-manual user confirmation for OAuth login is required. This means that the method continue_oauth() needs to be called
-after creating the wbi_login.Login instance.
+The Wikimedia universe currently only support authentication via OAuth1. If WBI should be used as a backend for a
+webapp, the bot should use OAuth for authentication, WBI supports this, you just need to specify consumer key and
+consumer secret when instantiating wbi_login.Login. In contrast to username and password login, OAuth is a 2 steps
+process as manual user confirmation for OAuth login is required. This means that the method continue_oauth() needs to be
+called after creating the wbi_login.Login instance.
 
 Example:
 
@@ -154,9 +153,9 @@ login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_se
 login_instance.continue_oauth()
 ```
 
-The method continue_oauth() will either prompt the user for a callback URL (normal bot runs) or it will take a parameter
-so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide the authentication
-information directly to the backend and so no copy and paste of the callback URL is required.
+The method continue_oauth() will either prompt the user for a callback URL (normal bot runs), or it will take a
+parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide the
+authentication information directly to the backend and so no copy and paste of the callback URL is required.
 
 ## Wikibase Data Types ##
 
@@ -197,15 +196,15 @@ The method wbi_core.ItemEngine.execute_sparql_query() allows you to execute SPAR
 the actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata,
 the actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL
 server (user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you
-execute many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify a email
-address or the URL to your bot code repository.)
+execute many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email
+address, or the URL to your bot code repository.)
 
 ## Wikidata Search ##
 
 The method wbi_core.ItemEngine.get_search_results() allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
-Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en') and an
+Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
 option dict_id_label to return a dict of item id and label as a result.
 
 ## Merge Wikibase items ##
@@ -219,7 +218,7 @@ conflicts (ignore_conflicts). The last parameter will do a partial merge for all
 should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts
 should be resolved first.
 
-# Examples (in normal mode) #
+# Examples (in "normal" mode) #
 
 ## A Minimal Bot ##
 
@@ -231,10 +230,10 @@ In order to create a minimal bot based on wbi_core, three things are required:
 
 ```python
 from wikibaseintegrator import wbi_core, wbi_login
-    
+
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
-     
+
 # data type object, e.g. for a NCBI gene entrez ID
 entrez_gene_id = wbi_core.String(value='<some_entrez_id>', prop_nr='P351')
 
@@ -270,13 +269,22 @@ for entrez_id, ensembl in raw_data.items():
 
     # data goes into a list, because many data objects can be provided to 
     data = [entrez_gene_id, ensembl_transcript_id]
+    
+    # add one reference
+    references = [
+      [
+        wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+        wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+        wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+      ]
+    ]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data)
+    wd_item = wbi_core.ItemEngine(data=data, references=references)
     wd_item.write(login_instance)
 ```
 
-# Examples (fast run mode) #
+# Examples (in "fast run" mode) #
 
 In order to use the fast run mode, you need to know the property/value combination which determines the data corpus you
 would like to operate on. E.g. for operating on human genes, you need to know
@@ -289,9 +297,9 @@ unique value/id only present on one Wikidata item, e.g. an NCBI entrez gene ID, 
 the same unique core properties used for defining domains in wbi_core, e.g. for genes, proteins, drugs or your custom
 domains.
 
-Below, the normal mode run example from above, slightly modified, to meet the requirements for the fastrun mode. To
+Below, the normal mode run example from above, slightly modified, to meet the requirements for the fast run mode. To
 enable it, ItemEngine requires two parameters, fast_run=True/False and fast_run_base_filter which is a dictionary
-holding the properties to filter for as keys and the item QIDs as dict values. If the value is not a QID but a literal,
+holding the properties to filter for as keys, and the item QIDs as dict values. If the value is not a QID but a literal,
 just provide an empty string. For the above example, the dictionary looks like this:
 
 ```python
@@ -323,12 +331,21 @@ for entrez_id, ensembl in raw_data.items():
 
     # data goes into a list, because many data objects can be provided to 
     data = [entrez_gene_id, ensembl_transcript_id]
+    
+    # add one reference
+    references = [
+      [
+        wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+        wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+        wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+      ]
+    ]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
+    wd_item = wbi_core.ItemEngine(data=data, references=references, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
     wd_item.write(login_instance)
 ```
 
 Note: Fastrun mode checks for equality of property/value pairs, qualifers (not including qualifier attributes), labels,
 aliases and description, but it ignores references by default!
-References can be checked in fastrun mode by setting `fast_run_use_refs` to `True`.
+References can be checked in fast run mode by setting `fast_run_use_refs` to `True`.
