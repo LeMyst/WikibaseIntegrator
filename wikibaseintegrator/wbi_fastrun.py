@@ -334,7 +334,7 @@ class FastRunContainer(object):
     def get_all_data(self) -> dict:
         return self.prop_data
 
-    def format_query_results(self, r: list[dict], prop_nr: str) -> None:
+    def format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
         `prop_nr` is needed to get the property datatype to determine how to format the value
