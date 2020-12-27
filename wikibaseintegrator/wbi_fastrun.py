@@ -604,7 +604,7 @@ class FastRunContainer(object):
             'bindings']
 
     @staticmethod
-    def _process_lang(result: list) -> defaultdict[set]:
+    def _process_lang(result: list) -> set:
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]
