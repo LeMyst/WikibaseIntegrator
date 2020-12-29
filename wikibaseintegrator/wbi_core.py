@@ -29,18 +29,25 @@ class ItemEngine(object):
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
                  keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None,
                  core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None,
-                 fast_run_case_insensitive=False, debug=False):
+                 fast_run_case_insensitive=False, debug=False) -> None:
         """
         constructor
         :param item_id: Wikibase item id
+        :type item_id: str
         :param new_item: This parameter lets the user indicate if a new item should be created
-        :type new_item: True or False
+        :type new_item: bool
         :param data: a dictionary with property strings as keys and the data which should be written to a item as the
             property values
-        :type data: List[BaseDataType] or BaseDataType
+        :type data: list[BaseDataType] or BaseDataType
+        :param mediawiki_api_url:
+        :type mediawiki_api_url: str
+        :param sparql_endpoint_url:
+        :type sparql_endpoint_url: str
+        :param wikibase_url:
+        :type wikibase_url: str
         :param append_value: a list of properties where potential existing values should not be overwritten by the data
             passed in the :parameter data.
-        :type append_value: list of property number strings
+        :type append_value: list[str]
         :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True
             should also specify the fast_run_base_filter for these item types
         :type fast_run: bool
@@ -62,9 +69,9 @@ class ItemEngine(object):
         :type ref_handler: function
         :param global_ref_mode: sets the reference handling mode for an item. Four modes are possible, 'STRICT_KEEP'
             keeps all references as they are, 'STRICT_KEEP_APPEND' keeps the references as they are and appends
-            new ones. 'STRICT_OVERWRITE' overwrites all existing references for given. 'CUSTOM' will use the function
-            defined in ref_handler
-        :type global_ref_mode: str of value 'STRICT_KEEP', 'STRICT_KEEP_APPEND', 'STRICT_OVERWRITE', 'KEEP_GOOD', 'CUSTOM'
+            new ones. 'STRICT_OVERWRITE' overwrites all existing references for given. 'KEEP_GOOD' will use the refs
+            defined in good_refs. 'CUSTOM' will use the function defined in ref_handler
+        :type global_ref_mode: str
         :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries.
             One block is a dictionary with Wikidata properties as keys and potential values as the required value for
             a property. There can be arbitrarily many key: value pairs in one reference block.
@@ -75,7 +82,7 @@ class ItemEngine(object):
             Uniprot database stays stable over all of these references. Key value pairs work here, as Wikidata
             references can hold only one value for one property. The number of good reference blocks is not limited.
             This parameter OVERRIDES any other reference mode set!!
-        :type good_refs: list containing dictionaries.
+        :type good_refs: list[dict]
         :param keep_good_ref_statements: Do not delete any statement which has a good reference, either defined in the
             good_refs list or by any other referencing mode.
         :type keep_good_ref_statements: bool
@@ -87,6 +94,7 @@ class ItemEngine(object):
         :type search_only: bool
         :param item_data: A Python JSON object corresponding to the item in item_id. This can be used in
             conjunction with item_id in order to provide raw data.
+        :type item_data:
         :param user_agent: The user agent string to use when making http requests
         :type user_agent: str
         :param core_props: Core properties are used to retrieve an item based on `data` if a `item_id` is
@@ -96,6 +104,9 @@ class ItemEngine(object):
         :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item
             when the item_id is not specified.
         :type core_prop_match_thresh: float
+        :param property_constraint_pid:
+        :param distinct_values_constraint_qid:
+        :param fast_run_case_insensitive:
         :param debug: Enable debug output.
         :type debug: boolean
         """
@@ -435,27 +446,6 @@ class ItemEngine(object):
                         return True
 
                 return False
-
-            # TODO: Rework this part for Wikibase
-            # stated in, title, retrieved
-            ref_properties = ['P248', 'P1476', 'P813']
-
-            for v in values:
-                if prop_nrs[values.index(v)] == 'P248':
-                    return True
-                elif v == 'P698':
-                    return True
-
-            for p in ref_properties:
-                if p not in prop_nrs:
-                    return False
-
-            for ref in ref_block:
-                pn = ref.get_prop_nr()
-                value = ref.get_value()
-
-                if pn == 'P248' and 'P854' not in prop_nrs:
-                    return False
 
             return good_ref
 
@@ -943,6 +933,9 @@ class ItemEngine(object):
             payload.update({u'new': entity_type})
         else:
             payload.update({u'id': self.item_id})
+
+        if self.debug:
+            print(payload)
 
         try:
             json_data = FunctionsEngine.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
@@ -2051,7 +2044,7 @@ class ItemID(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid item ID, format must be "Q[0-9]+"')
+                raise ValueError('Invalid item ID ({}), format must be "Q[0-9]+"'.format(value))
             else:
                 self.value = int(matches.group(1))
 
@@ -2128,7 +2121,7 @@ class Property(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid property ID, format must be "P[0-9]+"')
+                raise ValueError('Invalid property ID ({}), format must be "P[0-9]+"'.format(value))
             else:
                 self.value = int(matches.group(1))
 
@@ -2929,7 +2922,7 @@ class Lexeme(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid lexeme ID, format must be "L[0-9]+"')
+                raise ValueError('Invalid lexeme ID ({}), format must be "L[0-9]+"'.format(value))
             else:
                 self.value = int(matches.group(1))
 
@@ -2996,7 +2989,7 @@ class Form(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid form ID, format must be "L[0-9]+-F[0-9]+"')
+                raise ValueError('Invalid form ID ({}), format must be "L[0-9]+-F[0-9]+"'.format(value))
 
             self.value = value
 
@@ -3062,7 +3055,7 @@ class Sense(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid sense ID, format must be "L[0-9]+-S[0-9]+"')
+                raise ValueError('Invalid sense ID ({}), format must be "L[0-9]+-S[0-9]+"'.format(value))
 
             self.value = value
 

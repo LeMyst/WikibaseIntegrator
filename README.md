@@ -55,7 +55,7 @@ Wikidata is always the default endpoint for all functions.
 
 # Installation #
 
-The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.6 and higher. If
+The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.7 and higher. If
 Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash

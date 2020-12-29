@@ -3,6 +3,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
+from typing import Callable
 
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config
@@ -53,7 +54,7 @@ class FastRunContainer(object):
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr=k, entity=v)
 
-    def reconstruct_statements(self, qid):
+    def reconstruct_statements(self, qid: str) -> list:
         reconstructed_statements = []
 
         if qid not in self.prop_data:
@@ -101,7 +102,7 @@ class FastRunContainer(object):
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def load_item(self, data, cqid=None):
+    def load_item(self, data: list, cqid=None) -> bool:
         match_sets = []
         for date in data:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -160,7 +161,7 @@ class FastRunContainer(object):
         qid = matching_qids.pop()
         self.current_qid = qid
 
-    def write_required(self, data, append_props=None, cqid=None):
+    def write_required(self, data: list, append_props: list = None, cqid=None) -> bool:
         del_props = set()
         data_props = set()
         if not append_props:
@@ -270,7 +271,7 @@ class FastRunContainer(object):
             write_required = True
         return write_required
 
-    def init_language_data(self, lang, lang_data_type):
+    def init_language_data(self, lang: str, lang_data_type: str) -> None:
         """
         Initialize language data store
         :param lang: language code
@@ -285,7 +286,7 @@ class FastRunContainer(object):
             data = self._process_lang(result)
             self.loaded_langs[lang].update({lang_data_type: data})
 
-    def get_language_data(self, qid, lang, lang_data_type):
+    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list:
         """
         get language data for specified qid
         :param qid:  Wikibase item id
@@ -305,14 +306,13 @@ class FastRunContainer(object):
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid, lang_data, lang, lang_data_type, if_exists='APPEND'):
+    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str,
+                            if_exists: str = 'APPEND') -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
         :param lang_data: list of string values to check
-        :type lang_data: list
         :param lang: language code
-        :type lang: str
         :param lang_data_type: What kind of data is it? 'label', 'description' or 'aliases'?
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: boolean
@@ -331,10 +331,10 @@ class FastRunContainer(object):
 
         return False
 
-    def get_all_data(self):
+    def get_all_data(self) -> dict:
         return self.prop_data
 
-    def format_query_results(self, r, prop_nr):
+    def format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
         `prop_nr` is needed to get the property datatype to determine how to format the value
@@ -404,7 +404,7 @@ class FastRunContainer(object):
                     i['rval'] = i['rval']['value']
 
     @staticmethod
-    def format_amount(amount):
+    def format_amount(amount) -> str:
         # Remove .0 by casting to int
         if float(amount) % 1 == 0:
             amount = int(float(amount))
@@ -416,7 +416,7 @@ class FastRunContainer(object):
         # return as string
         return str(amount)
 
-    def update_frc_from_query(self, r, prop_nr):
+    def update_frc_from_query(self, r: list, prop_nr: str) -> None:
         # r is the output of format_query_results
         # this updates the frc from the query (result of _query_data)
         for i in r:
@@ -451,7 +451,7 @@ class FastRunContainer(object):
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data(self, prop_nr):
+    def _query_data(self, prop_nr: str) -> None:
         page_size = 10000
         page_count = 0
         num_pages = None
@@ -573,12 +573,11 @@ class FastRunContainer(object):
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang, lang_data_type):
+    def _query_lang(self, lang: str, lang_data_type: str) -> None:
         """
 
         :param lang:
         :param lang_data_type:
-        :return:
         """
 
         lang_data_type_dict = {
@@ -605,7 +604,7 @@ class FastRunContainer(object):
             'bindings']
 
     @staticmethod
-    def _process_lang(result):
+    def _process_lang(result: list) -> set:
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]
@@ -614,13 +613,13 @@ class FastRunContainer(object):
         return data
 
     @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr):
+    def get_prop_datatype(self, prop_nr: str) -> str:
         item = self.engine(item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url,
                            mediawiki_api_url=self.mediawiki_api_url,
                            wikibase_url=self.wikibase_url)
         return item.entity_metadata['datatype']
 
-    def clear(self):
+    def clear(self) -> None:
         """
         convinience function to empty this fastrun container
         """
@@ -629,7 +628,7 @@ class FastRunContainer(object):
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
