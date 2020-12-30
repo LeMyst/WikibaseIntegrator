@@ -1422,7 +1422,7 @@ class FunctionsEngine(object):
                     else:
                         results.append(i['id'])
 
-            if 'search-continue' not in search_results or search_results['search-continue'] == 0:
+            if 'search-continue' not in search_results:
                 break
             else:
                 cont_count = search_results['search-continue']
