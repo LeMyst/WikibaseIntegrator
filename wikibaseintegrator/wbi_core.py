@@ -1363,12 +1363,14 @@ class FunctionsEngine(object):
         print(r.json())
 
     @staticmethod
-    def get_search_results(search_string='', mediawiki_api_url=None, user_agent=None, max_results=500, language=None,
-                           dict_id_label=False):
+    def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None,
+                           max_results=500, language=None, dict_result=False):
         """
-        Performs a search in the Wikibase instance for a certain search string
-        :param search_string: a string which should be searched for in the Wikibase instance
+        Performs a search for entities in the Wikibase instance using labels and aliases.
+        :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
         :type search_string: str
+        :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
+        :type search_type: str
         :param mediawiki_api_url: Specify the mediawiki_api_url.
         :type mediawiki_api_url: str
         :param user_agent: The user agent string transmitted in the http header
@@ -1377,9 +1379,9 @@ class FunctionsEngine(object):
         :type max_results: int
         :param language: The language in which to perform the search.
         :type language: str
-        :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
-        :type dict_id_label: boolean
-        :return: function return a list with a dict of id and label
+        :param dict_result:
+        :type dict_result: boolean
+        :return: list
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1390,6 +1392,7 @@ class FunctionsEngine(object):
             'action': 'wbsearchentities',
             'language': language,
             'search': search_string,
+            'type': search_type,
             'format': 'json',
             'limit': 50
         }
@@ -1398,31 +1401,34 @@ class FunctionsEngine(object):
             'User-Agent': user_agent
         }
 
-        cont_count = 1
+        cont_count = 0
         results = []
 
-        while cont_count > 0:
-            params.update({'continue': 0 if cont_count == 1 else cont_count})
+        while True:
+            params.update({'continue': cont_count})
 
             reply = requests.get(mediawiki_api_url, params=params, headers=headers)
             reply.raise_for_status()
             search_results = reply.json()
 
             if search_results['success'] != 1:
-                raise SearchError('WB search failed')
+                raise SearchError('Wikibase API wbsearchentities failed')
             else:
                 for i in search_results['search']:
-                    if dict_id_label:
-                        results.append({'id': i['id'], 'label': i['label']})
+                    if dict_result:
+                        description = i['description'] if 'description' in i else None
+                        aliases = i['aliases'] if 'aliases' in i else None
+                        results.append({'id': i['id'], 'label': i['label'], 'match': i['match'],
+                                        'description': description, 'aliases': aliases})
                     else:
                         results.append(i['id'])
 
             if 'search-continue' not in search_results:
-                cont_count = 0
+                break
             else:
                 cont_count = search_results['search-continue']
 
-            if cont_count > max_results:
+            if cont_count >= max_results:
                 break
 
         return results
