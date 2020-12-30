@@ -1431,7 +1431,7 @@ class FunctionsEngine(object):
             else:
                 cont_count = search_results['search-continue']
 
-            if cont_count > max_results:
+            if cont_count >= max_results:
                 break
 
         return results
