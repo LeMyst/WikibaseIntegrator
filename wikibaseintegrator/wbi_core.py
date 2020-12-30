@@ -1364,7 +1364,7 @@ class FunctionsEngine(object):
 
     @staticmethod
     def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None,
-                           max_results=500, language=None, dict_id_label=False, dict_id_all_info=False):
+                           max_results=500, language=None, dict_result=False):
         """
         Performs a search in the Wikibase instance for a certain search string
         :param search_string: a string which should be searched for in the Wikibase instance
@@ -1379,10 +1379,8 @@ class FunctionsEngine(object):
         :type max_results: int
         :param language: The language in which to perform the search.
         :type language: str
-        :param dict_id_label:
-        :type dict_id_label: boolean
-        :param dict_id_all_info:
-        :type dict_id_all_info: boolean
+        :param dict_result:
+        :type dict_result: boolean
         :return: list
         """
 
@@ -1403,31 +1401,29 @@ class FunctionsEngine(object):
             'User-Agent': user_agent
         }
 
-        cont_count = 1
+        cont_count = 0
         results = []
 
-        while cont_count > 0:
-            params.update({'continue': 0 if cont_count == 1 else cont_count})
+        while True:
+            params.update({'continue': cont_count})
 
             reply = requests.get(mediawiki_api_url, params=params, headers=headers)
             reply.raise_for_status()
             search_results = reply.json()
 
             if search_results['success'] != 1:
-                raise SearchError('WB search failed')
+                raise SearchError('Wikibase API wbsearchentities failed')
             else:
                 for i in search_results['search']:
-                    if dict_id_all_info:
+                    if dict_result:
                         description = i['description'] if 'description' in i else ''
                         match = i['match'] if 'match' in i else ''
                         results.append({'id': i['id'], 'label': i['label'], 'description': description, 'match': match})
-                    elif dict_id_label:
-                        results.append({'id': i['id'], 'label': i['label']})
                     else:
                         results.append(i['id'])
 
-            if 'search-continue' not in search_results:
-                cont_count = 0
+            if 'search-continue' not in search_results or search_results['search-continue'] == 0:
+                break
             else:
                 cont_count = search_results['search-continue']
 
