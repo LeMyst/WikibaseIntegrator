@@ -1366,8 +1366,8 @@ class FunctionsEngine(object):
     def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None,
                            max_results=500, language=None, dict_result=False):
         """
-        Performs a search in the Wikibase instance for a certain search string
-        :param search_string: a string which should be searched for in the Wikibase instance
+        Performs a search for entities in the Wikibase instance using labels and aliases.
+        :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
         :type search_string: str
         :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
         :type search_type: str
