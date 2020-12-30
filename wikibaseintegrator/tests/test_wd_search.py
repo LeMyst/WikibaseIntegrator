@@ -10,7 +10,5 @@ class TestWDSearch(unittest.TestCase):
 
     def test_wd_search(self):
         t = wbi_core.FunctionsEngine.get_search_results('rivaroxaban')
-
-        print(t)
         print('Number of results: ', len(t))
         self.assertIsNot(len(t), 0)
