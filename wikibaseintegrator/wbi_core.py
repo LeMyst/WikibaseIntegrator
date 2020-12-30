@@ -1416,9 +1416,10 @@ class FunctionsEngine(object):
             else:
                 for i in search_results['search']:
                     if dict_result:
-                        description = i['description'] if 'description' in i else ''
-                        match = i['match'] if 'match' in i else ''
-                        results.append({'id': i['id'], 'label': i['label'], 'description': description, 'match': match})
+                        description = i['description'] if 'description' in i else None
+                        aliases = i['aliases'] if 'aliases' in i else None
+                        results.append({'id': i['id'], 'label': i['label'], 'match': i['match'],
+                                        'description': description, 'aliases': aliases})
                     else:
                         results.append(i['id'])
 
