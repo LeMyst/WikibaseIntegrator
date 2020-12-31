@@ -1508,7 +1508,6 @@ class BaseDataType(object):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
-
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -1862,7 +1861,7 @@ class String(BaseDataType):
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                      check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -1873,7 +1872,7 @@ class String(BaseDataType):
             'type': 'string'
         }
 
-        super(String, self).set_value(value=value)
+        super(String, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1915,7 +1914,7 @@ class Math(BaseDataType):
                                    is_qualifier=is_qualifier, references=references, qualifiers=qualifiers,
                                    rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -1926,7 +1925,7 @@ class Math(BaseDataType):
             'type': 'string'
         }
 
-        super(Math, self).set_value(value=value)
+        super(Math, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1969,7 +1968,7 @@ class ExternalID(BaseDataType):
                                          qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                          check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -1980,7 +1979,7 @@ class ExternalID(BaseDataType):
             'type': 'string'
         }
 
-        super(ExternalID, self).set_value(value=value)
+        super(ExternalID, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2030,7 +2029,7 @@ class ItemID(BaseDataType):
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                      check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, \
@@ -2057,7 +2056,7 @@ class ItemID(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(ItemID, self).set_value(value=value)
+        super(ItemID, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2107,7 +2106,7 @@ class Property(BaseDataType):
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                        check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, \
@@ -2134,7 +2133,7 @@ class Property(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Property, self).set_value(value=value)
+        super(Property, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2223,7 +2222,8 @@ class Time(BaseDataType):
             'type': 'time'
         }
 
-        super(Time, self).set_value(value=value)
+        self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
+        super(Time, self).set_value(value=self.value)
 
         if self.time is not None:
             assert isinstance(self.time, str), \
@@ -2291,7 +2291,7 @@ class Url(BaseDataType):
             'type': 'string'
         }
 
-        super(Url, self).set_value(value=value)
+        super(Url, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2357,7 +2357,8 @@ class MonolingualText(BaseDataType):
             'type': 'monolingualtext'
         }
 
-        super(MonolingualText, self).set_value(value=value)
+        self.value = (self.text, self.language)
+        super(MonolingualText, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2468,7 +2469,7 @@ class Quantity(BaseDataType):
             del self.json_representation['datavalue']['value']['lowerBound']
 
         self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
-        super(Quantity, self).set_value(value=value)
+        super(Quantity, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2542,7 +2543,7 @@ class CommonsMedia(BaseDataType):
             'type': 'string'
         }
 
-        super(CommonsMedia, self).set_value(value=value)
+        super(CommonsMedia, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2619,9 +2620,8 @@ class GlobeCoordinate(BaseDataType):
             'type': 'globecoordinate'
         }
 
-        super(GlobeCoordinate, self).set_value(value=value)
-
-        self.value = value
+        self.value = (self.latitude, self.longitude, self.precision, self.globe)
+        super(GlobeCoordinate, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2668,7 +2668,7 @@ class GeoShape(BaseDataType):
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                        check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -2687,7 +2687,7 @@ class GeoShape(BaseDataType):
             'type': 'string'
         }
 
-        super(GeoShape, self).set_value(value=value)
+        super(GeoShape, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2731,7 +2731,7 @@ class MusicalNotation(BaseDataType):
                                               qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                               check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -2742,7 +2742,7 @@ class MusicalNotation(BaseDataType):
             'type': 'string'
         }
 
-        super(MusicalNotation, self).set_value(value=value)
+        super(MusicalNotation, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2785,7 +2785,7 @@ class TabularData(BaseDataType):
                                           qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                           check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -2804,7 +2804,7 @@ class TabularData(BaseDataType):
             'type': 'string'
         }
 
-        super(TabularData, self).set_value(value=value)
+        super(TabularData, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2854,7 +2854,7 @@ class Lexeme(BaseDataType):
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                      check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
@@ -2881,7 +2881,7 @@ class Lexeme(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Lexeme, self).set_value(value=value)
+        super(Lexeme, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2896,6 +2896,13 @@ class Form(BaseDataType):
     Implements the Wikibase data type with value 'wikibase-form'
     """
     DTYPE = 'wikibase-form'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
@@ -2924,7 +2931,7 @@ class Form(BaseDataType):
                                    qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                    check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -2947,7 +2954,7 @@ class Form(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Form, self).set_value(value=value)
+        super(Form, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2962,6 +2969,13 @@ class Sense(BaseDataType):
     Implements the Wikibase data type with value 'wikibase-sense'
     """
     DTYPE = 'wikibase-sense'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
@@ -2990,7 +3004,7 @@ class Sense(BaseDataType):
                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                     check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -3013,7 +3027,7 @@ class Sense(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Sense, self).set_value(value=value)
+        super(Sense, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
