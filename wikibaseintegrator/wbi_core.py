@@ -756,17 +756,12 @@ class ItemEngine(object):
             if (len(mrt_qualifiers) == 1) and (mrt_qualifiers[0].get_value() != int(exact_qid[1:])):
                 continue
 
-            # TODO: implement special treatment when searching for date/coordinate values
-            data_point = statement.get_value()
-            if isinstance(data_point, tuple):
-                data_point = data_point[0]
-
             core_props = self.core_props
             if property_nr in core_props:
                 tmp_qids = set()
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
                 query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
-                                                      value=data_point.replace("'", r"\'"))
+                                                      value=statement.get_sparql_value().replace("'", r"\'"))
                 results = FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url,
                                                                debug=self.debug)
 
@@ -1646,6 +1641,9 @@ class BaseDataType(object):
     def get_value(self):
         return self.value
 
+    def get_sparql_value(self):
+        return self.value
+
     def set_value(self, value):
         if value is None and self.snak_type not in {'novalue', 'somevalue'}:
             raise ValueError("If 'value' is None, snak_type must be novalue or somevalue")
@@ -2216,17 +2214,20 @@ class Time(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        # TODO: Introduce validity checks for time, etc.
+        self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
+        assert isinstance(self.time, str) or self.time is None, "Expected str, found {} ({})".format(type(self.time), self.time)
+
         if self.time is not None:
-            assert isinstance(self.time, str), \
-                "Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'"
-            if self.precision < 0 or self.precision > 14:
-                raise ValueError('Invalid value for time precision, '
-                                 'see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
             if not (self.time.startswith("+") or self.time.startswith("-")):
                 self.time = "+" + self.time
+            pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
+            matches = pattern.match(self.time)
+            if not matches:
+                raise ValueError('Time time must be a string in the following format: \'+%Y-%m-%dT%H:%M:%SZ\'')
+            self.value = value
+            if self.precision < 0 or self.precision > 15:
+                raise ValueError('Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
 
-        self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
         self.json_representation['datavalue'] = {
             'value': {
                 'time': self.time,
@@ -2239,8 +2240,11 @@ class Time(BaseDataType):
             'type': 'time'
         }
 
-        self.value = self.time
+        self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
         super(Time, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return self.time
 
     @classmethod
     @JsonParser
@@ -2358,18 +2362,16 @@ class MonolingualText(BaseDataType):
 
         value = (text, self.language)
 
-        super(MonolingualText, self) \
-            .__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
-                      is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
-                      prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
+        super(MonolingualText, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE, is_reference=is_reference,
+                                              is_qualifier=is_qualifier, references=references, qualifiers=qualifiers, rank=rank,
+                                              prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality)
 
         self.set_value(value)
 
     def set_value(self, value):
-        text, language = value
-        assert isinstance(text, str) or self.text is None, "Expected str, found {} ({})".format(type(text), text)
-        self.text = text
-        self.language = language
+        self.text, self.language = value
+        assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
+        assert isinstance(self.language, str) or self.text is None, "Expected str, found {} ({})".format(type(self.language), self.language)
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2379,8 +2381,11 @@ class MonolingualText(BaseDataType):
             'type': 'monolingualtext'
         }
 
-        self.value = "'" + self.text + "'@" + self.language
+        self.value = (self.text, self.language)
         super(MonolingualText, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return '"' + self.text.replace('"', r'\"') + '"@' + self.language
 
     @classmethod
     @JsonParser
@@ -2454,7 +2459,6 @@ class Quantity(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        # TODO: Introduce validity checks for quantity, etc.
         self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
         if self.quantity is not None:
@@ -2497,8 +2501,11 @@ class Quantity(BaseDataType):
         if not self.lower_bound:
             del self.json_representation['datavalue']['value']['lowerBound']
 
-        self.value = self.quantity
+        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
         super(Quantity, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return self.quantity
 
     @classmethod
     @JsonParser
@@ -2656,8 +2663,11 @@ class GlobeCoordinate(BaseDataType):
             'type': 'globecoordinate'
         }
 
-        self.value = 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
+        self.value = (self.latitude, self.longitude, self.precision, self.globe)
         super(GlobeCoordinate, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
 
     @classmethod
     @JsonParser
