@@ -1654,6 +1654,8 @@ class BaseDataType(object):
         elif 'datavalue' not in self.json_representation:
             self.json_representation['datavalue'] = {}
 
+        self.value = value
+
     def get_references(self):
         return self.references
 
@@ -2147,6 +2149,13 @@ class Time(BaseDataType):
     Implements the Wikibase data type with date and time values
     """
     DTYPE = 'time'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:dateTime .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
                  wikibase_url=None,
@@ -2208,6 +2217,15 @@ class Time(BaseDataType):
 
     def set_value(self, value):
         # TODO: Introduce validity checks for time, etc.
+        if self.time is not None:
+            assert isinstance(self.time, str), \
+                "Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'"
+            if self.precision < 0 or self.precision > 14:
+                raise ValueError('Invalid value for time precision, '
+                                 'see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
+            if not (self.time.startswith("+") or self.time.startswith("-")):
+                self.time = "+" + self.time
+
         self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
         self.json_representation['datavalue'] = {
             'value': {
@@ -2221,17 +2239,8 @@ class Time(BaseDataType):
             'type': 'time'
         }
 
-        self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
+        self.value = self.time
         super(Time, self).set_value(value=self.value)
-
-        if self.time is not None:
-            assert isinstance(self.time, str), \
-                "Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'"
-            if self.precision < 0 or self.precision > 14:
-                raise ValueError('Invalid value for time precision, '
-                                 'see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
-            if not (self.time.startswith("+") or self.time.startswith("-")):
-                self.time = "+" + self.time
 
     @classmethod
     @JsonParser
@@ -2249,6 +2258,13 @@ class Url(BaseDataType):
     Implements the Wikibase data type for URL strings
     """
     DTYPE = 'url'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
@@ -2305,6 +2321,13 @@ class MonolingualText(BaseDataType):
     Implements the Wikibase data type for Monolingual Text strings
     """
     DTYPE = 'monolingualtext'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> {value} .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
@@ -2356,7 +2379,7 @@ class MonolingualText(BaseDataType):
             'type': 'monolingualtext'
         }
 
-        self.value = (self.text, self.language)
+        self.value = "'" + self.text + "'@" + self.language
         super(MonolingualText, self).set_value(value=self.value)
 
     @classmethod
@@ -2374,6 +2397,13 @@ class Quantity(BaseDataType):
     Implements the Wikibase data type for quantities
     """
     DTYPE = 'quantity'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:decimal .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
@@ -2467,7 +2497,7 @@ class Quantity(BaseDataType):
         if not self.lower_bound:
             del self.json_representation['datavalue']['value']['lowerBound']
 
-        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
+        self.value = self.quantity
         super(Quantity, self).set_value(value=self.value)
 
     @classmethod
@@ -2557,6 +2587,13 @@ class GlobeCoordinate(BaseDataType):
     Implements the Wikibase data type for globe coordinates
     """
     DTYPE = 'globe-coordinate'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^geo:wktLiteral .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
@@ -2619,7 +2656,7 @@ class GlobeCoordinate(BaseDataType):
             'type': 'globecoordinate'
         }
 
-        self.value = (self.latitude, self.longitude, self.precision, self.globe)
+        self.value = 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
         super(GlobeCoordinate, self).set_value(value=self.value)
 
     @classmethod
@@ -2639,6 +2676,13 @@ class GeoShape(BaseDataType):
     Implements the Wikibase data type 'geo-shape'
     """
     DTYPE = 'geo-shape'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
@@ -2674,6 +2718,7 @@ class GeoShape(BaseDataType):
         if value is None:
             self.value = value
         else:
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
             pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
             matches = pattern.match(value)
             if not matches:
@@ -2791,6 +2836,7 @@ class TabularData(BaseDataType):
         if value is None:
             self.value = value
         else:
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
