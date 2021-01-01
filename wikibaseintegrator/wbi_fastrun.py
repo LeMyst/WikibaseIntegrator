@@ -68,13 +68,14 @@ class FastRunContainer(object):
             for prop in props:
                 if prop not in self.prop_dt_map:
                     self.prop_dt_map.update({prop: self.get_prop_datatype(prop)})
-            # reconstruct statements from frc (including qualifiers, and refs)
+            # reconstruct statements from frc (including unit, qualifiers, and refs)
             for uid, d in dt.items():
                 qualifiers = []
                 for q in d['qual']:
                     f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
                          self.prop_dt_map[q[0]]][0]
-                    if self.prop_dt_map[q[0]] == 'quantity' and q[2] != '1':
+                    # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
+                    if self.prop_dt_map[q[0]] == 'quantity':
                         qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
                     else:
                         qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True))
@@ -90,7 +91,8 @@ class FastRunContainer(object):
 
                 f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
                      self.prop_dt_map[prop_nr]][0]
-                if self.prop_dt_map[prop_nr] == 'quantity' and d['unit'] != '1':
+                # TODO: Add support for more data type
+                if self.prop_dt_map[prop_nr] == 'quantity':
                     reconstructed_statements.append(
                         f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
