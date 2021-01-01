@@ -198,7 +198,7 @@ def test_ref_equals():
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references[0][2] = wbi_core.Time(time='+2002-1-31T12:01:13Z', prop_nr='P813')
+    newitem.references[0][2] = wbi_core.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813')
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 

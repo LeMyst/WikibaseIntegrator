@@ -15,14 +15,8 @@ from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
 class ItemEngine(object):
-    pmids = []
-
-    log_file_name = ''
     fast_run_store = []
-
-    DISTINCT_VALUE_PROPS = dict()
-
-    logger = None
+    distinct_value_props = {}
 
     def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None,
                  wikibase_url=None, fast_run=False, fast_run_base_filter=None,
@@ -110,6 +104,7 @@ class ItemEngine(object):
         :param debug: Enable debug output.
         :type debug: boolean
         """
+
         self.core_prop_match_thresh = core_prop_match_thresh
         self.item_id = item_id
         self.new_item = new_item
@@ -163,10 +158,12 @@ class ItemEngine(object):
         if self.global_ref_mode == 'CUSTOM' and self.ref_handler is None:
             raise ValueError("If using a custom ref mode, ref_handler must be set")
 
-        if (core_props is None) and (self.sparql_endpoint_url not in self.DISTINCT_VALUE_PROPS):
-            self.get_distinct_value_props(self.sparql_endpoint_url, self.wikibase_url, self.property_constraint_pid,
-                                          self.distinct_values_constraint_qid)
-        self.core_props = core_props if core_props is not None else self.DISTINCT_VALUE_PROPS[self.sparql_endpoint_url]
+        if (core_props is None) and (self.sparql_endpoint_url not in ItemEngine.distinct_value_props):
+            ItemEngine.distinct_value_props[self.sparql_endpoint_url] = FunctionsEngine.get_distinct_value_props(
+                self.sparql_endpoint_url, self.wikibase_url, self.property_constraint_pid,
+                self.distinct_values_constraint_qid)
+        self.core_props = core_props if core_props is not None else ItemEngine.distinct_value_props[
+            self.sparql_endpoint_url]
 
         if self.fast_run:
             self.init_fastrun()
@@ -186,41 +183,6 @@ class ItemEngine(object):
             self.__construct_claim_json()
         elif self.require_write:
             self.init_data_load()
-
-    @classmethod
-    def get_distinct_value_props(cls, sparql_endpoint_url=None, wikibase_url=None, property_constraint_pid=None,
-                                 distinct_values_constraint_qid=None):
-        """
-        On wikidata, the default core IDs will be the properties with a distinct values constraint
-        select ?p where {?p wdt:P2302 wd:Q21502410}
-        See: https://www.wikidata.org/wiki/Help:Property_constraints_portal
-        https://www.wikidata.org/wiki/Help:Property_constraints_portal/Unique_value
-        """
-
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
-        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-        property_constraint_pid = config[
-            'PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
-        distinct_values_constraint_qid = config[
-            'DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
-
-        pcpid = property_constraint_pid
-        dvcqid = distinct_values_constraint_qid
-
-        query = '''
-        SELECT ?p WHERE {{
-            ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
-        }}
-        '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
-        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
-        if df.empty:
-            warn("Warning: No distinct value properties found\n" +
-                 "Please set P2302 and Q21502410 in your Wikibase or set `core_props` manually.\n" +
-                 "Continuing with no core_props")
-            cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set()
-            return None
-        df.p = df.p.str.rsplit("/", 1).str[-1]
-        cls.DISTINCT_VALUE_PROPS[sparql_endpoint_url] = set(df.p)
 
     def init_data_load(self):
         if self.item_id and self.item_data:
@@ -291,24 +253,6 @@ class ItemEngine(object):
             if not self.item_id:
                 self.item_id = self.fast_run_container.current_qid
 
-    def get_entity(self):
-        """
-        retrieve an item in json representation from the Wikibase instance
-        :rtype: dict
-        :return: python complex dictionary represenation of a json
-        """
-        params = {
-            'action': 'wbgetentities',
-            'sites': 'enwiki',
-            'ids': self.item_id,
-            'format': 'json'
-        }
-        headers = {
-            'User-Agent': self.user_agent
-        }
-        json_data = FunctionsEngine.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
-        return self.parse_json(json_data=json_data['entities'][self.item_id])
-
     def parse_json(self, json_data):
         """
         Parses an entity json and generates the datatype objects, sets self.json_representation
@@ -316,6 +260,7 @@ class ItemEngine(object):
         :type json_data: A Python Json representation of an item
         :return: returns the json representation containing 'labels', 'descriptions', 'claims', 'aliases', 'sitelinks'.
         """
+
         data = {x: json_data[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in json_data}
         data['sitelinks'] = dict()
         self.entity_metadata = {x: json_data[x] for x in json_data if x not in
@@ -334,16 +279,449 @@ class ItemEngine(object):
 
         return data
 
+    def update(self, data):
+        """
+        This method takes data, and modifies the Wikidata item. This works together with the data already provided via
+        the constructor or if the constructor is being instantiated with search_only=True. In the latter case, this
+        allows for checking the item data before deciding which new data should be written to the Wikidata item.
+        The actual write to Wikidata only happens on calling of the write() method. If data has been provided already
+        via the constructor, data provided via the update() method will be appended to these data.
+        :param data: A list of Wikidata statment items inheriting from BaseDataType
+        :type data: list
+        """
+
+        if self.search_only:
+            raise SearchOnlyError
+
+        assert type(data) == list
+
+        self.data.extend(data)
+        self.statements = copy.deepcopy(self.original_statements)
+
+        if self.debug:
+            print(self.data)
+
+        if self.fast_run:
+            self.init_fastrun()
+
+        if self.require_write and self.fast_run:
+            self.init_data_load()
+            self.__construct_claim_json()
+            self.__check_integrity()
+        elif not self.fast_run:
+            self.__construct_claim_json()
+            self.__check_integrity()
+
+    def get_entity(self):
+        """
+        retrieve an item in json representation from the Wikibase instance
+        :rtype: dict
+        :return: python complex dictionary represenation of a json
+        """
+
+        params = {
+            'action': 'wbgetentities',
+            'sites': 'enwiki',
+            'ids': self.item_id,
+            'format': 'json'
+        }
+        headers = {
+            'User-Agent': self.user_agent
+        }
+        json_data = FunctionsEngine.mediawiki_api_call("GET", self.mediawiki_api_url, params=params, headers=headers)
+        return self.parse_json(json_data=json_data['entities'][self.item_id])
+
     def get_property_list(self):
         """
         List of properties on the current item
         :return: a list of property ID strings (Pxxxx).
         """
+
         property_list = set()
         for x in self.statements:
             property_list.add(x.get_prop_nr())
 
         return list(property_list)
+
+    def get_json_representation(self):
+        """
+        A method to access the internal json representation of the item, mainly for testing
+        :return: returns a Python json representation object of the item at the current state of the instance
+        """
+
+        return self.json_representation
+
+    def get_label(self, lang=None):
+        """
+        Returns the label for a certain language
+        :param lang:
+        :type lang: str
+        :return: returns the label in the specified language, an empty string if the label does not exist
+        """
+
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if self.fast_run:
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'label'))[0]
+        try:
+            return self.json_representation['labels'][lang]['value']
+        except KeyError:
+            return ''
+
+    def set_label(self, label, lang=None, if_exists='REPLACE'):
+        """
+        Set the label for an item in a certain language
+        :param label: The description of the item in a certain language
+        :type label: str
+        :param lang: The language a label should be set for.
+        :type lang: str
+        :param if_exists: If a label already exist, REPLACE it or KEEP it.
+        :return: None
+        """
+
+        if self.search_only:
+            raise SearchOnlyError
+
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
+
+        # Skip set_label if the item already have one and if_exists is at 'KEEP'
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') != [''] and if_exists == 'KEEP':
+            return
+
+        if self.fast_run and not self.require_write:
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
+                                                                             lang_data=[label], lang=lang,
+                                                                             lang_data_type='label')
+            if self.require_write:
+                self.init_data_load()
+            else:
+                return
+
+        if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
+            self.json_representation['labels'] = {}
+
+        self.json_representation['labels'][lang] = {
+            'language': lang,
+            'value': label
+        }
+
+    def get_aliases(self, lang=None):
+        """
+        Retrieve the aliases in a certain language
+        :param lang: The language the description should be retrieved for
+        :return: Returns a list of aliases, an empty list if none exist for the specified language
+        """
+
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if self.fast_run:
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'aliases'))
+
+        alias_list = []
+        if 'aliases' in self.json_representation and lang in self.json_representation['aliases']:
+            for alias in self.json_representation['aliases'][lang]:
+                alias_list.append(alias['value'])
+
+        return alias_list
+
+    def set_aliases(self, aliases, lang=None, if_exists='APPEND'):
+        """
+        set the aliases for an item
+        :param aliases: a list of strings representing the aliases of an item
+        :param lang: The language a description should be set for
+        :param if_exists: If aliases already exist, APPEND or REPLACE
+        :return: None
+        """
+
+        if self.search_only:
+            raise SearchOnlyError
+
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if not isinstance(aliases, list):
+            raise TypeError('aliases must be a list')
+
+        if if_exists != 'APPEND' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
+
+        if self.fast_run and not self.require_write:
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
+                                                                             lang_data=aliases, lang=lang,
+                                                                             lang_data_type='aliases',
+                                                                             if_exists=if_exists)
+            if self.require_write:
+                self.init_data_load()
+            else:
+                return
+
+        if 'aliases' not in self.json_representation:
+            self.json_representation['aliases'] = {}
+
+        if if_exists == 'REPLACE' or lang not in self.json_representation['aliases']:
+            self.json_representation['aliases'][lang] = []
+            for alias in aliases:
+                self.json_representation['aliases'][lang].append({
+                    'language': lang,
+                    'value': alias
+                })
+        else:
+            for alias in aliases:
+                found = False
+                for current_aliases in self.json_representation['aliases'][lang]:
+                    if alias.strip().casefold() != current_aliases['value'].strip().casefold():
+                        continue
+                    else:
+                        found = True
+                        break
+
+                if not found:
+                    self.json_representation['aliases'][lang].append({
+                        'language': lang,
+                        'value': alias
+                    })
+
+    def get_description(self, lang=None):
+        """
+        Retrieve the description in a certain language
+        :param lang: The language the description should be retrieved for
+        :return: Returns the description string
+        """
+
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if self.fast_run:
+            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'description'))[0]
+        if 'descriptions' not in self.json_representation or lang not in self.json_representation['descriptions']:
+            return ''
+        else:
+            return self.json_representation['descriptions'][lang]['value']
+
+    def set_description(self, description, lang=None, if_exists='REPLACE'):
+        """
+        Set the description for an item in a certain language
+        :param description: The description of the item in a certain language
+        :type description: str
+        :param lang: The language a description should be set for.
+        :type lang: str
+        :param if_exists: If a description already exist, REPLACE it or KEEP it.
+        :return: None
+        """
+
+        if self.search_only:
+            raise SearchOnlyError
+
+        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
+
+        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
+
+        # Skip set_description if the item already have one and if_exists is at 'KEEP'
+        if self.fast_run_container.get_language_data(self.item_id, lang, 'description') != [''] and if_exists == 'KEEP':
+            return
+
+        if self.fast_run and not self.require_write:
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description],
+                                                                             lang=lang, lang_data_type='description')
+            if self.require_write:
+                self.init_data_load()
+            else:
+                return
+
+        if 'descriptions' not in self.json_representation or not self.json_representation['descriptions'] \
+                or if_exists == 'REPLACE':
+            self.json_representation['descriptions'] = {}
+
+        self.json_representation['descriptions'][lang] = {
+            'language': lang,
+            'value': description
+        }
+
+    def get_sitelink(self, site):
+        """
+        A method to access the interwiki links in the json.model
+        :param site: The Wikipedia site the interwiki/sitelink should be returned for
+        :return: The interwiki/sitelink string for the specified Wikipedia will be returned.
+        """
+
+        if site in self.sitelinks:
+            return self.sitelinks[site]
+        else:
+            return None
+
+    def set_sitelink(self, site, title, badges=()):
+        """
+        Set sitelinks to corresponding Wikipedia pages
+        :param site: The Wikipedia page a sitelink is directed to (e.g. 'enwiki')
+        :param title: The title of the Wikipedia page the sitelink is directed to
+        :param badges: An iterable containing Wikipedia badge strings.
+        :return:
+        """
+
+        if self.search_only:
+            raise SearchOnlyError
+
+        sitelink = {
+            'site': site,
+            'title': title,
+            'badges': badges
+        }
+        self.json_representation['sitelinks'][site] = sitelink
+        self.sitelinks[site] = sitelink
+
+    def count_references(self, prop_id):
+        counts = dict()
+        for claim in self.get_json_representation()['claims'][prop_id]:
+            counts[claim['id']] = len(claim['references'])
+        return counts
+
+    def get_reference_properties(self, prop_id):
+        references = []
+        for statements in self.get_json_representation()['claims'][prop_id]:
+            for reference in statements['references']:
+                references.append(reference['snaks'].keys())
+        return references
+
+    def get_qualifier_properties(self, prop_id):
+        qualifiers = []
+        for statements in self.get_json_representation()['claims'][prop_id]:
+            for reference in statements['qualifiers']:
+                qualifiers.append(reference['snaks'].keys())
+        return qualifiers
+
+    def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string',
+              max_retries=1000, retry_after=60):
+        """
+        Writes the item Json to the Wikibase instance and after successful write, updates the object with new ids and
+        hashes generated by the Wikibase instance. For new items, also returns the new QIDs.
+        :param login: a instance of the class PBB_login which provides edit-cookies and edit-tokens
+        :param bot_account: Tell the Wikidata API whether the script should be run as part of a bot account or not.
+        :type bot_account: bool
+        :param edit_summary: A short (max 250 characters) summary of the purpose of the edit. This will be displayed as
+            the revision summary of the Wikidata item.
+        :type edit_summary: str
+        :param entity_type: Decides wether the object will become an item (default) or a property (with 'property')
+        :type entity_type: str
+        :param property_datatype: When payload_type is 'property' then this parameter set the datatype for the property
+        :type property_datatype: str
+        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
+        `max_retries` times
+        :type max_retries: int
+        :param retry_after: Number of seconds to wait before retrying request (see max_retries)
+        :type retry_after: int
+        :return: the entity ID on successful write
+        """
+
+        if self.search_only:
+            raise SearchOnlyError
+
+        if not self.require_write:
+            return self.item_id
+
+        if entity_type == 'property':
+            self.json_representation['datatype'] = property_datatype
+            if 'sitelinks' in self.json_representation:
+                del self.json_representation['sitelinks']
+
+        payload = {
+            'action': 'wbeditentity',
+            'data': json.JSONEncoder().encode(self.json_representation),
+            'format': 'json',
+            'token': login.get_edit_token(),
+            'summary': edit_summary,
+            'maxlag': config['MAXLAG']
+        }
+        headers = {
+            'content-type': 'application/x-www-form-urlencoded',
+            'charset': 'utf-8'
+        }
+
+        if bot_account:
+            payload.update({'bot': ''})
+
+        if self.create_new_item:
+            payload.update({u'new': entity_type})
+        else:
+            payload.update({u'id': self.item_id})
+
+        if self.debug:
+            print(payload)
+
+        try:
+            json_data = FunctionsEngine.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
+                                                           headers=headers, data=payload, max_retries=max_retries,
+                                                           retry_after=retry_after)
+
+            if 'error' in json_data and 'messages' in json_data['error']:
+                error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
+                if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
+                    raise NonUniqueLabelDescriptionPairError(json_data)
+                else:
+                    raise MWApiError(json_data)
+            elif 'error' in json_data.keys():
+                raise MWApiError(json_data)
+        except Exception:
+            print('Error while writing to the Wikibase instance')
+            raise
+
+        # after successful write, update this object with latest json, QID and parsed data types.
+        self.create_new_item = False
+        self.item_id = json_data['entity']['id']
+        self.parse_json(json_data=json_data['entity'])
+        self.data = []
+        if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
+            self.lastrevid = json_data["entity"]["lastrevid"]
+        return self.item_id
+
+    def __check_integrity(self):
+        """
+        A method to check if when invoking __select_item() and the item does not exist yet, but another item
+        has a property of the current domain with a value like submitted in the data dict, this item does not get
+        selected but a ManualInterventionReqException() is raised. This check is dependent on the core identifiers
+        of a certain domain.
+        :return: boolean True if test passed
+        """
+
+        # all core props
+        wbi_core_props = self.core_props
+        # core prop statements that exist on the item
+        cp_statements = [x for x in self.statements if x.get_prop_nr() in wbi_core_props]
+        item_core_props = set(x.get_prop_nr() for x in cp_statements)
+        # core prop statements we are loading
+        cp_data = [x for x in self.data if x.get_prop_nr() in wbi_core_props]
+
+        # compare the claim values of the currently loaded QIDs to the data provided in self.data
+        # this is the number of core_ids in self.data that are also on the item
+        count_existing_ids = len([x for x in self.data if x.get_prop_nr() in item_core_props])
+
+        core_prop_match_count = 0
+        for new_stat in self.data:
+            for stat in self.statements:
+                if (new_stat.get_prop_nr() == stat.get_prop_nr()) and (new_stat.get_value() == stat.get_value()) \
+                        and (new_stat.get_prop_nr() in item_core_props):
+                    core_prop_match_count += 1
+
+        if core_prop_match_count < count_existing_ids * self.core_prop_match_thresh:
+            existing_core_pv = defaultdict(set)
+            for s in cp_statements:
+                existing_core_pv[s.get_prop_nr()].add(s.get_value())
+            new_core_pv = defaultdict(set)
+            for s in cp_data:
+                new_core_pv[s.get_prop_nr()].add(s.get_value())
+            nomatch_existing = {k: v - new_core_pv[k] for k, v in existing_core_pv.items()}
+            nomatch_existing = {k: v for k, v in nomatch_existing.items() if v}
+            nomatch_new = {k: v - existing_core_pv[k] for k, v in new_core_pv.items()}
+            nomatch_new = {k: v for k, v in nomatch_new.items() if v}
+            raise CorePropIntegrityException('Retrieved item ({}) does not match provided core IDs. '
+                                             'Matching count {}, non-matching count {}. '
+                                             .format(self.item_id, core_prop_match_count,
+                                                     count_existing_ids - core_prop_match_count) +
+                                             'existing unmatched core props: {}. '.format(nomatch_existing) +
+                                             'statement unmatched core props: {}.'.format(nomatch_new))
+        else:
+            return True
 
     def __select_item(self):
         """
@@ -351,6 +729,7 @@ class ItemEngine(object):
         properties
         :return: Either a single QID is returned, or an empty string if no suitable item in the Wikibase instance
         """
+
         qid_list = set()
         conflict_source = {}
         # This is a `hack` for if initializing the mapping relation helper fails. We can't determine the
@@ -368,17 +747,12 @@ class ItemEngine(object):
             if (len(mrt_qualifiers) == 1) and (mrt_qualifiers[0].get_value() != int(exact_qid[1:])):
                 continue
 
-            # TODO: implement special treatment when searching for date/coordinate values
-            data_point = statement.get_value()
-            if isinstance(data_point, tuple):
-                data_point = data_point[0]
-
             core_props = self.core_props
             if property_nr in core_props:
                 tmp_qids = set()
                 # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
                 query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
-                                                      value=data_point.replace("'", r"\'"))
+                                                      value=statement.get_sparql_value().replace("'", r"\'"))
                 results = FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url,
                                                                debug=self.debug)
 
@@ -455,6 +829,7 @@ class ItemEngine(object):
             :param new_item: An item containing the new data which should be written to the Wikibase instance
             :type new_item: A child of BaseDataType
             """
+
             new_references = new_item.get_references()
             old_references = old_item.get_references()
 
@@ -570,479 +945,6 @@ class ItemEngine(object):
             if prop_nr not in self.json_representation['claims']:
                 self.json_representation['claims'][prop_nr] = []
             self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
-
-    def update(self, data):
-        """
-        This method takes data, and modifies the Wikidata item. This works together with the data already provided via
-        the constructor or if the constructor is being instantiated with search_only=True. In the latter case, this
-        allows for checking the item data before deciding which new data should be written to the Wikidata item.
-        The actual write to Wikidata only happens on calling of the write() method. If data has been provided already
-        via the constructor, data provided via the update() method will be appended to these data.
-        :param data: A list of Wikidata statment items inheriting from BaseDataType
-        :type data: list
-        """
-
-        if self.search_only:
-            raise SearchOnlyError
-
-        assert type(data) == list
-
-        self.data.extend(data)
-        self.statements = copy.deepcopy(self.original_statements)
-
-        if self.debug:
-            print(self.data)
-
-        if self.fast_run:
-            self.init_fastrun()
-
-        if self.require_write and self.fast_run:
-            self.init_data_load()
-            self.__construct_claim_json()
-            self.__check_integrity()
-        elif not self.fast_run:
-            self.__construct_claim_json()
-            self.__check_integrity()
-
-    def get_json_representation(self):
-        """
-        A method to access the internal json representation of the item, mainly for testing
-        :return: returns a Python json representation object of the item at the current state of the instance
-        """
-        return self.json_representation
-
-    def __check_integrity(self):
-        """
-        A method to check if when invoking __select_item() and the item does not exist yet, but another item
-        has a property of the current domain with a value like submitted in the data dict, this item does not get
-        selected but a ManualInterventionReqException() is raised. This check is dependent on the core identifiers
-        of a certain domain.
-        :return: boolean True if test passed
-        """
-        # all core props
-        wbi_core_props = self.core_props
-        # core prop statements that exist on the item
-        cp_statements = [x for x in self.statements if x.get_prop_nr() in wbi_core_props]
-        item_core_props = set(x.get_prop_nr() for x in cp_statements)
-        # core prop statements we are loading
-        cp_data = [x for x in self.data if x.get_prop_nr() in wbi_core_props]
-
-        # compare the claim values of the currently loaded QIDs to the data provided in self.data
-        # this is the number of core_ids in self.data that are also on the item
-        count_existing_ids = len([x for x in self.data if x.get_prop_nr() in item_core_props])
-
-        core_prop_match_count = 0
-        for new_stat in self.data:
-            for stat in self.statements:
-                if (new_stat.get_prop_nr() == stat.get_prop_nr()) and (new_stat.get_value() == stat.get_value()) \
-                        and (new_stat.get_prop_nr() in item_core_props):
-                    core_prop_match_count += 1
-
-        if core_prop_match_count < count_existing_ids * self.core_prop_match_thresh:
-            existing_core_pv = defaultdict(set)
-            for s in cp_statements:
-                existing_core_pv[s.get_prop_nr()].add(s.get_value())
-            new_core_pv = defaultdict(set)
-            for s in cp_data:
-                new_core_pv[s.get_prop_nr()].add(s.get_value())
-            nomatch_existing = {k: v - new_core_pv[k] for k, v in existing_core_pv.items()}
-            nomatch_existing = {k: v for k, v in nomatch_existing.items() if v}
-            nomatch_new = {k: v - existing_core_pv[k] for k, v in new_core_pv.items()}
-            nomatch_new = {k: v for k, v in nomatch_new.items() if v}
-            raise CorePropIntegrityException('Retrieved item ({}) does not match provided core IDs. '
-                                             'Matching count {}, non-matching count {}. '
-                                             .format(self.item_id, core_prop_match_count,
-                                                     count_existing_ids - core_prop_match_count) +
-                                             'existing unmatched core props: {}. '.format(nomatch_existing) +
-                                             'statement unmatched core props: {}.'.format(nomatch_new))
-        else:
-            return True
-
-    def get_label(self, lang=None):
-        """
-        Returns the label for a certain language
-        :param lang:
-        :type lang: str
-        :return: returns the label in the specified language, an empty string if the label does not exist
-        """
-        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
-
-        if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'label'))[0]
-        try:
-            return self.json_representation['labels'][lang]['value']
-        except KeyError:
-            return ''
-
-    def set_label(self, label, lang=None, if_exists='REPLACE'):
-        """
-        Set the label for an item in a certain language
-        :param label: The description of the item in a certain language
-        :type label: str
-        :param lang: The language a label should be set for.
-        :type lang: str
-        :param if_exists: If a label already exist, REPLACE it or KEEP it.
-        :return: None
-        """
-        if self.search_only:
-            raise SearchOnlyError
-
-        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
-
-        if if_exists != 'KEEP' and if_exists != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
-
-        # Skip set_label if the item already have one and if_exists is at 'KEEP'
-        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') != [''] and if_exists == 'KEEP':
-            return
-
-        if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
-                                                                             lang_data=[label], lang=lang,
-                                                                             lang_data_type='label')
-            if self.require_write:
-                self.init_data_load()
-            else:
-                return
-
-        if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
-            self.json_representation['labels'] = {}
-
-        self.json_representation['labels'][lang] = {
-            'language': lang,
-            'value': label
-        }
-
-    def get_aliases(self, lang=None):
-        """
-        Retrieve the aliases in a certain language
-        :param lang: The language the description should be retrieved for
-        :return: Returns a list of aliases, an empty list if none exist for the specified language
-        """
-        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
-
-        if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'aliases'))
-
-        alias_list = []
-        if 'aliases' in self.json_representation and lang in self.json_representation['aliases']:
-            for alias in self.json_representation['aliases'][lang]:
-                alias_list.append(alias['value'])
-
-        return alias_list
-
-    def set_aliases(self, aliases, lang=None, if_exists='APPEND'):
-        """
-        set the aliases for an item
-        :param aliases: a list of strings representing the aliases of an item
-        :param lang: The language a description should be set for
-        :param if_exists: If aliases already exist, APPEND or REPLACE
-        :return: None
-        """
-        if self.search_only:
-            raise SearchOnlyError
-
-        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
-
-        if not isinstance(aliases, list):
-            raise TypeError('aliases must be a list')
-
-        if if_exists != 'APPEND' and if_exists != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
-
-        if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
-                                                                             lang_data=aliases, lang=lang,
-                                                                             lang_data_type='aliases',
-                                                                             if_exists=if_exists)
-            if self.require_write:
-                self.init_data_load()
-            else:
-                return
-
-        if 'aliases' not in self.json_representation:
-            self.json_representation['aliases'] = {}
-
-        if if_exists == 'REPLACE' or lang not in self.json_representation['aliases']:
-            self.json_representation['aliases'][lang] = []
-            for alias in aliases:
-                self.json_representation['aliases'][lang].append({
-                    'language': lang,
-                    'value': alias
-                })
-        else:
-            for alias in aliases:
-                found = False
-                for current_aliases in self.json_representation['aliases'][lang]:
-                    if alias.strip().casefold() != current_aliases['value'].strip().casefold():
-                        continue
-                    else:
-                        found = True
-                        break
-
-                if not found:
-                    self.json_representation['aliases'][lang].append({
-                        'language': lang,
-                        'value': alias
-                    })
-
-    def get_description(self, lang=None):
-        """
-        Retrieve the description in a certain language
-        :param lang: The language the description should be retrieved for
-        :return: Returns the description string
-        """
-        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
-
-        if self.fast_run:
-            return list(self.fast_run_container.get_language_data(self.item_id, lang, 'description'))[0]
-        if 'descriptions' not in self.json_representation or lang not in self.json_representation['descriptions']:
-            return ''
-        else:
-            return self.json_representation['descriptions'][lang]['value']
-
-    def set_description(self, description, lang=None, if_exists='REPLACE'):
-        """
-        Set the description for an item in a certain language
-        :param description: The description of the item in a certain language
-        :type description: str
-        :param lang: The language a description should be set for.
-        :type lang: str
-        :param if_exists: If a description already exist, REPLACE it or KEEP it.
-        :return: None
-        """
-        if self.search_only:
-            raise SearchOnlyError
-
-        lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
-
-        if if_exists != 'KEEP' and if_exists != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
-
-        # Skip set_description if the item already have one and if_exists is at 'KEEP'
-        if self.fast_run_container.get_language_data(self.item_id, lang, 'description') != [''] and if_exists == 'KEEP':
-            return
-
-        if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description],
-                                                                             lang=lang, lang_data_type='description')
-            if self.require_write:
-                self.init_data_load()
-            else:
-                return
-
-        if 'descriptions' not in self.json_representation or not self.json_representation['descriptions'] \
-                or if_exists == 'REPLACE':
-            self.json_representation['descriptions'] = {}
-
-        self.json_representation['descriptions'][lang] = {
-            'language': lang,
-            'value': description
-        }
-
-    def get_sitelink(self, site):
-        """
-        A method to access the interwiki links in the json.model
-        :param site: The Wikipedia site the interwiki/sitelink should be returned for
-        :return: The interwiki/sitelink string for the specified Wikipedia will be returned.
-        """
-        if site in self.sitelinks:
-            return self.sitelinks[site]
-        else:
-            return None
-
-    def set_sitelink(self, site, title, badges=()):
-        """
-        Set sitelinks to corresponding Wikipedia pages
-        :param site: The Wikipedia page a sitelink is directed to (e.g. 'enwiki')
-        :param title: The title of the Wikipedia page the sitelink is directed to
-        :param badges: An iterable containing Wikipedia badge strings.
-        :return:
-        """
-        if self.search_only:
-            raise SearchOnlyError
-
-        sitelink = {
-            'site': site,
-            'title': title,
-            'badges': badges
-        }
-        self.json_representation['sitelinks'][site] = sitelink
-        self.sitelinks[site] = sitelink
-
-    def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string',
-              max_retries=1000, retry_after=60):
-        """
-        Writes the item Json to the Wikibase instance and after successful write, updates the object with new ids and
-        hashes generated by the Wikibase instance. For new items, also returns the new QIDs.
-        :param login: a instance of the class PBB_login which provides edit-cookies and edit-tokens
-        :param bot_account: Tell the Wikidata API whether the script should be run as part of a bot account or not.
-        :type bot_account: bool
-        :param edit_summary: A short (max 250 characters) summary of the purpose of the edit. This will be displayed as
-            the revision summary of the Wikidata item.
-        :type edit_summary: str
-        :param entity_type: Decides wether the object will become an item (default) or a property (with 'property')
-        :type entity_type: str
-        :param property_datatype: When payload_type is 'property' then this parameter set the datatype for the property
-        :type property_datatype: str
-        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
-        `max_retries` times
-        :type max_retries: int
-        :param retry_after: Number of seconds to wait before retrying request (see max_retries)
-        :type retry_after: int
-        :return: the entity ID on successful write
-        """
-
-        if self.search_only:
-            raise SearchOnlyError
-
-        if not self.require_write:
-            return self.item_id
-
-        if entity_type == 'property':
-            self.json_representation['datatype'] = property_datatype
-            if 'sitelinks' in self.json_representation:
-                del self.json_representation['sitelinks']
-
-        payload = {
-            'action': 'wbeditentity',
-            'data': json.JSONEncoder().encode(self.json_representation),
-            'format': 'json',
-            'token': login.get_edit_token(),
-            'summary': edit_summary,
-            'maxlag': config['MAXLAG']
-        }
-        headers = {
-            'content-type': 'application/x-www-form-urlencoded',
-            'charset': 'utf-8'
-        }
-
-        if bot_account:
-            payload.update({'bot': ''})
-
-        if self.create_new_item:
-            payload.update({u'new': entity_type})
-        else:
-            payload.update({u'id': self.item_id})
-
-        if self.debug:
-            print(payload)
-
-        try:
-            json_data = FunctionsEngine.mediawiki_api_call('POST', self.mediawiki_api_url, session=login.get_session(),
-                                                           max_retries=max_retries, retry_after=retry_after,
-                                                           headers=headers, data=payload)
-
-            if 'error' in json_data and 'messages' in json_data['error']:
-                error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
-                if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
-                    raise NonUniqueLabelDescriptionPairError(json_data)
-                else:
-                    raise MWApiError(json_data)
-            elif 'error' in json_data.keys():
-                raise MWApiError(json_data)
-        except Exception:
-            print('Error while writing to the Wikibase instance')
-            raise
-
-        # after successful write, update this object with latest json, QID and parsed data types.
-        self.create_new_item = False
-        self.item_id = json_data['entity']['id']
-        self.parse_json(json_data=json_data['entity'])
-        self.data = []
-        if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
-            self.lastrevid = json_data["entity"]["lastrevid"]
-        return self.item_id
-
-    @classmethod
-    def generate_item_instances(cls, items, mediawiki_api_url=None, login=None, user_agent=None):
-        """
-        A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
-        tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
-        ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
-        :param user_agent: A custom user agent
-        :param items: A list of QIDs or property IDs
-        :type items: list
-        :param mediawiki_api_url: The MediaWiki url which should be used
-        :type mediawiki_api_url: str
-        :param login: An object of type Login, which holds the credentials/session cookies required for >50 item bulk
-            retrieval of items.
-        :type login: wbi_login.Login
-        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
-            instance of ItemEngine with the corresponding item data.
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
-
-        assert type(items) == list
-
-        url = mediawiki_api_url
-        params = {
-            'action': 'wbgetentities',
-            'ids': '|'.join(items),
-            'format': 'json'
-        }
-        headers = {
-            'User-Agent': user_agent
-        }
-
-        if login:
-            reply = login.get_session().get(url, params=params, headers=headers)
-        else:
-            reply = requests.get(url, params=params)
-
-        item_instances = []
-        for qid, v in reply.json()['entities'].items():
-            ii = cls(item_id=qid, item_data=v)
-            ii.mediawiki_api_url = mediawiki_api_url
-            item_instances.append((qid, ii))
-
-        return item_instances
-
-    # References
-    def count_references(self, prop_id):
-        counts = dict()
-        for claim in self.get_json_representation()['claims'][prop_id]:
-            counts[claim['id']] = len(claim['references'])
-        return counts
-
-    def get_reference_properties(self, prop_id):
-        references = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['references']:
-                references.append(reference['snaks'].keys())
-        return references
-
-    def get_qualifier_properties(self, prop_id):
-        qualifiers = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['qualifiers']:
-                qualifiers.append(reference['snaks'].keys())
-        return qualifiers
-
-    @classmethod
-    def wikibase_item_engine_factory(cls, mediawiki_api_url=None, sparql_endpoint_url=None, name='LocalItemEngine'):
-        """
-        Helper function for creating a ItemEngine class with arguments set for a different Wikibase instance than
-        Wikidata.
-        :param mediawiki_api_url: Mediawiki api url. For wikidata, this is: 'https://www.wikidata.org/w/api.php'
-        :param sparql_endpoint_url: sparql endpoint url. For wikidata, this is: 'https://query.wikidata.org/sparql'
-        :param name: name of the resulting class
-        :return: a subclass of ItemEngine with the mediawiki_api_url and sparql_endpoint_url arguments set
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
-
-        class SubCls(cls):
-            def __init__(self, *args, **kwargs):
-                kwargs['mediawiki_api_url'] = mediawiki_api_url
-                kwargs['sparql_endpoint_url'] = sparql_endpoint_url
-                super(SubCls, self).__init__(*args, **kwargs)
-
-        SubCls.__name__ = name
-        return SubCls
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
@@ -1336,6 +1238,7 @@ class FunctionsEngine(object):
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :type user_agent: str
         """
+
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
@@ -1354,12 +1257,14 @@ class FunctionsEngine(object):
         print(r.json())
 
     @staticmethod
-    def get_search_results(search_string='', mediawiki_api_url=None, user_agent=None, max_results=500, language=None,
-                           dict_id_label=False):
+    def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None,
+                           max_results=500, language=None, dict_result=False):
         """
-        Performs a search in the Wikibase instance for a certain search string
-        :param search_string: a string which should be searched for in the Wikibase instance
+        Performs a search for entities in the Wikibase instance using labels and aliases.
+        :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
         :type search_string: str
+        :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
+        :type search_type: str
         :param mediawiki_api_url: Specify the mediawiki_api_url.
         :type mediawiki_api_url: str
         :param user_agent: The user agent string transmitted in the http header
@@ -1368,9 +1273,9 @@ class FunctionsEngine(object):
         :type max_results: int
         :param language: The language in which to perform the search.
         :type language: str
-        :return: returns a list of QIDs found in the search and a list of labels complementary to the QIDs
-        :type dict_id_label: boolean
-        :return: function return a list with a dict of id and label
+        :param dict_result:
+        :type dict_result: boolean
+        :return: list
         """
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
@@ -1381,6 +1286,7 @@ class FunctionsEngine(object):
             'action': 'wbsearchentities',
             'language': language,
             'search': search_string,
+            'type': search_type,
             'format': 'json',
             'limit': 50
         }
@@ -1389,34 +1295,118 @@ class FunctionsEngine(object):
             'User-Agent': user_agent
         }
 
-        cont_count = 1
+        cont_count = 0
         results = []
 
-        while cont_count > 0:
-            params.update({'continue': 0 if cont_count == 1 else cont_count})
+        while True:
+            params.update({'continue': cont_count})
 
             reply = requests.get(mediawiki_api_url, params=params, headers=headers)
             reply.raise_for_status()
             search_results = reply.json()
 
             if search_results['success'] != 1:
-                raise SearchError('WB search failed')
+                raise SearchError('Wikibase API wbsearchentities failed')
             else:
                 for i in search_results['search']:
-                    if dict_id_label:
-                        results.append({'id': i['id'], 'label': i['label']})
+                    if dict_result:
+                        description = i['description'] if 'description' in i else None
+                        aliases = i['aliases'] if 'aliases' in i else None
+                        results.append({'id': i['id'], 'label': i['label'], 'match': i['match'],
+                                        'description': description, 'aliases': aliases})
                     else:
                         results.append(i['id'])
 
             if 'search-continue' not in search_results:
-                cont_count = 0
+                break
             else:
                 cont_count = search_results['search-continue']
 
-            if cont_count > max_results:
+            if cont_count >= max_results:
                 break
 
         return results
+
+    @staticmethod
+    def generate_item_instances(items, mediawiki_api_url=None, login=None, user_agent=None):
+        """
+        A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
+        tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
+        ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
+        :param user_agent: A custom user agent
+        :param items: A list of QIDs or property IDs
+        :type items: list
+        :param mediawiki_api_url: The MediaWiki url which should be used
+        :type mediawiki_api_url: str
+        :param login: An object of type Login, which holds the credentials/session cookies required for >50 item bulk
+            retrieval of items.
+        :type login: wbi_login.Login
+        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
+            instance of ItemEngine with the corresponding item data.
+        """
+
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+
+        assert type(items) == list
+
+        url = mediawiki_api_url
+        params = {
+            'action': 'wbgetentities',
+            'ids': '|'.join(items),
+            'format': 'json'
+        }
+        headers = {
+            'User-Agent': user_agent
+        }
+
+        if login:
+            reply = login.get_session().get(url, params=params, headers=headers)
+        else:
+            reply = requests.get(url, params=params)
+
+        item_instances = []
+        for qid, v in reply.json()['entities'].items():
+            ii = ItemEngine(item_id=qid, item_data=v)
+            ii.mediawiki_api_url = mediawiki_api_url
+            item_instances.append((qid, ii))
+
+        return item_instances
+
+    @staticmethod
+    def get_distinct_value_props(sparql_endpoint_url=None, wikibase_url=None, property_constraint_pid=None,
+                                 distinct_values_constraint_qid=None):
+        """
+        On wikidata, the default core IDs will be the properties with a distinct values constraint
+        select ?p where {?p wdt:P2302 wd:Q21502410}
+        See: https://www.wikidata.org/wiki/Help:Property_constraints_portal
+        https://www.wikidata.org/wiki/Help:Property_constraints_portal/Unique_value
+        """
+
+        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+        property_constraint_pid = config[
+            'PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
+        distinct_values_constraint_qid = config[
+            'DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
+
+        pcpid = property_constraint_pid
+        dvcqid = distinct_values_constraint_qid
+
+        query = '''
+        SELECT ?p WHERE {{
+            ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
+        }}
+        '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
+        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
+        if df.empty:
+            warn("Warning: No distinct value properties found\n" +
+                 "Please set P2302 and Q21502410 in your Wikibase or set `core_props` manually.\n" +
+                 "Continuing with no core_props")
+            return set()
+        else:
+            df.p = df.p.str.rsplit("/", 1).str[-1]
+            return set(df.p)
 
 
 class JsonParser(object):
@@ -1499,7 +1489,6 @@ class BaseDataType(object):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
-
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -1537,6 +1526,7 @@ class BaseDataType(object):
         :type if_exists: A string of one of three allowed values: 'REPLACE', 'APPEND', 'FORCE_APPEND'
         :return:
         """
+
         self.value = value
         self.snak_type = snak_type
         self.data_type = data_type
@@ -1648,6 +1638,9 @@ class BaseDataType(object):
     def get_value(self):
         return self.value
 
+    def get_sparql_value(self):
+        return self.value
+
     def set_value(self, value):
         if value is None and self.snak_type not in {'novalue', 'somevalue'}:
             raise ValueError("If 'value' is None, snak_type must be novalue or somevalue")
@@ -1655,6 +1648,8 @@ class BaseDataType(object):
             del self.json_representation['datavalue']
         elif 'datavalue' not in self.json_representation:
             self.json_representation['datavalue'] = {}
+
+        self.value = value
 
     def get_references(self):
         return self.references
@@ -1791,6 +1786,7 @@ class BaseDataType(object):
         fref accepts two arguments 'oldrefs' and 'newrefs', each of which are a list of references,
         where each reference is a list of statements
         """
+
         if not include_ref:
             # return the result of BaseDataType.__eq__, which is testing for equality of value and qualifiers
             return self == that
@@ -1805,6 +1801,7 @@ class BaseDataType(object):
         """
         tests for exactly identical references
         """
+
         oldrefs = olditem.references
         newrefs = newitem.references
 
@@ -1830,6 +1827,7 @@ class String(BaseDataType):
     """
     Implements the Wikibase data type 'string'
     """
+
     DTYPE = 'string'
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
@@ -1859,7 +1857,7 @@ class String(BaseDataType):
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                      check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -1870,7 +1868,7 @@ class String(BaseDataType):
             'type': 'string'
         }
 
-        super(String, self).set_value(value=value)
+        super(String, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1913,7 +1911,7 @@ class Math(BaseDataType):
                                    rank=rank, prop_nr=prop_nr, check_qualifier_equality=check_qualifier_equality,
                                    if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -1924,7 +1922,7 @@ class Math(BaseDataType):
             'type': 'string'
         }
 
-        super(Math, self).set_value(value=value)
+        super(Math, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1967,7 +1965,7 @@ class ExternalID(BaseDataType):
                                          qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                          check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -1978,7 +1976,7 @@ class ExternalID(BaseDataType):
             'type': 'string'
         }
 
-        super(ExternalID, self).set_value(value=value)
+        super(ExternalID, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2028,7 +2026,7 @@ class ItemID(BaseDataType):
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                      check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, \
@@ -2055,7 +2053,7 @@ class ItemID(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(ItemID, self).set_value(value=value)
+        super(ItemID, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2105,7 +2103,7 @@ class Property(BaseDataType):
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                        check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, \
@@ -2132,7 +2130,7 @@ class Property(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Property, self).set_value(value=value)
+        super(Property, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2147,6 +2145,13 @@ class Time(BaseDataType):
     Implements the Wikibase data type with date and time values
     """
     DTYPE = 'time'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:dateTime .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
                  wikibase_url=None, is_reference=False, is_qualifier=False, snak_type='value', references=None,
@@ -2207,8 +2212,20 @@ class Time(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        # TODO: Introduce validity checks for time, etc.
         self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
+        assert isinstance(self.time, str) or self.time is None, "Expected str, found {} ({})".format(type(self.time), self.time)
+
+        if self.time is not None:
+            if not (self.time.startswith("+") or self.time.startswith("-")):
+                self.time = "+" + self.time
+            pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
+            matches = pattern.match(self.time)
+            if not matches:
+                raise ValueError('Time time must be a string in the following format: \'+%Y-%m-%dT%H:%M:%SZ\'')
+            self.value = value
+            if self.precision < 0 or self.precision > 15:
+                raise ValueError('Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
+
         self.json_representation['datavalue'] = {
             'value': {
                 'time': self.time,
@@ -2221,16 +2238,11 @@ class Time(BaseDataType):
             'type': 'time'
         }
 
-        super(Time, self).set_value(value=value)
+        self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
+        super(Time, self).set_value(value=self.value)
 
-        if self.time is not None:
-            assert isinstance(self.time, str), \
-                "Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'"
-            if self.precision < 0 or self.precision > 14:
-                raise ValueError('Invalid value for time precision, '
-                                 'see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
-            if not (self.time.startswith("+") or self.time.startswith("-")):
-                self.time = "+" + self.time
+    def get_sparql_value(self):
+        return self.time
 
     @classmethod
     @JsonParser
@@ -2248,6 +2260,13 @@ class Url(BaseDataType):
     Implements the Wikibase data type for URL strings
     """
     DTYPE = 'url'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
@@ -2290,7 +2309,7 @@ class Url(BaseDataType):
             'type': 'string'
         }
 
-        super(Url, self).set_value(value=value)
+        super(Url, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2305,6 +2324,13 @@ class MonolingualText(BaseDataType):
     Implements the Wikibase data type for Monolingual Text strings
     """
     DTYPE = 'monolingualtext'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> {value} .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
@@ -2343,10 +2369,9 @@ class MonolingualText(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        text, language = value
-        assert isinstance(text, str) or self.text is None, "Expected str, found {} ({})".format(type(text), text)
-        self.text = text
-        self.language = language
+        self.text, self.language = value
+        assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
+        assert isinstance(self.language, str) or self.text is None, "Expected str, found {} ({})".format(type(self.language), self.language)
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2356,7 +2381,11 @@ class MonolingualText(BaseDataType):
             'type': 'monolingualtext'
         }
 
-        super(MonolingualText, self).set_value(value=value)
+        self.value = (self.text, self.language)
+        super(MonolingualText, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return '"' + self.text.replace('"', r'\"') + '"@' + self.language
 
     @classmethod
     @JsonParser
@@ -2373,6 +2402,13 @@ class Quantity(BaseDataType):
     Implements the Wikibase data type for quantities
     """
     DTYPE = 'quantity'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:decimal .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
@@ -2423,7 +2459,6 @@ class Quantity(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        # TODO: Introduce validity checks for quantity, etc.
         self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
         if self.quantity is not None:
@@ -2467,7 +2502,10 @@ class Quantity(BaseDataType):
             del self.json_representation['datavalue']['value']['lowerBound']
 
         self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
-        super(Quantity, self).set_value(value=value)
+        super(Quantity, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return self.quantity
 
     @classmethod
     @JsonParser
@@ -2541,7 +2579,7 @@ class CommonsMedia(BaseDataType):
             'type': 'string'
         }
 
-        super(CommonsMedia, self).set_value(value=value)
+        super(CommonsMedia, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2556,6 +2594,13 @@ class GlobeCoordinate(BaseDataType):
     Implements the Wikibase data type for globe coordinates
     """
     DTYPE = 'globe-coordinate'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^geo:wktLiteral .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
                  is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
@@ -2618,9 +2663,11 @@ class GlobeCoordinate(BaseDataType):
             'type': 'globecoordinate'
         }
 
-        super(GlobeCoordinate, self).set_value(value=value)
+        self.value = (self.latitude, self.longitude, self.precision, self.globe)
+        super(GlobeCoordinate, self).set_value(value=self.value)
 
-        self.value = value
+    def get_sparql_value(self):
+        return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
 
     @classmethod
     @JsonParser
@@ -2639,6 +2686,13 @@ class GeoShape(BaseDataType):
     Implements the Wikibase data type 'geo-shape'
     """
     DTYPE = 'geo-shape'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
@@ -2667,13 +2721,14 @@ class GeoShape(BaseDataType):
                                        qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                        check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         else:
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
             pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
             matches = pattern.match(value)
             if not matches:
@@ -2686,7 +2741,7 @@ class GeoShape(BaseDataType):
             'type': 'string'
         }
 
-        super(GeoShape, self).set_value(value=value)
+        super(GeoShape, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2730,7 +2785,7 @@ class MusicalNotation(BaseDataType):
                                               qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                               check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -2741,7 +2796,7 @@ class MusicalNotation(BaseDataType):
             'type': 'string'
         }
 
-        super(MusicalNotation, self).set_value(value=value)
+        super(MusicalNotation, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2784,13 +2839,14 @@ class TabularData(BaseDataType):
                                           qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                           check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         else:
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
@@ -2803,7 +2859,7 @@ class TabularData(BaseDataType):
             'type': 'string'
         }
 
-        super(TabularData, self).set_value(value=value)
+        super(TabularData, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2853,7 +2909,7 @@ class Lexeme(BaseDataType):
                                      qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                      check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
@@ -2880,7 +2936,7 @@ class Lexeme(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Lexeme, self).set_value(value=value)
+        super(Lexeme, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2895,6 +2951,13 @@ class Form(BaseDataType):
     Implements the Wikibase data type with value 'wikibase-form'
     """
     DTYPE = 'wikibase-form'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
@@ -2923,7 +2986,7 @@ class Form(BaseDataType):
                                    qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                    check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -2946,7 +3009,7 @@ class Form(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Form, self).set_value(value=value)
+        super(Form, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -2961,6 +3024,13 @@ class Sense(BaseDataType):
     Implements the Wikibase data type with value 'wikibase-sense'
     """
     DTYPE = 'wikibase-sense'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
+          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
+        }}
+    '''
 
     def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
@@ -2989,7 +3059,7 @@ class Sense(BaseDataType):
                                     qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                     check_qualifier_equality=check_qualifier_equality, if_exists=if_exists)
 
-        self.set_value(value=value)
+        self.set_value(value)
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
@@ -3012,7 +3082,7 @@ class Sense(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Sense, self).set_value(value=value)
+        super(Sense, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
