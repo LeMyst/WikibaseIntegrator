@@ -830,8 +830,8 @@ class ItemEngine(object):
             :type new_item: A child of BaseDataType
             """
 
-            new_references = new_item.get_references()
             old_references = old_item.get_references()
+            new_references = new_item.get_references()
 
             if sum(map(lambda z: len(z), old_references)) == 0 or self.global_ref_mode == 'STRICT_OVERWRITE':
                 old_item.set_references(new_references)
@@ -843,25 +843,19 @@ class ItemEngine(object):
                 old_references.extend(new_references)
                 old_item.set_references(old_references)
 
-            elif self.global_ref_mode == 'CUSTOM' or new_item.statement_ref_mode == 'CUSTOM':
+            elif self.global_ref_mode == 'CUSTOM' or new_item.statement_ref_mode == 'CUSTOM' and self.ref_handler and callable(self.ref_handler):
                 self.ref_handler(old_item, new_item)
 
             elif self.global_ref_mode == 'KEEP_GOOD' or new_item.statement_ref_mode == 'KEEP_GOOD':
-                keep_block = [False for x in old_references]
-                for count, ref_block in enumerate(old_references):
-                    stated_in_value = [x.get_value() for x in ref_block if x.get_prop_nr() == 'P248']
-                    if is_good_ref(ref_block):
-                        keep_block[count] = True
+                # Copy only good_ref
+                refs = [x for x in old_references if is_good_ref(x)]
 
-                    new_ref_si_values = [x.get_value() if x.get_prop_nr() == 'P248' else None
-                                         for z in new_references for x in z]
+                # Don't add already existing references
+                for new_ref in new_references:
+                    if new_ref not in old_references:
+                        refs.append(new_ref)
 
-                    for si in stated_in_value:
-                        if si in new_ref_si_values:
-                            keep_block[count] = False
-
-                refs = [x for c, x in enumerate(old_references) if keep_block[c]]
-                refs.extend(new_references)
+                # Set the references
                 old_item.set_references(refs)
 
         # sort the incoming data according to the property number
@@ -1579,7 +1573,7 @@ class BaseDataType(object):
         if self.is_qualifier and self.is_reference:
             raise ValueError('A claim cannot be a reference and a qualifer at the same time')
         if (len(self.references) > 0 or len(self.qualifiers) > 0) and (self.is_qualifier or self.is_reference):
-            raise ValueError('Qualifiers or references cannot have references')
+            raise ValueError('Qualifiers or references cannot have references or qualifiers')
 
     def has_equal_qualifiers(self, other):
         # check if the qualifiers are equal with the 'other' object
@@ -1607,17 +1601,6 @@ class BaseDataType(object):
         if not (self.check_qualifier_equality and other.check_qualifier_equality) and equal_values:
             return True
         elif equal_values and equal_qualifiers:
-            return True
-        else:
-            return False
-
-    def __ne__(self, other):
-        equal_qualifiers = self.has_equal_qualifiers(other)
-        nonequal_values = self.get_value() != other.get_value() or self.get_prop_nr() != other.get_prop_nr()
-
-        if not (self.check_qualifier_equality and other.check_qualifier_equality) and nonequal_values:
-            return True
-        if nonequal_values or not equal_qualifiers:
             return True
         else:
             return False
@@ -1658,6 +1641,13 @@ class BaseDataType(object):
         if len(references) > 0 and (self.is_qualifier or self.is_reference):
             raise ValueError('Qualifiers or references cannot have references')
 
+        # Force clean duplicate references
+        temp_references = []
+        for reference in references:
+            if reference not in temp_references:
+                temp_references.append(reference)
+        references = temp_references
+
         self.references = references
 
     def get_qualifiers(self):
@@ -1666,7 +1656,7 @@ class BaseDataType(object):
     def set_qualifiers(self, qualifiers):
         # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in Wikibase
         if len(qualifiers) > 0 and (self.is_qualifier or self.is_reference):
-            raise ValueError('Qualifiers or references cannot have references')
+            raise ValueError('Qualifiers or references cannot have qualifiers')
 
         self.qualifiers = qualifiers
 
@@ -1793,8 +1783,7 @@ class BaseDataType(object):
         if include_ref and self != that:
             return False
         if include_ref and fref is None:
-            fref = BaseDataType.refs_equal
-        return fref(self, that)
+            return BaseDataType.refs_equal(self, that)
 
     @staticmethod
     def refs_equal(olditem, newitem):
@@ -1808,8 +1797,7 @@ class BaseDataType(object):
         def ref_equal(oldref, newref):
             return True if (len(oldref) == len(newref)) and all(x in oldref for x in newref) else False
 
-        if len(oldrefs) == len(newrefs) and \
-                all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
+        if len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
             return True
         else:
             return False

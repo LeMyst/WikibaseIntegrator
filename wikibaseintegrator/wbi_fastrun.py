@@ -226,7 +226,7 @@ class FastRunContainer(object):
                 if (x.get_value() == date.get_value() or (
                         self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and \
                         x.get_prop_nr() not in del_props:
-                    if self.use_refs and self.ref_handler:
+                    if self.use_refs and self.ref_handler and callable(self.ref_handler):
                         to_be = copy.deepcopy(x)
                         self.ref_handler(to_be, date)
                     else:
