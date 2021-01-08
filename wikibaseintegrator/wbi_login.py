@@ -86,62 +86,65 @@ class Login(object):
             # redirect -> authorization -> callback url
             self.redirect, self.request_token = self.handshaker.initiate(callback=self.callback_url)
 
-        elif use_clientlogin:
-            params = {
-                'action': 'query',
-                'format': 'json',
-                'meta': 'authmanagerinfo',
-                'amisecuritysensitiveoperation': '',
-                'amirequestsfor': 'login'
-            }
-
-            self.s.get(self.mediawiki_api_url, params=params)
-
-            params2 = {
-                'action': 'query',
-                'format': 'json',
-                'meta': 'tokens',
-                'type': 'login'
-            }
-            login_token = self.s.get(self.mediawiki_api_url, params=params2).json()['query']['tokens']['logintoken']
-
-            data = {
-                'action': 'clientlogin',
-                'format': 'json',
-                'username': user,
-                'password': pwd,
-                'logintoken': login_token,
-                'loginreturnurl': 'http://example.org/'
-            }
-
-            login_result = self.s.post(self.mediawiki_api_url, data=data).json()
-            if debug:
-                print(login_result)
-
-            if login_result['clientlogin']['status'] == 'FAIL':
-                raise ValueError('Login FAILED')
-
-            self.generate_edit_credentials()
         else:
-            params = {
-                'action': 'login',
-                'lgname': user,
-                'lgpassword': pwd,
+            params_login = {
+                'action': 'query',
+                'meta': 'tokens',
+                'type': 'login',
                 'format': 'json'
             }
 
             # get login token
-            login_token = self.s.post(self.mediawiki_api_url, data=params).json()['login']['token']
+            login_token = self.s.post(self.mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
 
-            # do the login using the login token
-            params.update({'lgtoken': login_token})
-            r = self.s.post(self.mediawiki_api_url, data=params).json()
+            if use_clientlogin:
+                params = {
+                    'action': 'clientlogin',
+                    'username': user,
+                    'password': pwd,
+                    'logintoken': login_token,
+                    'loginreturnurl': 'http://example.org/',
+                    'format': 'json'
+                }
 
-            if r['login']['result'] != 'Success':
-                print('login failed:', r['login']['reason'])
-                raise ValueError('login FAILED!!')
-            elif debug:
-                print('Successfully logged in as', r['login']['lgusername'])
+                login_result = self.s.post(self.mediawiki_api_url, data=params).json()
+
+                if debug:
+                    print(login_result)
+
+                if 'clientlogin' in login_result:
+                    if login_result['clientlogin']['status'] != 'PASS':
+                        clientlogin = login_result['clientlogin']
+                        raise LoginError('Login failed ({}). Message: \'{}\''.format(clientlogin['messagecode'], clientlogin['message']))
+                    elif debug:
+                        print('Successfully logged in as', login_result['clientlogin']['username'])
+                else:
+                    error = login_result['error']
+                    raise LoginError('Login failed ({}). Message: \'{}\''.format(error['code'], error['info']))
+
+            else:
+                params = {
+                    'action': 'login',
+                    'lgname': user,
+                    'lgpassword': pwd,
+                    'lgtoken': login_token,
+                    'format': 'json'
+                }
+
+                login_result = self.s.post(self.mediawiki_api_url, data=params).json()
+
+                if debug:
+                    print(login_result)
+
+                if login_result['login']['result'] != 'Success':
+                    raise LoginError('Login failed. Reason: \'{}\''.format(login_result['login']['result']))
+                elif debug:
+                    print('Successfully logged in as', login_result['login']['lgusername'])
+
+                if 'warnings' in login_result:
+                    print('MediaWiki login warnings messages:')
+                    for message in login_result['warnings']:
+                        print('* {}: {}'.format(message, login_result['warnings'][message]['*']))
 
             self.generate_edit_credentials()
 
@@ -217,3 +220,8 @@ class Login(object):
 
         self.s.auth = auth1
         self.generate_edit_credentials()
+
+
+class LoginError(Exception):
+    """Raised when there is an issue with the login"""
+    pass
