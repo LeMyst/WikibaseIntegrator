@@ -1551,8 +1551,22 @@ class BaseDataType(object):
 
         if not references:
             self.references = list()
+        else:
+            for ref_list in self.references:
+                for reference in ref_list:
+                    if reference.is_reference is False:
+                        raise ValueError('A reference can\'t be declared as is_reference=False')
+                    elif reference.is_reference is None:
+                        reference.is_reference = True
+
         if not self.qualifiers:
             self.qualifiers = list()
+        else:
+            for qualifier in self.qualifiers:
+                if qualifier.is_qualifier is False:
+                    raise ValueError('A qualifier can\'t be declared as is_qualifier=False')
+                elif qualifier.is_qualifier is None:
+                    qualifier.is_qualifier = True
 
         if isinstance(prop_nr, int):
             self.prop_nr = value
@@ -1711,12 +1725,6 @@ class BaseDataType(object):
 
         self.prop_nr = prop_nr
 
-    def is_reference(self):
-        return self.is_reference
-
-    def is_qualifier(self):
-        return self.is_qualifier
-
     def get_json_representation(self):
         if self.is_qualifier or self.is_reference:
             tmp_json = {
@@ -1833,7 +1841,7 @@ class String(BaseDataType):
 
     DTYPE = 'string'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -1887,7 +1895,7 @@ class Math(BaseDataType):
     """
     DTYPE = 'math'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -1940,7 +1948,7 @@ class ExternalID(BaseDataType):
     """
     DTYPE = 'external-id'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2001,7 +2009,7 @@ class ItemID(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2078,7 +2086,7 @@ class Property(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2157,7 +2165,7 @@ class Time(BaseDataType):
 
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
                  wikibase_url=None,
-                 is_reference=False, is_qualifier=False, snak_type='value', references=None, qualifiers=None,
+                 is_reference=None, is_qualifier=None, snak_type='value', references=None, qualifiers=None,
                  rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2270,7 +2278,7 @@ class Url(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2333,7 +2341,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
+    def __init__(self, text, prop_nr, language=None, is_reference=None, is_qualifier=None, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2410,8 +2418,8 @@ class Quantity(BaseDataType):
         }}
     '''
 
-    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
-                 is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
+    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=None,
+                 is_qualifier=None, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True, wikibase_url=None):
         """
         Constructor, calls the superclass BaseDataType
@@ -2539,7 +2547,7 @@ class CommonsMedia(BaseDataType):
     """
     DTYPE = 'commonsMedia'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2602,8 +2610,8 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
-                 is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
+    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=None,
+                 is_qualifier=None, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2694,7 +2702,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2757,7 +2765,7 @@ class MusicalNotation(BaseDataType):
     """
     DTYPE = 'musical-notation'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2812,7 +2820,7 @@ class TabularData(BaseDataType):
     """
     DTYPE = 'tabular-data'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2882,7 +2890,7 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -2959,7 +2967,7 @@ class Form(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType
@@ -3032,7 +3040,7 @@ class Sense(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True):
         """
         Constructor, calls the superclass BaseDataType

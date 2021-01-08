@@ -188,9 +188,9 @@ def test_nositelinks():
 ####
 def test_ref_equals():
     # statements are identical
-    oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352'),
-              wbi_core.ItemID(value='Q24784025', prop_nr='P527'),
-              wbi_core.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813')]
+    oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352', is_reference=True),
+              wbi_core.ItemID(value='Q24784025', prop_nr='P527', is_reference=True),
+              wbi_core.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813', is_reference=True)]
     olditem = wbi_core.ItemID("Q123", "P123", references=[oldref])
     newitem = copy.deepcopy(olditem)
     assert olditem.equals(newitem, include_ref=False)
