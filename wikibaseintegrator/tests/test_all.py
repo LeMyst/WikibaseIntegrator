@@ -26,7 +26,7 @@ class TestMediawikiApiCall(unittest.TestCase):
 
 
 class TestDataType(unittest.TestCase):
-    def test_wd_quantity(self):
+    def test_quantity(self):
         dt = wbi_core.Quantity(quantity='34.5', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
@@ -58,7 +58,7 @@ class TestDataType(unittest.TestCase):
         if not value['value']['lowerBound'] == '+33.7':
             raise
 
-    def test_wd_geoshape(self):
+    def test_geoshape(self):
         dt = wbi_core.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
@@ -74,13 +74,13 @@ class TestDataType(unittest.TestCase):
         if not value['type'] == 'string':
             raise
 
-    def test_wd_string(self):
-        pass
-
     def test_live_item(self):
-        wd_item = wbi_core.ItemEngine(item_id='Q423111')
+    """
+    Test an item against Wikidata
+    """
+        item = wbi_core.ItemEngine(item_id='Q423111')
 
-        mass_statement = [x for x in wd_item.statements if x.get_prop_nr() == 'P2067'].pop()
+        mass_statement = [x for x in item.statements if x.get_prop_nr() == 'P2067'].pop()
         pprint.pprint(mass_statement.get_json_representation())
 
         if not mass_statement:
@@ -92,7 +92,6 @@ class TestDataType(unittest.TestCase):
 class TestFastRun(unittest.TestCase):
     """
     some basic tests for fastrun mode
-
     """
 
     def test_fast_run(self):
