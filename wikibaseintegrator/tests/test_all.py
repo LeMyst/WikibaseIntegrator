@@ -75,9 +75,9 @@ class TestDataType(unittest.TestCase):
             raise
 
     def test_live_item(self):
-    """
-    Test an item against Wikidata
-    """
+        """
+        Test an item against Wikidata
+        """
         item = wbi_core.ItemEngine(item_id='Q423111')
 
         mass_statement = [x for x in item.statements if x.get_prop_nr() == 'P2067'].pop()
