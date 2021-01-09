@@ -165,7 +165,7 @@ class Login(object):
 
     def get_edit_cookie(self):
         """
-        Can be called in order to retrieve the cookies from an instance of WDLogin
+        Can be called in order to retrieve the cookies from an instance of wbi_login.Login
         :return: Returns a json with all relevant cookies, aka cookie jar
         """
         if (time.time() - self.instantiation_time) > self.token_renew_period:
@@ -176,7 +176,7 @@ class Login(object):
 
     def get_edit_token(self):
         """
-        Can be called in order to retrieve the edit token from an instance of WDLogin
+        Can be called in order to retrieve the edit token from an instance of wbi_login.Login
         :return: returns the edit token
         """
         if not self.edit_token or (time.time() - self.instantiation_time) > self.token_renew_period:
