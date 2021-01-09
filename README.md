@@ -5,7 +5,7 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
-- [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator---wikidataintegrator)
+- [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
   * [Move from WikidataIntegrator to WikibaseIntegrator](#move-from-wikidataintegrator-to-wikibaseintegrator)
 - [Installation](#installation)
 - [The Core Parts](#the-core-parts)
@@ -19,10 +19,10 @@
   * [Execute SPARQL queries](#execute-sparql-queries)
   * [Wikidata Search](#wikidata-search)
   * [Merge Wikibase items](#merge-wikibase-items)
-- [Examples (in "normal" mode)](#examples--in--normal--mode-)
+- [Examples (in "normal" mode)](#examples-in-normal-mode)
   * [A Minimal Bot](#a-minimal-bot)
   * [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
-- [Examples (in "fast run" mode)](#examples--in--fast-run--mode-)
+- [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
 
 # WikibaseIntegrator / WikidataIntegrator #
 
