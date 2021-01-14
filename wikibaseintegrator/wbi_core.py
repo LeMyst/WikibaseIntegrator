@@ -1570,6 +1570,9 @@ class BaseDataType(object):
         if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND']:
             raise ValueError('{} is not a valid if_exists value'.format(self.if_exists))
 
+        if self.value is None and self.snak_type == 'value':
+            raise ValueError('Parameter \'value\' can\'t be \'None\' if \'snak_type\' is \'value\'')
+
         if self.is_qualifier and self.is_reference:
             raise ValueError('A claim cannot be a reference and a qualifer at the same time')
         if (len(self.references) > 0 or len(self.qualifiers) > 0) and (self.is_qualifier or self.is_reference):
@@ -2213,6 +2216,8 @@ class Time(BaseDataType):
             self.value = value
             if self.precision < 0 or self.precision > 15:
                 raise ValueError('Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
+        elif self.snak_type == 'value':
+            raise ValueError('Parameter \'time\' can\'t be \'None\' if \'snak_type\' is \'value\'')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2358,8 +2363,11 @@ class MonolingualText(BaseDataType):
 
     def set_value(self, value):
         self.text, self.language = value
-        assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
-        assert isinstance(self.language, str) or self.text is None, "Expected str, found {} ({})".format(type(self.language), self.language)
+        if self.text is not None:
+            assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
+        elif self.snak_type == 'value':
+            raise ValueError('Parameter \'text\' can\'t be \'None\' if \'snak_type\' is \'value\'')
+        assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2471,6 +2479,8 @@ class Quantity(BaseDataType):
 
             if self.upper_bound and float(self.upper_bound) < float(self.quantity):
                 raise ValueError('Upper bound too small')
+        elif self.snak_type == 'value':
+            raise ValueError('Parameter \'quantity\' can\'t be \'None\' if \'snak_type\' is \'value\'')
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2639,6 +2649,7 @@ class GlobeCoordinate(BaseDataType):
 
     def set_value(self, value):
         # TODO: Introduce validity checks for coordinates, etc.
+        # TODO: Add check if latitude/longitude/precision is None
         self.latitude, self.longitude, self.precision, self.globe = value
 
         self.json_representation['datavalue'] = {
