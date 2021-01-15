@@ -1569,7 +1569,7 @@ class BaseDataType(object):
                     qualifier.is_qualifier = True
 
         if isinstance(prop_nr, int):
-            self.prop_nr = value
+            self.prop_nr = 'P' + str(prop_nr)
         else:
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(prop_nr)
