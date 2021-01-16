@@ -40,15 +40,15 @@ class FastRunContainer(object):
                     ks = k.split('/')
                 if v:
                     if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
+                                                   '<{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(
                             wb_url=self.wikibase_url, prop_nr=k, entity=v)
                 else:
                     if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1])
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
+                                                   '?zz{prop_nr1}{prop_nr2} .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1])
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr=k)
@@ -574,7 +574,7 @@ class FastRunContainer(object):
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang: str, lang_data_type: str) -> None:
+    def _query_lang(self, lang: str, lang_data_type: str):
         """
 
         :param lang:
@@ -601,11 +601,10 @@ class FastRunContainer(object):
         if self.debug:
             print(query)
 
-        return wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results'][
-            'bindings']
+        return wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
-    def _process_lang(result: list) -> set:
+    def _process_lang(result: list):
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]

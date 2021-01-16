@@ -1426,7 +1426,7 @@ class JsonParser(object):
             json_representation = self.json_representation
 
             if 'references' in json_representation:
-                self.references.extend([[] for x in json_representation['references']])
+                self.references.extend([[] for _ in json_representation['references']])
                 for count, ref_block in enumerate(json_representation['references']):
                     ref_hash = ''
                     if 'hash' in ref_block:
@@ -1539,11 +1539,25 @@ class BaseDataType(object):
 
         if not references:
             self.references = list()
+        else:
+            for ref_list in self.references:
+                for reference in ref_list:
+                    if reference.is_reference is False:
+                        raise ValueError('A reference can\'t be declared as is_reference=False')
+                    elif reference.is_reference is None:
+                        reference.is_reference = True
+
         if not self.qualifiers:
             self.qualifiers = list()
+        else:
+            for qualifier in self.qualifiers:
+                if qualifier.is_qualifier is False:
+                    raise ValueError('A qualifier can\'t be declared as is_qualifier=False')
+                elif qualifier.is_qualifier is None:
+                    qualifier.is_qualifier = True
 
         if isinstance(prop_nr, int):
-            self.prop_nr = value
+            self.prop_nr = 'P' + str(prop_nr)
         else:
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(prop_nr)
@@ -1587,7 +1601,7 @@ class BaseDataType(object):
         if len(self_qualifiers) != len(other_qualifiers):
             equal_qualifiers = False
         else:
-            flg = [False for x in range(len(self_qualifiers))]
+            flg = [False for _ in range(len(self_qualifiers))]
             for count, i in enumerate(self_qualifiers):
                 for q in other_qualifiers:
                     if i == q:
@@ -1700,12 +1714,6 @@ class BaseDataType(object):
             raise ValueError('Invalid property number')
 
         self.prop_nr = prop_nr
-
-    def is_reference(self):
-        return self.is_reference
-
-    def is_qualifier(self):
-        return self.is_qualifier
 
     def get_json_representation(self):
         if self.is_qualifier or self.is_reference:
@@ -1821,12 +1829,12 @@ class String(BaseDataType):
 
     DTYPE = 'string'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -1875,12 +1883,12 @@ class Math(BaseDataType):
     """
     DTYPE = 'math'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -1929,12 +1937,12 @@ class ExternalID(BaseDataType):
     """
     DTYPE = 'external-id'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -1990,7 +1998,7 @@ class ItemID(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
@@ -2067,7 +2075,7 @@ class Property(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
@@ -2145,8 +2153,9 @@ class Time(BaseDataType):
     '''
 
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None,
-                 wikibase_url=None, is_reference=False, is_qualifier=False, snak_type='value', references=None,
-                 qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
+                 wikibase_url=None,
+                 is_reference=None, is_qualifier=None, snak_type='value', references=None, qualifiers=None,
+                 rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
@@ -2261,12 +2270,12 @@ class Url(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The URL to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2293,7 +2302,7 @@ class Url(BaseDataType):
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-        if True not in [True for x in protocols if value.startswith(x)]:
+        if value is not None and True not in [True for x in protocols if value.startswith(x)]:
             raise ValueError('Invalid URL')
         self.value = value
 
@@ -2325,12 +2334,12 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text, prop_nr, language=None, is_reference=False, is_qualifier=False, snak_type='value',
+    def __init__(self, text, prop_nr, language=None, is_reference=None, is_qualifier=None, snak_type='value',
                  references=None, qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param text: The language specific string to be used as the value
-        :type text: str
+        :type text: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param language: Specifies the language the value belongs to
@@ -2406,13 +2415,13 @@ class Quantity(BaseDataType):
         }}
     '''
 
-    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=False,
-                 is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
+    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', is_reference=None,
+                 is_qualifier=None, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True, wikibase_url=None, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param quantity: The quantity value
-        :type quantity: float, str
+        :type quantity: float, str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
@@ -2537,12 +2546,12 @@ class CommonsMedia(BaseDataType):
     """
     DTYPE = 'commonsMedia'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The media file name from Wikimedia commons to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2600,17 +2609,17 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=False,
-                 is_qualifier=False, snak_type='value', references=None, qualifiers=None, rank='normal',
+    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, is_reference=None,
+                 is_qualifier=None, snak_type='value', references=None, qualifiers=None, rank='normal',
                  check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
-        :type latitude: float
+        :type latitude: float or None
         :param longitude: Longitude in decimal format
-        :type longitude: float
+        :type longitude: float or None
         :param precision: Precision of the position measurement
-        :type precision: float
+        :type precision: float or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2693,12 +2702,12 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2756,12 +2765,12 @@ class MusicalNotation(BaseDataType):
     """
     DTYPE = 'musical-notation'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Values for that data type are strings describing music following LilyPond syntax.
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2811,12 +2820,12 @@ class TabularData(BaseDataType):
     """
     DTYPE = 'tabular-data'
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2881,7 +2890,7 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
@@ -2958,7 +2967,7 @@ class Form(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
@@ -3031,7 +3040,7 @@ class Sense(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, is_reference=False, is_qualifier=False, snak_type='value', references=None,
+    def __init__(self, value, prop_nr, is_reference=None, is_qualifier=None, snak_type='value', references=None,
                  qualifiers=None, rank='normal', check_qualifier_equality=True, if_exists='REPLACE'):
         """
         Constructor, calls the superclass BaseDataType
