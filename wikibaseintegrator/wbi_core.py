@@ -39,9 +39,6 @@ class ItemEngine(object):
         :type sparql_endpoint_url: str
         :param wikibase_url:
         :type wikibase_url: str
-        :param append_value: a list of properties where potential existing values should not be overwritten by the data
-            passed in the :parameter data.
-        :type append_value: list[str]
         :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True
             should also specify the fast_run_base_filter for these item types
         :type fast_run: bool
