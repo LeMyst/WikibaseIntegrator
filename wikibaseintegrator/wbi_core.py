@@ -1506,38 +1506,37 @@ class BaseDataType(object):
         }}
     '''
 
-    def __init__(self, value, prop_nr, data_type, **kwargs):
+    def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, will be called by all data types.
         :param value: Data value of the Wikibase data snak
         :type value: str or int or tuple
+        :param prop_nr: The property number a Wikibase snak belongs to
+        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
+        :param data_type: The Wikibase data type declaration of this snak
+        :type data_type: str
         :param snak_type: The snak type of the Wikibase data snak, three values possible, depending if the value is a
                             known (value), not existent (novalue) or unknown (somevalue). See Wikibase documentation.
         :type snak_type: a str of either 'value', 'novalue' or 'somevalue'
-        :param data_type: The Wikibase data type declaration of this snak
-        :type data_type: str
-        :param is_reference: States if the snak is a reference, mutually exclusive with qualifier
-        :type is_reference: boolean
-        :param is_qualifier: States if the snak is a qualifier, mutually exlcusive with reference
-        :type is_qualifier: boolean
         :param references: A one level nested list with reference Wikibase snaks of base type BaseDataType, e.g.
                             references=[[<BaseDataType>, <BaseDataType>], [<BaseDataType>]]
                             This will create two references, the first one with two statements, the second with one
         :type references: A one level nested list with instances of BaseDataType or children of it.
         :param qualifiers: A list of qualifiers for the Wikibase mainsnak
         :type qualifiers: A list with instances of BaseDataType or children of it.
+        :param is_reference: States if the snak is a reference, mutually exclusive with qualifier
+        :type is_reference: boolean
+        :param is_qualifier: States if the snak is a qualifier, mutually exlcusive with reference
+        :type is_qualifier: boolean
         :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
-        :param prop_nr: The property number a Wikibase snak belongs to
-        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
+        :param check_qualifier_equality:
+        :type check_qualifier_equality: boolean
         :return:
         """
 
-        from pprint import pprint
-        pprint(kwargs)
-
         self.value = value
-        self.data_type = data_type
+        self.data_type = kwargs.pop('data_type', self.DTYPE)
         self.snak_type = kwargs.pop('snak_type', 'value')
         self.references = kwargs.pop('references', None)
         self.qualifiers = kwargs.pop('qualifiers', None)
@@ -1864,7 +1863,7 @@ class String(BaseDataType):
         :type rank: str
         """
 
-        super(String, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(String, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -1914,7 +1913,7 @@ class Math(BaseDataType):
         :type rank: str
         """
 
-        super(Math, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Math, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -1964,7 +1963,7 @@ class ExternalID(BaseDataType):
         :type rank: str
         """
 
-        super(ExternalID, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(ExternalID, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2021,7 +2020,7 @@ class ItemID(BaseDataType):
         :type rank: str
         """
 
-        super(ItemID, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(ItemID, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2094,7 +2093,7 @@ class Property(BaseDataType):
         :type rank: str
         """
 
-        super(Property, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Property, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2195,7 +2194,7 @@ class Time(BaseDataType):
 
         value = (time, before, after, precision, timezone, calendarmodel)
 
-        super(Time, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Time, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2279,7 +2278,7 @@ class Url(BaseDataType):
         :type rank: str
         """
 
-        super(Url, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Url, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2346,7 +2345,7 @@ class MonolingualText(BaseDataType):
 
         value = (text, self.language)
 
-        super(MonolingualText, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(MonolingualText, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2434,7 +2433,7 @@ class Quantity(BaseDataType):
 
         value = (quantity, unit, upper_bound, lower_bound)
 
-        super(Quantity, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Quantity, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2544,7 +2543,7 @@ class CommonsMedia(BaseDataType):
 
         self.value = None
 
-        super(CommonsMedia, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(CommonsMedia, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2618,7 +2617,7 @@ class GlobeCoordinate(BaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(GlobeCoordinate, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(GlobeCoordinate, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2689,7 +2688,7 @@ class GeoShape(BaseDataType):
         :type rank: str
         """
 
-        super(GeoShape, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(GeoShape, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2748,7 +2747,7 @@ class MusicalNotation(BaseDataType):
         :type rank: str
         """
 
-        super(MusicalNotation, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(MusicalNotation, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2798,7 +2797,7 @@ class TabularData(BaseDataType):
         :type rank: str
         """
 
-        super(TabularData, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(TabularData, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2864,7 +2863,7 @@ class Lexeme(BaseDataType):
         :type rank: str
         """
 
-        super(Lexeme, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Lexeme, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -2937,7 +2936,7 @@ class Form(BaseDataType):
         :type rank: str
         """
 
-        super(Form, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Form, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -3006,7 +3005,7 @@ class Sense(BaseDataType):
         :type rank: str
         """
 
-        super(Sense, self).__init__(value=value, prop_nr=prop_nr, data_type=self.DTYPE, **kwargs)
+        super(Sense, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
