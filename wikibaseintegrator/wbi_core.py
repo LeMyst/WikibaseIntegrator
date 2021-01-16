@@ -856,7 +856,7 @@ class ItemEngine(object):
                 self.ref_handler(old_item, new_item)
 
             elif self.global_ref_mode == 'KEEP_GOOD' or new_item.statement_ref_mode == 'KEEP_GOOD':
-                keep_block = [False for x in old_references]
+                keep_block = [False for _ in old_references]
                 for count, ref_block in enumerate(old_references):
                     stated_in_value = [x.get_value() for x in ref_block if x.get_prop_nr() == 'P248']
                     if is_good_ref(ref_block):
@@ -1441,7 +1441,7 @@ class JsonParser(object):
             json_representation = self.json_representation
 
             if 'references' in json_representation:
-                self.references.extend([[] for x in json_representation['references']])
+                self.references.extend([[] for _ in json_representation['references']])
                 for count, ref_block in enumerate(json_representation['references']):
                     ref_hash = ''
                     if 'hash' in ref_block:
@@ -1610,7 +1610,7 @@ class BaseDataType(object):
         if len(self_qualifiers) != len(other_qualifiers):
             equal_qualifiers = False
         else:
-            flg = [False for x in range(len(self_qualifiers))]
+            flg = [False for _ in range(len(self_qualifiers))]
             for count, i in enumerate(self_qualifiers):
                 for q in other_qualifiers:
                     if i == q:
@@ -1849,7 +1849,7 @@ class String(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -1903,7 +1903,7 @@ class Math(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -1956,7 +1956,7 @@ class ExternalID(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2288,7 +2288,7 @@ class Url(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The URL to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2314,7 +2314,7 @@ class Url(BaseDataType):
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-        if True not in [True for x in protocols if value.startswith(x)]:
+        if value is not None and True not in [True for x in protocols if value.startswith(x)]:
             raise ValueError('Invalid URL')
         self.value = value
 
@@ -2351,7 +2351,7 @@ class MonolingualText(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param text: The language specific string to be used as the value
-        :type text: str
+        :type text: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param language: Specifies the language the value belongs to
@@ -2432,7 +2432,7 @@ class Quantity(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param quantity: The quantity value
-        :type quantity: float, str
+        :type quantity: float, str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
@@ -2562,7 +2562,7 @@ class CommonsMedia(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The media file name from Wikimedia commons to be used as the value
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2626,11 +2626,11 @@ class GlobeCoordinate(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
-        :type latitude: float
+        :type latitude: float or None
         :param longitude: Longitude in decimal format
-        :type longitude: float
+        :type longitude: float or None
         :param precision: Precision of the position measurement
-        :type precision: float
+        :type precision: float or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2718,7 +2718,7 @@ class GeoShape(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2781,7 +2781,7 @@ class MusicalNotation(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Values for that data type are strings describing music following LilyPond syntax.
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
@@ -2836,7 +2836,7 @@ class TabularData(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
-        :type value: str
+        :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param is_reference: Whether this snak is a reference
