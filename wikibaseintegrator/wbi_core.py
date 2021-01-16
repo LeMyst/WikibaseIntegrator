@@ -1988,7 +1988,7 @@ class ExternalID(BaseDataType):
 
 class ItemID(BaseDataType):
     """
-    Implements the Wikibase data type with a value being another item ID
+    Implements the Wikibase data type 'wikibase-item' with a value being another item ID
     """
     DTYPE = 'wikibase-item'
     sparql_query = '''
@@ -2061,7 +2061,7 @@ class ItemID(BaseDataType):
 
 class Property(BaseDataType):
     """
-    Implements the Wikibase data type with value 'property'
+    Implements the Wikibase data type 'property'
     """
     DTYPE = 'wikibase-property'
     sparql_query = '''
@@ -2831,7 +2831,7 @@ class TabularData(BaseDataType):
 
 class Lexeme(BaseDataType):
     """
-    Implements the Wikibase data type with value 'wikibase-lexeme'
+    Implements the Wikibase data type 'wikibase-lexeme'
     """
     DTYPE = 'wikibase-lexeme'
     sparql_query = '''
@@ -2904,7 +2904,7 @@ class Lexeme(BaseDataType):
 
 class Form(BaseDataType):
     """
-    Implements the Wikibase data type with value 'wikibase-form'
+    Implements the Wikibase data type 'wikibase-form'
     """
     DTYPE = 'wikibase-form'
     sparql_query = '''
@@ -2973,7 +2973,7 @@ class Form(BaseDataType):
 
 class Sense(BaseDataType):
     """
-    Implements the Wikibase data type with value 'wikibase-sense'
+    Implements the Wikibase data type 'wikibase-sense'
     """
     DTYPE = 'wikibase-sense'
     sparql_query = '''
