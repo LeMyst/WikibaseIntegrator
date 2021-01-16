@@ -26,7 +26,7 @@ class TestMediawikiApiCall(unittest.TestCase):
 
 
 class TestDataType(unittest.TestCase):
-    def test_wd_quantity(self):
+    def test_quantity(self):
         dt = wbi_core.Quantity(quantity='34.5', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
@@ -58,7 +58,7 @@ class TestDataType(unittest.TestCase):
         if not value['value']['lowerBound'] == '+33.7':
             raise
 
-    def test_wd_geoshape(self):
+    def test_geoshape(self):
         dt = wbi_core.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
@@ -74,13 +74,13 @@ class TestDataType(unittest.TestCase):
         if not value['type'] == 'string':
             raise
 
-    def test_wd_string(self):
-        pass
-
     def test_live_item(self):
-        wd_item = wbi_core.ItemEngine(item_id='Q423111')
+        """
+        Test an item against Wikidata
+        """
+        item = wbi_core.ItemEngine(item_id='Q423111')
 
-        mass_statement = [x for x in wd_item.statements if x.get_prop_nr() == 'P2067'].pop()
+        mass_statement = [x for x in item.statements if x.get_prop_nr() == 'P2067'].pop()
         pprint.pprint(mass_statement.get_json_representation())
 
         if not mass_statement:
@@ -92,7 +92,6 @@ class TestDataType(unittest.TestCase):
 class TestFastRun(unittest.TestCase):
     """
     some basic tests for fastrun mode
-
     """
 
     def test_fast_run(self):
@@ -188,9 +187,9 @@ def test_nositelinks():
 ####
 def test_ref_equals():
     # statements are identical
-    oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352'),
-              wbi_core.ItemID(value='Q24784025', prop_nr='P527'),
-              wbi_core.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813')]
+    oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352', is_reference=True),
+              wbi_core.ItemID(value='Q24784025', prop_nr='P527', is_reference=True),
+              wbi_core.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813', is_reference=True)]
     olditem = wbi_core.ItemID("Q123", "P123", references=[oldref])
     newitem = copy.deepcopy(olditem)
     assert olditem.equals(newitem, include_ref=False)
@@ -198,7 +197,7 @@ def test_ref_equals():
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references[0][2] = wbi_core.Time(time='+2002-1-31T12:01:13Z', prop_nr='P813')
+    newitem.references[0][2] = wbi_core.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813')
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 
