@@ -6,71 +6,29 @@
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
-  * [Move from WikidataIntegrator to WikibaseIntegrator](#move-from-wikidataintegrator-to-wikibaseintegrator)
 - [Installation](#installation)
 - [The Core Parts](#the-core-parts)
-  * [wbi_core.ItemEngine](#wbi-coreitemengine)
-  * [wbi_core.FunctionsEngine](#wbi-corefunctionsengine)
-  * [wbi_login.Login](#wbi-loginlogin)
-    + [Login with a username and a password](#login-with-a-username-and-a-password)
-    + [Login using OAuth1](#login-using-oauth1)
-  * [Wikibase Data Types](#wikibase-data-types)
+    * [wbi_core.ItemEngine](#wbi-coreitemengine)
+    * [wbi_core.FunctionsEngine](#wbi-corefunctionsengine)
+    * [wbi_login.Login](#wbi-loginlogin)
+        + [Login with a username and a password](#login-with-a-username-and-a-password)
+        + [Login using OAuth1](#login-using-oauth1)
+    * [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
-  * [Execute SPARQL queries](#execute-sparql-queries)
-  * [Wikidata Search](#wikidata-search)
-  * [Merge Wikibase items](#merge-wikibase-items)
+    * [Execute SPARQL queries](#execute-sparql-queries)
+    * [Wikidata Search](#wikidata-search)
+    * [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
-  * [A Minimal Bot](#a-minimal-bot)
-  * [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+    * [A Minimal Bot](#a-minimal-bot)
+    * [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
 
 # WikibaseIntegrator / WikidataIntegrator #
 
 WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
-purpose is to be focused on Wikibase compatibility. The main changes are :
-
-* Rename the files from wdi_ to wbi_ to avoid confusion
-* Removal of wdi_helpers from the repository
-* Removal of references handlers from the repository, but they can still be used with the ItemEngine
-
-Wikidata is always the default endpoint for all functions.
-
-## Move from WikidataIntegrator to WikibaseIntegrator ##
-
-* Module name changes :
-    * wdi_backoff -> wbi_backoff
-    * wdi_config -> wbi_config
-    * wdi_core -> wbi_core
-    * wdi_fastrun -> wbi_fastrun
-    * wdi_login -> wbi_login
-* Classe name changes:
-    * WDLogin -> Login
-    * WDItemEngine -> ItemEngine
-    * WDBaseDataType -> BaseDataType
-    * WDCommonsMedia -> CommonsMedia
-    * WDExternalID -> ExternalID
-    * WDForm -> Form
-    * WDGeoShape -> GeoShape
-    * WDGlobeCoordinate -> GlobeCoordinate
-    * WDItemID -> ItemID
-    * WDLexeme -> Lexeme
-    * WDMath -> Math
-    * WDMonolingualText -> MonolingualText
-    * WDMusicalNotation -> MusicalNotation
-    * WDProperty -> Property
-    * WDQuantity -> Quantity
-    * WDSense -> Sense
-    * WDString -> String
-    * WDTabularData -> TabularData
-    * WDTime -> Time
-    * WDUrl -> Url
-* ItemEngine parameter changes:
-    * wd_item_id -> item_id
-* ItemEngine attribute changes:
-    * wd_item_id -> item_id
-* Change wbi_core.set_aliases parameter named 'append' to 'if_exists' with a value of APPEND (default) or REPLACE
-* Remove CONCEPT_BASE_URI wbi_config option and classes' parameter. It's now derived from WIKIBASE_URL.
-* wbi_core.log() has been removed. Please use your own logging implementation.
+purpose is to be focused on Wikibase compatibility. There have been many improvements that have led to breaking changes
+in the code. Refer to the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
+changed.
 
 # Installation #
 

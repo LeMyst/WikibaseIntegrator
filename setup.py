@@ -1,18 +1,22 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
-VERSION = "0.9.1-dev"
+VERSION = "0.10.0.dev0"
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 setup(
     name='wikibaseintegrator',
     version=VERSION,
     author='Myst and WikidataIntegrator authors',
-    description='Python package for reading and writing to/from a Wikibase instance',
+    description='Python package for reading from and writing to a Wikibase instance',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     license='MIT',
     keywords='Wikibase',
     url='https://github.com/LeMyst/WikibaseIntegrator',
-    packages=find_packages(),
-    include_package_data=True,
-    # long_description=read('README.md'),
+    packages=['wikibaseintegrator'],
+    python_requires='>=3.7',
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.7",
