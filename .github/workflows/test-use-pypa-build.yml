@@ -1,8 +1,10 @@
 name: Test with pypa build
 
 on:
-  release:
-    types: [ published ]
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: '**'
 
 jobs:
   build-n-publish:
