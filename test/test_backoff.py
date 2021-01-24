@@ -1,4 +1,4 @@
-import sys
+import json
 import unittest
 
 import requests
@@ -6,7 +6,6 @@ import requests
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-import json
 
 
 class TestMethods(unittest.TestCase):
@@ -30,6 +29,7 @@ class TestMethods(unittest.TestCase):
 def bad_http_code():
     r = requests.get("http://httpbin.org/status/400")
     r.raise_for_status()
+
 
 @wbi_backoff()
 def good_http_code():
