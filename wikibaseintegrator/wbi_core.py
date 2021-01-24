@@ -1530,7 +1530,7 @@ class BaseDataType(object):
         :type is_qualifier: boolean
         :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
-        :param check_qualifier_equality:
+        :param check_qualifier_equality: When comparing two objects, test if qualifiers are equals between them. Default to true.
         :type check_qualifier_equality: boolean
         :return:
         """
