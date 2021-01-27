@@ -61,6 +61,21 @@ my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q5')
 print(my_first_wikidata_item.get_json_representation())
 ```
 
+# Using a Wikibase instance #
+
+WikibaseIntegrator use Wikidata as default endpoint. To use a Wikibase instance instead, you can overload the
+wbi_config.
+
+An example for a Wikibase instance installed with [wikibase-docker](https://github.com/wmde/wikibase-docker):
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['MEDIAWIKI_API_URL'] = 'http://localhost:8181/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8989/bigdata/sparql'
+wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
+```
+
 # The Core Parts #
 
 wbi_core supports two modes it can be operated in, a normal mode, updating each item at a time and, a fast run mode,
