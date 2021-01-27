@@ -12,8 +12,7 @@ class TestItemGenerator(unittest.TestCase):
     def test_item_generator(self):
         items = ['Q408883', 'P715', 'Q18046452']
 
-        login_obj = None
-        item_instances = wbi_core.FunctionsEngine.generate_item_instances(items=items, login=login_obj)
+        item_instances = wbi_core.FunctionsEngine.generate_item_instances(items=items)
 
         for qid, item in item_instances:
             print(qid)
