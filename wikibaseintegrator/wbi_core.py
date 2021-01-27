@@ -9,7 +9,6 @@ from warnings import warn
 import pandas
 import requests
 
-from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
@@ -980,7 +979,7 @@ class FunctionsEngine(object):
 
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
 
-        #TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
+        # TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
 
         response = None
         session = session if session else requests.session()
@@ -1530,7 +1529,7 @@ class BaseDataType(object):
                     elif reference.is_reference is None:
                         reference.is_reference = True
 
-        if not self.qualifiers :
+        if not self.qualifiers:
             self.qualifiers = list()
         else:
             for qualifier in self.qualifiers:
