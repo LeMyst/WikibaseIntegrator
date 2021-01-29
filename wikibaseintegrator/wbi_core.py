@@ -664,7 +664,6 @@ class ItemEngine(object):
             print(payload)
 
         try:
-
             json_data = FunctionsEngine.mediawiki_api_call_helper(data=payload, login=login, max_retries=max_retries, retry_after=retry_after,
                                                                   allow_anonymous=allow_anonymous)
 
@@ -1169,12 +1168,11 @@ class FunctionsEngine(object):
                 # TODO: Change to wbi_login.LoginError when branch login-improve is merged
                 raise Exception('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
             elif not allow_anonymous:
-                print(data)
                 data.update({'assert': 'user'})
 
         login_session = login.get_session() if login is not None else None
 
-        return FunctionsEngine.mediawiki_api_call('POST', mediawiki_api_url, login_session, params=data, headers=headers, max_retries=max_retries,
+        return FunctionsEngine.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries,
                                                   retry_after=retry_after)
 
     @staticmethod
@@ -1185,7 +1183,7 @@ class FunctionsEngine(object):
         :type from_id: string with 'Q' prefix
         :param to_id: The QID into which another item should be merged
         :type to_id: string with 'Q' prefix
-        :param login_obj: The object containing the login credentials and cookies. An instance of wbi_login.Login.
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated
