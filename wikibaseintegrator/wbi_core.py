@@ -8,6 +8,7 @@ from warnings import warn
 
 import pandas
 import requests
+from wikibaseintegrator import wbi_login
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
@@ -1160,14 +1161,16 @@ class FunctionsEngine(object):
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
+        if login is not None and allow_anonymous is not True and mediawiki_api_url != login.mediawiki_api_url:
+            raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
+
         headers = {
             'User-Agent': user_agent
         }
 
         if data is not None:
             if 'token' in data and data['token'] == '+\\' and not allow_anonymous:
-                # TODO: Change to wbi_login.LoginError when branch login-improve is merged
-                raise Exception('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
+                raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
             elif not allow_anonymous:
                 print(data)
                 data.update({'assert': 'user'})
@@ -1185,7 +1188,7 @@ class FunctionsEngine(object):
         :type from_id: string with 'Q' prefix
         :param to_id: The QID into which another item should be merged
         :type to_id: string with 'Q' prefix
-        :param login_obj: The object containing the login credentials and cookies. An instance of wbi_login.Login.
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated
