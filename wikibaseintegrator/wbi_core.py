@@ -395,8 +395,12 @@ class ItemEngine(object):
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
         # Skip set_label if the item already have one and if_exists is at 'KEEP'
-        if self.fast_run_container.get_language_data(self.item_id, lang, 'label') != [''] and if_exists == 'KEEP':
-            return
+        if if_exists == 'KEEP':
+            if self.get_label(lang):
+                return
+
+            if self.fast_run_container and self.fast_run_container.get_language_data(self.item_id, lang, 'label') != ['']:
+                return
 
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id,
@@ -437,7 +441,7 @@ class ItemEngine(object):
     def set_aliases(self, aliases, lang=None, if_exists='APPEND'):
         """
         set the aliases for an item
-        :param aliases: a list of strings representing the aliases of an item
+        :param aliases: a string or a list of strings representing the aliases of an item
         :param lang: The language a description should be set for
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: None
@@ -448,8 +452,10 @@ class ItemEngine(object):
 
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
+        if isinstance(aliases, str):
+            aliases = [aliases]
         if not isinstance(aliases, list):
-            raise TypeError('aliases must be a list')
+            raise TypeError('aliases must be a list or a string')
 
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
             raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
@@ -526,8 +532,12 @@ class ItemEngine(object):
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
         # Skip set_description if the item already have one and if_exists is at 'KEEP'
-        if self.fast_run_container.get_language_data(self.item_id, lang, 'description') != [''] and if_exists == 'KEEP':
-            return
+        if if_exists == 'KEEP':
+            if self.get_description(lang):
+                return
+
+            if self.fast_run_container and self.fast_run_container.get_language_data(self.item_id, lang, 'description') != ['']:
+                return
 
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description],
@@ -537,8 +547,7 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'descriptions' not in self.json_representation or not self.json_representation['descriptions'] \
-                or if_exists == 'REPLACE':
+        if 'descriptions' not in self.json_representation or not self.json_representation['descriptions'] or if_exists == 'REPLACE':
             self.json_representation['descriptions'] = {}
 
         self.json_representation['descriptions'][lang] = {
