@@ -91,3 +91,5 @@ celerybeat-schedule
 .gitignore
 .idea/
 VERSION
+
+test.py

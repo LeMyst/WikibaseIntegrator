@@ -151,7 +151,7 @@ class ItemEngine(object):
 
         self.debug = debug
 
-        if fast_run_case_insensitive and not search_only:
+        if fast_run_case_insensitive and not self.search_only:
             raise ValueError("If using fast run case insensitive, search_only must be set")
 
         if self.ref_handler:
@@ -170,7 +170,7 @@ class ItemEngine(object):
             self.init_fastrun()
             if self.debug:
                 if self.require_write:
-                    if search_only:
+                    if self.search_only:
                         print('Successful fastrun, search_only mode, we can\'t determine if data is up to date.')
                     else:
                         print('Successful fastrun, because no full data match you need to update the item.')
@@ -182,7 +182,7 @@ class ItemEngine(object):
         elif self.new_item and len(self.data) > 0:
             self.create_new_item = True
             self.__construct_claim_json()
-        elif self.require_write:
+        elif self.require_write or self.search_only:
             self.init_data_load()
 
     def init_data_load(self):

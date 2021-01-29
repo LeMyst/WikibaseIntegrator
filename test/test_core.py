@@ -6,9 +6,21 @@ def test_item_engine():
     wbi_core.ItemEngine(data=None)
 
 
+def test_search_only():
+    item = wbi_core.ItemEngine(item_id="Q2", search_only=True)
+
+    assert item.get_label('en') == "Earth"
+    descr = item.get_description('en')
+    assert len(descr) > 3
+
+    assert "Terra" in item.get_aliases()
+    assert "planet" in item.get_description()
+
+    assert item.get_label("es") == "Tierra"
+
+
 def test_label():
-    data = [wbi_core.ExternalID('/m/02j71', 'P646')]
-    item = wbi_core.ItemEngine(item_id="Q2", data=data)
+    item = wbi_core.ItemEngine(item_id="Q2")
 
     assert item.get_label('en') == "Earth"
     descr = item.get_description('en')
