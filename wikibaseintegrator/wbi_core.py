@@ -8,6 +8,7 @@ from warnings import warn
 
 import pandas
 import requests
+from wikibaseintegrator import wbi_login
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
@@ -1159,14 +1160,16 @@ class FunctionsEngine(object):
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
+        if login is not None and allow_anonymous is not True and mediawiki_api_url != login.mediawiki_api_url:
+            raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
+
         headers = {
             'User-Agent': user_agent
         }
 
         if data is not None:
             if 'token' in data and data['token'] == '+\\' and not allow_anonymous:
-                # TODO: Change to wbi_login.LoginError when branch login-improve is merged
-                raise Exception('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
+                raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
             elif not allow_anonymous:
                 data.update({'assert': 'user'})
 
