@@ -155,8 +155,8 @@ class ItemEngine(object):
         if fast_run_case_insensitive and not self.search_only:
             raise ValueError("If using fast run case insensitive, search_only must be set")
 
-        if self.ref_handler:
-            assert callable(self.ref_handler)
+        if self.ref_handler and not callable(self.ref_handler):
+            raise TypeError("ref_handler must be callable")
         if self.global_ref_mode == 'CUSTOM' and self.ref_handler is None:
             raise ValueError("If using a custom ref mode, ref_handler must be set")
 

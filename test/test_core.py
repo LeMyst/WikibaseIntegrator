@@ -1,10 +1,22 @@
+import pytest
+
 from wikibaseintegrator import wbi_core
 
 
 def test_item_engine():
-    wbi_core.ItemEngine()
-    wbi_core.ItemEngine(data=None)
-
+    wbi_core.ItemEngine(debug=True)
+    wbi_core.ItemEngine(data=None, debug=True)
+    wbi_core.ItemEngine(data=wbi_core.String(value='test', prop_nr='P1'), debug=True)
+    wbi_core.ItemEngine(data=[wbi_core.String(value='test', prop_nr='P1')], debug=True)
+    with pytest.raises(TypeError):
+        wbi_core.ItemEngine(data='test', debug=True)
+    with pytest.raises(ValueError):
+        wbi_core.ItemEngine(fast_run_case_insensitive=True, debug=True)
+    with pytest.raises(TypeError):
+        wbi_core.ItemEngine(ref_handler='test', debug=True)
+    with pytest.raises(ValueError):
+        wbi_core.ItemEngine(global_ref_mode='CUSTOM', debug=True)
+    wbi_core.ItemEngine(item_id='Q2', fast_run=True, debug=True)
 
 def test_search_only():
     item = wbi_core.ItemEngine(item_id="Q2", search_only=True)
