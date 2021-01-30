@@ -18,6 +18,7 @@ def test_item_engine():
         wbi_core.ItemEngine(global_ref_mode='CUSTOM', debug=True)
     wbi_core.ItemEngine(item_id='Q2', fast_run=True, debug=True)
 
+
 def test_search_only():
     item = wbi_core.ItemEngine(item_id="Q2", search_only=True)
 

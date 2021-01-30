@@ -8,8 +8,8 @@ from warnings import warn
 
 import pandas
 import requests
-from wikibaseintegrator import wbi_login
 
+from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_fastrun import FastRunContainer

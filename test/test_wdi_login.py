@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from wikibaseintegrator import wbi_login, wbi_core, wbi_config
+from wikibaseintegrator import wbi_login, wbi_core
 
 # look for environment variables. if none set, don't do anything
 WDUSER = os.getenv("WDUSER")
