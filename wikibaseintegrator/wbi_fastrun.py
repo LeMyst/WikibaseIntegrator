@@ -616,7 +616,7 @@ class FastRunContainer(object):
     def get_prop_datatype(self, prop_nr: str) -> str:
         item = self.engine(item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url,
                            mediawiki_api_url=self.mediawiki_api_url,
-                           wikibase_url=self.wikibase_url)
+                           wikibase_url=self.wikibase_url, debug=self.debug)
         return item.entity_metadata['datatype']
 
     def clear(self) -> None:
