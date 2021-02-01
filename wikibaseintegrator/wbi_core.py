@@ -1194,6 +1194,8 @@ class FunctionsEngine(object):
         :type ignore_conflicts: str
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :type user_agent: str
+        :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+        :type allow_anonymous: bool
         """
 
         params = {
@@ -1222,6 +1224,8 @@ class FunctionsEngine(object):
         :type mediawiki_api_url: str
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :type user_agent: str
+        :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+        :type allow_anonymous: bool
         """
 
         params = {
@@ -1250,6 +1254,8 @@ class FunctionsEngine(object):
         :type mediawiki_api_url: str
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :type user_agent: str
+        :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+        :type allow_anonymous: bool
         """
 
         params = {
@@ -1283,6 +1289,8 @@ class FunctionsEngine(object):
         :type language: str
         :param dict_result:
         :type dict_result: boolean
+        :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+        :type allow_anonymous: bool
         :return: list
         """
 
@@ -1343,8 +1351,9 @@ class FunctionsEngine(object):
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
-        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the
-            instance of ItemEngine with the corresponding item data.
+        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding item data.
+        :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+        :type allow_anonymous: bool
         """
 
         assert type(items) == list
