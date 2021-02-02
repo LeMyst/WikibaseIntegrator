@@ -7,6 +7,7 @@
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
+- [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
     * [wbi_core.ItemEngine](#wbi-coreitemengine)
     * [wbi_core.FunctionsEngine](#wbi-corefunctionsengine)
