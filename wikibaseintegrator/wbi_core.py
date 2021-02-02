@@ -604,8 +604,7 @@ class ItemEngine(object):
     def get_qualifier_properties(self, prop_id):
         qualifiers = []
         for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['qualifiers']:
-                qualifiers.append(reference['snaks'].keys())
+            qualifiers.append(statements['qualifiers'].keys())
         return qualifiers
 
     def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string',
