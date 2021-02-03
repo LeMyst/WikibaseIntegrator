@@ -3,7 +3,9 @@ import unittest
 from wikibaseintegrator import wbi_core
 
 
-class TestSum(unittest.TestCase):
+class TestWbiCore(unittest.TestCase):
+    common_item = wbi_core.ItemEngine(item_id="Q2")
+
     def test_item_engine(self):
         wbi_core.ItemEngine(debug=True)
         wbi_core.ItemEngine(data=None, debug=True)
@@ -134,3 +136,19 @@ class TestSum(unittest.TestCase):
         assert item.get_json_representation()
         item = wbi_core.ItemEngine(new_item=True, data=data, core_props=set())
         assert item.get_json_representation()
+
+    def test_get_property_list(self):
+        self.assertTrue(len(self.common_item.get_property_list()))
+
+    def test_count_references(self):
+        self.assertTrue(len(self.common_item.count_references(prop_id='P2067')))
+
+    def test_get_reference_properties(self):
+        self.assertTrue(len(self.common_item.get_reference_properties(prop_id='P2067')))
+
+    def test_get_qualifier_properties(self):
+        print(self.common_item.get_qualifier_properties(prop_id='P170'))
+        self.assertTrue(len(self.common_item.get_qualifier_properties(prop_id='P2067')))
+
+    def test_get_linked_by(self):
+        self.assertTrue(len(wbi_core.FunctionsEngine.get_linked_by('Q2')))
