@@ -22,16 +22,36 @@ class TestWbiCore(unittest.TestCase):
         wbi_core.ItemEngine(item_id='Q2', fast_run=True, debug=True)
 
     def test_search_only(self):
-        item = wbi_core.ItemEngine(item_id="Q2", search_only=True)
-
-        assert item.get_label('en') == "Earth"
-        descr = item.get_description('en')
+        assert self.common_item.get_label('en') == "Earth"
+        descr = self.common_item.get_description('en')
         assert len(descr) > 3
 
-        assert "Terra" in item.get_aliases()
-        assert "planet" in item.get_description()
+        assert "Terra" in self.common_item.get_aliases()
+        assert "planet" in self.common_item.get_description()
 
-        assert item.get_label("es") == "Tierra"
+        assert self.common_item.get_label("es") == "Tierra"
+
+    def test_basedatatype_if_exists(self):
+        instance_of_append = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='APPEND')
+        instance_of_forceappend = wbi_core.ItemID(prop_nr='P31', value='Q3504248', if_exists='FORCE_APPEND')
+        instance_of_replace = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='REPLACE')
+        instance_of_keep = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='KEEP')
+
+        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_append, instance_of_append])
+        claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
+        assert len(claims) > 1 and 'Q1234' in claims and claims.count('Q1234') == 1
+
+        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_forceappend, instance_of_forceappend])
+        claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
+        assert len(claims) > 1 and 'Q3504248' in claims and claims.count('Q3504248') == 3
+
+        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
+        claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
+        assert len(claims) == 1 and 'Q1234' in claims
+
+        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_keep], debug=True)
+        claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
+        assert len(claims) == 1 and 'Q1234' not in claims
 
     def test_label(self):
         item = wbi_core.ItemEngine(item_id="Q2")

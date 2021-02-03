@@ -862,10 +862,10 @@ class ItemEngine(object):
         # sort the incoming data according to the property number
         self.data.sort(key=lambda z: z.get_prop_nr().lower())
 
-        # collect all statements which should be deleted
+        # collect all statements which should be deleted because of an empty value
         statements_for_deletion = []
         for item in self.data:
-            if item.get_value() == '' and isinstance(item, BaseDataType):
+            if isinstance(item, BaseDataType) and item.get_value() == '':
                 statements_for_deletion.append(item.get_prop_nr())
 
         if self.create_new_item:
@@ -875,6 +875,8 @@ class ItemEngine(object):
                 prop_nr = stat.get_prop_nr()
 
                 prop_data = [x for x in self.statements if x.get_prop_nr() == prop_nr]
+                if prop_data and stat.if_exists == 'KEEP':
+                    continue
                 prop_pos = [x.get_prop_nr() == prop_nr for x in self.statements]
                 prop_pos.reverse()
                 insert_pos = len(prop_pos) - (prop_pos.index(True) if any(prop_pos) else 0)
@@ -936,10 +938,11 @@ class ItemEngine(object):
         # regenerate claim json
         self.json_representation['claims'] = {}
         for stat in self.statements:
-            prop_nr = stat.get_prop_nr()
-            if prop_nr not in self.json_representation['claims']:
-                self.json_representation['claims'][prop_nr] = []
-            self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
+            if not hasattr(stat, 'remove'):
+                prop_nr = stat.get_prop_nr()
+                if prop_nr not in self.json_representation['claims']:
+                    self.json_representation['claims'][prop_nr] = []
+                self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
@@ -1505,7 +1508,7 @@ class BaseDataType(object):
         :param check_qualifier_equality: When comparing two objects, test if qualifiers are equals between them. Default to true.
         :type check_qualifier_equality: boolean
         :param if_exists: Replace or append the statement. You can force an append if the statement already exists.
-        :type if_exists: A string of one of three allowed values: 'REPLACE', 'APPEND', 'FORCE_APPEND'
+        :type if_exists: A string of one of three allowed values: 'REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP'
         :return:
         """
 
@@ -1566,7 +1569,7 @@ class BaseDataType(object):
         if self.snak_type not in ['value', 'novalue', 'somevalue']:
             raise ValueError('{} is not a valid snak type'.format(self.snak_type))
 
-        if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND']:
+        if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP']:
             raise ValueError('{} is not a valid if_exists value'.format(self.if_exists))
 
         if self.value is None and self.snak_type == 'value':
