@@ -1151,10 +1151,10 @@ class FunctionsEngine(object):
             'User-Agent': user_agent
         }
 
-        if data is not None:
-            if 'token' in data and data['token'] == '+\\' and not allow_anonymous:
+        if data is not None and not allow_anonymous:
+            if 'token' in data and data['token'] == '+\\':
                 raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
-            elif not allow_anonymous:
+            else:
                 data.update({'assert': 'user'})
 
         login_session = login.get_session() if login is not None else None
