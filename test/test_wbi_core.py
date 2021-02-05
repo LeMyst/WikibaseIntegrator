@@ -22,14 +22,16 @@ class TestWbiCore(unittest.TestCase):
         wbi_core.ItemEngine(item_id='Q2', fast_run=True, debug=True)
 
     def test_search_only(self):
-        assert self.common_item.get_label('en') == "Earth"
-        descr = self.common_item.get_description('en')
+        item = wbi_core.ItemEngine(item_id="Q2", search_only=True)
+
+        assert item.get_label('en') == "Earth"
+        descr = item.get_description('en')
         assert len(descr) > 3
 
-        assert "Terra" in self.common_item.get_aliases()
-        assert "planet" in self.common_item.get_description()
+        assert "Terra" in item.get_aliases()
+        assert "planet" in item.get_description()
 
-        assert self.common_item.get_label("es") == "Tierra"
+        assert item.get_label("es") == "Tierra"
 
     def test_basedatatype_if_exists(self):
         instance_of_append = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='APPEND')
