@@ -263,14 +263,7 @@ raw_data = {
 }
 
 for entrez_id, ensembl in raw_data.items():
-    # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351')
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704')
-
-    # data goes into a list, because many data objects can be provided to 
-    data = [entrez_gene_id, ensembl_transcript_id]
-
-    # add one reference
+    # add some references
     references = [
         [
             wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
@@ -279,8 +272,15 @@ for entrez_id, ensembl in raw_data.items():
         ]
     ]
 
+    # data type object
+    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
+
+    # data goes into a list, because many data objects can be provided to 
+    data = [entrez_gene_id, ensembl_transcript_id]
+
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, references=references)
+    wd_item = wbi_core.ItemEngine(data=data)
     wd_item.write(login_instance)
 ```
 
@@ -325,14 +325,7 @@ raw_data = {
 }
 
 for entrez_id, ensembl in raw_data.items():
-    # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351')
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704')
-
-    # data goes into a list, because many data objects can be provided to 
-    data = [entrez_gene_id, ensembl_transcript_id]
-
-    # add one reference
+    # add some references
     references = [
         [
             wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
@@ -341,9 +334,15 @@ for entrez_id, ensembl in raw_data.items():
         ]
     ]
 
+    # data type object
+    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
+
+    # data goes into a list, because many data objects can be provided to 
+    data = [entrez_gene_id, ensembl_transcript_id]
+
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, references=references, fast_run=fast_run,
-                                  fast_run_base_filter=fast_run_base_filter)
+    wd_item = wbi_core.ItemEngine(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
     wd_item.write(login_instance)
 ```
 
