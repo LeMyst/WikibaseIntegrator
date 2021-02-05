@@ -930,10 +930,11 @@ class ItemEngine(object):
 
         # For whole property deletions, add remove flag to all statements which should be deleted
         for item in copy.deepcopy(self.statements):
-            if item.get_prop_nr() in statements_for_deletion and item.get_id() != '':
-                setattr(item, 'remove', '')
-            elif item.get_prop_nr() in statements_for_deletion:
-                self.statements.remove(item)
+            if item.get_prop_nr() in statements_for_deletion:
+                if item.get_id() != '':
+                    setattr(item, 'remove', '')
+                else:
+                    self.statements.remove(item)
 
         # regenerate claim json
         self.json_representation['claims'] = {}
@@ -1744,19 +1745,21 @@ class BaseDataType(object):
                     qual_json.update(qual.get_json_representation())
                 qualifiers_order.append(qual.get_prop_nr())
 
-            statement = {
-                'mainsnak': self.json_representation,
-                'type': 'statement',
-                'rank': self.rank,
-                'qualifiers': qual_json,
-                'qualifiers-order': qualifiers_order,
-                'references': ref_json
-            }
+            if hasattr(self, 'remove'):
+                statement = {
+                    'remove': ''
+                }
+            else:
+                statement = {
+                    'mainsnak': self.json_representation,
+                    'type': 'statement',
+                    'rank': self.rank,
+                    'qualifiers': qual_json,
+                    'qualifiers-order': qualifiers_order,
+                    'references': ref_json
+                }
             if self.id != '':
                 statement.update({'id': self.id})
-
-            if hasattr(self, 'remove'):
-                statement.update({'remove': ''})
 
             return statement
 
