@@ -46,8 +46,9 @@ class TestWbiCore(unittest.TestCase):
         assert len(claims) > 1 and 'Q3504248' in claims and claims.count('Q3504248') == 3
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
-        claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
-        assert len(claims) == 1 and 'Q1234' in claims
+        claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' not in x]
+        removed_claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' in x]
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 1 and 'Q3504248' in removed_claims
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_keep], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]

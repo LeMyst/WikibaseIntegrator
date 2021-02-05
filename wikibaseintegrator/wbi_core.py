@@ -938,11 +938,10 @@ class ItemEngine(object):
         # regenerate claim json
         self.json_representation['claims'] = {}
         for stat in self.statements:
-            if not hasattr(stat, 'remove'):
-                prop_nr = stat.get_prop_nr()
-                if prop_nr not in self.json_representation['claims']:
-                    self.json_representation['claims'][prop_nr] = []
-                self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
+            prop_nr = stat.get_prop_nr()
+            if prop_nr not in self.json_representation['claims']:
+                self.json_representation['claims'][prop_nr] = []
+            self.json_representation['claims'][prop_nr].append(stat.get_json_representation())
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
