@@ -162,11 +162,10 @@ class FastRunContainer(object):
         qid = matching_qids.pop()
         self.current_qid = qid
 
-    def write_required(self, data: list, append_props: list = None, cqid=None) -> bool:
+    def write_required(self, data: list, cqid=None) -> bool:
         del_props = set()
         data_props = set()
-        if not append_props:
-            append_props = []
+        append_props = [x.get_prop_nr() for x in data if 'APPEND' in x.if_exists]
 
         for x in data:
             if x.value and x.data_type:
@@ -190,7 +189,7 @@ class FastRunContainer(object):
                             self.ref_handler(to_be, x)
                         else:
                             to_be = x
-                        if y.equals(to_be, include_ref=self.use_refs):
+                        if y.equals(to_be, include_ref=self.use_refs) and x.if_exists != 'FORCE_APPEND':
                             comp.append(True)
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
@@ -213,6 +212,7 @@ class FastRunContainer(object):
                 continue
 
             if date.get_prop_nr() in append_props:
+                # TODO: check if value already exist and already have the same value
                 continue
 
             if not date.get_value() and not date.data_type:
@@ -226,7 +226,7 @@ class FastRunContainer(object):
                 if (x.get_value() == date.get_value() or (
                         self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and \
                         x.get_prop_nr() not in del_props:
-                    if self.use_refs and self.ref_handler:
+                    if self.use_refs and self.ref_handler and callable(self.ref_handler):
                         to_be = copy.deepcopy(x)
                         self.ref_handler(to_be, date)
                     else:
@@ -470,6 +470,7 @@ class FastRunContainer(object):
             r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results'][
                 'bindings']
             count = int(r[0]['c']['value'])
+            print('Count: {}'.format(count))
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
         while True:
