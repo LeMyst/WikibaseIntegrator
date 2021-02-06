@@ -584,8 +584,9 @@ class ItemEngine(object):
 
     def get_reference_properties(self, prop_id):
         references = []
-        for statements in self.get_json_representation()['claims'][prop_id]:
-            for reference in statements['references']:
+        statements = [x for x in self.get_json_representation()['claims'][prop_id] if 'references' in x]
+        for statement in statements:
+            for reference in statement['references']:
                 references.append(reference['snaks'].keys())
         return references
 
@@ -1781,10 +1782,13 @@ class BaseDataType(object):
         if not include_ref:
             # return the result of BaseDataType.__eq__, which is testing for equality of value and qualifiers
             return self == that
-        if include_ref and self != that:
-            return False
-        if include_ref and fref is None:
-            return BaseDataType.refs_equal(self, that)
+        else:
+            if self != that:
+                return False
+            if fref is None:
+                return BaseDataType.refs_equal(self, that)
+            else:
+                return fref(self, that)
 
     @staticmethod
     def refs_equal(olditem, newitem):

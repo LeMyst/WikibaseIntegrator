@@ -470,6 +470,7 @@ class FastRunContainer(object):
             r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results'][
                 'bindings']
             count = int(r[0]['c']['value'])
+            print('Count: {}'.format(count))
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
         while True:
