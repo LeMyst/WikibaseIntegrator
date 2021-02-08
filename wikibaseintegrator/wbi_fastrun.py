@@ -349,8 +349,14 @@ class FastRunContainer(object):
         for i in r:
             for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
                 if value in i:
-                    # these are always URIs for the local Wikibase
-                    i[value] = i[value]['value'].split('/')[-1]
+                    if i[value]['value'].startswith(config['WIKIBASE_URL']):
+                        i[value] = i[value]['value'].split('/')[-1]
+                    else:
+                        # TODO: Dirty fix. If we are not on wikidata, we force unitless (Q199) to '1'
+                        if i[value]['value'] == 'http://www.wikidata.org/entity/Q199':
+                            i[value] = '1'
+                        else:
+                            i[value] = i[value]['value']
 
             # make sure datetimes are formatted correctly.
             # the correct format is '+%Y-%m-%dT%H:%M:%SZ', but is sometimes missing the plus??

@@ -2354,8 +2354,8 @@ class Quantity(BaseDataType):
         :type upper_bound: float, str
         :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
         :type lower_bound: float, str
-        :param unit: The unit item URL or the QID a certain quantity has been measured in
-            (https://www.wikidata.org/wiki/Wikidata:Units). The default is dimensionless, represented by a '1'
+        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
+            The default is dimensionless, represented by a '1'
         :type unit: str
         :type is_reference: boolean
         :param is_qualifier: Whether this snak is a qualifier
