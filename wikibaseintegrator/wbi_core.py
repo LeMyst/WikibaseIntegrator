@@ -1305,7 +1305,8 @@ class FunctionsEngine(object):
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
-        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding item data.
+        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding
+            item data.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
         """
