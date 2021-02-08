@@ -43,15 +43,14 @@ class FastRunContainer(object):
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
                                                    '<{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr=k, entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url,
+                                                                                                                                  prop_nr=k, entity=v)
                 else:
                     if ks:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
                                                    '?zz{prop_nr1}{prop_nr2} .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1])
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr=k)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid: str) -> list:
         reconstructed_statements = []
@@ -72,8 +71,7 @@ class FastRunContainer(object):
             for uid, d in dt.items():
                 qualifiers = []
                 for q in d['qual']:
-                    f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
-                         self.prop_dt_map[q[0]]][0]
+                    f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[q[0]]][0]
                     # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
                     if self.prop_dt_map[q[0]] == 'quantity':
                         qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
@@ -84,20 +82,16 @@ class FastRunContainer(object):
                 for ref_id, refs in d['ref'].items():
                     this_ref = []
                     for ref in refs:
-                        f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
-                             self.prop_dt_map[ref[0]]][0]
+                        f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[ref[0]]][0]
                         this_ref.append(f(ref[1], prop_nr=ref[0], is_reference=True))
                     references.append(this_ref)
 
-                f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
-                     self.prop_dt_map[prop_nr]][0]
+                f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[prop_nr]][0]
                 # TODO: Add support for more data type
                 if self.prop_dt_map[prop_nr] == 'quantity':
-                    reconstructed_statements.append(
-                        f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
+                    reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
-                    reconstructed_statements.append(
-                        f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
+                    reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
 
         # this isn't used. done for debugging purposes
         self.reconstructed_statements = reconstructed_statements
@@ -224,8 +218,7 @@ class FastRunContainer(object):
             bool_vec = []
             for x in tmp_rs:
                 if (x.get_value() == date.get_value() or (
-                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and \
-                        x.get_prop_nr() not in del_props:
+                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and x.get_prop_nr() not in del_props:
                     if self.use_refs and self.ref_handler and callable(self.ref_handler):
                         to_be = copy.deepcopy(x)
                         self.ref_handler(to_be, date)
@@ -467,8 +460,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results'][
-                'bindings']
+            r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
             print('Count: {}'.format(count))
             num_pages = (int(count) // page_size) + 1
@@ -565,8 +557,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)[
-                'results']['bindings']
+            results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1

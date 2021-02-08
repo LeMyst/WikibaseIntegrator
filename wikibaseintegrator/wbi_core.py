@@ -143,11 +143,11 @@ class ItemEngine(object):
             raise ValueError("If using a custom ref mode, ref_handler must be set")
 
         if (core_props is None) and (self.sparql_endpoint_url not in ItemEngine.distinct_value_props):
-            ItemEngine.distinct_value_props[self.sparql_endpoint_url] = FunctionsEngine.get_distinct_value_props(
-                self.sparql_endpoint_url, self.wikibase_url, self.property_constraint_pid,
-                self.distinct_values_constraint_qid)
-        self.core_props = core_props if core_props is not None else ItemEngine.distinct_value_props[
-            self.sparql_endpoint_url]
+            ItemEngine.distinct_value_props[self.sparql_endpoint_url] = FunctionsEngine.get_distinct_value_props(self.sparql_endpoint_url,
+                                                                                                                 self.wikibase_url,
+                                                                                                                 self.property_constraint_pid,
+                                                                                                                 self.distinct_values_constraint_qid)
+        self.core_props = core_props if core_props is not None else ItemEngine.distinct_value_props[self.sparql_endpoint_url]
 
         if self.fast_run:
             self.init_fastrun()
@@ -988,8 +988,7 @@ class FunctionsEngine(object):
 
                 # readonly
                 if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
-                    print('The Wikibase instance is currently in readonly mode, waiting for {} seconds'.format(
-                        retry_after))
+                    print('The Wikibase instance is currently in readonly mode, waiting for {} seconds'.format(retry_after))
                     sleep(retry_after)
                     continue
 
