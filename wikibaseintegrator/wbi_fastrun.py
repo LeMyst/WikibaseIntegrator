@@ -9,8 +9,8 @@ from wikibaseintegrator.wbi_config import config
 
 
 class FastRunContainer(object):
-    def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None,
-                 base_filter=None, use_refs=False, ref_handler=None, case_insensitive=False, debug=False):
+    def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False,
+                 ref_handler=None, case_insensitive=False, debug=False):
         self.reconstructed_statements = []
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
@@ -349,7 +349,7 @@ class FastRunContainer(object):
         for i in r:
             for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
                 if value in i:
-                    if i[value]['value'].startswith(config['WIKIBASE_URL']):
+                    if i[value]['value'].startswith(self.wikibase_url):
                         i[value] = i[value]['value'].split('/')[-1]
                     else:
                         # TODO: Dirty fix. If we are not on wikidata, we force unitless (Q199) to '1'
