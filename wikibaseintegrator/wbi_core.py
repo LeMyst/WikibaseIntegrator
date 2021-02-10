@@ -1243,8 +1243,6 @@ class FunctionsEngine(object):
         :return: list
         """
 
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
         language = config['DEFAULT_LANGUAGE'] if language is None else language
 
         params = {
@@ -1339,7 +1337,6 @@ class FunctionsEngine(object):
         https://www.wikidata.org/wiki/Help:Property_constraints_portal/Unique_value
         """
 
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
         property_constraint_pid = config['PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
         distinct_values_constraint_qid = config['DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
