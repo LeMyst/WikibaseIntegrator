@@ -67,7 +67,8 @@ print(my_first_wikidata_item.get_json_representation())
 WikibaseIntegrator use Wikidata as default endpoint. To use a Wikibase instance instead, you can overload the
 wbi_config.
 
-An example for a Wikibase instance installed with [wikibase-docker](https://github.com/wmde/wikibase-docker):
+An example for a Wikibase instance installed with [wikibase-docker](https://github.com/wmde/wikibase-docker), add this
+to the top of your script:
 
 ```python
 from wikibaseintegrator.wbi_config import config as wbi_config
@@ -76,6 +77,8 @@ wbi_config['MEDIAWIKI_API_URL'] = 'http://localhost:8181/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8989/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
+
+You can find more default parameters in the file wbi_config.py
 
 # The Core Parts #
 
