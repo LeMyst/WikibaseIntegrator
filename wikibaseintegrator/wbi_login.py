@@ -51,7 +51,7 @@ class Login(object):
         if debug:
             print(self.mediawiki_api_url)
 
-        self.s = requests.Session()
+        self.session = requests.Session()
         self.edit_token = ''
         self.instantiation_time = time.time()
         self.token_renew_period = token_renew_period
@@ -68,7 +68,7 @@ class Login(object):
             if user and user.casefold() not in config['USER_AGENT_DEFAULT'].casefold():
                 config['USER_AGENT_DEFAULT'] += " (User:{})".format(user)
             self.user_agent = config['USER_AGENT_DEFAULT']
-        self.s.headers.update({
+        self.session.headers.update({
             'User-Agent': self.user_agent
         })
 
@@ -86,62 +86,65 @@ class Login(object):
             # redirect -> authorization -> callback url
             self.redirect, self.request_token = self.handshaker.initiate(callback=self.callback_url)
 
-        elif use_clientlogin:
-            params = {
-                'action': 'query',
-                'format': 'json',
-                'meta': 'authmanagerinfo',
-                'amisecuritysensitiveoperation': '',
-                'amirequestsfor': 'login'
-            }
-
-            self.s.get(self.mediawiki_api_url, params=params)
-
-            params2 = {
-                'action': 'query',
-                'format': 'json',
-                'meta': 'tokens',
-                'type': 'login'
-            }
-            login_token = self.s.get(self.mediawiki_api_url, params=params2).json()['query']['tokens']['logintoken']
-
-            data = {
-                'action': 'clientlogin',
-                'format': 'json',
-                'username': user,
-                'password': pwd,
-                'logintoken': login_token,
-                'loginreturnurl': 'http://example.org/'
-            }
-
-            login_result = self.s.post(self.mediawiki_api_url, data=data).json()
-            if debug:
-                print(login_result)
-
-            if login_result['clientlogin']['status'] == 'FAIL':
-                raise ValueError('Login FAILED')
-
-            self.generate_edit_credentials()
         else:
-            params = {
-                'action': 'login',
-                'lgname': user,
-                'lgpassword': pwd,
+            params_login = {
+                'action': 'query',
+                'meta': 'tokens',
+                'type': 'login',
                 'format': 'json'
             }
 
             # get login token
-            login_token = self.s.post(self.mediawiki_api_url, data=params).json()['login']['token']
+            login_token = self.session.post(self.mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
 
-            # do the login using the login token
-            params.update({'lgtoken': login_token})
-            r = self.s.post(self.mediawiki_api_url, data=params).json()
+            if use_clientlogin:
+                params = {
+                    'action': 'clientlogin',
+                    'username': user,
+                    'password': pwd,
+                    'logintoken': login_token,
+                    'loginreturnurl': 'http://example.org/',
+                    'format': 'json'
+                }
 
-            if r['login']['result'] != 'Success':
-                print('login failed:', r['login']['reason'])
-                raise ValueError('login FAILED!!')
-            elif debug:
-                print('Successfully logged in as', r['login']['lgusername'])
+                login_result = self.session.post(self.mediawiki_api_url, data=params).json()
+
+                if debug:
+                    print(login_result)
+
+                if 'clientlogin' in login_result:
+                    if login_result['clientlogin']['status'] != 'PASS':
+                        clientlogin = login_result['clientlogin']
+                        raise LoginError('Login failed ({}). Message: \'{}\''.format(clientlogin['messagecode'], clientlogin['message']))
+                    elif debug:
+                        print('Successfully logged in as', login_result['clientlogin']['username'])
+                else:
+                    error = login_result['error']
+                    raise LoginError('Login failed ({}). Message: \'{}\''.format(error['code'], error['info']))
+
+            else:
+                params = {
+                    'action': 'login',
+                    'lgname': user,
+                    'lgpassword': pwd,
+                    'lgtoken': login_token,
+                    'format': 'json'
+                }
+
+                login_result = self.session.post(self.mediawiki_api_url, data=params).json()
+
+                if debug:
+                    print(login_result)
+
+                if login_result['login']['result'] != 'Success':
+                    raise LoginError('Login failed. Reason: \'{}\''.format(login_result['login']['result']))
+                elif debug:
+                    print('Successfully logged in as', login_result['login']['lgusername'])
+
+                if 'warnings' in login_result:
+                    print('MediaWiki login warnings messages:')
+                    for message in login_result['warnings']:
+                        print('* {}: {}'.format(message, login_result['warnings'][message]['*']))
 
             self.generate_edit_credentials()
 
@@ -155,25 +158,25 @@ class Login(object):
             'meta': 'tokens',
             'format': 'json'
         }
-        response = self.s.get(self.mediawiki_api_url, params=params)
+        response = self.session.get(self.mediawiki_api_url, params=params)
         self.edit_token = response.json()['query']['tokens']['csrftoken']
 
-        return self.s.cookies
+        return self.session.cookies
 
     def get_edit_cookie(self):
         """
-        Can be called in order to retrieve the cookies from an instance of WDLogin
+        Can be called in order to retrieve the cookies from an instance of wbi_login.Login
         :return: Returns a json with all relevant cookies, aka cookie jar
         """
         if (time.time() - self.instantiation_time) > self.token_renew_period:
             self.generate_edit_credentials()
             self.instantiation_time = time.time()
 
-        return self.s.cookies
+        return self.session.cookies
 
     def get_edit_token(self):
         """
-        Can be called in order to retrieve the edit token from an instance of WDLogin
+        Can be called in order to retrieve the edit token from an instance of wbi_login.Login
         :return: returns the edit token
         """
         if not self.edit_token or (time.time() - self.instantiation_time) > self.token_renew_period:
@@ -187,7 +190,7 @@ class Login(object):
         returns the requests session object used for the login.
         :return: Object of type requests.Session()
         """
-        return self.s
+        return self.session
 
     def continue_oauth(self, oauth_callback_data=None):
         """
@@ -215,5 +218,10 @@ class Login(object):
                        resource_owner_key=access_token.key,
                        resource_owner_secret=access_token.secret)
 
-        self.s.auth = auth1
+        self.session.auth = auth1
         self.generate_edit_credentials()
+
+
+class LoginError(Exception):
+    """Raised when there is an issue with the login"""
+    pass

@@ -9,8 +9,11 @@ from wikibaseintegrator.wbi_config import config
 
 
 class FastRunContainer(object):
-    def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None,
-                 base_filter=None, use_refs=False, ref_handler=None, case_insensitive=False, debug=False):
+    def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False,
+                 ref_handler=None, case_insensitive=False, debug=False):
+        self.reconstructed_statements = []
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup_ci = defaultdict(set)
         self.prop_data = {}
         self.loaded_langs = {}
         self.statements = []
@@ -18,18 +21,16 @@ class FastRunContainer(object):
         self.base_filter_string = ''
         self.prop_dt_map = {}
         self.current_qid = ''
-        self.rev_lookup = defaultdict(set)
-        self.rev_lookup_ci = defaultdict(set)
+
         self.base_data_type = base_data_type
         self.engine = engine
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
         self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-        self.case_insensitive = case_insensitive
-        self.debug = debug
-        self.reconstructed_statements = []
         self.use_refs = use_refs
         self.ref_handler = ref_handler
+        self.case_insensitive = case_insensitive
+        self.debug = debug
 
         if base_filter and any(base_filter):
             self.base_filter = base_filter
@@ -39,21 +40,19 @@ class FastRunContainer(object):
                     ks = k.split('/')
                 if v:
                     if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
+                                                   '<{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr=k, entity=v)
-
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url,
+                                                                                                                                  prop_nr=k, entity=v)
                 else:
                     if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
+                                                   '?zz{prop_nr1}{prop_nr2} .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1])
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr=k, entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
-    def reconstruct_statements(self, qid):
+    def reconstruct_statements(self, qid: str) -> list:
         reconstructed_statements = []
 
         if qid not in self.prop_data:
@@ -68,13 +67,13 @@ class FastRunContainer(object):
             for prop in props:
                 if prop not in self.prop_dt_map:
                     self.prop_dt_map.update({prop: self.get_prop_datatype(prop)})
-            # reconstruct statements from frc (including qualifiers, and refs)
+            # reconstruct statements from frc (including unit, qualifiers, and refs)
             for uid, d in dt.items():
                 qualifiers = []
                 for q in d['qual']:
-                    f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
-                         self.prop_dt_map[q[0]]][0]
-                    if self.prop_dt_map[q[0]] == 'quantity' and q[2] != '1':
+                    f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[q[0]]][0]
+                    # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
+                    if self.prop_dt_map[q[0]] == 'quantity':
                         qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
                     else:
                         qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True))
@@ -83,25 +82,22 @@ class FastRunContainer(object):
                 for ref_id, refs in d['ref'].items():
                     this_ref = []
                     for ref in refs:
-                        f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
-                             self.prop_dt_map[ref[0]]][0]
+                        f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[ref[0]]][0]
                         this_ref.append(f(ref[1], prop_nr=ref[0], is_reference=True))
                     references.append(this_ref)
 
-                f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE ==
-                     self.prop_dt_map[prop_nr]][0]
-                if self.prop_dt_map[prop_nr] == 'quantity' and d['unit'] != '1':
-                    reconstructed_statements.append(
-                        f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
+                f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[prop_nr]][0]
+                # TODO: Add support for more data type
+                if self.prop_dt_map[prop_nr] == 'quantity':
+                    reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
-                    reconstructed_statements.append(
-                        f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
+                    reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
 
         # this isn't used. done for debugging purposes
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def load_item(self, data, cqid=None):
+    def load_item(self, data: list, cqid=None) -> bool:
         match_sets = []
         for date in data:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -160,11 +156,10 @@ class FastRunContainer(object):
         qid = matching_qids.pop()
         self.current_qid = qid
 
-    def write_required(self, data, append_props=None, cqid=None):
+    def write_required(self, data: list, cqid=None) -> bool:
         del_props = set()
         data_props = set()
-        if not append_props:
-            append_props = []
+        append_props = [x.get_prop_nr() for x in data if 'APPEND' in x.if_exists]
 
         for x in data:
             if x.value and x.data_type:
@@ -188,7 +183,7 @@ class FastRunContainer(object):
                             self.ref_handler(to_be, x)
                         else:
                             to_be = x
-                        if y.equals(to_be, include_ref=self.use_refs):
+                        if y.equals(to_be, include_ref=self.use_refs) and x.if_exists != 'FORCE_APPEND':
                             comp.append(True)
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
@@ -211,6 +206,7 @@ class FastRunContainer(object):
                 continue
 
             if date.get_prop_nr() in append_props:
+                # TODO: check if value already exist and already have the same value
                 continue
 
             if not date.get_value() and not date.data_type:
@@ -222,9 +218,8 @@ class FastRunContainer(object):
             bool_vec = []
             for x in tmp_rs:
                 if (x.get_value() == date.get_value() or (
-                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and \
-                        x.get_prop_nr() not in del_props:
-                    if self.use_refs and self.ref_handler:
+                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and x.get_prop_nr() not in del_props:
+                    if self.use_refs and self.ref_handler and callable(self.ref_handler):
                         to_be = copy.deepcopy(x)
                         self.ref_handler(to_be, date)
                     else:
@@ -270,7 +265,7 @@ class FastRunContainer(object):
             write_required = True
         return write_required
 
-    def init_language_data(self, lang, lang_data_type):
+    def init_language_data(self, lang: str, lang_data_type: str) -> None:
         """
         Initialize language data store
         :param lang: language code
@@ -285,7 +280,7 @@ class FastRunContainer(object):
             data = self._process_lang(result)
             self.loaded_langs[lang].update({lang_data_type: data})
 
-    def get_language_data(self, qid, lang, lang_data_type):
+    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list:
         """
         get language data for specified qid
         :param qid:  Wikibase item id
@@ -305,14 +300,13 @@ class FastRunContainer(object):
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid, lang_data, lang, lang_data_type, if_exists='APPEND'):
+    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str,
+                            if_exists: str = 'APPEND') -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
         :param lang_data: list of string values to check
-        :type lang_data: list
         :param lang: language code
-        :type lang: str
         :param lang_data_type: What kind of data is it? 'label', 'description' or 'aliases'?
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: boolean
@@ -331,10 +325,10 @@ class FastRunContainer(object):
 
         return False
 
-    def get_all_data(self):
+    def get_all_data(self) -> dict:
         return self.prop_data
 
-    def format_query_results(self, r, prop_nr):
+    def format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
         `prop_nr` is needed to get the property datatype to determine how to format the value
@@ -355,8 +349,14 @@ class FastRunContainer(object):
         for i in r:
             for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
                 if value in i:
-                    # these are always URIs for the local Wikibase
-                    i[value] = i[value]['value'].split('/')[-1]
+                    if i[value]['value'].startswith(self.wikibase_url):
+                        i[value] = i[value]['value'].split('/')[-1]
+                    else:
+                        # TODO: Dirty fix. If we are not on wikidata, we force unitless (Q199) to '1'
+                        if i[value]['value'] == 'http://www.wikidata.org/entity/Q199':
+                            i[value] = '1'
+                        else:
+                            i[value] = i[value]['value']
 
             # make sure datetimes are formatted correctly.
             # the correct format is '+%Y-%m-%dT%H:%M:%SZ', but is sometimes missing the plus??
@@ -404,7 +404,7 @@ class FastRunContainer(object):
                     i['rval'] = i['rval']['value']
 
     @staticmethod
-    def format_amount(amount):
+    def format_amount(amount) -> str:
         # Remove .0 by casting to int
         if float(amount) % 1 == 0:
             amount = int(float(amount))
@@ -416,7 +416,7 @@ class FastRunContainer(object):
         # return as string
         return str(amount)
 
-    def update_frc_from_query(self, r, prop_nr):
+    def update_frc_from_query(self, r: list, prop_nr: str) -> None:
         # r is the output of format_query_results
         # this updates the frc from the query (result of _query_data)
         for i in r:
@@ -451,7 +451,7 @@ class FastRunContainer(object):
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data(self, prop_nr):
+    def _query_data(self, prop_nr: str) -> None:
         page_size = 10000
         page_count = 0
         num_pages = None
@@ -466,9 +466,9 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results'][
-                'bindings']
+            r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
+            print('Count: {}'.format(count))
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
         while True:
@@ -563,8 +563,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)[
-                'results']['bindings']
+            results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -573,12 +572,11 @@ class FastRunContainer(object):
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang, lang_data_type):
+    def _query_lang(self, lang: str, lang_data_type: str):
         """
 
         :param lang:
         :param lang_data_type:
-        :return:
         """
 
         lang_data_type_dict = {
@@ -601,11 +599,10 @@ class FastRunContainer(object):
         if self.debug:
             print(query)
 
-        return wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results'][
-            'bindings']
+        return wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
-    def _process_lang(result):
+    def _process_lang(result: list):
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]
@@ -614,13 +611,13 @@ class FastRunContainer(object):
         return data
 
     @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr):
+    def get_prop_datatype(self, prop_nr: str) -> str:
         item = self.engine(item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url,
                            mediawiki_api_url=self.mediawiki_api_url,
-                           wikibase_url=self.wikibase_url)
+                           wikibase_url=self.wikibase_url, debug=self.debug)
         return item.entity_metadata['datatype']
 
-    def clear(self):
+    def clear(self) -> None:
         """
         convinience function to empty this fastrun container
         """
@@ -629,7 +626,7 @@ class FastRunContainer(object):
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,

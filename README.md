@@ -5,57 +5,35 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+- [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
+- [Installation](#installation)
+- [Using a Wikibase instance](#using-a-wikibase-instance)
+- [The Core Parts](#the-core-parts)
+    * [wbi_core.ItemEngine](#wbi_coreitemengine)
+    * [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
+    * [wbi_login.Login](#wbi_loginlogin)
+        + [Login with a username and a password](#login-with-a-username-and-a-password)
+        + [Login using OAuth1](#login-using-oauth1)
+    * [Wikibase Data Types](#wikibase-data-types)
+- [Helper Methods](#helper-methods)
+    * [Execute SPARQL queries](#execute-sparql-queries)
+    * [Wikidata Search](#wikidata-search)
+    * [Merge Wikibase items](#merge-wikibase-items)
+- [Examples (in "normal" mode)](#examples-in-normal-mode)
+    * [A Minimal Bot](#a-minimal-bot)
+    * [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+- [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
+
 # WikibaseIntegrator / WikidataIntegrator #
 
 WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
-purpose is to be focused on Wikibase compatibility. The main changes are :
-
-* Rename the files from wdi_ to wbi_ to avoid confusion
-* Removal of wdi_helpers from the repository
-* Removal of references handlers from the repository, but they can still be used with the ItemEngine
-
-Wikidata is always the default endpoint for all functions.
-
-## Move from WikidataIntegrator to WikibaseIntegrator ##
-
-* Module name changes :
-    * wdi_backoff -> wbi_backoff
-    * wdi_config -> wbi_config
-    * wdi_core -> wbi_core
-    * wdi_fastrun -> wbi_fastrun
-    * wdi_login -> wbi_login
-* Classe name changes:
-    * WDLogin -> Login
-    * WDItemEngine -> ItemEngine
-    * WDBaseDataType -> BaseDataType
-    * WDCommonsMedia -> CommonsMedia
-    * WDExternalID -> ExternalID
-    * WDForm -> Form
-    * WDGeoShape -> GeoShape
-    * WDGlobeCoordinate -> GlobeCoordinate
-    * WDItemID -> ItemID
-    * WDLexeme -> Lexeme
-    * WDMath -> Math
-    * WDMonolingualText -> MonolingualText
-    * WDMusicalNotation -> MusicalNotation
-    * WDProperty -> Property
-    * WDQuantity -> Quantity
-    * WDSense -> Sense
-    * WDString -> String
-    * WDTabularData -> TabularData
-    * WDTime -> Time
-    * WDUrl -> Url
-* ItemEngine parameter changes:
-    * wd_item_id -> item_id
-* ItemEngine attribute changes:
-    * wd_item_id -> item_id
-* Change wbi_core.set_aliases parameter named 'append' to 'if_exists' with a value of APPEND (default) or REPLACE
-* Remove CONCEPT_BASE_URI wbi_config option and classes' parameter. It's now derived from WIKIBASE_URL.
-* wbi_core.log() has been removed. Please use your own logging implementation.
+purpose is to be focused on Wikibase compatibility. There have been many improvements that have led to breaking changes
+in the code. Refer to the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
+changed.
 
 # Installation #
 
-The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.6 and higher. If
+The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.7 and higher. If
 Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash
@@ -68,6 +46,8 @@ You can also clone the repo and execute with administrator rights or install int
 git clone https://github.com/LeMyst/WikibaseIntegrator.git
 
 cd WikibaseIntegrator
+
+python -m pip install pip setuptools
 
 python setup.py install
 ```
@@ -83,6 +63,24 @@ my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q5')
 # to check successful installation and retrieval of the data, you can print the json representation of the item
 print(my_first_wikidata_item.get_json_representation())
 ```
+
+# Using a Wikibase instance #
+
+WikibaseIntegrator use Wikidata as default endpoint. To use a Wikibase instance instead, you can overload the
+wbi_config.
+
+An example for a Wikibase instance installed with [wikibase-docker](https://github.com/wmde/wikibase-docker), add this
+to the top of your script:
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['MEDIAWIKI_API_URL'] = 'http://localhost:8181/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8989/bigdata/sparql'
+wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
+```
+
+You can find more default parameters in the file wbi_config.py
 
 # The Core Parts #
 
@@ -110,8 +108,6 @@ Features:
 * A dedicated ItemEngine.write() method allows loading and consistency checks of data before any write to Wikibase is
   performed
 * Full access to the whole Wikibase item as a JSON document
-* Minimize the number of HTTP requests for reads and writes to improve performance
-* Method to easily execute [SPARQL](https://query.wikidata.org) queries on the Wikibase SPARQL endpoint.
 
 There are two ways of working with Wikibase items:
 
@@ -121,6 +117,16 @@ There are two ways of working with Wikibase items:
   what he/she is doing and should only be used with great care, as this does not perform consistency checks.
 
 Examples below illustrate the usage of ItemEngine.
+
+## wbi_core.FunctionsEngine ##
+
+wbi_core.FunctionsEngine provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL
+Service.
+
+Features:
+
+* Minimize the number of HTTP requests for reads and writes to improve performance
+* Method to easily execute [SPARQL](https://query.wikidata.org) queries on the Wikibase SPARQL endpoint.
 
 ## wbi_login.Login ##
 
@@ -160,7 +166,7 @@ authentication information directly to the backend and so no copy and paste of t
 ## Wikibase Data Types ##
 
 Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in wbi_core.
-Each data type has its specialties, which means that some of them require special parameters (e.g. Globe Coordinates).
+Each data types has its specialties, which means that some of them require special parameters (e.g. Globe Coordinates).
 
 The data types currently implemented:
 
@@ -209,7 +215,7 @@ option dict_id_label to return a dict of item id and label as a result.
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_core.ItemEngine.merge_items(from_id, to_id, login_obj)` takes five arguments:
+`wbi_core.FunctionsEngine.merge_items(from_id, to_id, login_obj)` takes five arguments:
 the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
 merged into (to_id), a login object of type wbi_login.Login() to provide the API call with the required authentication
 information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
@@ -225,7 +231,7 @@ In order to create a minimal bot based on wbi_core, three things are required:
 
 * A login object, as described above.
 * A data type object containing a value.
-* A ItemEngine object which takes the data, does the checks and performs the write.
+* A ItemEngine object which takes the data, does the checks and performs write.
 
 ```python
 from wikibaseintegrator import wbi_core, wbi_login
@@ -246,7 +252,7 @@ wd_item.write(login_instance)
 
 ## A Minimal Bot for Mass Import ##
 
-An enhanced example of the previous bot just puts two of the three things into a for loop and so allows mass creation,
+An enhanced example of the previous bot just puts two of the three things into a 'for loop' and so allows mass creation,
 or modification of items.
 
 ```python
@@ -262,24 +268,24 @@ raw_data = {
 }
 
 for entrez_id, ensembl in raw_data.items():
+    # add some references
+    references = [
+        [
+            wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+            wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+            wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+        ]
+    ]
+
     # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351')
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704')
+    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to 
     data = [entrez_gene_id, ensembl_transcript_id]
-    
-    # add one reference
-    references = [
-      [
-        wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-        wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-        wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
-      ]
-    ]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, references=references)
+    wd_item = wbi_core.ItemEngine(data=data)
     wd_item.write(login_instance)
 ```
 
@@ -324,24 +330,24 @@ raw_data = {
 }
 
 for entrez_id, ensembl in raw_data.items():
+    # add some references
+    references = [
+        [
+            wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+            wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+            wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+        ]
+    ]
+
     # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351')
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704')
+    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to 
     data = [entrez_gene_id, ensembl_transcript_id]
-    
-    # add one reference
-    references = [
-      [
-        wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-        wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-        wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
-      ]
-    ]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, references=references, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
+    wd_item = wbi_core.ItemEngine(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
     wd_item.write(login_instance)
 ```
 
