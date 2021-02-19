@@ -14,15 +14,16 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://www.wikidataaaaaaa.org", max_retries=3,
-                                                        retry_after=1, params={'format': 'json',
-                                                                               'action': 'wbgetentities', 'ids': 'Q42'})
+            wbi_core.FunctionsEngine.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'},
+                                                               mediawiki_api_url="http://www.wikidataaaaaaa.org", max_retries=3, retry_after=1,
+                                                               allow_anonymous=True)
         with self.assertRaises(requests.HTTPError):
-            wbi_core.FunctionsEngine.mediawiki_api_call("GET", "http://httpbin.org/status/400", max_retries=3,
-                                                        retry_after=1)
+            wbi_core.FunctionsEngine.mediawiki_api_call_helper(data=None, mediawiki_api_url="http://httpbin.org/status/400", max_retries=3, retry_after=1,
+                                                               allow_anonymous=True)
 
-        wbi_core.FunctionsEngine.mediawiki_api_call("GET", max_retries=3, retry_after=1,
-                                                    params={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'})
+        test = wbi_core.FunctionsEngine.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3,
+                                                                  retry_after=1, allow_anonymous=True)
+        print(test)
 
 
 class TestDataType(unittest.TestCase):

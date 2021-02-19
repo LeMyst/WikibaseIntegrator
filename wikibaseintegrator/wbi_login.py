@@ -51,7 +51,7 @@ class Login(object):
         if debug:
             print(self.mediawiki_api_url)
 
-        self.s = requests.Session()
+        self.session = requests.Session()
         self.edit_token = ''
         self.instantiation_time = time.time()
         self.token_renew_period = token_renew_period
@@ -68,7 +68,7 @@ class Login(object):
             if user and user.casefold() not in config['USER_AGENT_DEFAULT'].casefold():
                 config['USER_AGENT_DEFAULT'] += " (User:{})".format(user)
             self.user_agent = config['USER_AGENT_DEFAULT']
-        self.s.headers.update({
+        self.session.headers.update({
             'User-Agent': self.user_agent
         })
 
@@ -95,7 +95,7 @@ class Login(object):
             }
 
             # get login token
-            login_token = self.s.post(self.mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
+            login_token = self.session.post(self.mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
 
             if use_clientlogin:
                 params = {
@@ -107,7 +107,7 @@ class Login(object):
                     'format': 'json'
                 }
 
-                login_result = self.s.post(self.mediawiki_api_url, data=params).json()
+                login_result = self.session.post(self.mediawiki_api_url, data=params).json()
 
                 if debug:
                     print(login_result)
@@ -131,7 +131,7 @@ class Login(object):
                     'format': 'json'
                 }
 
-                login_result = self.s.post(self.mediawiki_api_url, data=params).json()
+                login_result = self.session.post(self.mediawiki_api_url, data=params).json()
 
                 if debug:
                     print(login_result)
@@ -158,10 +158,10 @@ class Login(object):
             'meta': 'tokens',
             'format': 'json'
         }
-        response = self.s.get(self.mediawiki_api_url, params=params)
+        response = self.session.get(self.mediawiki_api_url, params=params)
         self.edit_token = response.json()['query']['tokens']['csrftoken']
 
-        return self.s.cookies
+        return self.session.cookies
 
     def get_edit_cookie(self):
         """
@@ -172,7 +172,7 @@ class Login(object):
             self.generate_edit_credentials()
             self.instantiation_time = time.time()
 
-        return self.s.cookies
+        return self.session.cookies
 
     def get_edit_token(self):
         """
@@ -190,7 +190,7 @@ class Login(object):
         returns the requests session object used for the login.
         :return: Object of type requests.Session()
         """
-        return self.s
+        return self.session
 
     def continue_oauth(self, oauth_callback_data=None):
         """
@@ -218,7 +218,7 @@ class Login(object):
                        resource_owner_key=access_token.key,
                        resource_owner_secret=access_token.secret)
 
-        self.s.auth = auth1
+        self.session.auth = auth1
         self.generate_edit_credentials()
 
 
