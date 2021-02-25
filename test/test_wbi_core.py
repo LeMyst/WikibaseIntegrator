@@ -86,6 +86,10 @@ class TestWbiCore(unittest.TestCase):
         item.set_aliases(["fake alias"], if_exists='APPEND')
         assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
 
+        item.set_label(label=None, lang='fr')
+        item.set_label(label=None, lang='non-exist-key')
+        assert 'remove' in item.json_representation['labels']['fr']
+
         item.get_label("ak")
         item.get_description("ak")
         item.get_aliases("ak")

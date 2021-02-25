@@ -349,8 +349,8 @@ class ItemEngine(object):
     def set_label(self, label, lang=None, if_exists='REPLACE'):
         """
         Set the label for an item in a certain language
-        :param label: The description of the item in a certain language
-        :type label: str
+        :param label: The label of the item in a certain language or None to remove the label in that language
+        :type label: str or None
         :param lang: The language a label should be set for.
         :type lang: str
         :param if_exists: If a label already exist, 'REPLACE' it or 'KEEP' it
@@ -362,12 +362,12 @@ class ItemEngine(object):
 
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
-        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+        if if_exists not in ('KEEP', 'REPLACE'):
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
         # Skip set_label if the item already have one and if_exists is at 'KEEP'
         if if_exists == 'KEEP':
-            if self.get_label(lang):
+            if lang in self.json_representation['labels']:
                 return
 
             if self.fast_run_container and self.fast_run_container.get_language_data(self.item_id, lang, 'label') != ['']:
@@ -383,10 +383,16 @@ class ItemEngine(object):
         if 'labels' not in self.json_representation or not self.json_representation['labels']:
             self.json_representation['labels'] = {}
 
-        self.json_representation['labels'][lang] = {
-            'language': lang,
-            'value': label
-        }
+        if label is None:
+            self.json_representation['labels'][lang] = {
+                'language': lang,
+                'remove': ''
+            }
+        else:
+            self.json_representation['labels'][lang] = {
+                'language': lang,
+                'value': label
+            }
 
     def get_aliases(self, lang=None):
         """
