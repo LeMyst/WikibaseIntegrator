@@ -353,7 +353,7 @@ class ItemEngine(object):
         :type label: str
         :param lang: The language a label should be set for.
         :type lang: str
-        :param if_exists: If a label already exist, REPLACE it or KEEP it.
+        :param if_exists: If a label already exist, 'REPLACE' it or 'KEEP' it
         :return: None
         """
 
@@ -380,7 +380,7 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
+        if 'labels' not in self.json_representation or not self.json_representation['labels']:
             self.json_representation['labels'] = {}
 
         self.json_representation['labels'][lang] = {

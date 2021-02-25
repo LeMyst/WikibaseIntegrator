@@ -82,6 +82,7 @@ class TestWbiCore(unittest.TestCase):
         item.set_label("xfgfdsg")
         item.set_label("xfgfdsgtest", lang='en', if_exists='KEEP')
         assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        assert item.json_representation['labels']['fr'] == {'language': 'fr', 'value': 'Terre'}
         item.set_aliases(["fake alias"], if_exists='APPEND')
         assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
 
