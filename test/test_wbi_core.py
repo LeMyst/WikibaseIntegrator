@@ -35,7 +35,7 @@ class TestWbiCore(unittest.TestCase):
 
     def test_basedatatype_if_exists(self):
         instance_of_append = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='APPEND')
-        instance_of_forceappend = wbi_core.ItemID(prop_nr='P31', value='Q3504248', if_exists='FORCE_APPEND')
+        instance_of_forceappend = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='FORCE_APPEND')
         instance_of_replace = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='REPLACE')
         instance_of_keep = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='KEEP')
 
@@ -45,7 +45,7 @@ class TestWbiCore(unittest.TestCase):
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_forceappend, instance_of_forceappend])
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
-        assert len(claims) > 1 and 'Q3504248' in claims and claims.count('Q3504248') == 3
+        assert len(claims) > 1 and 'Q1234' in claims and claims.count('Q1234') == 2
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' not in x]
