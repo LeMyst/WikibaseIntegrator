@@ -715,33 +715,19 @@ class ItemEngine(object):
 
         qid_list = set()
         conflict_source = {}
-        # This is a `hack` for if initializing the mapping relation helper fails. We can't determine the
-        # mapping relation type PID or the exact match QID. If we set mrt_pid to "Pxxx", then no qualifier will
-        # ever match it (and exact_qid will never get checked), and so what happens is exactly what would
-        # happen if the statement had no mapping relation qualifiers
-        exact_qid = 'Q0'
-        mrt_pid = 'PXXX'
 
         for statement in self.data:
             property_nr = statement.get_prop_nr()
 
-            # only use this statement if mapping relation type is exact, or mrt is not specified
-            mrt_qualifiers = [q for q in statement.get_qualifiers() if q.get_prop_nr() == mrt_pid]
-            if (len(mrt_qualifiers) == 1) and (mrt_qualifiers[0].get_value() != int(exact_qid[1:])):
-                continue
-
             core_props = self.core_props
             if property_nr in core_props:
                 tmp_qids = set()
-                # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
-                query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
-                                                      value=statement.get_sparql_value().replace("'", r"\'"))
+                query = statement.sparql_query.format(wb_url=self.wikibase_url, pid=property_nr, value=statement.get_sparql_value().replace("'", r"\'"))
                 results = FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, debug=self.debug)
 
                 for i in results['results']['bindings']:
                     qid = i['item_id']['value'].split('/')[-1]
-                    if ('mrt' not in i) or ('mrt' in i and i['mrt']['value'].split('/')[-1] == exact_qid):
-                        tmp_qids.add(qid)
+                    tmp_qids.add(qid)
 
                 qid_list.update(tmp_qids)
 
@@ -753,6 +739,10 @@ class ItemEngine(object):
 
                 if len(tmp_qids) > 1:
                     raise ManualInterventionReqException('More than one item has the same property value', property_nr, tmp_qids)
+
+        # TODO: Removed debug before merge to master
+        print('QID list:')
+        print(qid_list)
 
         if len(qid_list) == 0:
             self.create_new_item = True
@@ -1450,7 +1440,6 @@ class BaseDataType(object):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}' .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -1948,7 +1937,6 @@ class ItemID(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/Q{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2021,7 +2009,6 @@ class Property(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/P{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2094,7 +2081,6 @@ class Time(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:dateTime .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2206,7 +2192,6 @@ class Url(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2266,7 +2251,6 @@ class MonolingualText(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> {value} .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2343,7 +2327,6 @@ class Quantity(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:decimal .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2528,7 +2511,6 @@ class GlobeCoordinate(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}'^^geo:wktLiteral .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2616,7 +2598,6 @@ class GeoShape(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2791,7 +2772,6 @@ class Lexeme(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2864,7 +2844,6 @@ class Form(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2933,7 +2912,6 @@ class Sense(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
