@@ -4,4 +4,4 @@ pandas~=1.2.3
 mwoauth~=0.3.7
 backoff~=1.10.0
 pytest~=6.2.2
-setuptools~=54.1.2
+setuptools~=54.2.0
