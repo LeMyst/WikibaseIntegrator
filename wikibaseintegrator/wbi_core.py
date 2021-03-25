@@ -740,10 +740,6 @@ class ItemEngine(object):
                 if len(tmp_qids) > 1:
                     raise ManualInterventionReqException('More than one item has the same property value', property_nr, tmp_qids)
 
-        # TODO: Removed debug before merge to master
-        print('QID list:')
-        print(qid_list)
-
         if len(qid_list) == 0:
             self.create_new_item = True
             return ''
