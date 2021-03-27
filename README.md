@@ -107,8 +107,8 @@ Features:
   exception)
 * Checks automatically if the correct item has been loaded by comparing it to the data provided
 * All Wikibase data types implemented
-* A dedicated ItemEngine.write() method allows loading and consistency checks of data before any write to Wikibase is
-  performed
+* A dedicated wbi_core.ItemEngine.write() method allows loading and consistency checks of data before any write to
+  Wikibase is performed
 * Full access to the whole Wikibase item as a JSON document
 
 There are two ways of working with Wikibase items:
@@ -148,9 +148,9 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 The Wikimedia universe currently only support authentication via OAuth1. If WBI should be used as a backend for a
 webapp, the bot should use OAuth for authentication, WBI supports this, you just need to specify consumer key and
-consumer secret when instantiating wbi_login.Login. In contrast to username and password login, OAuth is a 2 steps
-process as manual user confirmation for OAuth login is required. This means that the method continue_oauth() needs to be
-called after creating the wbi_login.Login instance.
+consumer secret when instantiating `wbi_login.Login`. In contrast to username and password login, OAuth is a 2 steps
+process as manual user confirmation for OAuth login is required. This means that the
+method `wbi_login.Login.continue_oauth()` needs to be called after creating the `wbi_login.Login` instance.
 
 Example:
 
@@ -161,9 +161,9 @@ login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_se
 login_instance.continue_oauth()
 ```
 
-The method continue_oauth() will either prompt the user for a callback URL (normal bot runs), or it will take a
-parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide the
-authentication information directly to the backend and so no copy and paste of the callback URL is required.
+The method `wbi_login.Login.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
+will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
+the authentication information directly to the backend and so no copy and paste of the callback URL is required.
 
 ## Wikibase Data Types ##
 
@@ -241,7 +241,7 @@ option dict_id_label to return a dict of item id and label as a result.
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_core.FunctionsEngine.merge_items` takes five arguments:
+`wbi_core.FunctionsEngine.merge_items()` takes five arguments:
 the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
 merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
 information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
