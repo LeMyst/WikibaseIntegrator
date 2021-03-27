@@ -18,7 +18,7 @@
 - [Helper Methods](#helper-methods)
     - [Execute SPARQL queries](#execute-sparql-queries)
     - [Use Mediawiki API](#use-mediawiki-api)
-    - [Wikidata Search](#wikidata-search)
+    - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
     - [A Minimal Bot](#a-minimal-bot)
@@ -229,7 +229,7 @@ query = {
 print(wbi_core.FunctionsEngine.mediawiki_api_call_helper(query, allow_anonymous=True))
 ```
 
-## Wikidata Search ##
+## Wikibase search entities ##
 
 The method `wbi_core.ItemEngine.get_search_results()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
