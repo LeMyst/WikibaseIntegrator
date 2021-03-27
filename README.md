@@ -6,22 +6,25 @@
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
+- [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
-    * [wbi_core.ItemEngine](#wbi_coreitemengine)
-    * [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
-    * [wbi_login.Login](#wbi_loginlogin)
-        + [Login with a username and a password](#login-with-a-username-and-a-password)
-        + [Login using OAuth1](#login-using-oauth1)
-    * [Wikibase Data Types](#wikibase-data-types)
+    - [wbi_core.ItemEngine](#wbi_coreitemengine)
+    - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
+    - [wbi_login.Login](#wbi_loginlogin)
+        - [Login with a username and a password](#login-with-a-username-and-a-password)
+        - [Login using OAuth1](#login-using-oauth1)
+    - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
-    * [Execute SPARQL queries](#execute-sparql-queries)
-    * [Wikidata Search](#wikidata-search)
-    * [Merge Wikibase items](#merge-wikibase-items)
+    - [Execute SPARQL queries](#execute-sparql-queries)
+    - [Use Mediawiki API](#use-mediawiki-api)
+        - [Example](#example)
+    - [Wikidata Search](#wikidata-search)
+    - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
-    * [A Minimal Bot](#a-minimal-bot)
-    * [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+    - [A Minimal Bot](#a-minimal-bot)
+    - [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
 
 # WikibaseIntegrator / WikidataIntegrator #
@@ -197,16 +200,40 @@ tuple, depending on the complexity of the data type.
 
 ## Execute SPARQL queries ##
 
-The method wbi_core.ItemEngine.execute_sparql_query() allows you to execute SPARQL queries without a hassle. It takes
+The method `wbi_core.ItemEngine.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes
 the actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata,
 the actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL
 server (user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you
 execute many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email
 address, or the URL to your bot code repository.)
 
+## Use Mediawiki API ##
+
+The method `wbi_core.FunctionsEngine.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It
+takes a mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
+mediawiki_api_url string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header,
+and an allow_anonymous boolean to force authentication.
+
+### Example ###
+
+Retrieve last 10 revisions from Wikidata element Q2 (Earth):
+
+```python
+from wikibaseintegrator import wbi_core
+
+query = {
+    'action': 'query',
+    'prop': 'revisions',
+    'titles': 'Q2',
+    'rvlimit': 10
+}
+
+print(wbi_core.FunctionsEngine.mediawiki_api_call_helper(query, allow_anonymous=True))
+```
+
 ## Wikidata Search ##
 
-The method wbi_core.ItemEngine.get_search_results() allows for string search in a Wikibase instance. This means that
+The method `wbi_core.ItemEngine.get_search_results()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
 Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
@@ -215,9 +242,9 @@ option dict_id_label to return a dict of item id and label as a result.
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_core.FunctionsEngine.merge_items(from_id, to_id, login_obj)` takes five arguments:
+`wbi_core.FunctionsEngine.merge_items` takes five arguments:
 the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
-merged into (to_id), a login object of type wbi_login.Login() to provide the API call with the required authentication
+merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
 information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
 conflicts (ignore_conflicts). The last parameter will do a partial merge for all statements which do not conflict. This
 should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts
