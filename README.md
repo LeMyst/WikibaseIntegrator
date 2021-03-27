@@ -6,7 +6,6 @@
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
-- [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
