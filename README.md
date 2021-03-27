@@ -18,7 +18,6 @@
 - [Helper Methods](#helper-methods)
     - [Execute SPARQL queries](#execute-sparql-queries)
     - [Use Mediawiki API](#use-mediawiki-api)
-        - [Example](#example)
     - [Wikidata Search](#wikidata-search)
     - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
@@ -213,7 +212,7 @@ takes a mandatory data array (data) and multiple optionals parameters like a log
 mediawiki_api_url string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header,
 and an allow_anonymous boolean to force authentication.
 
-### Example ###
+Example:
 
 Retrieve last 10 revisions from Wikidata element Q2 (Earth):
 
