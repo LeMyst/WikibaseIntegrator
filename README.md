@@ -12,8 +12,8 @@
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
     - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
     - [wbi_login.Login](#wbi_loginlogin)
-        - [Login with a username and a password](#login-with-a-username-and-a-password)
         - [Login using OAuth1](#login-using-oauth1)
+        - [Login with a username and a password](#login-with-a-username-and-a-password)
     - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
     - [Execute SPARQL queries](#execute-sparql-queries)
@@ -131,24 +131,35 @@ Features:
 
 ## wbi_login.Login ##
 
-### Login with a username and a password ###
+### Login using OAuth1 ###
 
-wbi_login.Login provides the login functionality and also stores the cookies and edit tokens required (For security
-reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
-password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified.
+OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating bot or to
+use WBI as a backend for an application.
+
+#### As a bot ####
+
+If you want to use WBI with a unique bot account, you should use OAuth as
+an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers). This allows to use the
+authentication without the "continue oauth" step.
+
+The first step is to request a new OAuth consumer on your Mediawiki instance on the page "Special:
+OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked. You will get
+a consumer key, consumer secret, access token and access secret.
+
+Example:
 
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
+login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_secret='<your_consumer_secret>',
+                                 access_token='<your_access_token>', access_secret='<your_access_secret>')
 ```
 
-### Login using OAuth1 ###
+#### To impersonate a user ####
 
-The Wikimedia universe currently only support authentication via OAuth1. If WBI should be used as a backend for a
-webapp, the bot should use OAuth for authentication, WBI supports this, you just need to specify consumer key and
-consumer secret when instantiating `wbi_login.Login`. In contrast to username and password login, OAuth is a 2 steps
-process as manual user confirmation for OAuth login is required. This means that the
+If WBI should be used as a backend for a webapp, the script should use OAuth for authentication, WBI supports this, you
+just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. In contrast to username and
+password login, OAuth is a 2 steps process as manual user confirmation for OAuth login is required. This means that the
 method `wbi_login.Login.continue_oauth()` needs to be called after creating the `wbi_login.Login` instance.
 
 Example:
@@ -163,6 +174,20 @@ login_instance.continue_oauth()
 The method `wbi_login.Login.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
 will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
 the authentication information directly to the backend and so no copy and paste of the callback URL is required.
+
+### Login with a username and a password ###
+
+`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
+reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
+password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified. It's a good
+practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple username and
+password, this allows limiting the permissions given to the bot.
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
+```
 
 ## Wikibase Data Types ##
 
@@ -267,7 +292,7 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 # data type object, e.g. for a NCBI gene entrez ID
 entrez_gene_id = wbi_core.String(value='<some_entrez_id>', prop_nr='P351')
 
-# data goes into a list, because many data objects can be provided to 
+# data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
 
 # Search for and then edit/create new item
@@ -306,7 +331,7 @@ for entrez_id, ensembl in raw_data.items():
     entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
     ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
 
-    # data goes into a list, because many data objects can be provided to 
+    # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
@@ -368,7 +393,7 @@ for entrez_id, ensembl in raw_data.items():
     entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
     ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
 
-    # data goes into a list, because many data objects can be provided to 
+    # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
