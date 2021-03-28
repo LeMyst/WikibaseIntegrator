@@ -12,8 +12,8 @@
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
     - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
     - [wbi_login.Login](#wbi_loginlogin)
-        - [Login with a username and a password](#login-with-a-username-and-a-password)
         - [Login using OAuth1](#login-using-oauth1)
+        - [Login with a username and a password](#login-with-a-username-and-a-password)
     - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
     - [Execute SPARQL queries](#execute-sparql-queries)
@@ -131,20 +131,6 @@ Features:
 
 ## wbi_login.Login ##
 
-### Login with a username and a password ###
-
-`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
-reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
-password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified. It's a good
-practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple username and
-password, this allows limiting the permissions given to the bot.
-
-```python
-from wikibaseintegrator import wbi_login
-
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
-```
-
 ### Login using OAuth1 ###
 
 OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating bot or to
@@ -188,6 +174,20 @@ login_instance.continue_oauth()
 The method `wbi_login.Login.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
 will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
 the authentication information directly to the backend and so no copy and paste of the callback URL is required.
+
+### Login with a username and a password ###
+
+`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
+reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
+password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified. It's a good
+practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple username and
+password, this allows limiting the permissions given to the bot.
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
+```
 
 ## Wikibase Data Types ##
 
