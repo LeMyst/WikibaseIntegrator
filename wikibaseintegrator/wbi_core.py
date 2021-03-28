@@ -998,6 +998,44 @@ class FunctionsEngine(object):
         return json_data
 
     @staticmethod
+    def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60):
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+
+        if not allow_anonymous:
+            if login is None:
+                # Force allow_anonymous as False by default to ask for a login object
+                raise ValueError('allow_anonymous can\'t be False and login is None at the same time.')
+            elif mediawiki_api_url != login.mediawiki_api_url:
+                raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
+
+        headers = {
+            'User-Agent': user_agent
+        }
+
+        if data is not None:
+            # format can only be json when using mediawiki_api_call()
+            if 'format' not in data:
+                data.update({'format': 'json'})
+
+            if login is not None and 'token' not in data:
+                data.update({'token': login.get_edit_token()})
+
+            if not allow_anonymous:
+                # Always assert user if allow_anonymous is False
+                if 'assert' not in data:
+                    data.update({'assert': 'user'})
+                if 'token' in data and data['token'] == '+\\':
+                    raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
+            elif 'assert' not in data:
+                # Always assert anon if allow_anonymous is True
+                data.update({'assert': 'anon'})
+
+        login_session = login.get_session() if login is not None else None
+
+        return FunctionsEngine.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after)
+
+    @staticmethod
     @wbi_backoff()
     def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60, debug=False):
         """
@@ -1098,29 +1136,6 @@ class FunctionsEngine(object):
                 if link["title"].startswith("Q"):
                     linkedby.append(link["title"])
         return linkedby
-
-    @staticmethod
-    def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60):
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
-
-        if login is not None and allow_anonymous is not True and mediawiki_api_url != login.mediawiki_api_url:
-            raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
-
-        headers = {
-            'User-Agent': user_agent
-        }
-
-        if data is not None and not allow_anonymous:
-            if 'token' in data and data['token'] == '+\\':
-                raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
-            else:
-                data.update({'assert': 'user'})
-
-        login_session = login.get_session() if login is not None else None
-
-        return FunctionsEngine.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries,
-                                                  retry_after=retry_after)
 
     @staticmethod
     def merge_items(from_id, to_id, login, ignore_conflicts='', mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
