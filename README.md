@@ -132,9 +132,11 @@ Features:
 
 ### Login with a username and a password ###
 
-wbi_login.Login provides the login functionality and also stores the cookies and edit tokens required (For security
+`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
 reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
-password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified.
+password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified. It's a good
+practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple username and
+password, this allows limiting the permissions given to the bot.
 
 ```python
 from wikibaseintegrator import wbi_login
@@ -144,11 +146,34 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 ### Login using OAuth1 ###
 
-The Wikimedia universe currently only support authentication via OAuth1. If WBI should be used as a backend for a
-webapp, the bot should use OAuth for authentication, WBI supports this, you just need to specify consumer key and
-consumer secret when instantiating wbi_login.Login. In contrast to username and password login, OAuth is a 2 steps
-process as manual user confirmation for OAuth login is required. This means that the method continue_oauth() needs to be
-called after creating the wbi_login.Login instance.
+OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating bot or to
+use WBI as a backend for an application.
+
+#### As a bot ####
+
+If you want to use WBI with a unique bot account, you should use OAuth as
+an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers). This allows to use the
+authentication without the "continue oauth" step.
+
+The first step is to request a new OAuth consumer on your Mediawiki instance on the page "Special:
+OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked. You will get
+a consumer key, consumer secret, access token and access secret.
+
+Example:
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_secret='<your_consumer_secret>',
+                                 access_token='<your_access_token>', access_secret='<your_access_secret>')
+```
+
+#### To impersonate a user ####
+
+If WBI should be used as a backend for a webapp, the script should use OAuth for authentication, WBI supports this, you
+just need to specify consumer key and consumer secret when instantiating wbi_login.Login. In contrast to username and
+password login, OAuth is a 2 steps process as manual user confirmation for OAuth login is required. This means that the
+method continue_oauth() needs to be called after creating the wbi_login.Login instance.
 
 Example:
 
