@@ -349,11 +349,11 @@ class ItemEngine(object):
     def set_label(self, label, lang=None, if_exists='REPLACE'):
         """
         Set the label for an item in a certain language
-        :param label: The description of the item in a certain language
-        :type label: str
+        :param label: The label of the item in a certain language or None to remove the label in that language
+        :type label: str or None
         :param lang: The language a label should be set for.
         :type lang: str
-        :param if_exists: If a label already exist, REPLACE it or KEEP it.
+        :param if_exists: If a label already exist, 'REPLACE' it or 'KEEP' it
         :return: None
         """
 
@@ -362,12 +362,12 @@ class ItemEngine(object):
 
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
-        if if_exists != 'KEEP' and if_exists != 'REPLACE':
+        if if_exists not in ('KEEP', 'REPLACE'):
             raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
 
         # Skip set_label if the item already have one and if_exists is at 'KEEP'
         if if_exists == 'KEEP':
-            if self.get_label(lang):
+            if lang in self.json_representation['labels']:
                 return
 
             if self.fast_run_container and self.fast_run_container.get_language_data(self.item_id, lang, 'label') != ['']:
@@ -380,13 +380,19 @@ class ItemEngine(object):
             else:
                 return
 
-        if 'labels' not in self.json_representation or not self.json_representation['labels'] or if_exists == 'REPLACE':
+        if 'labels' not in self.json_representation or not self.json_representation['labels']:
             self.json_representation['labels'] = {}
 
-        self.json_representation['labels'][lang] = {
-            'language': lang,
-            'value': label
-        }
+        if label is None:
+            self.json_representation['labels'][lang] = {
+                'language': lang,
+                'remove': ''
+            }
+        else:
+            self.json_representation['labels'][lang] = {
+                'language': lang,
+                'value': label
+            }
 
     def get_aliases(self, lang=None):
         """
@@ -709,33 +715,19 @@ class ItemEngine(object):
 
         qid_list = set()
         conflict_source = {}
-        # This is a `hack` for if initializing the mapping relation helper fails. We can't determine the
-        # mapping relation type PID or the exact match QID. If we set mrt_pid to "Pxxx", then no qualifier will
-        # ever match it (and exact_qid will never get checked), and so what happens is exactly what would
-        # happen if the statement had no mapping relation qualifiers
-        exact_qid = 'Q0'
-        mrt_pid = 'PXXX'
 
         for statement in self.data:
             property_nr = statement.get_prop_nr()
 
-            # only use this statement if mapping relation type is exact, or mrt is not specified
-            mrt_qualifiers = [q for q in statement.get_qualifiers() if q.get_prop_nr() == mrt_pid]
-            if (len(mrt_qualifiers) == 1) and (mrt_qualifiers[0].get_value() != int(exact_qid[1:])):
-                continue
-
             core_props = self.core_props
             if property_nr in core_props:
                 tmp_qids = set()
-                # if mrt_pid is "PXXX", this is fine, because the part of the SPARQL query using it is optional
-                query = statement.sparql_query.format(wb_url=self.wikibase_url, mrt_pid=mrt_pid, pid=property_nr,
-                                                      value=statement.get_sparql_value().replace("'", r"\'"))
+                query = statement.sparql_query.format(wb_url=self.wikibase_url, pid=property_nr, value=statement.get_sparql_value().replace("'", r"\'"))
                 results = FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, debug=self.debug)
 
                 for i in results['results']['bindings']:
                     qid = i['item_id']['value'].split('/')[-1]
-                    if ('mrt' not in i) or ('mrt' in i and i['mrt']['value'].split('/')[-1] == exact_qid):
-                        tmp_qids.add(qid)
+                    tmp_qids.add(qid)
 
                 qid_list.update(tmp_qids)
 
@@ -1006,6 +998,44 @@ class FunctionsEngine(object):
         return json_data
 
     @staticmethod
+    def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60):
+        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+
+        if not allow_anonymous:
+            if login is None:
+                # Force allow_anonymous as False by default to ask for a login object
+                raise ValueError('allow_anonymous can\'t be False and login is None at the same time.')
+            elif mediawiki_api_url != login.mediawiki_api_url:
+                raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
+
+        headers = {
+            'User-Agent': user_agent
+        }
+
+        if data is not None:
+            # format can only be json when using mediawiki_api_call()
+            if 'format' not in data:
+                data.update({'format': 'json'})
+
+            if login is not None and 'token' not in data:
+                data.update({'token': login.get_edit_token()})
+
+            if not allow_anonymous:
+                # Always assert user if allow_anonymous is False
+                if 'assert' not in data:
+                    data.update({'assert': 'user'})
+                if 'token' in data and data['token'] == '+\\':
+                    raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
+            elif 'assert' not in data:
+                # Always assert anon if allow_anonymous is True
+                data.update({'assert': 'anon'})
+
+        login_session = login.get_session() if login is not None else None
+
+        return FunctionsEngine.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after)
+
+    @staticmethod
     @wbi_backoff()
     def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60, debug=False):
         """
@@ -1106,29 +1136,6 @@ class FunctionsEngine(object):
                 if link["title"].startswith("Q"):
                     linkedby.append(link["title"])
         return linkedby
-
-    @staticmethod
-    def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60):
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
-
-        if login is not None and allow_anonymous is not True and mediawiki_api_url != login.mediawiki_api_url:
-            raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
-
-        headers = {
-            'User-Agent': user_agent
-        }
-
-        if data is not None and not allow_anonymous:
-            if 'token' in data and data['token'] == '+\\':
-                raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
-            else:
-                data.update({'assert': 'user'})
-
-        login_session = login.get_session() if login is not None else None
-
-        return FunctionsEngine.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries,
-                                                  retry_after=retry_after)
 
     @staticmethod
     def merge_items(from_id, to_id, login, ignore_conflicts='', mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
@@ -1444,7 +1451,6 @@ class BaseDataType(object):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}' .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -1942,7 +1948,6 @@ class ItemID(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/Q{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2015,7 +2020,6 @@ class Property(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/P{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2088,7 +2092,6 @@ class Time(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:dateTime .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2200,7 +2203,6 @@ class Url(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2260,7 +2262,6 @@ class MonolingualText(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> {value} .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2337,7 +2338,6 @@ class Quantity(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:decimal .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2522,7 +2522,6 @@ class GlobeCoordinate(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}'^^geo:wktLiteral .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2610,7 +2609,6 @@ class GeoShape(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2839,7 +2837,6 @@ class Lexeme(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2912,7 +2909,6 @@ class Form(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 
@@ -2981,7 +2977,6 @@ class Sense(BaseDataType):
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
-          OPTIONAL {{?s <{wb_url}/prop/qualifier/{mrt_pid}> ?mrt}}
         }}
     '''
 

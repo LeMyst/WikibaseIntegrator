@@ -35,7 +35,7 @@ class TestWbiCore(unittest.TestCase):
 
     def test_basedatatype_if_exists(self):
         instance_of_append = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='APPEND')
-        instance_of_forceappend = wbi_core.ItemID(prop_nr='P31', value='Q3504248', if_exists='FORCE_APPEND')
+        instance_of_forceappend = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='FORCE_APPEND')
         instance_of_replace = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='REPLACE')
         instance_of_keep = wbi_core.ItemID(prop_nr='P31', value='Q1234', if_exists='KEEP')
 
@@ -45,16 +45,16 @@ class TestWbiCore(unittest.TestCase):
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_forceappend, instance_of_forceappend])
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
-        assert len(claims) > 1 and 'Q3504248' in claims and claims.count('Q3504248') == 3
+        assert len(claims) > 1 and 'Q1234' in claims and claims.count('Q1234') == 2
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' not in x]
         removed_claims = [True for x in item.get_json_representation()['claims']['P31'] if 'remove' in x]
-        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 1 and True in removed_claims
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_keep], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
-        assert len(claims) == 1 and 'Q1234' not in claims
+        assert len(claims) == 2 and 'Q1234' not in claims
 
     def test_label(self):
         item = wbi_core.ItemEngine(item_id="Q2")
@@ -82,8 +82,13 @@ class TestWbiCore(unittest.TestCase):
         item.set_label("xfgfdsg")
         item.set_label("xfgfdsgtest", lang='en', if_exists='KEEP')
         assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        assert item.json_representation['labels']['fr'] == {'language': 'fr', 'value': 'Terre'}
         item.set_aliases(["fake alias"], if_exists='APPEND')
         assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
+
+        item.set_label(label=None, lang='fr')
+        item.set_label(label=None, lang='non-exist-key')
+        assert 'remove' in item.json_representation['labels']['fr']
 
         item.get_label("ak")
         item.get_description("ak")

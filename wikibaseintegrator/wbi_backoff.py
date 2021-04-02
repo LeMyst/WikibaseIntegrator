@@ -17,7 +17,7 @@ def get_config(name):
 def backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
     if exc_type == JSONDecodeError:
-        print(exc_value.doc)
+        print(exc_value.doc)  # pragma: no cover
     print("Backing off {wait:0.1f} seconds afters {tries} tries calling function with args {args} and kwargs {kwargs}".format(**details))
 
 
