@@ -1168,6 +1168,9 @@ class FunctionsEngine(object):
             'ignoreconflicts': ignore_conflicts
         }
 
+        if config['MAXLAG'] > 0:
+            params.update({'maxlag': config['MAXLAG']})
+
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
                                                          allow_anonymous=allow_anonymous)
 
@@ -1195,6 +1198,9 @@ class FunctionsEngine(object):
             'token': login.get_edit_token(),
             'format': 'json'
         }
+
+        if config['MAXLAG'] > 0:
+            params.update({'maxlag': config['MAXLAG']})
 
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
                                                          allow_anonymous=allow_anonymous)
@@ -1224,6 +1230,9 @@ class FunctionsEngine(object):
             'bot': True,
             'format': 'json'
         }
+
+        if config['MAXLAG'] > 0:
+            params.update({'maxlag': config['MAXLAG']})
 
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
                                                          allow_anonymous=allow_anonymous)
