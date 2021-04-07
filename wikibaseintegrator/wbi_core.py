@@ -619,9 +619,11 @@ class ItemEngine(object):
             'data': json.JSONEncoder().encode(self.json_representation),
             'format': 'json',
             'token': login.get_edit_token(),
-            'summary': edit_summary,
-            'maxlag': config['MAXLAG']
+            'summary': edit_summary
         }
+
+        if config['MAXLAG'] > 0:
+            payload.update({'maxlag': config['MAXLAG']})
 
         if bot_account:
             payload.update({'bot': ''})
