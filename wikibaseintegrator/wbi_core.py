@@ -937,6 +937,12 @@ class FunctionsEngine(object):
 
         # TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
 
+        if 'data' in kwargs and kwargs['data']:
+            if 'format' not in kwargs['data']:
+                kwargs['data'].update({'format': 'json'})
+            elif kwargs['data']['format'] != 'json':
+                raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
+
         response = None
         session = session if session else requests.session()
         for n in range(max_retries):
@@ -1012,10 +1018,6 @@ class FunctionsEngine(object):
         }
 
         if data is not None:
-            # format can only be json when using mediawiki_api_call()
-            if 'format' not in data:
-                data.update({'format': 'json'})
-
             if login is not None and 'token' not in data:
                 data.update({'token': login.get_edit_token()})
 
