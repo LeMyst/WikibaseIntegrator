@@ -1115,29 +1115,6 @@ class FunctionsEngine(object):
         return df
 
     @staticmethod
-    def get_linked_by(qid, mediawiki_api_url=None):
-        """
-            :param qid: Wikidata identifier to which other wikidata items link
-            :param mediawiki_api_url: default to wikidata's api, but can be changed to any Wikibase
-            :return:
-        """
-
-        mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-
-        linkedby = []
-        whatlinkshere = json.loads(requests.get(mediawiki_api_url + '?action=query&list=backlinks&format=json&bllimit=500&bltitle=' + qid).text)
-        for link in whatlinkshere['query']['backlinks']:
-            if link['title'].startswith('Q'):
-                linkedby.append(link['title'])
-        while 'continue' in whatlinkshere.keys():
-            whatlinkshere = json.loads(requests.get(mediawiki_api_url + '?action=query&list=backlinks&blcontinue=' +
-                                                    whatlinkshere['continue']['blcontinue'] + '&format=json&bllimit=500&bltitle=' + qid).text)
-            for link in whatlinkshere['query']['backlinks']:
-                if link['title'].startswith('Q'):
-                    linkedby.append(link['title'])
-        return linkedby
-
-    @staticmethod
     def merge_items(from_id, to_id, login, ignore_conflicts='', mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         A static method to merge two items
@@ -1164,36 +1141,6 @@ class FunctionsEngine(object):
             'format': 'json',
             'bot': '',
             'ignoreconflicts': ignore_conflicts
-        }
-
-        if config['MAXLAG'] > 0:
-            params.update({'maxlag': config['MAXLAG']})
-
-        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
-
-    @staticmethod
-    def delete_item(item, login, reason=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
-        """
-        Delete an item
-        :param item: a QID which should be deleted
-        :type item: string
-        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
-        :param reason: short text about the reason for the deletion request
-        :type reason: str
-        :param mediawiki_api_url: The MediaWiki url which should be used
-        :type mediawiki_api_url: str
-        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-        :type user_agent: str
-        :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
-        :type allow_anonymous: bool
-        """
-
-        params = {
-            'action': 'delete',
-            'title': 'Item:' + item,
-            'reason': reason,
-            'token': login.get_edit_token(),
-            'format': 'json'
         }
 
         if config['MAXLAG'] > 0:

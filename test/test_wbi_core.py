@@ -177,6 +177,3 @@ class TestWbiCore(unittest.TestCase):
     def test_get_qualifier_properties(self):
         print(self.common_item.get_qualifier_properties(prop_id='P170'))
         self.assertTrue(len(self.common_item.get_qualifier_properties(prop_id='P2067')))
-
-    def test_get_linked_by(self):
-        self.assertTrue(len(wbi_core.FunctionsEngine.get_linked_by('Q2')))
