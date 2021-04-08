@@ -1098,23 +1098,6 @@ class FunctionsEngine(object):
                 return results
 
     @staticmethod
-    def _sparql_query_result_to_df(results):
-
-        def parse_value(item):
-            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#decimal':
-                return float(item['value'])
-            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#integer':
-                return int(item['value'])
-            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#dateTime':
-                return datetime.datetime.strptime(item['value'], '%Y-%m-%dT%H:%M:%SZ')
-            return item['value']
-
-        results = results['results']['bindings']
-        results = [{k: parse_value(v) for k, v in item.items()} for item in results]
-        df = pandas.DataFrame(results)
-        return df
-
-    @staticmethod
     def merge_items(from_id, to_id, login, ignore_conflicts='', mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         A static method to merge two items
@@ -1318,6 +1301,23 @@ class FunctionsEngine(object):
         else:
             df.p = df.p.str.rsplit('/', 1).str[-1]
             return set(df.p)
+
+    @staticmethod
+    def _sparql_query_result_to_df(results):
+
+        def parse_value(item):
+            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#decimal':
+                return float(item['value'])
+            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#integer':
+                return int(item['value'])
+            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#dateTime':
+                return datetime.datetime.strptime(item['value'], '%Y-%m-%dT%H:%M:%SZ')
+            return item['value']
+
+        results = results['results']['bindings']
+        results = [{k: parse_value(v) for k, v in item.items()} for item in results]
+        df = pandas.DataFrame(results)
+        return df
 
 
 class JsonParser(object):
