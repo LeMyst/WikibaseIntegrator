@@ -1200,14 +1200,16 @@ class FunctionsEngine(object):
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
-    def delete_statement(statement_id, revision, login, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
+    def delete_statement(statement_id, login, summary=None, revision=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         Delete an item
         :param statement_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
         :type statement_id: string
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
+        :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
+        :type summary: str
         :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
         :type revision: str
-        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
@@ -1219,6 +1221,7 @@ class FunctionsEngine(object):
         params = {
             'action': 'wbremoveclaims',
             'claim': statement_id,
+            'summary': summary,
             'token': login.get_edit_token(),
             'baserevid': revision,
             'bot': True,
