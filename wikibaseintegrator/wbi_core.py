@@ -1170,14 +1170,14 @@ class FunctionsEngine(object):
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
-    def delete_item(item, reason, login, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
+    def delete_item(item, login, reason=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         Delete an item
         :param item: a QID which should be deleted
         :type item: string
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param reason: short text about the reason for the deletion request
         :type reason: str
-        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
