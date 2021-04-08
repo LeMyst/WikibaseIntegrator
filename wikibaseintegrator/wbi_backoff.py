@@ -33,5 +33,5 @@ def check_json_decode_error(e):
 
 exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError)
 
-wbi_backoff = partial(backoff.on_exception, backoff.expo, exceptions, max_value=get_config("BACKOFF_MAX_VALUE"), giveup=check_json_decode_error,
-                      on_backoff=backoff_hdlr, jitter=None, max_tries=get_config("BACKOFF_MAX_TRIES"))
+wbi_backoff = partial(backoff.on_exception, backoff.expo, exceptions, max_value=get_config("BACKOFF_MAX_VALUE"), giveup=check_json_decode_error, on_backoff=backoff_hdlr,
+                      jitter=None, max_tries=get_config("BACKOFF_MAX_TRIES"))
