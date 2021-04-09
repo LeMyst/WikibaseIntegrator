@@ -42,12 +42,14 @@ def test_query_data_unit():
     test_fastrun.test_query_data_unit
     This hits live wikidata and may change !!
     """
-    frc = wbi_fastrun.FastRunContainer(base_filter={'P2044': '', 'P2660': '', 'P4552': ''}, base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine)
+    frc = wbi_fastrun.FastRunContainer(base_filter={'P2044': '', 'P30': 'Q46'}, base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine, debug=True)
     # get a quantity value
     frc._query_data('P2044', use_units=True)
 
     assert 'Q583' in frc.prop_data
     assert 'P2044' in frc.prop_data['Q583']
+    statement_id = list(frc.prop_data['Q583']['P2044'].keys())[0]
+    assert frc.prop_data['Q583']['P2044'][statement_id]['unit'] == 'Q11573'
 
 
 def test_query_data_ref():
