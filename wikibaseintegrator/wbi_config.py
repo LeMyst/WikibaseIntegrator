@@ -30,6 +30,7 @@ config = {
     'CALENDAR_MODEL_QID': 'http://www.wikidata.org/entity/Q1985727',
     'MEDIAWIKI_API_URL': 'https://www.wikidata.org/w/api.php',
     'MEDIAWIKI_INDEX_URL': 'https://www.wikidata.org/w/index.php',
+    'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
     'WIKIBASE_URL': 'http://www.wikidata.org',
     'DEFAULT_LANGUAGE': 'en'
