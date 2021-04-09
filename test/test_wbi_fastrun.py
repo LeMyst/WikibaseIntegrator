@@ -11,13 +11,13 @@ def test_query_data():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     without getting references
     """
-    frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine, debug=True)
+    frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine)
     # get a string value
     frc._query_data('P699')
     # wikidata-item value
     frc._query_data('P828')
     # uri value
-    # frc._query_data('P1709')
+    frc._query_data('P2888')
 
     # https://www.wikidata.org/wiki/Q10874
     assert 'Q10874' in frc.prop_data
@@ -33,9 +33,21 @@ def test_query_data():
     assert list(frc.prop_data['Q10874']['P828'].values())[0]['v'] == "Q18228398"
 
     # uri
-    # temporarily stop of test below
-    # v = set([x['v'] for x in frc.prop_data['Q18211153']['P1709'].values()])
-    # assert all(y.startswith("http") for y in v)
+    v = set([x['v'] for x in frc.prop_data['Q10874']['P2888'].values()])
+    assert all(y.startswith("http") for y in v)
+
+
+def test_query_data_unit():
+    """
+    test_fastrun.test_query_data_unit
+    This hits live wikidata and may change !!
+    """
+    frc = wbi_fastrun.FastRunContainer(base_filter={'P2044': '', 'P2660': '', 'P4552': ''}, base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine)
+    # get a quantity value
+    frc._query_data('P2044', use_units=True)
+
+    assert 'Q583' in frc.prop_data
+    assert 'P2044' in frc.prop_data['Q583']
 
 
 def test_query_data_ref():
