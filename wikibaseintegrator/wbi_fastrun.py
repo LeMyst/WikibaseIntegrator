@@ -111,7 +111,7 @@ class FastRunContainer(object):
                 if self.debug:
                     print("{} not found in fastrun".format(prop_nr))
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr)
+                self._query_data(prop_nr, date.data_type == 'quantity')
 
             # more sophisticated data types like dates and globe coordinates need special treatment here
             if self.prop_dt_map[prop_nr] == 'time':
@@ -449,7 +449,7 @@ class FastRunContainer(object):
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data(self, prop_nr: str) -> None:
+    def _query_data(self, prop_nr: str, use_units=False) -> None:
         page_size = 10000
         page_count = 0
         num_pages = None
@@ -481,22 +481,29 @@ class FastRunContainer(object):
             # Base filter
             query = query + '''
             {base_filter}
+            
+            ?item <{wb_url}/prop/{prop_nr}> ?sid .
             '''
 
             # Amount and unit
-            query = query + '''
-            # Get amount and unit for the statement
-            ?item <{wb_url}/prop/{prop_nr}> ?sid .
-            {{
-              <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
-              FILTER (?property_type != wikibase:Quantity)
-              ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-            }}
-            UNION
-            {{
-              ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
-            }}
-            '''
+            if use_units:
+                query = query + '''
+                {{
+                  <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
+                  FILTER (?property_type != wikibase:Quantity)
+                  ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                }}
+                # Get amount and unit for the statement
+                UNION
+                {{
+                  ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
+                }}
+                '''
+            else:
+                query = query + '''
+                <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
+                ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                '''
 
             # Qualifiers
             query = query + '''
