@@ -19,10 +19,10 @@ class ItemEngine(object):
     fast_run_store = []
     distinct_value_props = {}
 
-    def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, fast_run=False,
-                 fast_run_base_filter=None, fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
-                 keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None, core_prop_match_thresh=0.66,
-                 property_constraint_pid=None, distinct_values_constraint_qid=None, fast_run_case_insensitive=False, debug=False) -> None:
+    def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, fast_run=False, fast_run_base_filter=None,
+                 fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None, keep_good_ref_statements=False, search_only=False, item_data=None,
+                 user_agent=None, core_props=None, core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None, fast_run_case_insensitive=False,
+                 debug=False) -> None:
         """
         constructor
         :param item_id: Wikibase item id
@@ -154,14 +154,14 @@ class ItemEngine(object):
             if self.debug:
                 if self.require_write:
                     if self.search_only:
-                        print('Successful fastrun, search_only mode, we can\'t determine if data is up to date.')
+                        print("Successful fastrun, search_only mode, we can't determine if data is up to date.")
                     else:
-                        print('Successful fastrun, because no full data match you need to update the item.')
+                        print("Successful fastrun, because no full data match you need to update the item.")
                 else:
-                    print('Successful fastrun, no write to Wikibase instance required.')
+                    print("Successful fastrun, no write to Wikibase instance required.")
 
         if self.item_id != '' and self.create_new_item:
-            raise IDMissingError('Cannot create a new item, when an identifier is given.')
+            raise IDMissingError("Cannot create a new item, when an identifier is given.")
         elif self.new_item and len(self.data) > 0:
             self.create_new_item = True
             self.__construct_claim_json()
@@ -171,20 +171,20 @@ class ItemEngine(object):
     def init_data_load(self):
         if self.item_id and self.item_data:
             if self.debug:
-                print('Load item from item_data')
+                print("Load item from item_data")
             self.json_representation = self.parse_json(self.item_data)
         elif self.item_id:
             if self.debug:
-                print('Load item from MW API from item_id')
+                print("Load item from MW API from item_id")
             self.json_representation = self.get_entity()
         else:
             if self.debug:
-                print('Try to guess item QID from props')
+                print("Try to guess item QID from props")
             qids_by_props = ''
             try:
                 qids_by_props = self.__select_item()
             except SearchError as e:
-                print('ERROR init_data_load: ', str(e))
+                print("ERROR init_data_load: ", str(e))
 
             if qids_by_props:
                 self.item_id = qids_by_props
@@ -209,7 +209,7 @@ class ItemEngine(object):
                 self.fast_run_container.wikibase_url = self.wikibase_url
                 self.fast_run_container.debug = self.debug
                 if self.debug:
-                    print('Found an already existing FastRunContainer')
+                    print("Found an already existing FastRunContainer")
 
         if not self.fast_run_container:
             self.fast_run_container = FastRunContainer(base_filter=self.fast_run_base_filter,
@@ -363,7 +363,7 @@ class ItemEngine(object):
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists not in ('KEEP', 'REPLACE'):
-            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
+            raise ValueError("{} is not a valid value for if_exists (REPLACE or KEEP)".format(if_exists))
 
         # Skip set_label if the item already have one and if_exists is at 'KEEP'
         if if_exists == 'KEEP':
@@ -430,14 +430,13 @@ class ItemEngine(object):
         if isinstance(aliases, str):
             aliases = [aliases]
         if not isinstance(aliases, list):
-            raise TypeError('aliases must be a list or a string')
+            raise TypeError("aliases must be a list or a string")
 
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exists (REPLACE or APPEND)'.format(if_exists))
+            raise ValueError("{} is not a valid value for if_exists (REPLACE or APPEND)".format(if_exists))
 
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=aliases, lang=lang, lang_data_type='aliases',
-                                                                             if_exists=if_exists)
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=aliases, lang=lang, lang_data_type='aliases', if_exists=if_exists)
             if self.require_write:
                 self.init_data_load()
             else:
@@ -502,7 +501,7 @@ class ItemEngine(object):
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
-            raise ValueError('{} is not a valid value for if_exists (REPLACE or KEEP)'.format(if_exists))
+            raise ValueError("{} is not a valid value for if_exists (REPLACE or KEEP)".format(if_exists))
 
         # Skip set_description if the item already have one and if_exists is at 'KEEP'
         if if_exists == 'KEEP':
@@ -513,8 +512,7 @@ class ItemEngine(object):
                 return
 
         if self.fast_run and not self.require_write:
-            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description],
-                                                                             lang=lang, lang_data_type='description')
+            self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=[description], lang=lang, lang_data_type='description')
             if self.require_write:
                 self.init_data_load()
             else:
@@ -580,8 +578,7 @@ class ItemEngine(object):
             qualifiers.append(statements['qualifiers'].keys())
         return qualifiers
 
-    def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string', max_retries=1000, retry_after=60,
-              allow_anonymous=False):
+    def write(self, login, bot_account=True, edit_summary='', entity_type='item', property_datatype='string', max_retries=1000, retry_after=60, allow_anonymous=False):
         """
         Writes the item Json to the Wikibase instance and after successful write, updates the object with new ids and hashes generated by the Wikibase instance.
         For new items, also returns the new QIDs.
@@ -619,9 +616,11 @@ class ItemEngine(object):
             'data': json.JSONEncoder().encode(self.json_representation),
             'format': 'json',
             'token': login.get_edit_token(),
-            'summary': edit_summary,
-            'maxlag': config['MAXLAG']
+            'summary': edit_summary
         }
+
+        if config['MAXLAG'] > 0:
+            payload.update({'maxlag': config['MAXLAG']})
 
         if bot_account:
             payload.update({'bot': ''})
@@ -635,11 +634,10 @@ class ItemEngine(object):
             print(payload)
 
         try:
-            json_data = FunctionsEngine.mediawiki_api_call_helper(data=payload, login=login, max_retries=max_retries, retry_after=retry_after,
-                                                                  allow_anonymous=allow_anonymous)
+            json_data = FunctionsEngine.mediawiki_api_call_helper(data=payload, login=login, max_retries=max_retries, retry_after=retry_after, allow_anonymous=allow_anonymous)
 
             if 'error' in json_data and 'messages' in json_data['error']:
-                error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
+                error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
                     raise NonUniqueLabelDescriptionPairError(json_data)
                 else:
@@ -655,8 +653,8 @@ class ItemEngine(object):
         self.item_id = json_data['entity']['id']
         self.parse_json(json_data=json_data['entity'])
         self.data = []
-        if "success" in json_data and "entity" in json_data and "lastrevid" in json_data["entity"]:
-            self.lastrevid = json_data["entity"]["lastrevid"]
+        if 'success' in json_data and 'entity' in json_data and 'lastrevid' in json_data['entity']:
+            self.lastrevid = json_data['entity']['lastrevid']
         return self.item_id
 
     def __check_integrity(self):
@@ -698,12 +696,12 @@ class ItemEngine(object):
             nomatch_existing = {k: v for k, v in nomatch_existing.items() if v}
             nomatch_new = {k: v - existing_core_pv[k] for k, v in new_core_pv.items()}
             nomatch_new = {k: v for k, v in nomatch_new.items() if v}
-            raise CorePropIntegrityException('Retrieved item ({}) does not match provided core IDs. '
-                                             'Matching count {}, non-matching count {}. '
+            raise CorePropIntegrityException("Retrieved item ({}) does not match provided core IDs. "
+                                             "Matching count {}, non-matching count {}. "
                                              .format(self.item_id, core_prop_match_count,
                                                      count_existing_ids - core_prop_match_count) +
-                                             'existing unmatched core props: {}. '.format(nomatch_existing) +
-                                             'statement unmatched core props: {}.'.format(nomatch_new))
+                                             "existing unmatched core props: {}. ".format(nomatch_existing) +
+                                             "statement unmatched core props: {}.".format(nomatch_new))
         else:
             return True
 
@@ -738,7 +736,7 @@ class ItemEngine(object):
                     conflict_source[property_nr] = [tmp_qids]
 
                 if len(tmp_qids) > 1:
-                    raise ManualInterventionReqException('More than one item has the same property value', property_nr, tmp_qids)
+                    raise ManualInterventionReqException("More than one item has the same property value", property_nr, tmp_qids)
 
         if len(qid_list) == 0:
             self.create_new_item = True
@@ -749,7 +747,7 @@ class ItemEngine(object):
 
         unique_qids = set(qid_list)
         if len(unique_qids) > 1:
-            raise ManualInterventionReqException('More than one item has the same property value', conflict_source, unique_qids)
+            raise ManualInterventionReqException("More than one item has the same property value", conflict_source, unique_qids)
         elif len(unique_qids) == 1:
             return list(unique_qids)[0]
 
@@ -964,7 +962,7 @@ class FunctionsEngine(object):
                 # rate limiting
                 error_msg_names = set()
                 if 'messages' in json_data['error']:
-                    error_msg_names = set(x.get('name') for x in json_data["error"]['messages'])
+                    error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
                 if 'actionthrottledtext' in error_msg_names:
                     sleep_sec = int(response.headers.get('retry-after', retry_after))
                     print("{}: rate limited. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
@@ -1005,9 +1003,9 @@ class FunctionsEngine(object):
         if not allow_anonymous:
             if login is None:
                 # Force allow_anonymous as False by default to ask for a login object
-                raise ValueError('allow_anonymous can\'t be False and login is None at the same time.')
+                raise ValueError("allow_anonymous can't be False and login is None at the same time.")
             elif mediawiki_api_url != login.mediawiki_api_url:
-                raise ValueError('mediawiki_api_url can\'t be different with the one in the login object.')
+                raise ValueError("mediawiki_api_url can't be different with the one in the login object.")
 
         headers = {
             'User-Agent': user_agent
@@ -1026,7 +1024,7 @@ class FunctionsEngine(object):
                 if 'assert' not in data:
                     data.update({'assert': 'user'})
                 if 'token' in data and data['token'] == '+\\':
-                    raise wbi_login.LoginError('Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.')
+                    raise wbi_login.LoginError("Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.")
             elif 'assert' not in data:
                 # Always assert anon if allow_anonymous is True
                 data.update({'assert': 'anon'})
@@ -1084,9 +1082,9 @@ class FunctionsEngine(object):
                 sleep(retry_after)
                 continue
             if response.status_code == 429:
-                if "retry-after" in response.headers.keys():
-                    retry_after = response.headers["retry-after"]
-                print("Service unavailable (429). Sleeping for {} seconds".format(retry_after))
+                if 'retry-after' in response.headers.keys():
+                    retry_after = response.headers['retry-after']
+                print("Too Many Requests (429). Sleeping for {} seconds".format(retry_after))
                 sleep(retry_after)
                 continue
             response.raise_for_status()
@@ -1101,11 +1099,11 @@ class FunctionsEngine(object):
     def _sparql_query_result_to_df(results):
 
         def parse_value(item):
-            if item.get("datatype") == "http://www.w3.org/2001/XMLSchema#decimal":
+            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#decimal':
                 return float(item['value'])
-            if item.get("datatype") == "http://www.w3.org/2001/XMLSchema#integer":
+            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#integer':
                 return int(item['value'])
-            if item.get("datatype") == "http://www.w3.org/2001/XMLSchema#dateTime":
+            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#dateTime':
                 return datetime.datetime.strptime(item['value'], '%Y-%m-%dT%H:%M:%SZ')
             return item['value']
 
@@ -1125,16 +1123,16 @@ class FunctionsEngine(object):
         mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
 
         linkedby = []
-        whatlinkshere = json.loads(requests.get(mediawiki_api_url + "?action=query&list=backlinks&format=json&bllimit=500&bltitle=" + qid).text)
-        for link in whatlinkshere["query"]["backlinks"]:
-            if link["title"].startswith("Q"):
-                linkedby.append(link["title"])
+        whatlinkshere = json.loads(requests.get(mediawiki_api_url + '?action=query&list=backlinks&format=json&bllimit=500&bltitle=' + qid).text)
+        for link in whatlinkshere['query']['backlinks']:
+            if link['title'].startswith('Q'):
+                linkedby.append(link['title'])
         while 'continue' in whatlinkshere.keys():
-            whatlinkshere = json.loads(requests.get(mediawiki_api_url + "?action=query&list=backlinks&blcontinue=" +
-                                                    whatlinkshere['continue']['blcontinue'] + "&format=json&bllimit=500&bltitle=" + qid).text)
-            for link in whatlinkshere["query"]["backlinks"]:
-                if link["title"].startswith("Q"):
-                    linkedby.append(link["title"])
+            whatlinkshere = json.loads(requests.get(mediawiki_api_url + '?action=query&list=backlinks&blcontinue=' +
+                                                    whatlinkshere['continue']['blcontinue'] + '&format=json&bllimit=500&bltitle=' + qid).text)
+            for link in whatlinkshere['query']['backlinks']:
+                if link['title'].startswith('Q'):
+                    linkedby.append(link['title'])
         return linkedby
 
     @staticmethod
@@ -1166,8 +1164,10 @@ class FunctionsEngine(object):
             'ignoreconflicts': ignore_conflicts
         }
 
-        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
-                                                         allow_anonymous=allow_anonymous)
+        if config['MAXLAG'] > 0:
+            params.update({'maxlag': config['MAXLAG']})
+
+        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
     def delete_item(item, reason, login, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
@@ -1194,8 +1194,10 @@ class FunctionsEngine(object):
             'format': 'json'
         }
 
-        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
-                                                         allow_anonymous=allow_anonymous)
+        if config['MAXLAG'] > 0:
+            params.update({'maxlag': config['MAXLAG']})
+
+        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
     def delete_statement(statement_id, revision, login, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
@@ -1223,12 +1225,13 @@ class FunctionsEngine(object):
             'format': 'json'
         }
 
-        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
-                                                         allow_anonymous=allow_anonymous)
+        if config['MAXLAG'] > 0:
+            params.update({'maxlag': config['MAXLAG']})
+
+        return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
-    def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None,
-                           max_results=500, language=None, dict_result=False, allow_anonymous=True):
+    def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None, max_results=500, language=None, dict_result=False, allow_anonymous=True):
         """
         Performs a search for entities in the Wikibase instance using labels and aliases.
         :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
@@ -1267,8 +1270,7 @@ class FunctionsEngine(object):
         while True:
             params.update({'continue': cont_count})
 
-            search_results = FunctionsEngine.mediawiki_api_call_helper(data=params, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
-                                                                       allow_anonymous=allow_anonymous)
+            search_results = FunctionsEngine.mediawiki_api_call_helper(data=params, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
             if search_results['success'] != 1:
                 raise SearchError('Wikibase API wbsearchentities failed')
@@ -1324,8 +1326,7 @@ class FunctionsEngine(object):
             'format': 'json'
         }
 
-        reply = FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
-                                                          allow_anonymous=allow_anonymous)
+        reply = FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
         item_instances = []
         for qid, v in reply['entities'].items():
@@ -1363,7 +1364,7 @@ class FunctionsEngine(object):
                  "Continuing with no core_props")
             return set()
         else:
-            df.p = df.p.str.rsplit("/", 1).str[-1]
+            df.p = df.p.str.rsplit('/', 1).str[-1]
             return set(df.p)
 
 
@@ -1533,10 +1534,10 @@ class BaseDataType(object):
         self.hash = ''
 
         self.json_representation = {
-            "snaktype": self.snak_type,
-            "property": self.prop_nr,
-            "datavalue": {},
-            "datatype": self.data_type
+            'snaktype': self.snak_type,
+            'property': self.prop_nr,
+            'datavalue': {},
+            'datatype': self.data_type
         }
 
         if self.snak_type not in ['value', 'novalue', 'somevalue']:
@@ -1617,7 +1618,7 @@ class BaseDataType(object):
 
     def set_references(self, references):
         if len(references) > 0 and (self.is_qualifier or self.is_reference):
-            raise ValueError('Qualifiers or references cannot have references')
+            raise ValueError("Qualifiers or references cannot have references")
 
         # Force clean duplicate references
         temp_references = []
@@ -1634,7 +1635,7 @@ class BaseDataType(object):
     def set_qualifiers(self, qualifiers):
         # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in Wikibase
         if len(qualifiers) > 0 and (self.is_qualifier or self.is_reference):
-            raise ValueError('Qualifiers or references cannot have qualifiers')
+            raise ValueError("Qualifiers or references cannot have qualifiers")
 
         self.qualifiers = qualifiers
 
@@ -1646,12 +1647,12 @@ class BaseDataType(object):
 
     def set_rank(self, rank):
         if self.is_qualifier or self.is_reference:
-            raise ValueError('References or qualifiers do not have ranks')
+            raise ValueError("References or qualifiers do not have ranks")
 
         valid_ranks = ['normal', 'deprecated', 'preferred']
 
         if rank not in valid_ranks:
-            raise ValueError('{} not a valid rank'.format(rank))
+            raise ValueError("{} not a valid rank".format(rank))
 
         self.rank = rank
 
@@ -1672,7 +1673,7 @@ class BaseDataType(object):
 
     def set_prop_nr(self, prop_nr):
         if prop_nr[0] != 'P':
-            raise ValueError('Invalid property number')
+            raise ValueError("Invalid property number")
 
         self.prop_nr = prop_nr
 
@@ -1988,7 +1989,7 @@ class ItemID(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid item ID ({}), format must be "Q[0-9]+"'.format(value))
+                raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(value))
             else:
                 self.value = int(matches.group(1))
 
@@ -2060,7 +2061,7 @@ class Property(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid property ID ({}), format must be "P[0-9]+"'.format(value))
+                raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(value))
             else:
                 self.value = int(matches.group(1))
 
@@ -2158,12 +2159,12 @@ class Time(BaseDataType):
             pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
             matches = pattern.match(self.time)
             if not matches:
-                raise ValueError('Time time must be a string in the following format: \'+%Y-%m-%dT%H:%M:%SZ\'')
+                raise ValueError("Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
             self.value = value
             if self.precision < 0 or self.precision > 15:
-                raise ValueError('Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time')
+                raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
         elif self.snak_type == 'value':
-            raise ValueError('Parameter \'time\' can\'t be \'None\' if \'snak_type\' is \'value\'')
+            raise ValueError("Parameter 'time' can't be 'None' if 'snak_type' is 'value'")
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2190,8 +2191,8 @@ class Time(BaseDataType):
             return cls(time=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
-        return cls(time=value['time'], prop_nr=jsn['property'], before=value['before'], after=value['after'],
-                   precision=value['precision'], timezone=value['timezone'], calendarmodel=value['calendarmodel'])
+        return cls(time=value['time'], prop_nr=jsn['property'], before=value['before'], after=value['after'], precision=value['precision'], timezone=value['timezone'],
+                   calendarmodel=value['calendarmodel'])
 
 
 class Url(BaseDataType):
@@ -2302,7 +2303,7 @@ class MonolingualText(BaseDataType):
         if self.text is not None:
             assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
         elif self.snak_type == 'value':
-            raise ValueError('Parameter \'text\' can\'t be \'None\' if \'snak_type\' is \'value\'')
+            raise ValueError("Parameter 'text' can't be 'None' if 'snak_type' is 'value'")
         assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
 
         self.json_representation['datavalue'] = {
@@ -2401,16 +2402,16 @@ class Quantity(BaseDataType):
                     if i:
                         float(i)
             except ValueError:
-                raise ValueError('Value, bounds and units must parse as integers or float')
+                raise ValueError("Value, bounds and units must parse as integers or float")
 
             if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
                                                             or float(self.lower_bound) > float(self.quantity)):
-                raise ValueError('Lower bound too large')
+                raise ValueError("Lower bound too large")
 
             if self.upper_bound and float(self.upper_bound) < float(self.quantity):
-                raise ValueError('Upper bound too small')
+                raise ValueError("Upper bound too small")
         elif self.snak_type == 'value':
-            raise ValueError('Parameter \'quantity\' can\'t be \'None\' if \'snak_type\' is \'value\'')
+            raise ValueError("Parameter 'quantity' can't be 'None' if 'snak_type' is 'value'")
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -2646,8 +2647,7 @@ class GeoShape(BaseDataType):
             pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
             matches = pattern.match(value)
             if not matches:
-                raise ValueError('Value must start with Data: and end with .map. In addition title should not contain '
-                                 'characters like colon, hash or pipe.')
+                raise ValueError("Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.")
             self.value = value
 
         self.json_representation['datavalue'] = {
@@ -2755,8 +2755,7 @@ class TabularData(BaseDataType):
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
-                raise ValueError('Value must start with Data: and end with .tab. In addition title should not contain '
-                                 'characters like colon, hash or pipe.')
+                raise ValueError("Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.")
             self.value = value
 
         self.json_representation['datavalue'] = {
@@ -2877,7 +2876,7 @@ class Lexeme(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid lexeme ID ({}), format must be "L[0-9]+"'.format(value))
+                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
             else:
                 self.value = int(matches.group(1))
 
@@ -2946,7 +2945,7 @@ class Form(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid form ID ({}), format must be "L[0-9]+-F[0-9]+"'.format(value))
+                raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
 
             self.value = value
 
@@ -3014,7 +3013,7 @@ class Sense(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError('Invalid sense ID ({}), format must be "L[0-9]+-S[0-9]+"'.format(value))
+                raise ValueError("Invalid sense ID ({}), format must be 'L[0-9]+-S[0-9]+'".format(value))
 
             self.value = value
 

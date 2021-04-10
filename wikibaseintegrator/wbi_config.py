@@ -1,9 +1,9 @@
 import pkg_resources
 
 try:
-    __version__ = pkg_resources.get_distribution("wikibaseintegrator").version
+    __version__ = pkg_resources.get_distribution('wikibaseintegrator').version
 except pkg_resources.DistributionNotFound as e:  # pragma: no cover
-    __version__ = "dev"
+    __version__ = 'dev'
 
 """
 Config global options
@@ -22,7 +22,7 @@ USER_AGENT_DEFAULT: default user agent string used for http requests. Both to Wi
 config = {
     'BACKOFF_MAX_TRIES': None,
     'BACKOFF_MAX_VALUE': 3600,
-    'USER_AGENT_DEFAULT': 'WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator)'.format(__version__),
+    'USER_AGENT_DEFAULT': "WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator)".format(__version__),
     'MAXLAG': 5,
     'PROPERTY_CONSTRAINT_PID': 'P2302',
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',
@@ -30,6 +30,7 @@ config = {
     'CALENDAR_MODEL_QID': 'http://www.wikidata.org/entity/Q1985727',
     'MEDIAWIKI_API_URL': 'https://www.wikidata.org/w/api.php',
     'MEDIAWIKI_INDEX_URL': 'https://www.wikidata.org/w/index.php',
+    'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
     'WIKIBASE_URL': 'http://www.wikidata.org',
     'DEFAULT_LANGUAGE': 'en'
