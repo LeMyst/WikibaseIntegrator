@@ -5,6 +5,8 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+<!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
+
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
@@ -12,7 +14,7 @@
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
     - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
     - [wbi_login.Login](#wbi_loginlogin)
-        - [Login using OAuth1](#login-using-oauth1)
+        - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
     - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
@@ -131,14 +133,14 @@ Features:
 
 ## wbi_login.Login ##
 
-### Login using OAuth1 ###
+### Login using OAuth1 or OAuth2 ###
 
-OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating bot or to
-use WBI as a backend for an application.
+OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating a bot or
+to use WBI as a backend for an application.
 
 #### As a bot ####
 
-If you want to use WBI with a unique bot account, you should use OAuth as
+If you want to use WBI with a bot account, you should use OAuth as
 an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers). This allows to use the
 authentication without the "continue oauth" step.
 
@@ -146,7 +148,7 @@ The first step is to request a new OAuth consumer on your Mediawiki instance on 
 OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked. You will get
 a consumer key, consumer secret, access token and access secret.
 
-Example:
+Example if you use OAuth 1.0a:
 
 ```python
 from wikibaseintegrator import wbi_login
@@ -155,7 +157,15 @@ login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_se
                                  access_token='<your_access_token>', access_secret='<your_access_secret>')
 ```
 
-#### To impersonate a user ####
+Example if you use OAuth 2.0:
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Login(client_id='<your_client_app_key>', client_secret='<your_client_app_secret>')
+```
+
+#### To impersonate a user (OAuth 1.0a) ####
 
 If WBI should be used as a backend for a webapp, the script should use OAuth for authentication, WBI supports this, you
 just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. In contrast to username and
