@@ -5,6 +5,8 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+<!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
+
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
@@ -12,7 +14,7 @@
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
     - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
     - [wbi_login.Login](#wbi_loginlogin)
-        - [Login using OAuth1](#login-using-oauth1)
+        - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
     - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
