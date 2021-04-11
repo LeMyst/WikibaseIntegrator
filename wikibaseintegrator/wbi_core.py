@@ -171,11 +171,11 @@ class ItemEngine(object):
     def init_data_load(self):
         if self.item_id and self.item_data:
             if self.debug:
-                print("Load item from item_data")
+                print("Load item " + self.item_id + " from item_data")
             self.json_representation = self.parse_json(self.item_data)
         elif self.item_id:
             if self.debug:
-                print("Load item from MW API from item_id")
+                print("Load item " + self.item_id + " from MW API from item_id")
             self.json_representation = self.get_entity()
         else:
             if self.debug:
@@ -184,10 +184,12 @@ class ItemEngine(object):
             try:
                 qids_by_props = self.__select_item()
             except SearchError as e:
-                print("ERROR init_data_load: ", str(e))
+                print("ERROR init_data_load: " + str(e))
 
             if qids_by_props:
                 self.item_id = qids_by_props
+                if self.debug:
+                    print("Item ID guessed is " + self.item_id)
                 self.json_representation = self.get_entity()
                 self.__check_integrity()
 
@@ -1978,8 +1980,7 @@ class ItemID(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            'Expected str or int, found {} ({})'.format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -2050,8 +2051,7 @@ class Property(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -2234,10 +2234,15 @@ class Url(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-        if value is not None and True not in [True for x in protocols if value.startswith(x)]:
-            raise ValueError('Invalid URL')
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid URL {}".format(value))
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2751,7 +2756,7 @@ class TabularData(BaseDataType):
         if value is None:
             self.value = value
         else:
-            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
@@ -2811,8 +2816,7 @@ class Lexeme(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
-                                                                                                           value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):

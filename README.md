@@ -1,7 +1,7 @@
 # Wikibase Integrator #
 
-![Python package](https://github.com/LeMyst/WikibaseIntegrator/workflows/Python%20package/badge.svg)
-![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/workflows/CodeQL/badge.svg)
+[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
+[![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
