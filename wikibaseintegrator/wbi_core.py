@@ -1980,8 +1980,7 @@ class ItemID(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            'Expected str or int, found {} ({})'.format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -2052,8 +2051,7 @@ class Property(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -2236,10 +2234,15 @@ class Url(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-        if value is not None and True not in [True for x in protocols if value.startswith(x)]:
-            raise ValueError('Invalid URL')
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid URL {}".format(value))
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2753,7 +2756,7 @@ class TabularData(BaseDataType):
         if value is None:
             self.value = value
         else:
-            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
@@ -2813,8 +2816,7 @@ class Lexeme(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
-                                                                                                           value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
