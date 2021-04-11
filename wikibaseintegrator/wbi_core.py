@@ -2236,10 +2236,16 @@ class Url(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-        if value is not None and True not in [True for x in protocols if value.startswith(x)]:
-            raise ValueError('Invalid URL')
-        self.value = value
+
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid URL {}".format(value))
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
