@@ -111,7 +111,7 @@ class FastRunContainer(object):
                 if self.debug:
                     print("{} not found in fastrun".format(prop_nr))
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr)
+                self._query_data(prop_nr=prop_nr, use_units=date.data_type == 'quantity')
 
             # more sophisticated data types like dates and globe coordinates need special treatment here
             if self.prop_dt_map[prop_nr] == 'time':
@@ -361,8 +361,7 @@ class FastRunContainer(object):
             # some difference between RDF and xsd:dateTime that I don't understand
             for value in {'v', 'qval', 'rval'}:
                 if value in i:
-                    if i[value].get("datatype") == 'http://www.w3.org/2001/XMLSchema#dateTime' and not \
-                            i[value]['value'][0] in '+-':
+                    if i[value].get("datatype") == 'http://www.w3.org/2001/XMLSchema#dateTime' and not i[value]['value'][0] in '+-':
                         # if it is a dateTime and doesn't start with plus or minus, add a plus
                         i[value]['value'] = '+' + i[value]['value']
 
@@ -449,7 +448,7 @@ class FastRunContainer(object):
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data(self, prop_nr: str) -> None:
+    def _query_data(self, prop_nr: str, use_units=False) -> None:
         page_size = 10000
         page_count = 0
         num_pages = None
@@ -470,91 +469,79 @@ class FastRunContainer(object):
             num_pages = (int(count) // page_size) + 1
             print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
         while True:
-            if self.use_refs:
-                query = '''
-                    #Tool: wbi_fastrun _query_data_refs
-                    SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit ?ref ?pr ?rval
-                    WHERE
-                    {{
-                      {base_filter}
+            # Query header
+            query = '''
+            #Tool: wbi_fastrun _query_data
+            SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit ?ref ?pr ?rval
+            WHERE
+            {{
+            '''
 
-                      # Get amount and unit for the statement
-                      ?item <{wb_url}/prop/{prop_nr}> ?sid .
-                      {{
-                        <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
-                        FILTER (?property_type != wikibase:Quantity)
-                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                      }}
-                      UNION
-                      {{
-                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
-                      }}
+            # Base filter
+            query = query + '''
+            {base_filter}
+            
+            ?item <{wb_url}/prop/{prop_nr}> ?sid .
+            '''
 
-                      # Get qualifiers
-                      OPTIONAL
-                      {{
-                        {{
-                          # Get simple values for qualifiers which are not of type quantity
-                          ?sid ?propQualifier ?qval .
-                          ?pq wikibase:qualifier ?propQualifier .
-                          ?pq wikibase:propertyType ?qualifer_property_type .
-                          FILTER (?qualifer_property_type != wikibase:Quantity)
-                        }}
-                        UNION
-                        {{
-                          # Get amount and unit for qualifiers of type quantity
-                          ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
-                          ?pq wikibase:qualifierValue ?pqv .
-                        }}
-                      }}
-
-                      # get references
-                      OPTIONAL {{
-                        ?sid prov:wasDerivedFrom ?ref .
-                        ?ref ?pr ?rval .
-                        [] wikibase:reference ?pr
-                      }}
-                    }} ORDER BY ?sid OFFSET {offset} LIMIT {page_size}
-                    '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr, offset=str(page_count * page_size), page_size=str(page_size))
+            # Amount and unit
+            if use_units:
+                query = query + '''
+                {{
+                  <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
+                  FILTER (?property_type != wikibase:Quantity)
+                  ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                }}
+                # Get amount and unit for the statement
+                UNION
+                {{
+                  ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
+                }}
+                '''
             else:
-                query = '''
-                    #Tool: wbi_fastrun _query_data
-                    SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit
-                    WHERE
-                    {{
-                      {base_filter}
+                query = query + '''
+                <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
+                ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
+                '''
 
-                      # Get amount and unit for the statement
-                      ?item <{wb_url}/prop/{prop_nr}> ?sid .
-                      {{
-                        <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
-                        FILTER (?property_type != wikibase:Quantity)
-                        ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
-                      }}
-                      UNION
-                      {{
-                        ?sid <{wb_url}/prop/statement/value/{prop_nr}> [wikibase:quantityAmount ?v; wikibase:quantityUnit ?unit] .
-                      }}
+            # Qualifiers
+            query = query + '''
+            # Get qualifiers
+            OPTIONAL
+            {{
+              {{
+                # Get simple values for qualifiers which are not of type quantity
+                ?sid ?propQualifier ?qval .
+                ?pq wikibase:qualifier ?propQualifier .
+                ?pq wikibase:propertyType ?qualifer_property_type .
+                FILTER (?qualifer_property_type != wikibase:Quantity)
+              }}
+              UNION
+              {{
+                # Get amount and unit for qualifiers of type quantity
+                ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
+                ?pq wikibase:qualifierValue ?pqv .
+              }}
+            }}
+            '''
 
-                      # Get qualifiers
-                      OPTIONAL
-                      {{
-                        {{
-                          # Get simple values for qualifiers which are not of type quantity
-                          ?sid ?propQualifier ?qval .
-                          ?pq wikibase:qualifier ?propQualifier .
-                          ?pq wikibase:propertyType ?qualifer_property_type .
-                          FILTER (?qualifer_property_type != wikibase:Quantity)
-                        }}
-                        UNION
-                        {{
-                          # Get amount and unit for qualifiers of type quantity
-                          ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
-                          ?pq wikibase:qualifierValue ?pqv .
-                        }}
-                      }}
-                    }} ORDER BY ?sid OFFSET {offset} LIMIT {page_size}
-                    '''.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr, offset=str(page_count * page_size), page_size=str(page_size))
+            # References
+            if self.use_refs:
+                query = query + '''
+                # get references
+                OPTIONAL {{
+                  ?sid prov:wasDerivedFrom ?ref .
+                  ?ref ?pr ?rval .
+                  [] wikibase:reference ?pr
+                }}
+                '''
+            # Query footer
+            query = query + '''
+            }} ORDER BY ?sid OFFSET {offset} LIMIT {page_size}
+            '''
+
+            # Format the query
+            query = query.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr, offset=str(page_count * page_size), page_size=str(page_size))
 
             if self.debug:
                 print(query)
