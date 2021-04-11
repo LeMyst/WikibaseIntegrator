@@ -144,7 +144,7 @@ class TestWbiCore(unittest.TestCase):
             wbi_core.Property("P123", prop_nr="P12"),
             wbi_core.Property("123", prop_nr="P12"),
             wbi_core.Property(123, prop_nr="P12"),
-            wbi_core.TabularData("Data:xxx.tab", prop_nr="P13"),
+            wbi_core.TabularData("Data:Taipei+Population.tab", prop_nr="P13"),
             wbi_core.MusicalNotation("\relative c' { c d e f | g2 g | a4 a a a | g1 |}", prop_nr="P14"),
             wbi_core.Lexeme("L123", prop_nr="P15"),
             wbi_core.Lexeme("123", prop_nr="P15"),
