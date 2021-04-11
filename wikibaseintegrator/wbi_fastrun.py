@@ -111,7 +111,7 @@ class FastRunContainer(object):
                 if self.debug:
                     print("{} not found in fastrun".format(prop_nr))
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr, date.data_type == 'quantity')
+                self._query_data(prop_nr=prop_nr, use_units=date.data_type == 'quantity')
 
             # more sophisticated data types like dates and globe coordinates need special treatment here
             if self.prop_dt_map[prop_nr] == 'time':
@@ -361,8 +361,7 @@ class FastRunContainer(object):
             # some difference between RDF and xsd:dateTime that I don't understand
             for value in {'v', 'qval', 'rval'}:
                 if value in i:
-                    if i[value].get("datatype") == 'http://www.w3.org/2001/XMLSchema#dateTime' and not \
-                            i[value]['value'][0] in '+-':
+                    if i[value].get("datatype") == 'http://www.w3.org/2001/XMLSchema#dateTime' and not i[value]['value'][0] in '+-':
                         # if it is a dateTime and doesn't start with plus or minus, add a plus
                         i[value]['value'] = '+' + i[value]['value']
 
