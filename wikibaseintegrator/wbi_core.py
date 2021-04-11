@@ -171,11 +171,11 @@ class ItemEngine(object):
     def init_data_load(self):
         if self.item_id and self.item_data:
             if self.debug:
-                print("Load item from item_data")
+                print("Load item " + self.item_id + " from item_data")
             self.json_representation = self.parse_json(self.item_data)
         elif self.item_id:
             if self.debug:
-                print("Load item from MW API from item_id")
+                print("Load item " + self.item_id + " from MW API from item_id")
             self.json_representation = self.get_entity()
         else:
             if self.debug:
@@ -184,10 +184,12 @@ class ItemEngine(object):
             try:
                 qids_by_props = self.__select_item()
             except SearchError as e:
-                print("ERROR init_data_load: ", str(e))
+                print("ERROR init_data_load: " + str(e))
 
             if qids_by_props:
                 self.item_id = qids_by_props
+                if self.debug:
+                    print("Item ID guessed is " + self.item_id)
                 self.json_representation = self.get_entity()
                 self.__check_integrity()
 
