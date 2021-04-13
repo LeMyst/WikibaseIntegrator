@@ -29,7 +29,7 @@ extensions = ['sphinx.ext.autodoc',
 # Provide a GitHub API token:
 # Pass the SPHINX_GITHUB_CHANGELOG_TOKEN environment variable to your build
 # OR
-sphinx_github_changelog_token = "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"
+# sphinx_github_changelog_token = ""
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
