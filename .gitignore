@@ -159,4 +159,4 @@ fabric.properties
 /docs/json/
 
 # Other stuff
-test.py
+test*.py
