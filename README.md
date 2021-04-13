@@ -1,27 +1,30 @@
 # Wikibase Integrator #
 
-![Python package](https://github.com/LeMyst/WikibaseIntegrator/workflows/Python%20package/badge.svg)
-![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/workflows/CodeQL/badge.svg)
+[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
+[![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+
+<!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
-    * [wbi_core.ItemEngine](#wbi_coreitemengine)
-    * [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
-    * [wbi_login.Login](#wbi_loginlogin)
-        + [Login with a username and a password](#login-with-a-username-and-a-password)
-        + [Login using OAuth1](#login-using-oauth1)
-    * [Wikibase Data Types](#wikibase-data-types)
+    - [wbi_core.ItemEngine](#wbi_coreitemengine)
+    - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
+    - [wbi_login.Login](#wbi_loginlogin)
+        - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
+        - [Login with a username and a password](#login-with-a-username-and-a-password)
+    - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
-    * [Execute SPARQL queries](#execute-sparql-queries)
-    * [Wikidata Search](#wikidata-search)
-    * [Merge Wikibase items](#merge-wikibase-items)
+    - [Execute SPARQL queries](#execute-sparql-queries)
+    - [Use Mediawiki API](#use-mediawiki-api)
+    - [Wikibase search entities](#wikibase-search-entities)
+    - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
-    * [A Minimal Bot](#a-minimal-bot)
-    * [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+    - [A Minimal Bot](#a-minimal-bot)
+    - [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
 
 # WikibaseIntegrator / WikidataIntegrator #
@@ -105,8 +108,8 @@ Features:
   exception)
 * Checks automatically if the correct item has been loaded by comparing it to the data provided
 * All Wikibase data types implemented
-* A dedicated ItemEngine.write() method allows loading and consistency checks of data before any write to Wikibase is
-  performed
+* A dedicated wbi_core.ItemEngine.write() method allows loading and consistency checks of data before any write to
+  Wikibase is performed
 * Full access to the whole Wikibase item as a JSON document
 
 There are two ways of working with Wikibase items:
@@ -130,25 +133,44 @@ Features:
 
 ## wbi_login.Login ##
 
-### Login with a username and a password ###
+### Login using OAuth1 or OAuth2 ###
 
-wbi_login.Login provides the login functionality and also stores the cookies and edit tokens required (For security
-reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
-password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified.
+OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating a bot or
+to use WBI as a backend for an application.
+
+#### As a bot ####
+
+If you want to use WBI with a bot account, you should use OAuth as
+an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers). This allows to use the
+authentication without the "continue oauth" step.
+
+The first step is to request a new OAuth consumer on your Mediawiki instance on the page "Special:
+OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked. You will get
+a consumer key, consumer secret, access token and access secret.
+
+Example if you use OAuth 1.0a:
 
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
+login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_secret='<your_consumer_secret>',
+                                 access_token='<your_access_token>', access_secret='<your_access_secret>')
 ```
 
-### Login using OAuth1 ###
+Example if you use OAuth 2.0:
 
-The Wikimedia universe currently only support authentication via OAuth1. If WBI should be used as a backend for a
-webapp, the bot should use OAuth for authentication, WBI supports this, you just need to specify consumer key and
-consumer secret when instantiating wbi_login.Login. In contrast to username and password login, OAuth is a 2 steps
-process as manual user confirmation for OAuth login is required. This means that the method continue_oauth() needs to be
-called after creating the wbi_login.Login instance.
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Login(client_id='<your_client_app_key>', client_secret='<your_client_app_secret>')
+```
+
+#### To impersonate a user (OAuth 1.0a) ####
+
+If WBI should be used as a backend for a webapp, the script should use OAuth for authentication, WBI supports this, you
+just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. In contrast to username and
+password login, OAuth is a 2 steps process as manual user confirmation for OAuth login is required. This means that the
+method `wbi_login.Login.continue_oauth()` needs to be called after creating the `wbi_login.Login` instance.
 
 Example:
 
@@ -159,9 +181,23 @@ login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_se
 login_instance.continue_oauth()
 ```
 
-The method continue_oauth() will either prompt the user for a callback URL (normal bot runs), or it will take a
-parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide the
-authentication information directly to the backend and so no copy and paste of the callback URL is required.
+The method `wbi_login.Login.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
+will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
+the authentication information directly to the backend and so no copy and paste of the callback URL is required.
+
+### Login with a username and a password ###
+
+`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
+reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
+password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified. It's a good
+practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple username and
+password, this allows limiting the permissions given to the bot.
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
+```
 
 ## Wikibase Data Types ##
 
@@ -197,16 +233,40 @@ tuple, depending on the complexity of the data type.
 
 ## Execute SPARQL queries ##
 
-The method wbi_core.ItemEngine.execute_sparql_query() allows you to execute SPARQL queries without a hassle. It takes
+The method `wbi_core.ItemEngine.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes
 the actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata,
 the actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL
 server (user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you
 execute many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email
 address, or the URL to your bot code repository.)
 
-## Wikidata Search ##
+## Use Mediawiki API ##
 
-The method wbi_core.ItemEngine.get_search_results() allows for string search in a Wikibase instance. This means that
+The method `wbi_core.FunctionsEngine.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It
+takes a mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
+mediawiki_api_url string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header,
+and an allow_anonymous boolean to force authentication.
+
+Example:
+
+Retrieve last 10 revisions from Wikidata element Q2 (Earth):
+
+```python
+from wikibaseintegrator import wbi_core
+
+query = {
+    'action': 'query',
+    'prop': 'revisions',
+    'titles': 'Q2',
+    'rvlimit': 10
+}
+
+print(wbi_core.FunctionsEngine.mediawiki_api_call_helper(query, allow_anonymous=True))
+```
+
+## Wikibase search entities ##
+
+The method `wbi_core.ItemEngine.get_search_results()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
 Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
@@ -215,9 +275,9 @@ option dict_id_label to return a dict of item id and label as a result.
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_core.FunctionsEngine.merge_items(from_id, to_id, login_obj)` takes five arguments:
+`wbi_core.FunctionsEngine.merge_items()` takes five arguments:
 the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
-merged into (to_id), a login object of type wbi_login.Login() to provide the API call with the required authentication
+merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
 information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
 conflicts (ignore_conflicts). The last parameter will do a partial merge for all statements which do not conflict. This
 should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts
@@ -242,7 +302,7 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 # data type object, e.g. for a NCBI gene entrez ID
 entrez_gene_id = wbi_core.String(value='<some_entrez_id>', prop_nr='P351')
 
-# data goes into a list, because many data objects can be provided to 
+# data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
 
 # Search for and then edit/create new item
@@ -281,7 +341,7 @@ for entrez_id, ensembl in raw_data.items():
     entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
     ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
 
-    # data goes into a list, because many data objects can be provided to 
+    # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
@@ -343,7 +403,7 @@ for entrez_id, ensembl in raw_data.items():
     entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
     ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
 
-    # data goes into a list, because many data objects can be provided to 
+    # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
