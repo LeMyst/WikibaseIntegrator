@@ -22,7 +22,13 @@ sys.path.insert(0, os.path.abspath('../..'))
 # ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
-              'sphinx.ext.viewcode']
+              'sphinx.ext.viewcode',
+              'sphinx_github_changelog']
+
+# Provide a GitHub API token:
+# Pass the SPHINX_GITHUB_CHANGELOG_TOKEN environment variable to your build
+# OR
+sphinx_github_changelog_token = "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"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

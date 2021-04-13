@@ -359,6 +359,13 @@ Note: Fastrun mode checks for equality of property/value pairs, qualifers (not i
 aliases and description, but it ignores references by default!
 References can be checked in fast run mode by setting ``fast_run_use_refs`` to ``True``.
 
+Changelog
+=========
+
+.. toctree::
+
+   changelog
+
 API
 ====
 
