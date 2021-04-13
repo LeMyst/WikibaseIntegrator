@@ -3,9 +3,11 @@ Welcome to WikibaseIntegrator's documentation!
 
 Release v\ |version|.
 
-.. image:: https://github.com/LeMyst/WikibaseIntegrator/workflows/Python%20package/badge.svg
+.. image:: https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml
 
-.. image:: https://github.com/LeMyst/WikibaseIntegrator/workflows/CodeQL/badge.svg
+.. image:: https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg
+    :target: https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml
 
 .. image:: https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg
     :target: https://pypi.python.org/pypi/wikibaseintegrator
