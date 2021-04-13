@@ -25,14 +25,14 @@ class Login(object):
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
+
         :param user: the username which should be used for the login
         :type user: str
         :param pwd: the password which should be used for the login
         :type pwd: str
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :type token_renew_period: int
-        :param use_clientlogin: use authmanager based login method instead of standard login.
-            For 3rd party data consumer, e.g. web clients
+        :param use_clientlogin: use authmanager based login method instead of standard login. For 3rd party data consumer, e.g. web clients
         :type use_clientlogin: bool
         :param consumer_key: The consumer key for OAuth
         :type consumer_key: str
@@ -151,6 +151,7 @@ class Login(object):
     def generate_edit_credentials(self):
         """
         request an edit token and update the cookie_jar in order to add the session cookie
+
         :return: Returns a json with all relevant cookies, aka cookie jar
         """
         params = {
@@ -166,6 +167,7 @@ class Login(object):
     def get_edit_cookie(self):
         """
         Can be called in order to retrieve the cookies from an instance of wbi_login.Login
+
         :return: Returns a json with all relevant cookies, aka cookie jar
         """
         if (time.time() - self.instantiation_time) > self.token_renew_period:
@@ -177,6 +179,7 @@ class Login(object):
     def get_edit_token(self):
         """
         Can be called in order to retrieve the edit token from an instance of wbi_login.Login
+
         :return: returns the edit token
         """
         if not self.edit_token or (time.time() - self.instantiation_time) > self.token_renew_period:
@@ -188,6 +191,7 @@ class Login(object):
     def get_session(self):
         """
         returns the requests session object used for the login.
+
         :return: Object of type requests.Session()
         """
         return self.session
@@ -196,6 +200,7 @@ class Login(object):
         """
         Continuation of OAuth procedure. Method must be explicitly called in order to complete OAuth. This allows
         external entities, e.g. websites, to provide tokens through callback URLs directly.
+
         :param oauth_callback_data: The callback URL received to a Web app
         :type oauth_callback_data: bytes
         :return:
