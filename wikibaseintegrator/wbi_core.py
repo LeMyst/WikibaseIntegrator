@@ -17,6 +17,74 @@ from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
 class ItemEngine(object):
+    """
+    constructor
+
+    :param item_id: Wikibase item id
+    :type item_id: str
+    :param new_item: This parameter lets the user indicate if a new item should be created
+    :type new_item: bool
+    :param data: a dictionary with property strings as keys and the data which should be written to a item as the property values
+    :type data: list[BaseDataType] or BaseDataType or None
+    :param mediawiki_api_url:
+    :type mediawiki_api_url: str
+    :param sparql_endpoint_url:
+    :type sparql_endpoint_url: str
+    :param wikibase_url:
+    :type wikibase_url: str
+    :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True should also specify the
+        fast_run_base_filter for these item types
+    :type fast_run: bool
+    :param fast_run_base_filter: A property value dict determining the Wikibase property and the corresponding value which should be used as a filter for
+        this item type. Several filter criteria can be specified. The values can be either Wikibase item QIDs, strings or empty strings if the value should
+        be a variable in SPARQL.
+        Example: {'P352': '', 'P703': 'Q15978631'} if the basic common type of things this bot runs on is human proteins (specified by Uniprot IDs (P352)
+        and 'found in taxon' homo sapiens 'Q15978631').
+    :type fast_run_base_filter: dict
+    :param fast_run_use_refs: If `True`, fastrun mode will consider references in determining if a statement should be updated and written to Wikibase.
+        Otherwise, only the value and qualifiers are used. Default: False
+    :type fast_run_use_refs: bool
+    :param ref_handler: This parameter defines a function that will manage the reference handling in a custom manner. This argument should be a function
+        handle that accepts two arguments, the old/current statement (first argument) and new/proposed/to be written statement (second argument), both of
+        type: a subclass of BaseDataType. The function should return an new item that is the item to be written. The item's values properties or qualifiers
+        should not be modified; only references. This function is also used in fastrun mode. This will only be used if the ref_mode is set to "CUSTOM".
+    :type ref_handler: function
+    :param global_ref_mode: sets the reference handling mode for an item. Four modes are possible, 'STRICT_KEEP' keeps all references as they are,
+        'STRICT_KEEP_APPEND' keeps the references as they are and appends new ones. 'STRICT_OVERWRITE' overwrites all existing references for given.
+        'KEEP_GOOD' will use the refs defined in good_refs. 'CUSTOM' will use the function defined in ref_handler
+    :type global_ref_mode: str
+    :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries. One block is a dictionary with Wikidata
+        properties as keys and potential values as the required value for a property. There can be arbitrarily many key: value pairs in one reference block.
+        Example: [{'P248': 'Q905695', 'P352': None, 'P407': None, 'P1476': None, 'P813': None}] This example contains one good reference block, stated in:
+        Uniprot, Uniprot ID, title of Uniprot entry, language of work and date when the information has been retrieved. A None type indicates that the value
+        varies from reference to reference. In this case, only the value for the Wikidata item for the Uniprot database stays stable over all of these
+        references. Key value pairs work here, as Wikidata references can hold only one value for one property. The number of good reference blocks is not
+        limited. This parameter OVERRIDES any other reference mode set!!
+    :type good_refs: list[dict]
+    :param keep_good_ref_statements: Do not delete any statement which has a good reference, either defined in the good_refs list or by any other
+        referencing mode.
+    :type keep_good_ref_statements: bool
+    :param search_only: If this flag is set to True, the data provided will only be used to search for the corresponding Wikibase item, but no actual data
+        updates will performed. This is useful, if certain states or values on the target item need to be checked before certain data is written to it. In
+        order to write new data to the item, the method update() will take data, modify the Wikibase item and a write() call will then perform the actual
+        write to the Wikibase instance.
+    :type search_only: bool
+    :param item_data: A Python JSON object corresponding to the item in item_id. This can be used in conjunction with item_id in order to provide raw data.
+    :type item_data:
+    :param user_agent: The user agent string to use when making http requests
+    :type user_agent: str
+    :param core_props: Core properties are used to retrieve an item based on `data` if a `item_id` is not given. This is a set of PIDs to use. If None,
+        all Wikibase properties with a distinct values constraint will be used. (see: get_core_props)
+    :type core_props: set
+    :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item when the item_id is not specified.
+    :type core_prop_match_thresh: float
+    :param property_constraint_pid:
+    :param distinct_values_constraint_qid:
+    :param fast_run_case_insensitive:
+    :param debug: Enable debug output.
+    :type debug: boolean
+    """
+
     fast_run_store = []
     distinct_value_props = {}
 
@@ -24,73 +92,6 @@ class ItemEngine(object):
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None, keep_good_ref_statements=False, search_only=False, item_data=None,
                  user_agent=None, core_props=None, core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None, fast_run_case_insensitive=False,
                  debug=False) -> None:
-        """
-        constructor
-
-        :param item_id: Wikibase item id
-        :type item_id: str
-        :param new_item: This parameter lets the user indicate if a new item should be created
-        :type new_item: bool
-        :param data: a dictionary with property strings as keys and the data which should be written to a item as the property values
-        :type data: list[BaseDataType] or BaseDataType or None
-        :param mediawiki_api_url:
-        :type mediawiki_api_url: str
-        :param sparql_endpoint_url:
-        :type sparql_endpoint_url: str
-        :param wikibase_url:
-        :type wikibase_url: str
-        :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True should also specify the
-            fast_run_base_filter for these item types
-        :type fast_run: bool
-        :param fast_run_base_filter: A property value dict determining the Wikibase property and the corresponding value which should be used as a filter for
-            this item type. Several filter criteria can be specified. The values can be either Wikibase item QIDs, strings or empty strings if the value should
-            be a variable in SPARQL.
-            Example: {'P352': '', 'P703': 'Q15978631'} if the basic common type of things this bot runs on is human proteins (specified by Uniprot IDs (P352)
-            and 'found in taxon' homo sapiens 'Q15978631').
-        :type fast_run_base_filter: dict
-        :param fast_run_use_refs: If `True`, fastrun mode will consider references in determining if a statement should be updated and written to Wikibase.
-            Otherwise, only the value and qualifiers are used. Default: False
-        :type fast_run_use_refs: bool
-        :param ref_handler: This parameter defines a function that will manage the reference handling in a custom manner. This argument should be a function
-            handle that accepts two arguments, the old/current statement (first argument) and new/proposed/to be written statement (second argument), both of
-            type: a subclass of BaseDataType. The function should return an new item that is the item to be written. The item's values properties or qualifiers
-            should not be modified; only references. This function is also used in fastrun mode. This will only be used if the ref_mode is set to "CUSTOM".
-        :type ref_handler: function
-        :param global_ref_mode: sets the reference handling mode for an item. Four modes are possible, 'STRICT_KEEP' keeps all references as they are,
-            'STRICT_KEEP_APPEND' keeps the references as they are and appends new ones. 'STRICT_OVERWRITE' overwrites all existing references for given.
-            'KEEP_GOOD' will use the refs defined in good_refs. 'CUSTOM' will use the function defined in ref_handler
-        :type global_ref_mode: str
-        :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries. One block is a dictionary with Wikidata
-            properties as keys and potential values as the required value for a property. There can be arbitrarily many key: value pairs in one reference block.
-            Example: [{'P248': 'Q905695', 'P352': None, 'P407': None, 'P1476': None, 'P813': None}] This example contains one good reference block, stated in:
-            Uniprot, Uniprot ID, title of Uniprot entry, language of work and date when the information has been retrieved. A None type indicates that the value
-            varies from reference to reference. In this case, only the value for the Wikidata item for the Uniprot database stays stable over all of these
-            references. Key value pairs work here, as Wikidata references can hold only one value for one property. The number of good reference blocks is not
-            limited. This parameter OVERRIDES any other reference mode set!!
-        :type good_refs: list[dict]
-        :param keep_good_ref_statements: Do not delete any statement which has a good reference, either defined in the good_refs list or by any other
-            referencing mode.
-        :type keep_good_ref_statements: bool
-        :param search_only: If this flag is set to True, the data provided will only be used to search for the corresponding Wikibase item, but no actual data
-            updates will performed. This is useful, if certain states or values on the target item need to be checked before certain data is written to it. In
-            order to write new data to the item, the method update() will take data, modify the Wikibase item and a write() call will then perform the actual
-            write to the Wikibase instance.
-        :type search_only: bool
-        :param item_data: A Python JSON object corresponding to the item in item_id. This can be used in conjunction with item_id in order to provide raw data.
-        :type item_data:
-        :param user_agent: The user agent string to use when making http requests
-        :type user_agent: str
-        :param core_props: Core properties are used to retrieve an item based on `data` if a `item_id` is not given. This is a set of PIDs to use. If None,
-            all Wikibase properties with a distinct values constraint will be used. (see: get_core_props)
-        :type core_props: set
-        :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item when the item_id is not specified.
-        :type core_prop_match_thresh: float
-        :param property_constraint_pid:
-        :param distinct_values_constraint_qid:
-        :param fast_run_case_insensitive:
-        :param debug: Enable debug output.
-        :type debug: boolean
-        """
 
         self.core_prop_match_thresh = core_prop_match_thresh
         self.item_id = item_id
@@ -1849,6 +1850,13 @@ class String(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
+        """
+        Define the value
+
+        :param value:
+        :type value: str
+        :return: None
+        """
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         self.value = value
 
@@ -1862,6 +1870,13 @@ class String(BaseDataType):
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
+        """
+        Create a datatype from a correctly formatted json
+
+        :param jsn: A dictionnary made from a json response from MediaWiki API
+        :type jsn: dict
+        :return: Object
+        """
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
@@ -2370,6 +2385,29 @@ class MonolingualText(BaseDataType):
 class Quantity(BaseDataType):
     """
     Implements the Wikibase data type for quantities
+
+    :param quantity: The quantity value
+    :type quantity: float, str or None
+    :param prop_nr: The item ID for this claim
+    :type prop_nr: str with a 'P' prefix followed by digits
+    :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
+    :type upper_bound: float, str
+    :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
+    :type lower_bound: float, str
+    :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
+        The default is dimensionless, represented by a '1'
+    :type unit: str
+    :type is_reference: boolean
+    :param is_qualifier: Whether this snak is a qualifier
+    :type is_qualifier: boolean
+    :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+    :type snak_type: str
+    :param references: List with reference objects
+    :type references: A data type with subclass of BaseDataType
+    :param qualifiers: List with qualifier objects
+    :type qualifiers: A data type with subclass of BaseDataType
+    :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+    :type rank: str
     """
     DTYPE = 'quantity'
     sparql_query = '''
@@ -2380,32 +2418,6 @@ class Quantity(BaseDataType):
     '''
 
     def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-
-        :param quantity: The quantity value
-        :type quantity: float, str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
-        :type upper_bound: float, str
-        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
-        :type lower_bound: float, str
-        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
-            The default is dimensionless, represented by a '1'
-        :type unit: str
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
 
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 

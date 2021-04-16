@@ -9,6 +9,20 @@ from wikibaseintegrator.wbi_config import config
 
 
 class FastRunContainer(object):
+    """
+
+    :param base_data_type:
+    :param engine:
+    :param mediawiki_api_url:
+    :param sparql_endpoint_url:
+    :param wikibase_url:
+    :param base_filter:
+    :param use_refs:
+    :param ref_handler:
+    :param case_insensitive:
+    :param debug:
+    """
+
     def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, ref_handler=None,
                  case_insensitive=False, debug=False):
         self.reconstructed_statements = []
@@ -66,7 +80,7 @@ class FastRunContainer(object):
             props = q_props | r_props
             for prop in props:
                 if prop not in self.prop_dt_map:
-                    self.prop_dt_map.update({prop: self.get_prop_datatype(prop)})
+                    self.prop_dt_map.update({prop: self._get_prop_datatype(prop)})
             # reconstruct statements from frc (including unit, qualifiers, and refs)
             for uid, d in dt.items():
                 qualifiers = []
@@ -110,7 +124,7 @@ class FastRunContainer(object):
             if prop_nr not in self.prop_dt_map:
                 if self.debug:
                     print("{} not found in fastrun".format(prop_nr))
-                self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
+                self.prop_dt_map.update({prop_nr: self._get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=date.data_type == 'quantity')
 
             # more sophisticated data types like dates and globe coordinates need special treatment here
@@ -120,7 +134,7 @@ class FastRunContainer(object):
                 if not str(current_value).startswith('Q'):
                     current_value = 'Q{}'.format(current_value)
             elif self.prop_dt_map[prop_nr] == 'quantity':
-                current_value = self.format_amount(current_value[0])
+                current_value = self._format_amount(current_value[0])
 
             if self.debug:
                 print(current_value)
@@ -285,7 +299,7 @@ class FastRunContainer(object):
         """
         get language data for specified qid
 
-        :param qid:  Wikibase item id
+        :param qid: Wikibase item id
         :param lang: language code
         :param lang_data_type: 'label', 'description' or 'aliases'
         :return: list of strings
@@ -326,10 +340,7 @@ class FastRunContainer(object):
 
         return False
 
-    def get_all_data(self) -> dict:
-        return self.prop_data
-
-    def format_query_results(self, r: list, prop_nr: str) -> None:
+    def _format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
         `prop_nr` is needed to get the property datatype to determine how to format the value
@@ -346,7 +357,7 @@ class FastRunContainer(object):
             pr: reference property
             rval: reference value
         """
-        prop_dt = self.get_prop_datatype(prop_nr)
+        prop_dt = self._get_prop_datatype(prop_nr)
         for i in r:
             for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
                 if value in i:
@@ -374,7 +385,7 @@ class FastRunContainer(object):
                 if i['v']['type'] == 'uri' and prop_dt == 'wikibase-item':
                     i['v'] = i['v']['value'].split('/')[-1]
                 elif i['v']['type'] == 'literal' and prop_dt == 'quantity':
-                    i['v'] = self.format_amount(i['v']['value'])
+                    i['v'] = self._format_amount(i['v']['value'])
                 else:
                     i['v'] = i['v']['value']
 
@@ -387,24 +398,24 @@ class FastRunContainer(object):
 
             # handle qualifier value
             if 'qval' in i:
-                qual_prop_dt = self.get_prop_datatype(prop_nr=i['pq'])
+                qual_prop_dt = self._get_prop_datatype(prop_nr=i['pq'])
                 if i['qval']['type'] == 'uri' and qual_prop_dt == 'wikibase-item':
                     i['qval'] = i['qval']['value'].split('/')[-1]
                 elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
-                    i['qval'] = self.format_amount(i['qval']['value'])
+                    i['qval'] = self._format_amount(i['qval']['value'])
                 else:
                     i['qval'] = i['qval']['value']
 
             # handle reference value
             if 'rval' in i:
-                ref_prop_dt = self.get_prop_datatype(prop_nr=i['pr'])
+                ref_prop_dt = self._get_prop_datatype(prop_nr=i['pr'])
                 if i['rval']['type'] == 'uri' and ref_prop_dt == 'wikibase-item':
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 else:
                     i['rval'] = i['rval']['value']
 
     @staticmethod
-    def format_amount(amount) -> str:
+    def _format_amount(amount) -> str:
         # Remove .0 by casting to int
         if float(amount) % 1 == 0:
             amount = int(float(amount))
@@ -416,7 +427,7 @@ class FastRunContainer(object):
         # return as string
         return str(amount)
 
-    def update_frc_from_query(self, r: list, prop_nr: str) -> None:
+    def _update_frc_from_query(self, r: list, prop_nr: str) -> None:
         # r is the output of format_query_results
         # this updates the frc from the query (result of _query_data)
         for i in r:
@@ -550,8 +561,8 @@ class FastRunContainer(object):
                 print(query)
 
             results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
-            self.format_query_results(results, prop_nr)
-            self.update_frc_from_query(results, prop_nr)
+            self._format_query_results(results, prop_nr)
+            self._update_frc_from_query(results, prop_nr)
             page_count += 1
             if num_pages:
                 print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
@@ -597,19 +608,10 @@ class FastRunContainer(object):
         return data
 
     @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr: str) -> str:
+    def _get_prop_datatype(self, prop_nr: str) -> str:
         item = self.engine(item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url, mediawiki_api_url=self.mediawiki_api_url, wikibase_url=self.wikibase_url,
                            debug=self.debug)
         return item.entity_metadata['datatype']
-
-    def clear(self) -> None:
-        """
-        convinience function to empty this fastrun container
-        """
-        self.prop_dt_map = dict()
-        self.prop_data = dict()
-        self.rev_lookup = defaultdict(set)
-        self.rev_lookup_ci = defaultdict(set)
 
     def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""

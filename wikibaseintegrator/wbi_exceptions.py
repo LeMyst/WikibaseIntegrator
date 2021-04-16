@@ -1,12 +1,12 @@
 class MWApiError(Exception):
-    def __init__(self, error_message):
-        """
-        Base class for Mediawiki API error handling
+    """
+    Base class for Mediawiki API error handling
 
-        :param error_message: The error message returned by the Mediawiki API
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
+    :param error_message: The JSON returned by the Mediawiki API containing the error message
+    :type error_message: dict
+    """
+
+    def __init__(self, error_message):
         self.error_msg = error_message
 
     def __str__(self):
@@ -14,48 +14,60 @@ class MWApiError(Exception):
 
 
 class NonUniqueLabelDescriptionPairError(MWApiError):
-    def __init__(self, error_message):
-        """
-        This class handles errors returned from the API due to an attempt to create an item which has the same label and description as an existing item in a certain language.
+    """
+    This class handles errors returned from the API due to an attempt to create an item which has the same label and description as an existing item in a certain language.
 
-        :param error_message: An API error message containing 'wikibase-validator-label-with-description-conflict' as the message name.
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
-        self.error_msg = error_message
+    :param value: An API error message containing 'wikibase-validator-label-with-description-conflict' as the message name.
+    :type value: dict
+    """
+
+    def __init__(self, value):
+        self.value = value
 
     def get_language(self):
         """
         :return: Returns a 2 letter language string, indicating the language which triggered the error
         """
-        return self.error_msg['error']['messages'][0]['parameters'][1]
+        return self.value['error']['messages'][0]['parameters'][1]
 
     def get_conflicting_item_qid(self):
         """
         :return: Returns the QID string of the item which has the same label and description as the one which should be set.
         """
-        qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
+        qid_string = self.value['error']['messages'][0]['parameters'][2]
 
         return qid_string.split('|')[0][2:]
 
     def __str__(self):
-        return repr(self.error_msg)
-
-
-class IDMissingError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
         return repr(self.value)
 
 
-class SearchError(Exception):
-    def __init__(self, value):
-        self.value = value
+class IDMissingError(ValueError):
+    """Raised when trying to create an item with a given ID
+
+    :param error_message: The error message to pass with the exception
+    :type error_message: str
+    """
+
+    def __init__(self, error_message):
+        self.error_message = error_message
 
     def __str__(self):
-        return repr(self.value)
+        return repr(self.error_message)
+
+
+class SearchError(MWApiError):
+    """Raised when there is an error during a search request
+
+    :param error_message: The error message to pass with the exception
+    :type error_message: str
+    """
+
+    def __init__(self, error_message):
+        self.error_message = error_message
+
+    def __str__(self):
+        return repr(self.error_message)
 
 
 class ManualInterventionReqException(Exception):
@@ -67,19 +79,16 @@ class ManualInterventionReqException(Exception):
 
 
 class CorePropIntegrityException(Exception):
-    def __init__(self, value):
-        self.value = value
+    """
+    :param error_message: The error message to pass with the exception
+    :type error_message: str
+    """
+
+    def __init__(self, error_message):
+        self.error_message = error_message
 
     def __str__(self):
-        return repr(self.value)
-
-
-class MergeError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+        return repr(self.error_message)
 
 
 class SearchOnlyError(Exception):

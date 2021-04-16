@@ -1,4 +1,4 @@
-Welcome to WikibaseIntegrator's documentation!
+WikibaseIntegrator
 ========================================
 
 Release v\ |version|.

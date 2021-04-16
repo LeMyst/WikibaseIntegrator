@@ -37,8 +37,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The master toctree document.
 master_doc = 'index'
@@ -63,7 +62,7 @@ release = u'0.10.1.dev0'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -86,7 +85,7 @@ html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'style_external_links': False,
     # Toc options
-    'collapse_navigation': False,
+    'collapse_navigation': False
 }
 
 html_context = {
@@ -96,3 +95,12 @@ html_context = {
     'github_version': 'master',
     "conf_py_path": "/docs/"
 }
+
+# def skip(app, what, name, obj, would_skip, options):
+#     if name == "__init__":
+#         return False
+#     return would_skip
+#
+#
+# def setup(app):
+#     app.connect("autodoc-skip-member", skip)

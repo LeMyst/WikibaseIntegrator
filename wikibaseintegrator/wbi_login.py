@@ -16,39 +16,36 @@ Login class for Wikidata. Takes username and password and stores the session coo
 
 class Login(object):
     """
-    A class which handles the login to Wikidata and the generation of edit-tokens
+    This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
+    Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
+
+    :param user: the username which should be used for the login
+    :type user: str
+    :param pwd: the password which should be used for the login
+    :type pwd: str
+    :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
+    :type token_renew_period: int
+    :param use_clientlogin: use authmanager based login method instead of standard login. For 3rd party data consumer, e.g. web clients
+    :type use_clientlogin: bool
+    :param consumer_key: The consumer key for OAuth
+    :type consumer_key: str
+    :param consumer_secret: The consumer secret for OAuth
+    :type consumer_secret: str
+    :param access_token: The access token for OAuth
+    :type access_token: str
+    :param access_secret: The access secret for OAuth
+    :type access_secret: str
+    :param callback_url: URL which should be used as the callback URL
+    :type callback_url: str
+    :param user_agent: UA string to use for API requests.
+    :type user_agent: str
+    :return: None
     """
 
     @wbi_backoff()
     def __init__(self, user=None, pwd=None, mediawiki_api_url=None, mediawiki_index_url=None, mediawiki_rest_url=None, token_renew_period=1800, use_clientlogin=False,
                  consumer_key=None, consumer_secret=None, access_token=None, access_secret=None, client_id=None, client_secret=None, callback_url='oob', user_agent=None,
                  debug=False):
-        """
-        This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
-        Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
-
-        :param user: the username which should be used for the login
-        :type user: str
-        :param pwd: the password which should be used for the login
-        :type pwd: str
-        :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
-        :type token_renew_period: int
-        :param use_clientlogin: use authmanager based login method instead of standard login. For 3rd party data consumer, e.g. web clients
-        :type use_clientlogin: bool
-        :param consumer_key: The consumer key for OAuth
-        :type consumer_key: str
-        :param consumer_secret: The consumer secret for OAuth
-        :type consumer_secret: str
-        :param access_token: The access token for OAuth
-        :type access_token: str
-        :param access_secret: The access secret for OAuth
-        :type access_secret: str
-        :param callback_url: URL which should be used as the callback URL
-        :type callback_url: str
-        :param user_agent: UA string to use for API requests.
-        :type user_agent: str
-        :return: None
-        """
 
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.mediawiki_index_url = config['MEDIAWIKI_INDEX_URL'] if mediawiki_index_url is None else mediawiki_index_url
@@ -169,7 +166,7 @@ class Login(object):
 
     def generate_edit_credentials(self):
         """
-        request an edit token and update the cookie_jar in order to add the session cookie
+        Request an edit token and update the cookie_jar in order to add the session cookie
 
         :return: Returns a json with all relevant cookies, aka cookie jar
         """
@@ -209,7 +206,7 @@ class Login(object):
 
     def get_session(self):
         """
-        returns the requests session object used for the login.
+        Returns the requests session object used for the login.
 
         :return: Object of type requests.Session()
         """
@@ -222,7 +219,7 @@ class Login(object):
 
         :param oauth_callback_data: The callback URL received to a Web app
         :type oauth_callback_data: bytes
-        :return:
+        :return: None
         """
         self.response_qs = oauth_callback_data
 

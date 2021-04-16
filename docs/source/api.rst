@@ -3,8 +3,6 @@
 API
 ***************************
 
-Here you can find the full developer API for the WikibaseIntegrator project.
-
 Contents:
 
 .. toctree::
@@ -15,17 +13,24 @@ Contents:
   :members:
 
 Classes
-===============================
+=======
+
+wbi_core
+--------
 
 wbi_core.ItemEngine
 ^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: wikibaseintegrator
+.. automodule:: wikibaseintegrator.wbi_core
+  :members: ItemEngine
 
-.. autoclass:: wikibaseintegrator.wbi_core.ItemEngine
-  :members:
+wbi_core.BaseDataType
+^^^^^^^^^^^^^^^^^^^
 
-  .. automethod:: __init__
+.. automodule:: wikibaseintegrator.wbi_core
+  :members: BaseDataType
+  :inherited-members:
+  :show-inheritance:
 
 wbi_core.FunctionsEngine
 ^^^^^^^^^^^^^^^^^^^
@@ -33,21 +38,23 @@ wbi_core.FunctionsEngine
 .. autoclass:: wikibaseintegrator.wbi_core.FunctionsEngine
   :members:
 
+wbi_fastrun
+-----------
+
 wbi_fastrun.FastRunContainer
 ^^^^^^^^^^^^^^^^^^^
 
-.. autoclass:: wikibaseintegrator.wbi_fastrun.FastRunContainer
+.. automodule:: wikibaseintegrator.wbi_fastrun
   :members:
 
-  .. automethod:: __init__
+wbi_login
+---------
 
 wbi_login.Login
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 .. autoclass:: wikibaseintegrator.wbi_login.Login
   :members:
-
-  .. automethod:: __init__
 
 Exceptions
 ==========
