@@ -175,6 +175,7 @@ class Login(object):
         params = {
             'action': 'query',
             'meta': 'tokens',
+            'type': 'csrf',
             'format': 'json'
         }
         response = self.session.get(self.mediawiki_api_url, params=params)
