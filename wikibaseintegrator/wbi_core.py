@@ -97,8 +97,7 @@ class ItemEngine(object):
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
         self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
         self.property_constraint_pid = config['PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
-        self.distinct_values_constraint_qid = config[
-            'DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
+        self.distinct_values_constraint_qid = config['DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
         if data is None:
             self.data = []
         elif isinstance(data, list) and all(isinstance(x, BaseDataType) for x in data):
@@ -171,11 +170,11 @@ class ItemEngine(object):
     def init_data_load(self):
         if self.item_id and self.item_data:
             if self.debug:
-                print("Load item from item_data")
+                print("Load item " + self.item_id + " from item_data")
             self.json_representation = self.parse_json(self.item_data)
         elif self.item_id:
             if self.debug:
-                print("Load item from MW API from item_id")
+                print("Load item " + self.item_id + " from MW API from item_id")
             self.json_representation = self.get_entity()
         else:
             if self.debug:
@@ -184,10 +183,12 @@ class ItemEngine(object):
             try:
                 qids_by_props = self.__select_item()
             except SearchError as e:
-                print("ERROR init_data_load: ", str(e))
+                print("ERROR init_data_load: " + str(e))
 
             if qids_by_props:
                 self.item_id = qids_by_props
+                if self.debug:
+                    print("Item ID guessed is " + self.item_id)
                 self.json_representation = self.get_entity()
                 self.__check_integrity()
 
@@ -1930,8 +1931,7 @@ class ItemID(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            'Expected str or int, found {} ({})'.format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -2002,8 +2002,7 @@ class Property(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, \
-            "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -2186,10 +2185,15 @@ class Url(BaseDataType):
 
     def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        protocols = ['http://', 'https://', 'ftp://', 'irc://', 'mailto:']
-        if value is not None and True not in [True for x in protocols if value.startswith(x)]:
-            raise ValueError('Invalid URL')
-        self.value = value
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid URL {}".format(value))
+            self.value = value
 
         self.json_representation['datavalue'] = {
             'value': self.value,
@@ -2703,7 +2707,7 @@ class TabularData(BaseDataType):
         if value is None:
             self.value = value
         else:
-            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
@@ -2763,8 +2767,7 @@ class Lexeme(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value),
-                                                                                                           value)
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
         if value is None:
             self.value = value
         elif isinstance(value, int):
