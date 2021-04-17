@@ -1291,15 +1291,14 @@ class FunctionsEngine(object):
             ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
         }}
         '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
-        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url)
-        if not df['results']['bindings']:
+        results = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url)['results']['bindings']
+        if not results:
             warn("Warning: No distinct value properties found\n" +
                  "Please set P2302 and Q21502410 in your Wikibase or set `core_props` manually.\n" +
                  "Continuing with no core_props")
             return set()
         else:
-            df.p = df.p.str.rsplit('/', 1).str[-1]
-            return set(df.p)
+            return set(map(lambda x: x['p']['value'].rsplit('/', 1)[-1], results))
 
 
 class JsonParser(object):
