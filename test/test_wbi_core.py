@@ -105,7 +105,7 @@ class TestWbiCore(unittest.TestCase):
         assert item.get_aliases('ak') == ['c']
 
     def test_wd_search(self):
-        t = wbi_core.FunctionsEngine.get_search_results('rivaroxaban')
+        t = wbi_core.FunctionsEngine.search_entities('rivaroxaban')
         print('Number of results: ', len(t))
         self.assertIsNot(len(t), 0)
 

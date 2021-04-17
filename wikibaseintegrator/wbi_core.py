@@ -1133,7 +1133,7 @@ class FunctionsEngine(object):
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
-    def delete_statement(statement_id, login, summary=None, revision=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
+    def remove_claims(claim_id, summary=None, revision=None, mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
         """
         Delete an item
         :param statement_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
@@ -1167,7 +1167,8 @@ class FunctionsEngine(object):
         return FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
     @staticmethod
-    def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None, max_results=500, language=None, dict_result=False, allow_anonymous=True):
+    def search_entities(search_string, language=None, strict_language=True, search_type='item', mediawiki_api_url=None, max_results=500, dict_result=False, login=None,
+                        allow_anonymous=True, user_agent=None):
         """
         Performs a search for entities in the Wikibase instance using labels and aliases.
         :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)

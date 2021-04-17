@@ -266,7 +266,7 @@ print(wbi_core.FunctionsEngine.mediawiki_api_call_helper(query, allow_anonymous=
 
 ## Wikibase search entities ##
 
-The method `wbi_core.ItemEngine.get_search_results()` allows for string search in a Wikibase instance. This means that
+The method `wbi_core.ItemEngine.search_entities()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
 Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
