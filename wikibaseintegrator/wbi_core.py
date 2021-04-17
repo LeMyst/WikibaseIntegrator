@@ -1099,29 +1099,28 @@ class FunctionsEngine(object):
                 return results
 
     @staticmethod
-    def merge_items(from_id, to_id, login, ignore_conflicts='', mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
+    def merge_items(from_id, to_id, ignore_conflicts='', mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
         """
         A static method to merge two items
         :param from_id: The QID which should be merged into another item
         :type from_id: string with 'Q' prefix
         :param to_id: The QID into which another item should be merged
         :type to_id: string with 'Q' prefix
-        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated by a pipe ('|') if using more than one of those.
         :type ignore_conflicts: str
-        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-        :type user_agent: str
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
+        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
+        :type user_agent: str
         """
 
         params = {
             'action': 'wbmergeitems',
             'fromid': from_id,
             'toid': to_id,
-            'token': login.get_edit_token(),
             'format': 'json',
             'bot': '',
             'ignoreconflicts': ignore_conflicts
@@ -1136,26 +1135,25 @@ class FunctionsEngine(object):
     def remove_claims(claim_id, summary=None, revision=None, mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
         """
         Delete an item
-        :param statement_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
-        :type statement_id: string
-        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
+        :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
+        :type claim_id: string
         :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
         :type summary: str
         :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
         :type revision: str
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
-        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-        :type user_agent: str
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
+        :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
+        :type user_agent: str
         """
 
         params = {
             'action': 'wbremoveclaims',
-            'claim': statement_id,
+            'claim': claim_id,
             'summary': summary,
-            'token': login.get_edit_token(),
             'baserevid': revision,
             'bot': True,
             'format': 'json'
@@ -1173,20 +1171,23 @@ class FunctionsEngine(object):
         Performs a search for entities in the Wikibase instance using labels and aliases.
         :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
         :type search_string: str
+        :param language: The language in which to perform the search.
+        :type language: str
+        :param strict_language: Whether to disable language fallback
+        :type strict_language: bool
         :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
         :type search_type: str
         :param mediawiki_api_url: Specify the mediawiki_api_url.
         :type mediawiki_api_url: str
-        :param user_agent: The user agent string transmitted in the http header
-        :type user_agent: str
         :param max_results: The maximum number of search results returned. Default 500
         :type max_results: int
-        :param language: The language in which to perform the search.
-        :type language: str
         :param dict_result:
         :type dict_result: boolean
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
+        :param user_agent: The user agent string transmitted in the http header
+        :type user_agent: str
         :return: list
         """
 
@@ -1194,11 +1195,12 @@ class FunctionsEngine(object):
 
         params = {
             'action': 'wbsearchentities',
-            'language': language,
             'search': search_string,
+            'language': language,
+            'strict_language': strict_language,
             'type': search_type,
-            'format': 'json',
-            'limit': 50
+            'limit': 50,
+            'format': 'json'
         }
 
         cont_count = 0
@@ -1207,7 +1209,8 @@ class FunctionsEngine(object):
         while True:
             params.update({'continue': cont_count})
 
-            search_results = FunctionsEngine.mediawiki_api_call_helper(data=params, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
+            search_results = FunctionsEngine.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
+                                                                       allow_anonymous=allow_anonymous)
 
             if search_results['success'] != 1:
                 raise SearchError('Wikibase API wbsearchentities failed')
@@ -1237,7 +1240,7 @@ class FunctionsEngine(object):
         return results
 
     @staticmethod
-    def generate_item_instances(items, mediawiki_api_url=None, login=None, user_agent=None, allow_anonymous=True):
+    def generate_item_instances(items, mediawiki_api_url=None, login=None, allow_anonymous=True, user_agent=None):
         """
         A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
         tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
@@ -1248,9 +1251,9 @@ class FunctionsEngine(object):
         :type items: list
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
-        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding
             item data.
+        :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
         """
@@ -1274,8 +1277,7 @@ class FunctionsEngine(object):
         return item_instances
 
     @staticmethod
-    def get_distinct_value_props(sparql_endpoint_url=None, wikibase_url=None, property_constraint_pid=None,
-                                 distinct_values_constraint_qid=None):
+    def get_distinct_value_props(sparql_endpoint_url=None, wikibase_url=None, property_constraint_pid=None, distinct_values_constraint_qid=None):
         """
         On wikidata, the default core IDs will be the properties with a distinct values constraint select ?p where {?p wdt:P2302 wd:Q21502410}
         See: https://www.wikidata.org/wiki/Help:Property_constraints_portal
