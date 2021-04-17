@@ -6,7 +6,6 @@ from collections import defaultdict
 from time import sleep
 from warnings import warn
 
-import pandas
 import requests
 
 from wikibaseintegrator import wbi_login
@@ -1038,7 +1037,7 @@ class FunctionsEngine(object):
 
     @staticmethod
     @wbi_backoff()
-    def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60, debug=False):
+    def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max_retries=1000, retry_after=60, debug=False):
         """
         Static method which can be used to execute any SPARQL query
         :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -1046,7 +1045,6 @@ class FunctionsEngine(object):
         :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
         :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
         :type user_agent: str
-        :param as_dataframe: Return result as pandas dataframe
         :param max_retries: The number time this function should retry in case of header reports.
         :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
         :param debug: Enable debug output.
@@ -1093,10 +1091,7 @@ class FunctionsEngine(object):
             response.raise_for_status()
             results = response.json()
 
-            if as_dataframe:
-                return FunctionsEngine._sparql_query_result_to_df(results)
-            else:
-                return results
+            return results
 
     @staticmethod
     def merge_items(from_id, to_id, ignore_conflicts='', mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
@@ -1296,8 +1291,8 @@ class FunctionsEngine(object):
             ?p <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}>
         }}
         '''.format(wb_url=wikibase_url, prop_nr=pcpid, entity=dvcqid)
-        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url, as_dataframe=True)
-        if df.empty:
+        df = FunctionsEngine.execute_sparql_query(query, endpoint=sparql_endpoint_url)
+        if not df['results']['bindings']:
             warn("Warning: No distinct value properties found\n" +
                  "Please set P2302 and Q21502410 in your Wikibase or set `core_props` manually.\n" +
                  "Continuing with no core_props")
@@ -1305,23 +1300,6 @@ class FunctionsEngine(object):
         else:
             df.p = df.p.str.rsplit('/', 1).str[-1]
             return set(df.p)
-
-    @staticmethod
-    def _sparql_query_result_to_df(results):
-
-        def parse_value(item):
-            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#decimal':
-                return float(item['value'])
-            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#integer':
-                return int(item['value'])
-            if item.get('datatype') == 'http://www.w3.org/2001/XMLSchema#dateTime':
-                return datetime.datetime.strptime(item['value'], '%Y-%m-%dT%H:%M:%SZ')
-            return item['value']
-
-        results = results['results']['bindings']
-        results = [{k: parse_value(v) for k, v in item.items()} for item in results]
-        df = pandas.DataFrame(results)
-        return df
 
 
 class JsonParser(object):
