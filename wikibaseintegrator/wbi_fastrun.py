@@ -6,7 +6,6 @@ from itertools import chain
 
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_core import BaseDataType
 
 
 class FastRunContainer(object):
@@ -54,7 +53,7 @@ class FastRunContainer(object):
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid: str) -> list:
-        reconstructed_statements: list[BaseDataType] = []
+        reconstructed_statements: list[wbi_core.BaseDataType] = []
 
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements

@@ -22,8 +22,8 @@ class ItemEngine(object):
 
     def __init__(self, item_id='', new_item: bool = False, data=None, mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
                  fast_run: bool = False, fast_run_base_filter=None, fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
-                 keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None, core_prop_match_thresh=0.66, property_constraint_pid=None,
-                 distinct_values_constraint_qid=None, fast_run_case_insensitive=False, debug: bool = False) -> None:
+                 keep_good_ref_statements=False, search_only: bool = False, item_data=None, user_agent: str = None, core_props=None, core_prop_match_thresh: float = 0.66,
+                 property_constraint_pid: str = None, distinct_values_constraint_qid: str = None, fast_run_case_insensitive=False, debug: bool = False) -> None:
         """
         constructor
         :param item_id: Wikibase item id
