@@ -1,6 +1,6 @@
 import unittest
 
-from wikibaseintegrator import wbi_core
+from wikibaseintegrator import wbi_core, wbi_functions
 
 
 class TestWbiCore(unittest.TestCase):
@@ -105,14 +105,14 @@ class TestWbiCore(unittest.TestCase):
         assert item.get_aliases('ak') == ['c']
 
     def test_wd_search(self):
-        t = wbi_core.FunctionsEngine.search_entities('rivaroxaban')
+        t = wbi_functions.search_entities('rivaroxaban')
         print('Number of results: ', len(t))
         self.assertIsNot(len(t), 0)
 
     def test_item_generator(self):
         items = ['Q408883', 'P715', 'Q18046452']
 
-        item_instances = wbi_core.FunctionsEngine.generate_item_instances(items=items)
+        item_instances = wbi_functions.generate_item_instances(items=items)
 
         for qid, item in item_instances:
             self.assertIn(qid, items)

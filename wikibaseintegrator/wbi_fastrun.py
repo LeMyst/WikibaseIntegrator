@@ -4,7 +4,7 @@ from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
 
-from wikibaseintegrator import wbi_core
+from wikibaseintegrator import wbi_functions
 from wikibaseintegrator.wbi_config import config
 
 
@@ -463,7 +463,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = wbi_core.FunctionsEngine.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            r = wbi_functions.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
             print("Count: {}".format(count))
             num_pages = (int(count) // page_size) + 1
@@ -546,7 +546,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            results = wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = wbi_functions.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -582,7 +582,7 @@ class FastRunContainer(object):
         if self.debug:
             print(query)
 
-        return wbi_core.FunctionsEngine.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+        return wbi_functions.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
     def _process_lang(result: list):
