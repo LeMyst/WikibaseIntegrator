@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pkg_resources
 
 try:
@@ -19,7 +21,7 @@ USER_AGENT_DEFAULT: default user agent string used for http requests. Both to Wi
                     See: https://meta.wikimedia.org/wiki/User-Agent_policy
 """
 
-config = {
+config: dict[str, Optional[str, int]] = {
     'BACKOFF_MAX_TRIES': None,
     'BACKOFF_MAX_VALUE': 3600,
     'USER_AGENT_DEFAULT': "WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator)".format(__version__),

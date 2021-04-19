@@ -4,6 +4,7 @@ import json
 import re
 from collections import defaultdict
 from time import sleep
+from typing import Any, Union
 from warnings import warn
 
 import pandas
@@ -16,13 +17,13 @@ from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
 class ItemEngine(object):
-    fast_run_store = []
-    distinct_value_props = {}
+    fast_run_store: list[FastRunContainer] = []
+    distinct_value_props: dict[str, set] = {}
 
-    def __init__(self, item_id='', new_item=False, data=None, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, fast_run=False, fast_run_base_filter=None,
-                 fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None, keep_good_ref_statements=False, search_only=False, item_data=None,
-                 user_agent=None, core_props=None, core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None, fast_run_case_insensitive=False,
-                 debug=False) -> None:
+    def __init__(self, item_id='', new_item: bool = False, data=None, mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
+                 fast_run: bool = False, fast_run_base_filter=None, fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None,
+                 keep_good_ref_statements=False, search_only=False, item_data=None, user_agent=None, core_props=None, core_prop_match_thresh=0.66, property_constraint_pid=None,
+                 distinct_values_constraint_qid=None, fast_run_case_insensitive=False, debug: bool = False) -> None:
         """
         constructor
         :param item_id: Wikibase item id
@@ -90,48 +91,49 @@ class ItemEngine(object):
         :type debug: boolean
         """
 
-        self.core_prop_match_thresh = core_prop_match_thresh
-        self.item_id = item_id
-        self.new_item = new_item
-        self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
-        self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-        self.property_constraint_pid = config['PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
-        self.distinct_values_constraint_qid = config['DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
+        self.core_prop_match_thresh: float = core_prop_match_thresh
+        self.item_id: str = item_id
+        self.new_item: bool = new_item
+        self.mediawiki_api_url: str = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+        self.sparql_endpoint_url: str = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
+        self.wikibase_url: str = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+        self.property_constraint_pid: str = config['PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
+        self.distinct_values_constraint_qid: str = config['DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
         if data is None:
-            self.data = []
+            self.data: Union[list[BaseDataType], BaseDataType] = []
         elif isinstance(data, list) and all(isinstance(x, BaseDataType) for x in data):
             self.data = data
         elif isinstance(data, BaseDataType):
             self.data = [data]
         else:
             raise TypeError("`data` must be a list of BaseDataType or an instance of BaseDataType")
-        self.fast_run = fast_run
+        self.fast_run: bool = fast_run
         self.fast_run_base_filter = fast_run_base_filter
-        self.fast_run_use_refs = fast_run_use_refs
-        self.fast_run_case_insensitive = fast_run_case_insensitive
+        self.fast_run_use_refs: bool = fast_run_use_refs
+        self.fast_run_case_insensitive: bool = fast_run_case_insensitive
         self.ref_handler = ref_handler
         self.global_ref_mode = global_ref_mode
         self.good_refs = good_refs
         self.keep_good_ref_statements = keep_good_ref_statements
         self.search_only = search_only
         self.item_data = item_data
-        self.user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+        self.user_agent: str = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
         self.create_new_item = False
-        self.json_representation = {}
-        self.statements = []
-        self.original_statements = []
-        self.entity_metadata = {}
+        self.json_representation: dict[str, Any] = {}
+        self.statements: list[Any] = []
+        self.original_statements: list[Any] = []
+        self.entity_metadata: dict[str, Any] = {}
+        self.core_props = dict[str, set]
         self.fast_run_container = None
         if self.search_only:
             self.require_write = False
         else:
             self.require_write = True
-        self.sitelinks = dict()
+        self.sitelinks: dict[str, Any] = {}
         self.lastrevid = None  # stores last revisionid after a write occurs
 
-        self.debug = debug
+        self.debug: bool = debug
 
         if fast_run_case_insensitive and not self.search_only:
             raise ValueError("If using fast run case insensitive, search_only must be set")
@@ -167,7 +169,7 @@ class ItemEngine(object):
         elif self.require_write or self.search_only:
             self.init_data_load()
 
-    def init_data_load(self):
+    def init_data_load(self) -> None:
         if self.item_id and self.item_data:
             if self.debug:
                 print("Load item " + self.item_id + " from item_data")
@@ -1052,8 +1054,8 @@ class FunctionsEngine(object):
         :return: The results of the query are returned in JSON format
         """
 
-        sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if endpoint is None else endpoint
-        user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+        sparql_endpoint_url: str = config['SPARQL_ENDPOINT_URL'] if endpoint is None else endpoint
+        user_agent: str = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
 
         if prefix:
             query = prefix + '\n' + query
@@ -1338,8 +1340,7 @@ class FunctionsEngine(object):
         return item_instances
 
     @staticmethod
-    def get_distinct_value_props(sparql_endpoint_url=None, wikibase_url=None, property_constraint_pid=None,
-                                 distinct_values_constraint_qid=None):
+    def get_distinct_value_props(sparql_endpoint_url: str = None, wikibase_url: str = None, property_constraint_pid: str = None, distinct_values_constraint_qid: str = None):
         """
         On wikidata, the default core IDs will be the properties with a distinct values constraint select ?p where {?p wdt:P2302 wd:Q21502410}
         See: https://www.wikidata.org/wiki/Help:Property_constraints_portal
@@ -1370,8 +1371,8 @@ class FunctionsEngine(object):
 
 
 class JsonParser(object):
-    references = []
-    qualifiers = []
+    references: list[Any] = []
+    qualifiers: list[Any] = []
     final = False
     current_type = None
 
