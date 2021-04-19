@@ -247,9 +247,9 @@ class ItemEngine(object):
         """
 
         data = {x: json_data[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in json_data}
-        data['sitelinks'] = dict()
+        data['sitelinks'] = {}
         self.entity_metadata = {x: json_data[x] for x in json_data if x not in ('labels', 'descriptions', 'claims', 'aliases', 'sitelinks')}
-        self.sitelinks = json_data.get('sitelinks', dict())
+        self.sitelinks = json_data.get('sitelinks', {})
 
         self.statements = []
         for prop in data['claims']:
@@ -562,7 +562,7 @@ class ItemEngine(object):
         self.sitelinks[site] = sitelink
 
     def count_references(self, prop_id):
-        counts = dict()
+        counts = {}
         for claim in self.get_json_representation()['claims'][prop_id]:
             counts[claim['id']] = len(claim['references'])
         return counts
@@ -986,7 +986,7 @@ class FunctionsEngine(object):
                     continue
 
                 # others case
-                raise MWApiError(response.json() if response else dict())
+                raise MWApiError(response.json() if response else {})
 
             # there is no error or waiting. break out of this loop and parse response
             break
@@ -994,7 +994,7 @@ class FunctionsEngine(object):
             # the first time I've ever used for - else!!
             # else executes if the for loop completes normally. i.e. does not encouter a `break`
             # in this case, that means it tried this api call 10 times
-            raise MWApiError(response.json() if response else dict())
+            raise MWApiError(response.json() if response else {})
 
         return json_data
 
@@ -1502,7 +1502,7 @@ class BaseDataType(object):
         self._statement_ref_mode = 'KEEP_GOOD'
 
         if not self.references:
-            self.references = list()
+            self.references = []
         else:
             for ref_list in self.references:
                 for reference in ref_list:
@@ -1512,7 +1512,7 @@ class BaseDataType(object):
                         reference.is_reference = True
 
         if not self.qualifiers:
-            self.qualifiers = list()
+            self.qualifiers = []
         else:
             for qualifier in self.qualifiers:
                 if qualifier.is_qualifier is False:
