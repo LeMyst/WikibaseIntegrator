@@ -433,11 +433,11 @@ class FastRunContainer(object):
         for i in r:
             qid = i['item']
             if qid not in self.prop_data:
-                self.prop_data[qid] = {prop_nr: dict()}
+                self.prop_data[qid] = {prop_nr: {}}
             if prop_nr not in self.prop_data[qid]:
-                self.prop_data[qid].update({prop_nr: dict()})
+                self.prop_data[qid].update({prop_nr: {}})
             if i['sid'] not in self.prop_data[qid][prop_nr]:
-                self.prop_data[qid][prop_nr].update({i['sid']: dict()})
+                self.prop_data[qid][prop_nr].update({i['sid']: {}})
             # update values for this statement (not including ref)
             d = {'v': i['v']}
             self.prop_data[qid][prop_nr][i['sid']].update(d)
@@ -451,7 +451,7 @@ class FastRunContainer(object):
                     self.prop_data[qid][prop_nr][i['sid']]['qual'].add((i['pq'], i['qval'], '1'))
 
             if 'ref' not in self.prop_data[qid][prop_nr][i['sid']]:
-                self.prop_data[qid][prop_nr][i['sid']]['ref'] = dict()
+                self.prop_data[qid][prop_nr][i['sid']]['ref'] = {}
             if 'ref' in i:
                 if i['ref'] not in self.prop_data[qid][prop_nr][i['sid']]['ref']:
                     self.prop_data[qid][prop_nr][i['sid']]['ref'][i['ref']] = set()
