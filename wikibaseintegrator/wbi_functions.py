@@ -80,7 +80,7 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
                 continue
 
             # others case
-            raise MWApiError(response.json() if response else dict())
+            raise MWApiError(response.json() if response else {})
 
         # there is no error or waiting. break out of this loop and parse response
         break
@@ -88,7 +88,7 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
         # the first time I've ever used for - else!!
         # else executes if the for loop completes normally. i.e. does not encouter a `break`
         # in this case, that means it tried this api call 10 times
-        raise MWApiError(response.json() if response else dict())
+        raise MWApiError(response.json() if response else {})
 
     return json_data
 
