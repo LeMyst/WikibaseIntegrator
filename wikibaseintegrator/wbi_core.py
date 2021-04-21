@@ -123,7 +123,7 @@ class ItemEngine(object):
             self.require_write = False
         else:
             self.require_write = True
-        self.sitelinks = dict()
+        self.sitelinks = {}
         self.lastrevid = None  # stores last revisionid after a write occurs
 
         self.debug = debug
@@ -240,9 +240,9 @@ class ItemEngine(object):
         """
 
         data = {x: json_data[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in json_data}
-        data['sitelinks'] = dict()
+        data['sitelinks'] = {}
         self.entity_metadata = {x: json_data[x] for x in json_data if x not in ('labels', 'descriptions', 'claims', 'aliases', 'sitelinks')}
-        self.sitelinks = json_data.get('sitelinks', dict())
+        self.sitelinks = json_data.get('sitelinks', {})
 
         self.statements = []
         for prop in data['claims']:
@@ -555,7 +555,7 @@ class ItemEngine(object):
         self.sitelinks[site] = sitelink
 
     def count_references(self, prop_id):
-        counts = dict()
+        counts = {}
         for claim in self.get_json_representation()['claims'][prop_id]:
             counts[claim['id']] = len(claim['references'])
         return counts
@@ -1044,7 +1044,7 @@ class BaseDataType(object):
         self._statement_ref_mode = 'KEEP_GOOD'
 
         if not self.references:
-            self.references = list()
+            self.references = []
         else:
             for ref_list in self.references:
                 for reference in ref_list:
@@ -1054,7 +1054,7 @@ class BaseDataType(object):
                         reference.is_reference = True
 
         if not self.qualifiers:
-            self.qualifiers = list()
+            self.qualifiers = []
         else:
             for qualifier in self.qualifiers:
                 if qualifier.is_qualifier is False:
