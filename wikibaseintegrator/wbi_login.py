@@ -119,7 +119,7 @@ class Login(object):
                     'username': user,
                     'password': pwd,
                     'logintoken': login_token,
-                    'loginreturnurl': 'http://example.org/',
+                    'loginreturnurl': 'https://example.org/',
                     'format': 'json'
                 }
 

@@ -492,7 +492,7 @@ class FastRunContainer(object):
             '''
 
             # Base filter
-            query = query + '''
+            query += '''
             {base_filter}
             
             ?item <{wb_url}/prop/{prop_nr}> ?sid .
@@ -500,7 +500,7 @@ class FastRunContainer(object):
 
             # Amount and unit
             if use_units:
-                query = query + '''
+                query += '''
                 {{
                   <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
                   FILTER (?property_type != wikibase:Quantity)
@@ -513,13 +513,13 @@ class FastRunContainer(object):
                 }}
                 '''
             else:
-                query = query + '''
+                query += '''
                 <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type .
                 ?sid <{wb_url}/prop/statement/{prop_nr}> ?v .
                 '''
 
             # Qualifiers
-            query = query + '''
+            query += '''
             # Get qualifiers
             OPTIONAL
             {{
@@ -541,7 +541,7 @@ class FastRunContainer(object):
 
             # References
             if self.use_refs:
-                query = query + '''
+                query += '''
                 # get references
                 OPTIONAL {{
                   ?sid prov:wasDerivedFrom ?ref .
@@ -550,7 +550,7 @@ class FastRunContainer(object):
                 }}
                 '''
             # Query footer
-            query = query + '''
+            query += '''
             }} ORDER BY ?sid OFFSET {offset} LIMIT {page_size}
             '''
 
