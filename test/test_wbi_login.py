@@ -23,4 +23,4 @@ def test_write():
     if WDUSER and WDPASS:
         login = wbi_login.Login(WDUSER, WDPASS)
         with pytest.raises(ValueError):
-            wbi_core.FunctionsEngine.mediawiki_api_call_helper(data=None, login=login, mediawiki_api_url='http://unsdfdskfjljzkerezr.org/w/api.php')
+            wbi_core.FunctionsEngine.mediawiki_api_call_helper(data=None, login=login, mediawiki_api_url='https://unsdfdskfjljzkerezr.org/w/api.php')
