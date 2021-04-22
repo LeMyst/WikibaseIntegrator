@@ -27,13 +27,13 @@ class TestMethods(unittest.TestCase):
 
 @wbi_backoff()
 def bad_http_code():
-    r = requests.get("http://httpbin.org/status/400")
+    r = requests.get("https://httpbin.org/status/400")
     r.raise_for_status()
 
 
 @wbi_backoff()
 def good_http_code():
-    r = requests.get("http://httpbin.org/status/200")
+    r = requests.get("https://httpbin.org/status/200")
     r.raise_for_status()
     print(r.status_code)
     return r.status_code
@@ -46,7 +46,7 @@ def bad_json():
 
 @wbi_backoff()
 def bad_request():
-    requests.get("http://www.fakeurlgsdkjhjgfseg.com")
+    requests.get("https://www.fakeurlgsdkjhjgfseg.com")
 
 
 def bad_login():

@@ -14,10 +14,10 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="http://www.wikidataaaaaaa.org",
+            wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org",
                                                     max_retries=3, retry_after=1, allow_anonymous=True)
         with self.assertRaises(requests.HTTPError):
-            wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="http://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
+            wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
         test = wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
                                                        allow_anonymous=True)
