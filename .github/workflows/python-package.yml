@@ -39,6 +39,16 @@ jobs:
         uses: ricardochaves/python-lint@v1.3.0
         with:
           python-root-list: "wikibaseintegrator"
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: false
+          use-isort: false
+          extra-pylint-options: "--max-line-length=180"
+          extra-pycodestyle-options: ""
+          extra-flake8-options: ""
+          extra-black-options: ""
+          extra-mypy-options: ""
+          extra-isort-options: ""
       - name: Test with pytest
         run: |
           pytest
