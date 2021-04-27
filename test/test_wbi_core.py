@@ -150,7 +150,8 @@ class TestWbiCore(unittest.TestCase):
             wbi_core.Lexeme("123", prop_nr="P15"),
             wbi_core.Lexeme(123, prop_nr="P15"),
             wbi_core.Form("L123-F123", prop_nr="P16"),
-            wbi_core.Sense("L123-S123", prop_nr="P17")
+            wbi_core.Sense("L123-S123", prop_nr="P17"),
+            wbi_core.EDTF("2004-06-~01/2004-06-~20", prop_nr="P18")
         ]
         core_props = set(["P{}".format(x) for x in range(20)])
 
