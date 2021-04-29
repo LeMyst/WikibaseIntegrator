@@ -4,3 +4,4 @@ mwoauth~=0.3.7
 backoff~=1.10.0
 pytest~=6.2.3
 setuptools~=56.0.0
+oauthlib~=3.1.0
