@@ -13,6 +13,7 @@
 - [The Core Parts](#the-core-parts)
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
     - [wbi_functions](#wbi_functions)
+        - [Use MediaWiki API](#use-mediawiki-api)
     - [wbi_login.Login](#wbi_loginlogin)
         - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
@@ -129,6 +130,30 @@ Features:
 
 * Minimize the number of HTTP requests for reads and writes to improve performance
 * Method to easily execute [SPARQL](https://query.wikidata.org) queries on the Wikibase SPARQL endpoint.
+
+### Use MediaWiki API ###
+
+WikibaseIntegrator don't have functions to make API call to non-wikibase actions. You can
+use `wbi_functions.mediawiki_api_call_helper()` to make a custom call.
+
+Example to get the last two revisions of entity Q42 :
+
+```python
+from pprint import pprint
+
+from wikibaseintegrator import wbi_functions
+
+data = {
+    'action': 'query',
+    'prop': 'revisions',
+    'titles': 'Q42',
+    'rvlimit': 2,
+    'rvprop': 'ids|timestamp|comment|user',
+    'rvslots': 'main'
+}
+
+pprint(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
+```
 
 ## wbi_login.Login ##
 
