@@ -8,7 +8,6 @@ from warnings import warn
 
 import pandas
 import requests
-from deepdiff import DeepDiff
 
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
@@ -121,7 +120,6 @@ class ItemEngine(object):
 
         self.create_new_item = False
         self.json_representation = {}
-        self.original_json_representation = {}
         self.statements = []
         self.original_statements = []
         self.entity_metadata = {}
@@ -194,9 +192,6 @@ class ItemEngine(object):
                     print("Load item " + self.item_id + " from MW API")
                 self.json_representation = self.get_entity()
                 self.__check_integrity()
-
-        # We write the original_json_representation
-        self.original_json_representation = copy.deepcopy(self.json_representation)
 
         if not self.search_only:
             self.__construct_claim_json()
@@ -622,12 +617,16 @@ class ItemEngine(object):
         if all_claims:
             data = json.JSONEncoder().encode(self.json_representation)
         else:
-            changed = self.__get_diff_claims_json_repr()
             new_json_repr = {k: self.json_representation[k] for k in set(list(self.json_representation.keys())) - {'claims'}}
             new_json_repr['claims'] = {}
-            for i in changed:
-                if i in self.json_representation['claims']:
-                    new_json_repr['claims'][i] = self.json_representation['claims'][i]
+            for claim in self.json_representation['claims']:
+                if [True for x in self.json_representation['claims'][claim] if 'id' not in x or 'remove' in x]:
+                    new_json_repr['claims'][claim] = copy.deepcopy(self.json_representation['claims'][claim])
+                    for statement in new_json_repr['claims'][claim]:
+                        if 'id' in statement and 'remove' not in statement:
+                            new_json_repr['claims'][claim].remove(statement)
+                    if not new_json_repr['claims'][claim]:
+                        new_json_repr['claims'].pop(claim)
             data = json.JSONEncoder().encode(new_json_repr)
 
         payload = {
@@ -675,24 +674,6 @@ class ItemEngine(object):
         if 'success' in json_data and 'entity' in json_data and 'lastrevid' in json_data['entity']:
             self.lastrevid = json_data['entity']['lastrevid']
         return self.item_id
-
-    def __get_diff_claims_json_repr(self):
-        changed = []
-
-        # Remove all hash of the original statement
-        for i in self.original_json_representation['claims']:
-            for statement in self.original_json_representation['claims'][i]:
-                if 'mainsnak' in statement and 'hash' in statement['mainsnak']:
-                    statement['mainsnak'].pop('hash')
-
-        ddiff: list = DeepDiff(self.original_json_representation['claims'], self.json_representation['claims'], ignore_order=True)
-        for i in ddiff:
-            if isinstance(ddiff[i], dict):
-                changed += list(map(lambda x: re.search(r"'(.*?)'", x).group(1), ddiff[i].keys()))
-            else:
-                changed += list(map(lambda x: re.search(r"'(.*?)'", x).group(1), ddiff[i]))
-
-        return list(set(changed))
 
     def __check_integrity(self):
         """
