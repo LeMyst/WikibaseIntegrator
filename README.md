@@ -207,6 +207,7 @@ Each data types has its specialties, which means that some of them require speci
 The data types currently implemented:
 
 * wbi_core.CommonsMedia
+* wbi_core.EDTF
 * wbi_core.ExternalID
 * wbi_core.Form
 * wbi_core.GeoShape
