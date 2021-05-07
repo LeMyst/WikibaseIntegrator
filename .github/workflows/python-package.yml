@@ -4,7 +4,8 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: '**'
+    branches:
+      - '**'
 
 jobs:
   build:
@@ -32,8 +33,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest pylint
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Python Code Quality and Lint
+        uses: ricardochaves/python-lint@v1.3.0
+        with:
+          python-root-list: "wikibaseintegrator"
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: false
+          use-isort: false
+          extra-pylint-options: "--max-line-length=180"
+          extra-mypy-options: ""
       - name: Test with pytest
         run: |
           pytest

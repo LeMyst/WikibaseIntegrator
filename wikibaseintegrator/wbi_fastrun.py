@@ -53,7 +53,7 @@ class FastRunContainer(object):
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid: str) -> list:
-        reconstructed_statements = []
+        reconstructed_statements: list[wbi_core.BaseDataType] = []
 
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements
@@ -97,7 +97,7 @@ class FastRunContainer(object):
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def load_item(self, data: list, cqid=None) -> bool:
+    def load_item(self, data: list, cqid=None):
         match_sets = []
         for date in data:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
