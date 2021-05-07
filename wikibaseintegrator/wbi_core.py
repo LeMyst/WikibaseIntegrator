@@ -12,10 +12,79 @@ import requests
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_exceptions import *
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
 class ItemEngine(object):
+    """
+    constructor
+
+    :param item_id: Wikibase item id
+    :type item_id: str
+    :param new_item: This parameter lets the user indicate if a new item should be created
+    :type new_item: bool
+    :param data: a dictionary with property strings as keys and the data which should be written to a item as the property values
+    :type data: list[BaseDataType] or BaseDataType or None
+    :param mediawiki_api_url:
+    :type mediawiki_api_url: str
+    :param sparql_endpoint_url:
+    :type sparql_endpoint_url: str
+    :param wikibase_url:
+    :type wikibase_url: str
+    :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True should also specify the
+        fast_run_base_filter for these item types
+    :type fast_run: bool
+    :param fast_run_base_filter: A property value dict determining the Wikibase property and the corresponding value which should be used as a filter for
+        this item type. Several filter criteria can be specified. The values can be either Wikibase item QIDs, strings or empty strings if the value should
+        be a variable in SPARQL.
+        Example: {'P352': '', 'P703': 'Q15978631'} if the basic common type of things this bot runs on is human proteins (specified by Uniprot IDs (P352)
+        and 'found in taxon' homo sapiens 'Q15978631').
+    :type fast_run_base_filter: dict
+    :param fast_run_use_refs: If `True`, fastrun mode will consider references in determining if a statement should be updated and written to Wikibase.
+        Otherwise, only the value and qualifiers are used. Default: False
+    :type fast_run_use_refs: bool
+    :param ref_handler: This parameter defines a function that will manage the reference handling in a custom manner. This argument should be a function
+        handle that accepts two arguments, the old/current statement (first argument) and new/proposed/to be written statement (second argument), both of
+        type: a subclass of BaseDataType. The function should return an new item that is the item to be written. The item's values properties or qualifiers
+        should not be modified; only references. This function is also used in fastrun mode. This will only be used if the ref_mode is set to "CUSTOM".
+    :type ref_handler: function
+    :param global_ref_mode: sets the reference handling mode for an item. Four modes are possible, 'STRICT_KEEP' keeps all references as they are,
+        'STRICT_KEEP_APPEND' keeps the references as they are and appends new ones. 'STRICT_OVERWRITE' overwrites all existing references for given.
+        'KEEP_GOOD' will use the refs defined in good_refs. 'CUSTOM' will use the function defined in ref_handler
+    :type global_ref_mode: str
+    :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries. One block is a dictionary with Wikidata
+        properties as keys and potential values as the required value for a property. There can be arbitrarily many key: value pairs in one reference block.
+        Example: [{'P248': 'Q905695', 'P352': None, 'P407': None, 'P1476': None, 'P813': None}] This example contains one good reference block, stated in:
+        Uniprot, Uniprot ID, title of Uniprot entry, language of work and date when the information has been retrieved. A None type indicates that the value
+        varies from reference to reference. In this case, only the value for the Wikidata item for the Uniprot database stays stable over all of these
+        references. Key value pairs work here, as Wikidata references can hold only one value for one property. The number of good reference blocks is not
+        limited. This parameter OVERRIDES any other reference mode set!!
+    :type good_refs: list[dict]
+    :param keep_good_ref_statements: Do not delete any statement which has a good reference, either defined in the good_refs list or by any other
+        referencing mode.
+    :type keep_good_ref_statements: bool
+    :param search_only: If this flag is set to True, the data provided will only be used to search for the corresponding Wikibase item, but no actual data
+        updates will performed. This is useful, if certain states or values on the target item need to be checked before certain data is written to it. In
+        order to write new data to the item, the method update() will take data, modify the Wikibase item and a write() call will then perform the actual
+        write to the Wikibase instance.
+    :type search_only: bool
+    :param item_data: A Python JSON object corresponding to the item in item_id. This can be used in conjunction with item_id in order to provide raw data.
+    :type item_data:
+    :param user_agent: The user agent string to use when making http requests
+    :type user_agent: str
+    :param core_props: Core properties are used to retrieve an item based on `data` if a `item_id` is not given. This is a set of PIDs to use. If None,
+        all Wikibase properties with a distinct values constraint will be used. (see: get_core_props)
+    :type core_props: set
+    :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item when the item_id is not specified.
+    :type core_prop_match_thresh: float
+    :param property_constraint_pid:
+    :param distinct_values_constraint_qid:
+    :param fast_run_case_insensitive:
+    :param debug: Enable debug output.
+    :type debug: boolean
+    """
+
     fast_run_store = []
     distinct_value_props = {}
 
@@ -23,72 +92,6 @@ class ItemEngine(object):
                  fast_run_use_refs=False, ref_handler=None, global_ref_mode='KEEP_GOOD', good_refs=None, keep_good_ref_statements=False, search_only=False, item_data=None,
                  user_agent=None, core_props=None, core_prop_match_thresh=0.66, property_constraint_pid=None, distinct_values_constraint_qid=None, fast_run_case_insensitive=False,
                  debug=False) -> None:
-        """
-        constructor
-        :param item_id: Wikibase item id
-        :type item_id: str
-        :param new_item: This parameter lets the user indicate if a new item should be created
-        :type new_item: bool
-        :param data: a dictionary with property strings as keys and the data which should be written to a item as the property values
-        :type data: list[BaseDataType] or BaseDataType or None
-        :param mediawiki_api_url:
-        :type mediawiki_api_url: str
-        :param sparql_endpoint_url:
-        :type sparql_endpoint_url: str
-        :param wikibase_url:
-        :type wikibase_url: str
-        :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True should also specify the
-            fast_run_base_filter for these item types
-        :type fast_run: bool
-        :param fast_run_base_filter: A property value dict determining the Wikibase property and the corresponding value which should be used as a filter for
-            this item type. Several filter criteria can be specified. The values can be either Wikibase item QIDs, strings or empty strings if the value should
-            be a variable in SPARQL.
-            Example: {'P352': '', 'P703': 'Q15978631'} if the basic common type of things this bot runs on is human proteins (specified by Uniprot IDs (P352)
-            and 'found in taxon' homo sapiens 'Q15978631').
-        :type fast_run_base_filter: dict
-        :param fast_run_use_refs: If `True`, fastrun mode will consider references in determining if a statement should be updated and written to Wikibase.
-            Otherwise, only the value and qualifiers are used. Default: False
-        :type fast_run_use_refs: bool
-        :param ref_handler: This parameter defines a function that will manage the reference handling in a custom manner. This argument should be a function
-            handle that accepts two arguments, the old/current statement (first argument) and new/proposed/to be written statement (second argument), both of
-            type: a subclass of BaseDataType. The function should return an new item that is the item to be written. The item's values properties or qualifiers
-            should not be modified; only references. This function is also used in fastrun mode. This will only be used if the ref_mode is set to "CUSTOM".
-        :type ref_handler: function
-        :param global_ref_mode: sets the reference handling mode for an item. Four modes are possible, 'STRICT_KEEP' keeps all references as they are,
-        'STRICT_KEEP_APPEND' keeps the references as they are and appends new ones. 'STRICT_OVERWRITE' overwrites all existing references for given.
-        'KEEP_GOOD' will use the refs defined in good_refs. 'CUSTOM' will use the function defined in ref_handler
-        :type global_ref_mode: str
-        :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries. One block is a dictionary with Wikidata
-            properties as keys and potential values as the required value for a property. There can be arbitrarily many key: value pairs in one reference block.
-            Example: [{'P248': 'Q905695', 'P352': None, 'P407': None, 'P1476': None, 'P813': None}] This example contains one good reference block, stated in:
-            Uniprot, Uniprot ID, title of Uniprot entry, language of work and date when the information has been retrieved. A None type indicates that the value
-            varies from reference to reference. In this case, only the value for the Wikidata item for the Uniprot database stays stable over all of these
-            references. Key value pairs work here, as Wikidata references can hold only one value for one property. The number of good reference blocks is not
-            limited. This parameter OVERRIDES any other reference mode set!!
-        :type good_refs: list[dict]
-        :param keep_good_ref_statements: Do not delete any statement which has a good reference, either defined in the good_refs list or by any other
-            referencing mode.
-        :type keep_good_ref_statements: bool
-        :param search_only: If this flag is set to True, the data provided will only be used to search for the corresponding Wikibase item, but no actual data
-            updates will performed. This is useful, if certain states or values on the target item need to be checked before certain data is written to it. In
-            order to write new data to the item, the method update() will take data, modify the Wikibase item and a write() call will then perform the actual
-            write to the Wikibase instance.
-        :type search_only: bool
-        :param item_data: A Python JSON object corresponding to the item in item_id. This can be used in conjunction with item_id in order to provide raw data.
-        :type item_data:
-        :param user_agent: The user agent string to use when making http requests
-        :type user_agent: str
-        :param core_props: Core properties are used to retrieve an item based on `data` if a `item_id` is not given. This is a set of PIDs to use. If None,
-            all Wikibase properties with a distinct values constraint will be used. (see: get_core_props)
-        :type core_props: set
-        :param core_prop_match_thresh: The proportion of core props that must match during retrieval of an item when the item_id is not specified.
-        :type core_prop_match_thresh: float
-        :param property_constraint_pid:
-        :param distinct_values_constraint_qid:
-        :param fast_run_case_insensitive:
-        :param debug: Enable debug output.
-        :type debug: boolean
-        """
 
         self.core_prop_match_thresh = core_prop_match_thresh
         self.item_id = item_id
@@ -239,6 +242,7 @@ class ItemEngine(object):
     def parse_json(self, json_data):
         """
         Parses an entity json and generates the datatype objects, sets self.json_representation
+
         :param json_data: the json of an entity
         :type json_data: A Python Json representation of an item
         :return: returns the json representation containing 'labels', 'descriptions', 'claims', 'aliases', 'sitelinks'.
@@ -267,6 +271,7 @@ class ItemEngine(object):
         being instantiated with search_only=True. In the latter case, this allows for checking the item data before deciding which new data should be written to
         the Wikidata item. The actual write to Wikidata only happens on calling of the write() method. If data has been provided already via the constructor,
         data provided via the update() method will be appended to these data.
+
         :param data: A list of Wikidata statment items inheriting from BaseDataType
         :type data: list
         """
@@ -296,6 +301,7 @@ class ItemEngine(object):
     def get_entity(self):
         """
         retrieve an item in json representation from the Wikibase instance
+
         :rtype: dict
         :return: python complex dictionary represenation of a json
         """
@@ -313,6 +319,7 @@ class ItemEngine(object):
     def get_property_list(self):
         """
         List of properties on the current item
+
         :return: a list of property ID strings (Pxxxx).
         """
 
@@ -325,6 +332,7 @@ class ItemEngine(object):
     def get_json_representation(self):
         """
         A method to access the internal json representation of the item, mainly for testing
+
         :return: returns a Python json representation object of the item at the current state of the instance
         """
 
@@ -333,6 +341,7 @@ class ItemEngine(object):
     def get_label(self, lang=None):
         """
         Returns the label for a certain language
+
         :param lang:
         :type lang: str
         :return: returns the label in the specified language, an empty string if the label does not exist
@@ -350,6 +359,7 @@ class ItemEngine(object):
     def set_label(self, label, lang=None, if_exists='REPLACE'):
         """
         Set the label for an item in a certain language
+
         :param label: The label of the item in a certain language or None to remove the label in that language
         :type label: str or None
         :param lang: The language a label should be set for.
@@ -398,6 +408,7 @@ class ItemEngine(object):
     def get_aliases(self, lang=None):
         """
         Retrieve the aliases in a certain language
+
         :param lang: The language the description should be retrieved for
         :return: Returns a list of aliases, an empty list if none exist for the specified language
         """
@@ -417,6 +428,7 @@ class ItemEngine(object):
     def set_aliases(self, aliases, lang=None, if_exists='APPEND'):
         """
         set the aliases for an item
+
         :param aliases: a string or a list of strings representing the aliases of an item
         :param lang: The language a description should be set for
         :param if_exists: If aliases already exist, APPEND or REPLACE
@@ -472,6 +484,7 @@ class ItemEngine(object):
     def get_description(self, lang=None):
         """
         Retrieve the description in a certain language
+
         :param lang: The language the description should be retrieved for
         :return: Returns the description string
         """
@@ -488,6 +501,7 @@ class ItemEngine(object):
     def set_description(self, description, lang=None, if_exists='REPLACE'):
         """
         Set the description for an item in a certain language
+
         :param description: The description of the item in a certain language
         :type description: str
         :param lang: The language a description should be set for.
@@ -530,6 +544,7 @@ class ItemEngine(object):
     def get_sitelink(self, site):
         """
         A method to access the interwiki links in the json.model
+
         :param site: The Wikipedia site the interwiki/sitelink should be returned for
         :return: The interwiki/sitelink string for the specified Wikipedia will be returned.
         """
@@ -542,6 +557,7 @@ class ItemEngine(object):
     def set_sitelink(self, site, title, badges=()):
         """
         Set sitelinks to corresponding Wikipedia pages
+
         :param site: The Wikipedia page a sitelink is directed to (e.g. 'enwiki')
         :param title: The title of the Wikipedia page the sitelink is directed to
         :param badges: An iterable containing Wikipedia badge strings.
@@ -583,6 +599,7 @@ class ItemEngine(object):
         """
         Writes the item Json to the Wikibase instance and after successful write, updates the object with new ids and hashes generated by the Wikibase instance.
         For new items, also returns the new QIDs.
+
         :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param bot_account: Tell the Wikidata API whether the script should be run as part of a bot account or not.
         :type bot_account: bool
@@ -664,6 +681,7 @@ class ItemEngine(object):
         has a property of the current domain with a value like submitted in the data dict, this item does not get
         selected but a ManualInterventionReqException() is raised. This check is dependent on the core identifiers
         of a certain domain.
+
         :return: boolean True if test passed
         """
 
@@ -709,6 +727,7 @@ class ItemEngine(object):
     def __select_item(self):
         """
         The most likely item QID should be returned, after querying the Wikibase instance for all values in core_id properties
+
         :return: Either a single QID is returned, or an empty string if no suitable item in the Wikibase instance
         """
 
@@ -755,6 +774,7 @@ class ItemEngine(object):
     def __construct_claim_json(self):
         """
         Writes the properties from self.data to a new or existing json in self.json_representation
+
         :return: None
         """
 
@@ -789,6 +809,7 @@ class ItemEngine(object):
         def handle_references(old_item, new_item):
             """
             Local function to handle references
+
             :param old_item: An item containing the data as currently in the Wikibase instance
             :type old_item: A child of BaseDataType
             :param new_item: An item containing the new data which should be written to the Wikibase instance
@@ -925,8 +946,7 @@ class FunctionsEngine(object):
         :param method: 'GET' or 'POST'
         :param mediawiki_api_url:
         :param session: If a session is passed, it will be used. Otherwise a new requests session is created
-        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
-        `max_retries` times
+        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
         :type max_retries: int
         :param retry_after: Number of seconds to wait before retrying request (see max_retries)
         :type retry_after: int
@@ -1039,6 +1059,7 @@ class FunctionsEngine(object):
     def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, as_dataframe=False, max_retries=1000, retry_after=60, debug=False):
         """
         Static method which can be used to execute any SPARQL query
+
         :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
         :param query: The actual SPARQL query string
         :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
@@ -1140,6 +1161,7 @@ class FunctionsEngine(object):
     def merge_items(from_id, to_id, login, ignore_conflicts='', mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         A static method to merge two items
+
         :param from_id: The QID which should be merged into another item
         :type from_id: string with 'Q' prefix
         :param to_id: The QID into which another item should be merged
@@ -1174,6 +1196,7 @@ class FunctionsEngine(object):
     def delete_item(item, reason, login, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         Delete an item
+
         :param item: a QID which should be deleted
         :type item: string
         :param reason: short text about the reason for the deletion request
@@ -1204,6 +1227,7 @@ class FunctionsEngine(object):
     def delete_statement(statement_id, revision, login, mediawiki_api_url=None, user_agent=None, allow_anonymous=False):
         """
         Delete an item
+
         :param statement_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
         :type statement_id: string
         :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
@@ -1235,6 +1259,7 @@ class FunctionsEngine(object):
     def get_search_results(search_string='', search_type='item', mediawiki_api_url=None, user_agent=None, max_results=500, language=None, dict_result=False, allow_anonymous=True):
         """
         Performs a search for entities in the Wikibase instance using labels and aliases.
+
         :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
         :type search_string: str
         :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
@@ -1306,6 +1331,7 @@ class FunctionsEngine(object):
         A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
         tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
         ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
+
         :param user_agent: A custom user agent
         :type user_agent: str
         :param items: A list of QIDs or property IDs
@@ -1313,8 +1339,7 @@ class FunctionsEngine(object):
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
         :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
-        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding
-            item data.
+        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding item data.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
         """
@@ -1459,6 +1484,7 @@ class BaseDataType(object):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, will be called by all data types.
+
         :param value: Data value of the Wikibase data snak
         :type value: str or int or tuple
         :param prop_nr: The property number a Wikibase snak belongs to
@@ -1800,6 +1826,7 @@ class String(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -1823,6 +1850,13 @@ class String(BaseDataType):
         self.set_value(value)
 
     def set_value(self, value):
+        """
+        Define the value
+
+        :param value:
+        :type value: str
+        :return: None
+        """
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         self.value = value
 
@@ -1836,6 +1870,13 @@ class String(BaseDataType):
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
+        """
+        Create a datatype from a correctly formatted json
+
+        :param jsn: A dictionnary made from a json response from MediaWiki API
+        :type jsn: dict
+        :return: Object
+        """
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
@@ -1850,6 +1891,7 @@ class Math(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -1900,6 +1942,7 @@ class ExternalID(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -1956,6 +1999,7 @@ class ItemID(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The item ID to serve as the value
         :type value: str with a 'Q' prefix, followed by several digits or only the digits without the 'Q' prefix
         :param prop_nr: The item ID for this claim
@@ -2027,6 +2071,7 @@ class Property(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The property number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -2098,6 +2143,7 @@ class Time(BaseDataType):
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
         :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z'
         :param prop_nr: The property number for this claim
@@ -2209,6 +2255,7 @@ class Url(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The URL to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -2273,6 +2320,7 @@ class MonolingualText(BaseDataType):
     def __init__(self, text, prop_nr, language=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param text: The language specific string to be used as the value
         :type text: str or None
         :param prop_nr: The item ID for this claim
@@ -2337,6 +2385,29 @@ class MonolingualText(BaseDataType):
 class Quantity(BaseDataType):
     """
     Implements the Wikibase data type for quantities
+
+    :param quantity: The quantity value
+    :type quantity: float, str or None
+    :param prop_nr: The item ID for this claim
+    :type prop_nr: str with a 'P' prefix followed by digits
+    :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
+    :type upper_bound: float, str
+    :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
+    :type lower_bound: float, str
+    :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
+        The default is dimensionless, represented by a '1'
+    :type unit: str
+    :type is_reference: boolean
+    :param is_qualifier: Whether this snak is a qualifier
+    :type is_qualifier: boolean
+    :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+    :type snak_type: str
+    :param references: List with reference objects
+    :type references: A data type with subclass of BaseDataType
+    :param qualifiers: List with qualifier objects
+    :type qualifiers: A data type with subclass of BaseDataType
+    :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+    :type rank: str
     """
     DTYPE = 'quantity'
     sparql_query = '''
@@ -2347,31 +2418,6 @@ class Quantity(BaseDataType):
     '''
 
     def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param quantity: The quantity value
-        :type quantity: float, str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
-        :type upper_bound: float, str
-        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
-        :type lower_bound: float, str
-        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
-            The default is dimensionless, represented by a '1'
-        :type unit: str
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
 
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
@@ -2475,6 +2521,7 @@ class CommonsMedia(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The media file name from Wikimedia commons to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -2533,6 +2580,7 @@ class GlobeCoordinate(BaseDataType):
     def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param latitude: Latitute in decimal format
         :type latitude: float or None
         :param longitude: Longitude in decimal format
@@ -2620,6 +2668,7 @@ class GeoShape(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -2671,13 +2720,14 @@ class GeoShape(BaseDataType):
 
 class MusicalNotation(BaseDataType):
     """
-    Implements the Wikibase data type 'string'
+    Implements the Wikibase data type 'musical-notation'
     """
     DTYPE = 'musical-notation'
 
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Values for that data type are strings describing music following LilyPond syntax.
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -2728,6 +2778,7 @@ class TabularData(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Reference to tabular data file on Wikimedia Commons.
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -2792,6 +2843,7 @@ class Lexeme(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The lexeme number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -2863,6 +2915,7 @@ class Form(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -2931,6 +2984,7 @@ class Sense(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -2982,93 +3036,3 @@ class Sense(BaseDataType):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
-
-
-class MWApiError(Exception):
-    def __init__(self, error_message):
-        """
-        Base class for Mediawiki API error handling
-        :param error_message: The error message returned by the Mediawiki API
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
-        self.error_msg = error_message
-
-    def __str__(self):
-        return repr(self.error_msg)
-
-
-class NonUniqueLabelDescriptionPairError(MWApiError):
-    def __init__(self, error_message):
-        """
-        This class handles errors returned from the API due to an attempt to create an item which has the same
-         label and description as an existing item in a certain language.
-        :param error_message: An API error message containing 'wikibase-validator-label-with-description-conflict'
-         as the message name.
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
-        self.error_msg = error_message
-
-    def get_language(self):
-        """
-        :return: Returns a 2 letter language string, indicating the language which triggered the error
-        """
-        return self.error_msg['error']['messages'][0]['parameters'][1]
-
-    def get_conflicting_item_qid(self):
-        """
-        :return: Returns the QID string of the item which has the same label and description as the one which should
-         be set.
-        """
-        qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
-
-        return qid_string.split('|')[0][2:]
-
-    def __str__(self):
-        return repr(self.error_msg)
-
-
-class IDMissingError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class SearchError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class ManualInterventionReqException(Exception):
-    def __init__(self, value, property_string, item_list):
-        self.value = value + ' Property: {}, items affected: {}'.format(property_string, item_list)
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class CorePropIntegrityException(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class MergeError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class SearchOnlyError(Exception):
-    """Raised when the ItemEngine is in search_only mode"""
-    pass
