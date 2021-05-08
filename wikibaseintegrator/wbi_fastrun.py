@@ -471,7 +471,7 @@ class FastRunContainer(object):
         while True:
             # Query header
             query = '''
-            #Tool: wbi_fastrun _query_data
+            #Tool: WikibaseIntegrator wbi_fastrun._query_data
             SELECT ?sid ?item ?v ?unit ?pq ?qval ?qunit ?ref ?pr ?rval
             WHERE
             {{
@@ -569,7 +569,7 @@ class FastRunContainer(object):
         }
 
         query = '''
-        #Tool: wbi_fastrun _query_lang
+        #Tool: WikibaseIntegrator wbi_fastrun._query_lang
         SELECT ?item ?label WHERE {{
             {base_filter}
 

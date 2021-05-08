@@ -150,7 +150,7 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
         query = prefix + '\n' + query
 
     params = {
-        'query': '#Tool: wbi_core execute_sparql_query\n' + query,
+        'query': '#Tool: WikibaseIntegrator wbi_functions.execute_sparql_query\n' + query,
         'format': 'json'
     }
 
