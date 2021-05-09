@@ -5,7 +5,8 @@ from collections import defaultdict
 from wikibaseintegrator import wbi_functions
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_datatype import BaseDataType
-from wikibaseintegrator.wbi_exceptions import *
+from wikibaseintegrator.wbi_exceptions import (IDMissingError, SearchError, SearchOnlyError, NonUniqueLabelDescriptionPairError, MWApiError, CorePropIntegrityException,
+                                               ManualInterventionReqException)
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
