@@ -120,8 +120,6 @@ There are two ways of working with Wikibase items:
 * A user can work with a selected QID to specifically modify the data on the item. This requires that the user knows
   what he/she is doing and should only be used with great care, as this does not perform consistency checks.
 
-Examples below illustrate the usage of ItemEngine.
-
 ## wbi_functions ##
 
 wbi_functions provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL Service.
@@ -139,8 +137,6 @@ use `wbi_functions.mediawiki_api_call_helper()` to make a custom call.
 Example to get the last two revisions of entity Q42 :
 
 ```python
-from pprint import pprint
-
 from wikibaseintegrator import wbi_functions
 
 data = {
@@ -152,7 +148,7 @@ data = {
     'rvslots': 'main'
 }
 
-pprint(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
+print(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
 ```
 
 ## wbi_login.Login ##
