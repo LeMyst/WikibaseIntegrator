@@ -354,17 +354,16 @@ class BaseDataType(object):
         )
 
 
-class String(BaseDataType):
+class CommonsMedia(BaseDataType):
     """
-    Implements the Wikibase data type 'string'
+    Implements the Wikibase data type for Wikimedia commons media files
     """
-
-    DTYPE = 'string'
+    DTYPE = 'commonsMedia'
 
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
-        :param value: The string to be used as the value
+        :param value: The media file name from Wikimedia commons to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
@@ -382,7 +381,9 @@ class String(BaseDataType):
         :type rank: str
         """
 
-        super(String, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        self.value = None
+
+        super(CommonsMedia, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -395,57 +396,7 @@ class String(BaseDataType):
             'type': 'string'
         }
 
-        super(String, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
-
-
-class Math(BaseDataType):
-    """
-    Implements the Wikibase data type 'math' for mathematical formula in TEX format
-    """
-    DTYPE = 'math'
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: The string to be used as the value
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(Math, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': self.value,
-            'type': 'string'
-        }
-
-        super(Math, self).set_value(value=self.value)
+        super(CommonsMedia, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -503,6 +454,225 @@ class ExternalID(BaseDataType):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
+
+
+class Form(BaseDataType):
+    """
+    Implements the Wikibase data type 'wikibase-form'
+    """
+    DTYPE = 'wikibase-form'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
+        }}
+    '''
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
+        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
+        :param prop_nr: The property number for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(Form, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
+
+            self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': {
+                'entity-type': 'form',
+                'id': self.value
+            },
+            'type': 'wikibase-entityid'
+        }
+
+        super(Form, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
+
+
+class GeoShape(BaseDataType):
+    """
+    Implements the Wikibase data type 'geo-shape'
+    """
+    DTYPE = 'geo-shape'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{value}> .
+        }}
+    '''
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: The GeoShape map file name in Wikimedia Commons to be linked
+        :type value: str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(GeoShape, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        if value is None:
+            self.value = value
+        else:
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
+            pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError("Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.")
+            self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': self.value,
+            'type': 'string'
+        }
+
+        super(GeoShape, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
+
+
+class GlobeCoordinate(BaseDataType):
+    """
+    Implements the Wikibase data type for globe coordinates
+    """
+    DTYPE = 'globe-coordinate'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^geo:wktLiteral .
+        }}
+    '''
+
+    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param latitude: Latitute in decimal format
+        :type latitude: float or None
+        :param longitude: Longitude in decimal format
+        :type longitude: float or None
+        :param precision: Precision of the position measurement
+        :type precision: float or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        globe = config['COORDINATE_GLOBE_QID'] if globe is None else globe
+        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+
+        self.latitude = None
+        self.longitude = None
+        self.precision = None
+        self.globe = None
+
+        if globe.startswith('Q'):
+            globe = wikibase_url + '/entity/' + globe
+
+        value = (latitude, longitude, precision, globe)
+
+        super(GlobeCoordinate, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        # TODO: Introduce validity checks for coordinates, etc.
+        # TODO: Add check if latitude/longitude/precision is None
+        self.latitude, self.longitude, self.precision, self.globe = value
+
+        self.json_representation['datavalue'] = {
+            'value': {
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'precision': self.precision,
+                'globe': self.globe
+            },
+            'type': 'globecoordinate'
+        }
+
+        self.value = (self.latitude, self.longitude, self.precision, self.globe)
+        super(GlobeCoordinate, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(latitude=None, longitude=None, precision=None, prop_nr=jsn['property'],
+                       snak_type=jsn['snaktype'])
+
+        value = jsn['datavalue']['value']
+        return cls(latitude=value['latitude'], longitude=value['longitude'], precision=value['precision'],
+                   prop_nr=jsn['property'])
 
 
 class ItemID(BaseDataType):
@@ -576,6 +746,253 @@ class ItemID(BaseDataType):
         return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
 
 
+class Lexeme(BaseDataType):
+    """
+    Implements the Wikibase data type 'wikibase-lexeme'
+    """
+    DTYPE = 'wikibase-lexeme'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
+        }}
+    '''
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: The lexeme number to serve as a value
+        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
+        :param prop_nr: The property number for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(Lexeme, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
+        if value is None:
+            self.value = value
+        elif isinstance(value, int):
+            self.value = value
+        else:
+            pattern = re.compile(r'^L?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
+            else:
+                self.value = int(matches.group(1))
+
+        self.json_representation['datavalue'] = {
+            'value': {
+                'entity-type': 'lexeme',
+                'numeric-id': self.value,
+                'id': 'L{}'.format(self.value)
+            },
+            'type': 'wikibase-entityid'
+        }
+
+        super(Lexeme, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
+
+
+class Math(BaseDataType):
+    """
+    Implements the Wikibase data type 'math' for mathematical formula in TEX format
+    """
+    DTYPE = 'math'
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: The string to be used as the value
+        :type value: str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(Math, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': self.value,
+            'type': 'string'
+        }
+
+        super(Math, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
+
+
+class MonolingualText(BaseDataType):
+    """
+    Implements the Wikibase data type for Monolingual Text strings
+    """
+    DTYPE = 'monolingualtext'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> {value} .
+        }}
+    '''
+
+    def __init__(self, text, prop_nr, language=None, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param text: The language specific string to be used as the value
+        :type text: str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param language: Specifies the language the value belongs to
+        :type language: str
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        self.text = None
+        self.language = config['DEFAULT_LANGUAGE'] if language is None else language
+
+        value = (text, self.language)
+
+        super(MonolingualText, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        self.text, self.language = value
+        if self.text is not None:
+            assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
+        elif self.snak_type == 'value':
+            raise ValueError("Parameter 'text' can't be 'None' if 'snak_type' is 'value'")
+        assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
+
+        self.json_representation['datavalue'] = {
+            'value': {
+                'text': self.text,
+                'language': self.language
+            },
+            'type': 'monolingualtext'
+        }
+
+        self.value = (self.text, self.language)
+        super(MonolingualText, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return '"' + self.text.replace('"', r'\"') + '"@' + self.language
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(text=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+
+        value = jsn['datavalue']['value']
+        return cls(text=value['text'], prop_nr=jsn['property'], language=value['language'])
+
+
+class MusicalNotation(BaseDataType):
+    """
+    Implements the Wikibase data type 'string'
+    """
+    DTYPE = 'musical-notation'
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: Values for that data type are strings describing music following LilyPond syntax.
+        :type value: str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(MusicalNotation, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': self.value,
+            'type': 'string'
+        }
+
+        super(MusicalNotation, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
+
+
 class Property(BaseDataType):
     """
     Implements the Wikibase data type 'property'
@@ -645,6 +1062,315 @@ class Property(BaseDataType):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
+
+
+class Quantity(BaseDataType):
+    """
+    Implements the Wikibase data type for quantities
+    """
+    DTYPE = 'quantity'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:decimal .
+        }}
+    '''
+
+    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param quantity: The quantity value
+        :type quantity: float, str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
+        :type upper_bound: float, str
+        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
+        :type lower_bound: float, str
+        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
+            The default is dimensionless, represented by a '1'
+        :type unit: str
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+
+        if unit.startswith('Q'):
+            unit = wikibase_url + '/entity/' + unit
+
+        self.quantity = None
+        self.unit = None
+        self.upper_bound = None
+        self.lower_bound = None
+
+        value = (quantity, unit, upper_bound, lower_bound)
+
+        super(Quantity, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        self.quantity, self.unit, self.upper_bound, self.lower_bound = value
+
+        if self.quantity is not None:
+            self.quantity = self.format_amount(self.quantity)
+            self.unit = str(self.unit)
+            if self.upper_bound:
+                self.upper_bound = self.format_amount(self.upper_bound)
+            if self.lower_bound:
+                self.lower_bound = self.format_amount(self.lower_bound)
+
+            # Integrity checks for value and bounds
+            try:
+                for i in [self.quantity, self.upper_bound, self.lower_bound]:
+                    if i:
+                        float(i)
+            except ValueError:
+                raise ValueError("Value, bounds and units must parse as integers or float")
+
+            if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
+                                                            or float(self.lower_bound) > float(self.quantity)):
+                raise ValueError("Lower bound too large")
+
+            if self.upper_bound and float(self.upper_bound) < float(self.quantity):
+                raise ValueError("Upper bound too small")
+        elif self.snak_type == 'value':
+            raise ValueError("Parameter 'quantity' can't be 'None' if 'snak_type' is 'value'")
+
+        self.json_representation['datavalue'] = {
+            'value': {
+                'amount': self.quantity,
+                'unit': self.unit,
+                'upperBound': self.upper_bound,
+                'lowerBound': self.lower_bound
+            },
+            'type': 'quantity'
+        }
+
+        # remove bounds from json if they are undefined
+        if not self.upper_bound:
+            del self.json_representation['datavalue']['value']['upperBound']
+
+        if not self.lower_bound:
+            del self.json_representation['datavalue']['value']['lowerBound']
+
+        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
+        super(Quantity, self).set_value(value=self.value)
+
+    def get_sparql_value(self):
+        return self.quantity
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(quantity=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+
+        value = jsn['datavalue']['value']
+        upper_bound = value['upperBound'] if 'upperBound' in value else None
+        lower_bound = value['lowerBound'] if 'lowerBound' in value else None
+        return cls(quantity=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound, lower_bound=lower_bound,
+                   unit=value['unit'])
+
+    @staticmethod
+    def format_amount(amount):
+        # Remove .0 by casting to int
+        if float(amount) % 1 == 0:
+            amount = int(float(amount))
+
+        # Adding prefix + for positive number and 0
+        if not str(amount).startswith('+') and float(amount) >= 0:
+            amount = str('+{}'.format(amount))
+
+        # return as string
+        return str(amount)
+
+
+class Sense(BaseDataType):
+    """
+    Implements the Wikibase data type 'wikibase-sense'
+    """
+    DTYPE = 'wikibase-sense'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
+        }}
+    '''
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
+        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
+        :param prop_nr: The property number for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(Sense, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        if value is None:
+            self.value = value
+        else:
+            pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError("Invalid sense ID ({}), format must be 'L[0-9]+-S[0-9]+'".format(value))
+
+            self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': {
+                'entity-type': 'sense',
+                'id': self.value
+            },
+            'type': 'wikibase-entityid'
+        }
+
+        super(Sense, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
+
+
+class String(BaseDataType):
+    """
+    Implements the Wikibase data type 'string'
+    """
+
+    DTYPE = 'string'
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: The string to be used as the value
+        :type value: str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(String, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': self.value,
+            'type': 'string'
+        }
+
+        super(String, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
+
+
+class TabularData(BaseDataType):
+    """
+    Implements the Wikibase data type 'tabular-data'
+    """
+    DTYPE = 'tabular-data'
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: Reference to tabular data file on Wikimedia Commons.
+        :type value: str or None
+        :param prop_nr: The item ID for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(TabularData, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        if value is None:
+            self.value = value
+        else:
+            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
+            pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError("Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.")
+            self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': self.value,
+            'type': 'string'
+        }
+
+        super(TabularData, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
 class Time(BaseDataType):
@@ -820,729 +1546,3 @@ class Url(BaseDataType):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
-
-
-class MonolingualText(BaseDataType):
-    """
-    Implements the Wikibase data type for Monolingual Text strings
-    """
-    DTYPE = 'monolingualtext'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> {value} .
-        }}
-    '''
-
-    def __init__(self, text, prop_nr, language=None, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param text: The language specific string to be used as the value
-        :type text: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param language: Specifies the language the value belongs to
-        :type language: str
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        self.text = None
-        self.language = config['DEFAULT_LANGUAGE'] if language is None else language
-
-        value = (text, self.language)
-
-        super(MonolingualText, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        self.text, self.language = value
-        if self.text is not None:
-            assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
-        elif self.snak_type == 'value':
-            raise ValueError("Parameter 'text' can't be 'None' if 'snak_type' is 'value'")
-        assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
-
-        self.json_representation['datavalue'] = {
-            'value': {
-                'text': self.text,
-                'language': self.language
-            },
-            'type': 'monolingualtext'
-        }
-
-        self.value = (self.text, self.language)
-        super(MonolingualText, self).set_value(value=self.value)
-
-    def get_sparql_value(self):
-        return '"' + self.text.replace('"', r'\"') + '"@' + self.language
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(text=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        return cls(text=value['text'], prop_nr=jsn['property'], language=value['language'])
-
-
-class Quantity(BaseDataType):
-    """
-    Implements the Wikibase data type for quantities
-    """
-    DTYPE = 'quantity'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:decimal .
-        }}
-    '''
-
-    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param quantity: The quantity value
-        :type quantity: float, str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
-        :type upper_bound: float, str
-        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
-        :type lower_bound: float, str
-        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
-            The default is dimensionless, represented by a '1'
-        :type unit: str
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-
-        if unit.startswith('Q'):
-            unit = wikibase_url + '/entity/' + unit
-
-        self.quantity = None
-        self.unit = None
-        self.upper_bound = None
-        self.lower_bound = None
-
-        value = (quantity, unit, upper_bound, lower_bound)
-
-        super(Quantity, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        self.quantity, self.unit, self.upper_bound, self.lower_bound = value
-
-        if self.quantity is not None:
-            self.quantity = self.format_amount(self.quantity)
-            self.unit = str(self.unit)
-            if self.upper_bound:
-                self.upper_bound = self.format_amount(self.upper_bound)
-            if self.lower_bound:
-                self.lower_bound = self.format_amount(self.lower_bound)
-
-            # Integrity checks for value and bounds
-            try:
-                for i in [self.quantity, self.upper_bound, self.lower_bound]:
-                    if i:
-                        float(i)
-            except ValueError:
-                raise ValueError("Value, bounds and units must parse as integers or float")
-
-            if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
-                                                            or float(self.lower_bound) > float(self.quantity)):
-                raise ValueError("Lower bound too large")
-
-            if self.upper_bound and float(self.upper_bound) < float(self.quantity):
-                raise ValueError("Upper bound too small")
-        elif self.snak_type == 'value':
-            raise ValueError("Parameter 'quantity' can't be 'None' if 'snak_type' is 'value'")
-
-        self.json_representation['datavalue'] = {
-            'value': {
-                'amount': self.quantity,
-                'unit': self.unit,
-                'upperBound': self.upper_bound,
-                'lowerBound': self.lower_bound
-            },
-            'type': 'quantity'
-        }
-
-        # remove bounds from json if they are undefined
-        if not self.upper_bound:
-            del self.json_representation['datavalue']['value']['upperBound']
-
-        if not self.lower_bound:
-            del self.json_representation['datavalue']['value']['lowerBound']
-
-        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
-        super(Quantity, self).set_value(value=self.value)
-
-    def get_sparql_value(self):
-        return self.quantity
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(quantity=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        upper_bound = value['upperBound'] if 'upperBound' in value else None
-        lower_bound = value['lowerBound'] if 'lowerBound' in value else None
-        return cls(quantity=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound, lower_bound=lower_bound,
-                   unit=value['unit'])
-
-    @staticmethod
-    def format_amount(amount):
-        # Remove .0 by casting to int
-        if float(amount) % 1 == 0:
-            amount = int(float(amount))
-
-        # Adding prefix + for positive number and 0
-        if not str(amount).startswith('+') and float(amount) >= 0:
-            amount = str('+{}'.format(amount))
-
-        # return as string
-        return str(amount)
-
-
-class CommonsMedia(BaseDataType):
-    """
-    Implements the Wikibase data type for Wikimedia commons media files
-    """
-    DTYPE = 'commonsMedia'
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: The media file name from Wikimedia commons to be used as the value
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        self.value = None
-
-        super(CommonsMedia, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': self.value,
-            'type': 'string'
-        }
-
-        super(CommonsMedia, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
-
-
-class GlobeCoordinate(BaseDataType):
-    """
-    Implements the Wikibase data type for globe coordinates
-    """
-    DTYPE = 'globe-coordinate'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^geo:wktLiteral .
-        }}
-    '''
-
-    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param latitude: Latitute in decimal format
-        :type latitude: float or None
-        :param longitude: Longitude in decimal format
-        :type longitude: float or None
-        :param precision: Precision of the position measurement
-        :type precision: float or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        globe = config['COORDINATE_GLOBE_QID'] if globe is None else globe
-        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
-
-        self.latitude = None
-        self.longitude = None
-        self.precision = None
-        self.globe = None
-
-        if globe.startswith('Q'):
-            globe = wikibase_url + '/entity/' + globe
-
-        value = (latitude, longitude, precision, globe)
-
-        super(GlobeCoordinate, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        # TODO: Introduce validity checks for coordinates, etc.
-        # TODO: Add check if latitude/longitude/precision is None
-        self.latitude, self.longitude, self.precision, self.globe = value
-
-        self.json_representation['datavalue'] = {
-            'value': {
-                'latitude': self.latitude,
-                'longitude': self.longitude,
-                'precision': self.precision,
-                'globe': self.globe
-            },
-            'type': 'globecoordinate'
-        }
-
-        self.value = (self.latitude, self.longitude, self.precision, self.globe)
-        super(GlobeCoordinate, self).set_value(value=self.value)
-
-    def get_sparql_value(self):
-        return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(latitude=None, longitude=None, precision=None, prop_nr=jsn['property'],
-                       snak_type=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        return cls(latitude=value['latitude'], longitude=value['longitude'], precision=value['precision'],
-                   prop_nr=jsn['property'])
-
-
-class GeoShape(BaseDataType):
-    """
-    Implements the Wikibase data type 'geo-shape'
-    """
-    DTYPE = 'geo-shape'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> <{value}> .
-        }}
-    '''
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: The GeoShape map file name in Wikimedia Commons to be linked
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(GeoShape, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
-            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
-            pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
-            matches = pattern.match(value)
-            if not matches:
-                raise ValueError("Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.")
-            self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': self.value,
-            'type': 'string'
-        }
-
-        super(GeoShape, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
-
-
-class MusicalNotation(BaseDataType):
-    """
-    Implements the Wikibase data type 'string'
-    """
-    DTYPE = 'musical-notation'
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: Values for that data type are strings describing music following LilyPond syntax.
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(MusicalNotation, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': self.value,
-            'type': 'string'
-        }
-
-        super(MusicalNotation, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
-
-
-class TabularData(BaseDataType):
-    """
-    Implements the Wikibase data type 'tabular-data'
-    """
-    DTYPE = 'tabular-data'
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: Reference to tabular data file on Wikimedia Commons.
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(TabularData, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
-            # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
-            pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
-            matches = pattern.match(value)
-            if not matches:
-                raise ValueError("Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.")
-            self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': self.value,
-            'type': 'string'
-        }
-
-        super(TabularData, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
-
-
-class Lexeme(BaseDataType):
-    """
-    Implements the Wikibase data type 'wikibase-lexeme'
-    """
-    DTYPE = 'wikibase-lexeme'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
-        }}
-    '''
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: The lexeme number to serve as a value
-        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The property number for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(Lexeme, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        elif isinstance(value, int):
-            self.value = value
-        else:
-            pattern = re.compile(r'^L?([0-9]+)$')
-            matches = pattern.match(value)
-
-            if not matches:
-                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
-            else:
-                self.value = int(matches.group(1))
-
-        self.json_representation['datavalue'] = {
-            'value': {
-                'entity-type': 'lexeme',
-                'numeric-id': self.value,
-                'id': 'L{}'.format(self.value)
-            },
-            'type': 'wikibase-entityid'
-        }
-
-        super(Lexeme, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value']['numeric-id'], prop_nr=jsn['property'])
-
-
-class Form(BaseDataType):
-    """
-    Implements the Wikibase data type 'wikibase-form'
-    """
-    DTYPE = 'wikibase-form'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
-        }}
-    '''
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
-        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The property number for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(Form, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
-            pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
-            matches = pattern.match(value)
-
-            if not matches:
-                raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
-
-            self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': {
-                'entity-type': 'form',
-                'id': self.value
-            },
-            'type': 'wikibase-entityid'
-        }
-
-        super(Form, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
-
-
-class Sense(BaseDataType):
-    """
-    Implements the Wikibase data type 'wikibase-sense'
-    """
-    DTYPE = 'wikibase-sense'
-    sparql_query = '''
-        SELECT * WHERE {{
-          ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
-        }}
-    '''
-
-    def __init__(self, value, prop_nr, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
-        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The property number for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
-        super(Sense, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
-            pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
-            matches = pattern.match(value)
-
-            if not matches:
-                raise ValueError("Invalid sense ID ({}), format must be 'L[0-9]+-S[0-9]+'".format(value))
-
-            self.value = value
-
-        self.json_representation['datavalue'] = {
-            'value': {
-                'entity-type': 'sense',
-                'id': self.value
-            },
-            'type': 'wikibase-entityid'
-        }
-
-        super(Sense, self).set_value(value=self.value)
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value']['id'], prop_nr=jsn['property'])
