@@ -1,3 +1,6 @@
+import copy
+
+
 class JsonParser(object):
     references = []
     qualifiers = []
