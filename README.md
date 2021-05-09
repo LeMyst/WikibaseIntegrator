@@ -221,28 +221,29 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 ## Wikibase Data Types ##
 
-Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in wbi_core.
-Each data types has its specialties, which means that some of them require special parameters (e.g. Globe Coordinates).
+Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in
+wbi_datatype. Each data types has its specialties, which means that some of them require special parameters (e.g. Globe
+Coordinates).
 
 The data types currently implemented:
 
-* wbi_core.CommonsMedia
-* wbi_core.ExternalID
-* wbi_core.Form
-* wbi_core.GeoShape
-* wbi_core.GlobeCoordinate
-* wbi_core.ItemID
-* wbi_core.Lexeme
-* wbi_core.Math
-* wbi_core.MonolingualText
-* wbi_core.MusicalNotation
-* wbi_core.Property
-* wbi_core.Quantity
-* wbi_core.Sense
-* wbi_core.String
-* wbi_core.TabularData
-* wbi_core.Time
-* wbi_core.Url
+* wbi_datatype.CommonsMedia
+* wbi_datatype.ExternalID
+* wbi_datatype.Form
+* wbi_datatype.GeoShape
+* wbi_datatype.GlobeCoordinate
+* wbi_datatype.ItemID
+* wbi_datatype.Lexeme
+* wbi_datatype.Math
+* wbi_datatype.MonolingualText
+* wbi_datatype.MusicalNotation
+* wbi_datatype.Property
+* wbi_datatype.Quantity
+* wbi_datatype.Sense
+* wbi_datatype.String
+* wbi_datatype.TabularData
+* wbi_datatype.Time
+* wbi_datatype.Url
 
 For details of how to create values (=instances) with these data types, please (for now) consult the docstrings in the
 source code. Of note, these data type instances hold the values and, if specified, data type instances for references
@@ -314,13 +315,13 @@ In order to create a minimal bot based on wbi_core, three things are required:
 * A ItemEngine object which takes the data, does the checks and performs write.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login
+from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 # data type object, e.g. for a NCBI gene entrez ID
-entrez_gene_id = wbi_core.String(value='<some_entrez_id>', prop_nr='P351')
+entrez_gene_id = wbi_datatype.String(value='<some_entrez_id>', prop_nr='P351')
 
 # data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
@@ -336,7 +337,7 @@ An enhanced example of the previous bot just puts two of the three things into a
 or modification of items.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login
+from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -351,15 +352,15 @@ for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
         ]
     ]
 
     # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
+    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
@@ -394,7 +395,7 @@ fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
 The full example:
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login
+from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -413,15 +414,15 @@ for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
         ]
     ]
 
     # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
+    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
