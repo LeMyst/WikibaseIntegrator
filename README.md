@@ -12,7 +12,8 @@
 - [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
-    - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
+    - [wbi_functions](#wbi_functions)
+        - [Use MediaWiki API](#use-mediawiki-api)
     - [wbi_login.Login](#wbi_loginlogin)
         - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
@@ -119,17 +120,36 @@ There are two ways of working with Wikibase items:
 * A user can work with a selected QID to specifically modify the data on the item. This requires that the user knows
   what he/she is doing and should only be used with great care, as this does not perform consistency checks.
 
-Examples below illustrate the usage of ItemEngine.
+## wbi_functions ##
 
-## wbi_core.FunctionsEngine ##
-
-wbi_core.FunctionsEngine provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL
-Service.
+wbi_functions provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL Service.
 
 Features:
 
 * Minimize the number of HTTP requests for reads and writes to improve performance
 * Method to easily execute [SPARQL](https://query.wikidata.org) queries on the Wikibase SPARQL endpoint.
+
+### Use MediaWiki API ###
+
+WikibaseIntegrator don't have functions to make API call to non-wikibase actions. You can
+use `wbi_functions.mediawiki_api_call_helper()` to make a custom call.
+
+Example to get the last two revisions of entity Q42 :
+
+```python
+from wikibaseintegrator import wbi_functions
+
+data = {
+    'action': 'query',
+    'prop': 'revisions',
+    'titles': 'Q42',
+    'rvlimit': 2,
+    'rvprop': 'ids|timestamp|comment|user',
+    'rvslots': 'main'
+}
+
+print(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
+```
 
 ## wbi_login.Login ##
 
@@ -242,8 +262,8 @@ address, or the URL to your bot code repository.)
 
 ## Use Mediawiki API ##
 
-The method `wbi_core.FunctionsEngine.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It
-takes a mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
+The method `wbi_functions.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It takes a
+mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
 mediawiki_api_url string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header,
 and an allow_anonymous boolean to force authentication.
 
@@ -252,7 +272,7 @@ Example:
 Retrieve last 10 revisions from Wikidata element Q2 (Earth):
 
 ```python
-from wikibaseintegrator import wbi_core
+from wikibaseintegrator import wbi_functions
 
 query = {
     'action': 'query',
@@ -261,12 +281,12 @@ query = {
     'rvlimit': 10
 }
 
-print(wbi_core.FunctionsEngine.mediawiki_api_call_helper(query, allow_anonymous=True))
+print(wbi_functions.mediawiki_api_call_helper(query, allow_anonymous=True))
 ```
 
 ## Wikibase search entities ##
 
-The method `wbi_core.ItemEngine.get_search_results()` allows for string search in a Wikibase instance. This means that
+The method `wbi_core.ItemEngine.search_entities()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
 Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
@@ -275,7 +295,7 @@ option dict_id_label to return a dict of item id and label as a result.
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_core.FunctionsEngine.merge_items()` takes five arguments:
+`wbi_functions.merge_items()` takes five arguments:
 the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
 merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
 information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
