@@ -2,7 +2,7 @@ import copy
 import json
 from collections import defaultdict
 
-from wikibaseintegrator import wbi_functions
+from wikibaseintegrator import wbi_functions, wbi_item
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_datatype import BaseDataType
 from wikibaseintegrator.wbi_exceptions import (IDMissingError, SearchError, SearchOnlyError, NonUniqueLabelDescriptionPairError, MWApiError, CorePropIntegrityException,
@@ -10,7 +10,7 @@ from wikibaseintegrator.wbi_exceptions import (IDMissingError, SearchError, Sear
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
-class ItemEngine(object):
+class Core(object):
     fast_run_store = []
     distinct_value_props = {}
 
@@ -136,12 +136,12 @@ class ItemEngine(object):
         if self.global_ref_mode == 'CUSTOM' and self.ref_handler is None:
             raise ValueError("If using a custom ref mode, ref_handler must be set")
 
-        if (core_props is None) and (self.sparql_endpoint_url not in ItemEngine.distinct_value_props):
-            ItemEngine.distinct_value_props[self.sparql_endpoint_url] = wbi_functions.get_distinct_value_props(self.sparql_endpoint_url,
+        if (core_props is None) and (self.sparql_endpoint_url not in wbi_item.Item.distinct_value_props):
+            wbi_item.Item.distinct_value_props[self.sparql_endpoint_url] = wbi_functions.get_distinct_value_props(self.sparql_endpoint_url,
                                                                                                                self.wikibase_url,
                                                                                                                self.property_constraint_pid,
                                                                                                                self.distinct_values_constraint_qid)
-        self.core_props = core_props if core_props is not None else ItemEngine.distinct_value_props[self.sparql_endpoint_url]
+        self.core_props = core_props if core_props is not None else wbi_item.Item.distinct_value_props[self.sparql_endpoint_url]
 
         if self.fast_run:
             self.init_fastrun()
@@ -195,7 +195,7 @@ class ItemEngine(object):
 
     def init_fastrun(self):
         # We search if we already have a FastRunContainer with the same parameters to re-use it
-        for c in ItemEngine.fast_run_store:
+        for c in wbi_item.Item.fast_run_store:
             if (c.base_filter == self.fast_run_base_filter) and (c.use_refs == self.fast_run_use_refs) and (c.sparql_endpoint_url == self.sparql_endpoint_url):
                 self.fast_run_container = c
                 self.fast_run_container.ref_handler = self.ref_handler
@@ -219,7 +219,7 @@ class ItemEngine(object):
                                                        ref_handler=self.ref_handler,
                                                        case_insensitive=self.fast_run_case_insensitive,
                                                        debug=self.debug)
-            ItemEngine.fast_run_store.append(self.fast_run_container)
+            wbi_item.Item.fast_run_store.append(self.fast_run_container)
 
         if not self.search_only:
             self.require_write = self.fast_run_container.write_required(self.data, cqid=self.item_id)

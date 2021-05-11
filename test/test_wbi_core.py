@@ -1,28 +1,28 @@
 import unittest
 
-from wikibaseintegrator import wbi_core, wbi_functions, wbi_datatype
+from wikibaseintegrator import wbi_functions, wbi_datatype, wbi_item
 
 
 class TestWbiCore(unittest.TestCase):
-    common_item = wbi_core.ItemEngine(item_id="Q2")
+    common_item = wbi_item.Item(item_id="Q2")
 
     def test_item_engine(self):
-        wbi_core.ItemEngine(debug=True)
-        wbi_core.ItemEngine(data=None, debug=True)
-        wbi_core.ItemEngine(data=wbi_datatype.String(value='test', prop_nr='P1'), debug=True)
-        wbi_core.ItemEngine(data=[wbi_datatype.String(value='test', prop_nr='P1')], debug=True)
+        wbi_item.Item(debug=True)
+        wbi_item.Item(data=None, debug=True)
+        wbi_item.Item(data=wbi_datatype.String(value='test', prop_nr='P1'), debug=True)
+        wbi_item.Item(data=[wbi_datatype.String(value='test', prop_nr='P1')], debug=True)
         with self.assertRaises(TypeError):
-            wbi_core.ItemEngine(data='test', debug=True)
+            wbi_item.Item(data='test', debug=True)
         with self.assertRaises(ValueError):
-            wbi_core.ItemEngine(fast_run_case_insensitive=True, debug=True)
+            wbi_item.Item(fast_run_case_insensitive=True, debug=True)
         with self.assertRaises(TypeError):
-            wbi_core.ItemEngine(ref_handler='test', debug=True)
+            wbi_item.Item(ref_handler='test', debug=True)
         with self.assertRaises(ValueError):
-            wbi_core.ItemEngine(global_ref_mode='CUSTOM', debug=True)
-        wbi_core.ItemEngine(item_id='Q2', fast_run=True, debug=True)
+            wbi_item.Item(global_ref_mode='CUSTOM', debug=True)
+        wbi_item.Item(item_id='Q2', fast_run=True, debug=True)
 
     def test_search_only(self):
-        item = wbi_core.ItemEngine(item_id="Q2", search_only=True)
+        item = wbi_item.Item(item_id="Q2", search_only=True)
 
         assert item.get_label('en') == "Earth"
         descr = item.get_description('en')
@@ -39,25 +39,25 @@ class TestWbiCore(unittest.TestCase):
         instance_of_replace = wbi_datatype.ItemID(prop_nr='P31', value='Q1234', if_exists='REPLACE')
         instance_of_keep = wbi_datatype.ItemID(prop_nr='P31', value='Q1234', if_exists='KEEP')
 
-        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_append, instance_of_append])
+        item = wbi_item.Item(item_id="Q2", data=[instance_of_append, instance_of_append])
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
         assert len(claims) > 1 and 'Q1234' in claims and claims.count('Q1234') == 1
 
-        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_forceappend, instance_of_forceappend])
+        item = wbi_item.Item(item_id="Q2", data=[instance_of_forceappend, instance_of_forceappend])
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
         assert len(claims) > 1 and 'Q1234' in claims and claims.count('Q1234') == 2
 
-        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
+        item = wbi_item.Item(item_id="Q2", data=[instance_of_replace], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' not in x]
         removed_claims = [True for x in item.get_json_representation()['claims']['P31'] if 'remove' in x]
         assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims
 
-        item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_keep], debug=True)
+        item = wbi_item.Item(item_id="Q2", data=[instance_of_keep], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
         assert len(claims) == 2 and 'Q1234' not in claims
 
     def test_label(self):
-        item = wbi_core.ItemEngine(item_id="Q2")
+        item = wbi_item.Item(item_id="Q2")
 
         assert item.get_label('en') == "Earth"
         descr = item.get_description('en')
@@ -155,18 +155,18 @@ class TestWbiCore(unittest.TestCase):
         core_props = set(["P{}".format(x) for x in range(20)])
 
         for d in data:
-            item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=core_props)
+            item = wbi_item.Item(new_item=True, data=[d], core_props=core_props)
             assert item.get_json_representation()
-            item = wbi_core.ItemEngine(new_item=True, data=d, core_props=core_props)
+            item = wbi_item.Item(new_item=True, data=d, core_props=core_props)
             assert item.get_json_representation()
-            item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=set())
+            item = wbi_item.Item(new_item=True, data=[d], core_props=set())
             assert item.get_json_representation()
-            item = wbi_core.ItemEngine(new_item=True, data=d, core_props=set())
+            item = wbi_item.Item(new_item=True, data=d, core_props=set())
             assert item.get_json_representation()
 
-        item = wbi_core.ItemEngine(new_item=True, data=data, core_props=core_props)
+        item = wbi_item.Item(new_item=True, data=data, core_props=core_props)
         assert item.get_json_representation()
-        item = wbi_core.ItemEngine(new_item=True, data=data, core_props=set())
+        item = wbi_item.Item(new_item=True, data=data, core_props=set())
         assert item.get_json_representation()
 
     def test_get_property_list(self):

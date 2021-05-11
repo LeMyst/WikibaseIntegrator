@@ -84,5 +84,5 @@ class MergeError(Exception):
 
 
 class SearchOnlyError(Exception):
-    """Raised when the ItemEngine is in search_only mode"""
+    """Raised when in search_only mode"""
     pass

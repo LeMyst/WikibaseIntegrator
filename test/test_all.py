@@ -4,7 +4,7 @@ import unittest
 
 import requests
 
-from wikibaseintegrator import wbi_core, wbi_fastrun, wbi_functions, wbi_datatype
+from wikibaseintegrator import wbi_fastrun, wbi_functions, wbi_datatype, wbi_item
 from wikibaseintegrator.wbi_core import MWApiError
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
@@ -77,7 +77,7 @@ class TestDataType(unittest.TestCase):
         """
         Test an item against Wikidata
         """
-        item = wbi_core.ItemEngine(item_id='Q423111')
+        item = wbi_item.Item(item_id='Q423111')
 
         mass_statement = [x for x in item.statements if x.get_prop_nr() == 'P2067'].pop()
         pprint.pprint(mass_statement.get_json_representation())
@@ -100,7 +100,7 @@ class TestFastRun(unittest.TestCase):
         ]
 
         frc = wbi_fastrun.FastRunContainer(base_filter={'P352': '', 'P703': 'Q27510868'},
-                                           base_data_type=wbi_datatype.BaseDataType, engine=wbi_core.ItemEngine)
+                                           base_data_type=wbi_datatype.BaseDataType, engine=wbi_item.Item)
 
         fast_run_result = frc.write_required(data=statements)
 
@@ -118,9 +118,9 @@ class TestFastRun(unittest.TestCase):
         # tests fastrun label, description and aliases, and label in another language
         data = [wbi_datatype.ExternalID('/m/02j71', 'P646')]
         fast_run_base_filter = {'P361': 'Q18589965'}
-        item = wbi_core.ItemEngine(item_id="Q2", data=data, fast_run=True, fast_run_base_filter=fast_run_base_filter)
+        item = wbi_item.Item(item_id="Q2", data=data, fast_run=True, fast_run_base_filter=fast_run_base_filter)
 
-        frc = wbi_core.ItemEngine.fast_run_store[0]
+        frc = wbi_item.Item.fast_run_store[0]
         frc.debug = True
 
         assert item.get_label('en') == "Earth"
@@ -162,7 +162,7 @@ class TestFastRun(unittest.TestCase):
 
 def test_sitelinks():
     data = [wbi_datatype.ItemID(value='Q12136', prop_nr='P31')]
-    item = wbi_core.ItemEngine(item_id='Q622901', data=data)
+    item = wbi_item.Item(item_id='Q622901', data=data)
     item.get_sitelink("enwiki")
     assert "enwiki" not in item.json_representation['sitelinks']
     item.set_sitelink("enwiki", "something")
@@ -173,7 +173,7 @@ def test_sitelinks():
 def test_nositelinks():
     # this item doesn't and probably wont ever have any sitelinks (but who knows?? maybe one day..)
     data = [wbi_datatype.ItemID(value='Q5', prop_nr='P31')]
-    item = wbi_core.ItemEngine(item_id='Q27869338', data=data)
+    item = wbi_item.Item(item_id='Q27869338', data=data)
     item.get_sitelink("enwiki")
     assert "enwiki" not in item.json_representation['sitelinks']
     item.set_sitelink("enwiki", "something")

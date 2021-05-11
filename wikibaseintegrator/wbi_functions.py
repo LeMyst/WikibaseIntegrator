@@ -330,23 +330,23 @@ def generate_item_instances(items, mediawiki_api_url=None, login=None, allow_ano
     """
     A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
     tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
-    ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
+    wbi_item.Item containing all the data of the item. This is most useful for mass retrieval of items.
     :param user_agent: A custom user agent
     :type user_agent: str
     :param items: A list of QIDs or property IDs
     :type items: list
     :param mediawiki_api_url: The MediaWiki url which should be used
     :type mediawiki_api_url: str
-    :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding
+    :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of wbi_item.Item with the corresponding
         item data.
     :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
     :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
     :type allow_anonymous: bool
     """
 
-    assert type(items) == list
+    from wikibaseintegrator import wbi_item
 
-    from wikibaseintegrator.wbi_core import ItemEngine
+    assert type(items) == list
 
     params = {
         'action': 'wbgetentities',
@@ -358,7 +358,7 @@ def generate_item_instances(items, mediawiki_api_url=None, login=None, allow_ano
 
     item_instances = []
     for qid, v in reply['entities'].items():
-        ii = ItemEngine(item_id=qid, item_data=v)
+        ii = wbi_item.Item(item_id=qid, item_data=v)
         ii.mediawiki_api_url = mediawiki_api_url
         item_instances.append((qid, ii))
 

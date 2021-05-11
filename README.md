@@ -11,7 +11,7 @@
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
-    - [wbi_core.ItemEngine](#wbi_coreitemengine)
+    - [wbi_item.Item](#wbi_coreitemengine)
     - [wbi_functions](#wbi_functions)
         - [Use MediaWiki API](#use-mediawiki-api)
     - [wbi_login.Login](#wbi_loginlogin)
@@ -60,9 +60,9 @@ To test for correct installation, start a Python console and execute the followi
 for ['Human'](https://www.wikidata.org/entity/Q5)):
 
 ```python
-from wikibaseintegrator import wbi_core
+from wikibaseintegrator import wbi_item
 
-my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q5')
+my_first_wikidata_item = wbi_item.Item(item_id='Q5')
 
 # to check successful installation and retrieval of the data, you can print the json representation of the item
 print(my_first_wikidata_item.get_json_representation())
@@ -97,7 +97,7 @@ keeping Wikidata in sync with an external resource.
 wbi_core consists of a central class called ItemEngine and Login for authenticating with a MediaWiki isntance (like
 Wikidata).
 
-## wbi_core.ItemEngine ##
+## wbi_item.Item ##
 
 This is the central class which does all the heavy lifting.
 
@@ -109,7 +109,7 @@ Features:
   exception)
 * Checks automatically if the correct item has been loaded by comparing it to the data provided
 * All Wikibase data types implemented
-* A dedicated wbi_core.ItemEngine.write() method allows loading and consistency checks of data before any write to
+* A dedicated wbi_item.Item.write() method allows loading and consistency checks of data before any write to
   Wikibase is performed
 * Full access to the whole Wikibase item as a JSON document
 
@@ -254,7 +254,7 @@ tuple, depending on the complexity of the data type.
 
 ## Execute SPARQL queries ##
 
-The method `wbi_core.ItemEngine.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes
+The method `wbi_item.Item.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes
 the actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata,
 the actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL
 server (user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you
@@ -287,7 +287,7 @@ print(wbi_functions.mediawiki_api_call_helper(query, allow_anonymous=True))
 
 ## Wikibase search entities ##
 
-The method `wbi_core.ItemEngine.search_entities()` allows for string search in a Wikibase instance. This means that
+The method `wbi_item.Item.search_entities()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
 Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
@@ -315,7 +315,7 @@ In order to create a minimal bot based on wbi_core, three things are required:
 * A ItemEngine object which takes the data, does the checks and performs write.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_item, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -327,7 +327,7 @@ entrez_gene_id = wbi_datatype.String(value='<some_entrez_id>', prop_nr='P351')
 data = [entrez_gene_id]
 
 # Search for and then edit/create new item
-wd_item = wbi_core.ItemEngine(data=data)
+wd_item = wbi_item.Item(data=data)
 wd_item.write(login_instance)
 ```
 
@@ -337,7 +337,7 @@ An enhanced example of the previous bot just puts two of the three things into a
 or modification of items.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_item, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -366,7 +366,7 @@ for entrez_id, ensembl in raw_data.items():
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data)
+    wd_item = wbi_item.Item(data=data)
     wd_item.write(login_instance)
 ```
 
@@ -395,7 +395,7 @@ fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
 The full example:
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_item, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -428,7 +428,7 @@ for entrez_id, ensembl in raw_data.items():
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
+    wd_item = wbi_item.Item(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
     wd_item.write(login_instance)
 ```
 
