@@ -363,6 +363,7 @@ class CommonsMedia(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The media file name from Wikimedia commons to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -415,6 +416,7 @@ class ExternalID(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -471,6 +473,7 @@ class Form(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -539,6 +542,7 @@ class GeoShape(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -603,6 +607,7 @@ class GlobeCoordinate(BaseDataType):
     def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param latitude: Latitute in decimal format
         :type latitude: float or None
         :param longitude: Longitude in decimal format
@@ -690,6 +695,7 @@ class ItemID(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The item ID to serve as the value
         :type value: str with a 'Q' prefix, followed by several digits or only the digits without the 'Q' prefix
         :param prop_nr: The item ID for this claim
@@ -761,6 +767,7 @@ class Lexeme(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The lexeme number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -826,6 +833,7 @@ class Math(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -882,6 +890,7 @@ class MonolingualText(BaseDataType):
     def __init__(self, text, prop_nr, language=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param text: The language specific string to be used as the value
         :type text: str or None
         :param prop_nr: The item ID for this claim
@@ -945,13 +954,14 @@ class MonolingualText(BaseDataType):
 
 class MusicalNotation(BaseDataType):
     """
-    Implements the Wikibase data type 'string'
+    Implements the Wikibase data type 'musical-notation'
     """
     DTYPE = 'musical-notation'
 
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Values for that data type are strings describing music following LilyPond syntax.
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -1008,6 +1018,7 @@ class Property(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The property number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -1067,6 +1078,29 @@ class Property(BaseDataType):
 class Quantity(BaseDataType):
     """
     Implements the Wikibase data type for quantities
+
+    :param quantity: The quantity value
+    :type quantity: float, str or None
+    :param prop_nr: The item ID for this claim
+    :type prop_nr: str with a 'P' prefix followed by digits
+    :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
+    :type upper_bound: float, str
+    :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
+    :type lower_bound: float, str
+    :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
+        The default is dimensionless, represented by a '1'
+    :type unit: str
+    :type is_reference: boolean
+    :param is_qualifier: Whether this snak is a qualifier
+    :type is_qualifier: boolean
+    :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+    :type snak_type: str
+    :param references: List with reference objects
+    :type references: A data type with subclass of BaseDataType
+    :param qualifiers: List with qualifier objects
+    :type qualifiers: A data type with subclass of BaseDataType
+    :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+    :type rank: str
     """
     DTYPE = 'quantity'
     sparql_query = '''
@@ -1077,32 +1111,6 @@ class Quantity(BaseDataType):
     '''
 
     def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
-        """
-        Constructor, calls the superclass BaseDataType
-        :param quantity: The quantity value
-        :type quantity: float, str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
-        :type upper_bound: float, str
-        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
-        :type lower_bound: float, str
-        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
-            The default is dimensionless, represented by a '1'
-        :type unit: str
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
-        """
-
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if unit.startswith('Q'):
@@ -1211,6 +1219,7 @@ class Sense(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
@@ -1274,6 +1283,7 @@ class String(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -1324,6 +1334,7 @@ class TabularData(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Reference to tabular data file on Wikimedia Commons.
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -1388,6 +1399,7 @@ class Time(BaseDataType):
     def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
         :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z'
         :param prop_nr: The property number for this claim
@@ -1499,6 +1511,7 @@ class Url(BaseDataType):
     def __init__(self, value, prop_nr, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The URL to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim

@@ -15,8 +15,7 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
     :param session: If a session is passed, it will be used. Otherwise a new requests session is created
-    :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
-    `max_retries` times
+    :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
     :type max_retries: int
     :param retry_after: Number of seconds to wait before retrying request (see max_retries)
     :type retry_after: int
@@ -131,6 +130,7 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
 def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max_retries=1000, retry_after=60, debug=False):
     """
     Static method which can be used to execute any SPARQL query
+
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
@@ -188,6 +188,7 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
 def merge_items(from_id, to_id, ignore_conflicts='', mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
     """
     A static method to merge two items
+
     :param from_id: The QID which should be merged into another item
     :type from_id: string with 'Q' prefix
     :param to_id: The QID into which another item should be merged
@@ -221,6 +222,7 @@ def merge_items(from_id, to_id, ignore_conflicts='', mediawiki_api_url=None, log
 def remove_claims(claim_id, summary=None, revision=None, mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
     """
     Delete an item
+
     :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
     :type claim_id: string
     :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
@@ -255,6 +257,7 @@ def search_entities(search_string, language=None, strict_language=True, search_t
                     allow_anonymous=True, user_agent=None):
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
+
     :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
     :type search_string: str
     :param language: The language in which to perform the search.
@@ -331,14 +334,14 @@ def generate_item_instances(items, mediawiki_api_url=None, login=None, allow_ano
     A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
     tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
     ItemEngine containing all the data of the item. This is most useful for mass retrieval of items.
+
     :param user_agent: A custom user agent
     :type user_agent: str
     :param items: A list of QIDs or property IDs
     :type items: list
     :param mediawiki_api_url: The MediaWiki url which should be used
     :type mediawiki_api_url: str
-    :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding
-        item data.
+    :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of ItemEngine with the corresponding item data.
     :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
     :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
     :type allow_anonymous: bool
