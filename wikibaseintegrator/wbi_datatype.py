@@ -675,7 +675,7 @@ class GlobeCoordinate(BaseDataType):
                    prop_nr=jsn['property'])
 
 
-class ItemID(BaseDataType):
+class Item(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-item' with a value being another item ID
     """
