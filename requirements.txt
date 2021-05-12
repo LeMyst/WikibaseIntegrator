@@ -1,10 +1,9 @@
 simplejson~=3.17.2
 requests~=2.25.1
-pandas~=1.2.4
 mwoauth~=0.3.7
 backoff~=1.10.0
-pytest~=6.2.3
-setuptools~=56.0.0
+pytest~=6.2.4
+setuptools~=56.2.0
 oauthlib~=3.1.0
 
 # Docs
