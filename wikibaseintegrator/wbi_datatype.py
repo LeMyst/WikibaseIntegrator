@@ -945,7 +945,7 @@ class MonolingualText(BaseDataType):
 
 class MusicalNotation(BaseDataType):
     """
-    Implements the Wikibase data type 'string'
+    Implements the Wikibase data type 'musical-notation'
     """
     DTYPE = 'musical-notation'
 
