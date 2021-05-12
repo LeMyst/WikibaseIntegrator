@@ -1,0 +1,1 @@
+from wikibaseintegrator.wikibaseintegrator import WikibaseIntegrator
