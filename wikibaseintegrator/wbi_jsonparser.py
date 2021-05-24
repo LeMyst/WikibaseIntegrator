@@ -70,7 +70,7 @@ class JsonParser(object):
             return self.get_class_representation(jsn=self.json_representation)
 
     def get_class_representation(self, jsn):
-        from wikibaseintegrator.wbi_datatype import BaseDataType
+        from wikibaseintegrator.datatypes.basedatatype import BaseDataType
         data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == jsn['datatype']][0]
         self.final = True
         self.current_type = data_type

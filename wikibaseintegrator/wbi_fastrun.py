@@ -4,13 +4,13 @@ from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
 
-from wikibaseintegrator import wbi_functions
 from wikibaseintegrator.wbi_config import config
 
 
 class FastRunContainer(object):
-    def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, ref_handler=None,
-                 case_insensitive=False, debug=False):
+    def __init__(self, api, base_data_type, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, case_insensitive=False):
+        self.api = api
+
         self.reconstructed_statements = []
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
@@ -23,14 +23,11 @@ class FastRunContainer(object):
         self.current_qid = ''
 
         self.base_data_type = base_data_type
-        self.engine = engine
         self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
         self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
         self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
         self.use_refs = use_refs
-        self.ref_handler = ref_handler
         self.case_insensitive = case_insensitive
-        self.debug = debug
 
         if base_filter and any(base_filter):
             self.base_filter = base_filter
@@ -188,7 +185,7 @@ class FastRunContainer(object):
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
             if len(comp) != len(app_data):
-                if self.debug:
+                if self.api.debug:
                     print("failed append: {}".format(p))
                 return True
 
@@ -463,7 +460,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = wbi_functions.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            r = self.api.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
             print("Count: {}".format(count))
             num_pages = (int(count) // page_size) + 1
@@ -546,7 +543,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            results = wbi_functions.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = self.api.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -582,7 +579,7 @@ class FastRunContainer(object):
         if self.debug:
             print(query)
 
-        return wbi_functions.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+        return self.api.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
     def _process_lang(result: list):
@@ -595,9 +592,10 @@ class FastRunContainer(object):
 
     @lru_cache(maxsize=100000)
     def get_prop_datatype(self, prop_nr: str) -> str:
-        item = self.engine(item_id=prop_nr, sparql_endpoint_url=self.sparql_endpoint_url, mediawiki_api_url=self.mediawiki_api_url, wikibase_url=self.wikibase_url,
-                           debug=self.debug)
-        return item.entity_metadata['datatype']
+        from wikibaseintegrator import WikibaseIntegrator
+        wbi = WikibaseIntegrator(sparql_endpoint_url=self.sparql_endpoint_url, mediawiki_api_url=self.mediawiki_api_url, wikibase_url=self.wikibase_url, debug=self.debug)
+        property = wbi.property.get(prop_nr)
+        return property.datatype
 
     def clear(self) -> None:
         """

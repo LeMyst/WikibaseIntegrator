@@ -60,9 +60,10 @@ To test for correct installation, start a Python console and execute the followi
 for ['Human'](https://www.wikidata.org/entity/Q5)):
 
 ```python
-from wikibaseintegrator import wbi_item
 
-my_first_wikidata_item = wbi_item.Item(item_id='Q5')
+from wikibaseintegrator.entities import item
+
+my_first_wikidata_item = item.Item(item_id='Q5')
 
 # to check successful installation and retrieval of the data, you can print the json representation of the item
 print(my_first_wikidata_item.get_json_representation())
@@ -109,8 +110,8 @@ Features:
   exception)
 * Checks automatically if the correct item has been loaded by comparing it to the data provided
 * All Wikibase data types implemented
-* A dedicated wbi_item.Item.write() method allows loading and consistency checks of data before any write to
-  Wikibase is performed
+* A dedicated wbi_item.Item.write() method allows loading and consistency checks of data before any write to Wikibase is
+  performed
 * Full access to the whole Wikibase item as a JSON document
 
 There are two ways of working with Wikibase items:
@@ -254,12 +255,12 @@ tuple, depending on the complexity of the data type.
 
 ## Execute SPARQL queries ##
 
-The method `wbi_item.Item.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes
-the actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata,
-the actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL
-server (user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you
-execute many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email
-address, or the URL to your bot code repository.)
+The method `wbi_item.Item.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes the
+actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata, the
+actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL server (
+user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you execute
+many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email address,
+or the URL to your bot code repository.)
 
 ## Use Mediawiki API ##
 
@@ -287,11 +288,11 @@ print(wbi_functions.mediawiki_api_call_helper(query, allow_anonymous=True))
 
 ## Wikibase search entities ##
 
-The method `wbi_item.Item.search_entities()` allows for string search in a Wikibase instance. This means that
-labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
-search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
-Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
-option dict_id_label to return a dict of item id and label as a result.
+The method `wbi_item.Item.search_entities()` allows for string search in a Wikibase instance. This means that labels,
+descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual search
+string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not Wikidata), an
+optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an option
+dict_id_label to return a dict of item id and label as a result.
 
 ## Merge Wikibase items ##
 
@@ -315,19 +316,21 @@ In order to create a minimal bot based on wbi_core, three things are required:
 * A ItemEngine object which takes the data, does the checks and performs write.
 
 ```python
-from wikibaseintegrator import wbi_item, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_login
+from wikibaseintegrator.entities import item
+from wikibaseintegrator.datatypes import basedatatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 # data type object, e.g. for a NCBI gene entrez ID
-entrez_gene_id = wbi_datatype.String(value='<some_entrez_id>', prop_nr='P351')
+entrez_gene_id = basedatatype.String(value='<some_entrez_id>', prop_nr='P351')
 
 # data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
 
 # Search for and then edit/create new item
-wd_item = wbi_item.Item(data=data)
+wd_item = item.Item(data=data)
 wd_item.write(login_instance)
 ```
 
@@ -337,37 +340,39 @@ An enhanced example of the previous bot just puts two of the three things into a
 or modification of items.
 
 ```python
-from wikibaseintegrator import wbi_item, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_login
+from wikibaseintegrator.entities import item
+from wikibaseintegrator.datatypes import basedatatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
 raw_data = {
-    '50943': 'ENST00000376197',
-    '1029': 'ENST00000498124'
+  '50943': 'ENST00000376197',
+  '1029': 'ENST00000498124'
 }
 
 for entrez_id, ensembl in raw_data.items():
-    # add some references
-    references = [
-        [
-            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
-        ]
+  # add some references
+  references = [
+    [
+      basedatatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+      basedatatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+      basedatatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
     ]
+  ]
 
-    # data type object
-    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
+  # data type object
+  entrez_gene_id = basedatatype.String(value=entrez_id, prop_nr='P351', references=references)
+  ensembl_transcript_id = basedatatype.String(value=ensembl, prop_nr='P704', references=references)
 
-    # data goes into a list, because many data objects can be provided to
-    data = [entrez_gene_id, ensembl_transcript_id]
+  # data goes into a list, because many data objects can be provided to
+  data = [entrez_gene_id, ensembl_transcript_id]
 
-    # Search for and then edit/create new item
-    wd_item = wbi_item.Item(data=data)
-    wd_item.write(login_instance)
+  # Search for and then edit/create new item
+  wd_item = item.Item(data=data)
+  wd_item.write(login_instance)
 ```
 
 # Examples (in "fast run" mode) #
@@ -395,7 +400,9 @@ fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
 The full example:
 
 ```python
-from wikibaseintegrator import wbi_item, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_login
+from wikibaseintegrator.entities import item
+from wikibaseintegrator.datatypes import basedatatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -406,30 +413,30 @@ fast_run = True
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
 # You can iterate over any data source as long as you can map the values to Wikidata properties.
 raw_data = {
-    '50943': 'ENST00000376197',
-    '1029': 'ENST00000498124'
+  '50943': 'ENST00000376197',
+  '1029': 'ENST00000498124'
 }
 
 for entrez_id, ensembl in raw_data.items():
-    # add some references
-    references = [
-        [
-            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
-        ]
+  # add some references
+  references = [
+    [
+      basedatatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+      basedatatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+      basedatatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
     ]
+  ]
 
-    # data type object
-    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
+  # data type object
+  entrez_gene_id = basedatatype.String(value=entrez_id, prop_nr='P351', references=references)
+  ensembl_transcript_id = basedatatype.String(value=ensembl, prop_nr='P704', references=references)
 
-    # data goes into a list, because many data objects can be provided to
-    data = [entrez_gene_id, ensembl_transcript_id]
+  # data goes into a list, because many data objects can be provided to
+  data = [entrez_gene_id, ensembl_transcript_id]
 
-    # Search for and then edit/create new item
-    wd_item = wbi_item.Item(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
-    wd_item.write(login_instance)
+  # Search for and then edit/create new item
+  wd_item = item.Item(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
+  wd_item.write(login_instance)
 ```
 
 Note: Fastrun mode checks for equality of property/value pairs, qualifers (not including qualifier attributes), labels,

@@ -1,1 +1,2 @@
-from wikibaseintegrator.wikibaseintegrator import WikibaseIntegrator
+from .wbi_api import Api
+from .wikibaseintegrator import WikibaseIntegrator

@@ -20,7 +20,7 @@ USER_AGENT_DEFAULT: default user agent string used for http requests. Both to Wi
 """
 
 config = {
-    'BACKOFF_MAX_TRIES': None,
+    'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
     'USER_AGENT_DEFAULT': "WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator)".format(__version__),
     'MAXLAG': 5,
@@ -33,5 +33,6 @@ config = {
     'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
     'WIKIBASE_URL': 'http://www.wikidata.org',
-    'DEFAULT_LANGUAGE': 'en'
+    'DEFAULT_LANGUAGE': 'en',
+    'DEBUG': False
 }
