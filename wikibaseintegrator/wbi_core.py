@@ -733,7 +733,7 @@ class ItemEngine(object):
             core_props = self.core_props
             if property_nr in core_props:
                 tmp_qids = set()
-                query = statement.sparql_query.format(wb_url=self.wikibase_url, pid=property_nr, value=statement.get_sparql_value().replace("'", r"\'"))
+                query = statement.sparql_query.format(wb_url=self.wikibase_url, pid=property_nr, value=str(statement.get_sparql_value()).replace("'", r"\'"))
                 results = wbi_functions.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, debug=self.debug)
 
                 for i in results['results']['bindings']:
