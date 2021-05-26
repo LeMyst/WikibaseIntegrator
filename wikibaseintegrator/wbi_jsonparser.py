@@ -35,7 +35,7 @@ class JsonParser(object):
                         for prop_ref in jsn:
                             ref_class = self.get_class_representation(prop_ref)
                             ref_class.is_reference = True
-                            ref_class.snak_type = prop_ref['snaktype']
+                            ref_class.snaktype = prop_ref['snaktype']
                             ref_class.set_hash(ref_hash)
 
                             self.references[count].append(copy.deepcopy(ref_class))
@@ -50,7 +50,7 @@ class JsonParser(object):
 
                         qual_class = self.get_class_representation(qual)
                         qual_class.is_qualifier = True
-                        qual_class.snak_type = qual['snaktype']
+                        qual_class.snaktype = qual['snaktype']
                         qual_class.set_hash(qual_hash)
                         self.qualifiers.append(qual_class)
 
@@ -62,7 +62,7 @@ class JsonParser(object):
                 mainsnak.set_id(json_representation['id'])
             if 'rank' in json_representation:
                 mainsnak.set_rank(json_representation['rank'])
-            mainsnak.snak_type = json_representation['mainsnak']['snaktype']
+            mainsnak.snaktype = json_representation['mainsnak']['snaktype']
 
             return mainsnak
 

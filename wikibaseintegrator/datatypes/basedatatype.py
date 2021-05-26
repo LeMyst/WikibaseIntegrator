@@ -23,11 +23,11 @@ class BaseDataType(object):
         :type value: str or int or tuple
         :param prop_nr: The property number a Wikibase snak belongs to
         :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
-        :param data_type: The Wikibase data type declaration of this snak
-        :type data_type: str
-        :param snak_type: The snak type of the Wikibase data snak, three values possible, depending if the value is a known (value), not existent (novalue) or
+        :param datatype: The Wikibase data type declaration of this snak
+        :type datatype: str
+        :param snaktype: The snak type of the Wikibase data snak, three values possible, depending if the value is a known (value), not existent (novalue) or
             unknown (somevalue). See Wikibase documentation.
-        :type snak_type: a str of either 'value', 'novalue' or 'somevalue'
+        :type snaktype: a str of either 'value', 'novalue' or 'somevalue'
         :param references: A one level nested list with reference Wikibase snaks of base type BaseDataType,
             e.g. references=[[<BaseDataType>, <BaseDataType>], [<BaseDataType>]]
             This will create two references, the first one with two statements, the second with one
@@ -48,8 +48,8 @@ class BaseDataType(object):
         """
 
         self.value = value
-        self.data_type = kwargs.pop('data_type', self.DTYPE)
-        self.snak_type = kwargs.pop('snak_type', 'value')
+        self.datatype = kwargs.pop('datatype', self.DTYPE)
+        self.snaktype = kwargs.pop('snaktype', 'value')
         self.references = kwargs.pop('references', None)
         self.qualifiers = kwargs.pop('qualifiers', None)
         self.is_reference = kwargs.pop('is_reference', None)
@@ -95,20 +95,20 @@ class BaseDataType(object):
         self.hash = ''
 
         self.json_representation = {
-            'snaktype': self.snak_type,
+            'snaktype': self.snaktype,
             'property': self.prop_nr,
             'datavalue': {},
-            'datatype': self.data_type
+            'datatype': self.datatype
         }
 
-        if self.snak_type not in ['value', 'novalue', 'somevalue']:
-            raise ValueError('{} is not a valid snak type'.format(self.snak_type))
+        if self.snaktype not in ['value', 'novalue', 'somevalue']:
+            raise ValueError('{} is not a valid snak type'.format(self.snaktype))
 
         if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP']:
             raise ValueError('{} is not a valid if_exists value'.format(self.if_exists))
 
-        if self.value is None and self.snak_type == 'value':
-            raise ValueError('Parameter \'value\' can\'t be \'None\' if \'snak_type\' is \'value\'')
+        if self.value is None and self.snaktype == 'value':
+            raise ValueError('Parameter \'value\' can\'t be \'None\' if \'snaktype\' is \'value\'')
 
         if self.is_qualifier and self.is_reference:
             raise ValueError('A claim cannot be a reference and a qualifer at the same time')
@@ -165,9 +165,9 @@ class BaseDataType(object):
         return self.value
 
     def set_value(self, value):
-        if value is None and self.snak_type not in {'novalue', 'somevalue'}:
-            raise ValueError("If 'value' is None, snak_type must be novalue or somevalue")
-        if self.snak_type in {'novalue', 'somevalue'}:
+        if value is None and self.snaktype not in {'novalue', 'somevalue'}:
+            raise ValueError("If 'value' is None, snaktype must be novalue or somevalue")
+        if self.snaktype in {'novalue', 'somevalue'}:
             del self.json_representation['datavalue']
         elif 'datavalue' not in self.json_representation:
             self.json_representation['datavalue'] = {}

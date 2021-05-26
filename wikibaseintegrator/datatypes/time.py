@@ -41,8 +41,8 @@ class Time(BaseDataType):
         :type is_reference: boolean
         :param is_qualifier: Whether this snak is a qualifier
         :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
+        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snaktype: str
         :param references: List with reference objects
         :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
@@ -84,8 +84,8 @@ class Time(BaseDataType):
             self.value = value
             if self.precision < 0 or self.precision > 15:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
-        elif self.snak_type == 'value':
-            raise ValueError("Parameter 'time' can't be 'None' if 'snak_type' is 'value'")
+        elif self.snaktype == 'value':
+            raise ValueError("Parameter 'time' can't be 'None' if 'snaktype' is 'value'")
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -109,7 +109,7 @@ class Time(BaseDataType):
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(time=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+            return cls(time=None, prop_nr=jsn['property'], snaktype=jsn['snaktype'])
 
         value = jsn['datavalue']['value']
         return cls(time=value['time'], prop_nr=jsn['property'], before=value['before'], after=value['after'], precision=value['precision'], timezone=value['timezone'],

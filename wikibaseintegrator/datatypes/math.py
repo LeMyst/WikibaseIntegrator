@@ -19,8 +19,8 @@ class Math(BaseDataType):
         :type is_reference: boolean
         :param is_qualifier: Whether this snak is a qualifier
         :type is_qualifier: boolean
-        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snak_type: str
+        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snaktype: str
         :param references: List with reference objects
         :type references: A data type with subclass of BaseDataType
         :param qualifiers: List with qualifier objects
@@ -48,5 +48,5 @@ class Math(BaseDataType):
     @JsonParser
     def from_json(cls, jsn):
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+            return cls(value=None, prop_nr=jsn['property'], snaktype=jsn['snaktype'])
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
