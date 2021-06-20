@@ -8,7 +8,18 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 
 
 class Item(BaseEntity):
+    ETYPE = 'item'
+
     def __init__(self, api, labels=None, descriptions=None, aliases=None, sitelinks=None, **kwargs) -> None:
+        """
+
+        :param api:
+        :param labels:
+        :param descriptions:
+        :param aliases:
+        :param sitelinks:
+        :param kwargs:
+        """
         self.api = api
 
         super(Item, self).__init__(api=self.api, entity_type='item', **kwargs)
@@ -46,6 +57,6 @@ class Item(BaseEntity):
 
         return self
 
-    def write(self):
-        json_data = super(Item, self)._write(data=self.get_json())
+    def write(self, allow_anonymous=False):
+        json_data = super(Item, self)._write(data=self.get_json(), allow_anonymous=allow_anonymous)
         return self.from_json(json_data=json_data)

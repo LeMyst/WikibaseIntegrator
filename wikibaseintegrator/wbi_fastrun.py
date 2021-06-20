@@ -5,6 +5,7 @@ from functools import lru_cache
 from itertools import chain
 
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_helpers import Helpers
 
 
 class FastRunContainer(object):
@@ -94,21 +95,21 @@ class FastRunContainer(object):
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def load_item(self, data: list, cqid=None) -> bool:
+    def load_item(self, claims: list) -> bool:
         match_sets = []
-        for date in data:
+        for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
-            current_value = date.get_value()
-            if not current_value and not date.data_type:
+            current_value = claim.value
+            if not current_value and not claim.datatype:
                 continue
 
-            prop_nr = date.get_prop_nr()
+            prop_nr = claim.property
 
             if prop_nr not in self.prop_dt_map:
-                if self.debug:
+                if self.api.debug:
                     print("{} not found in fastrun".format(prop_nr))
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr=prop_nr, use_units=date.data_type == 'quantity')
+                self._query_data(prop_nr=prop_nr, use_units=claim.datatype == 'quantity')
 
             # more sophisticated data types like dates and globe coordinates need special treatment here
             if self.prop_dt_map[prop_nr] == 'time':
@@ -117,9 +118,9 @@ class FastRunContainer(object):
                 if not str(current_value).startswith('Q'):
                     current_value = 'Q{}'.format(current_value)
             elif self.prop_dt_map[prop_nr] == 'quantity':
-                current_value = self.format_amount(current_value[0])
+                current_value = Helpers.format_amount(current_value[0])
 
-            if self.debug:
+            if self.api.debug:
                 print(current_value)
 
             if current_value in self.rev_lookup:
@@ -128,7 +129,7 @@ class FastRunContainer(object):
             elif self.case_insensitive and current_value.casefold() in self.rev_lookup_ci:
                 temp_set = set(self.rev_lookup_ci[current_value.casefold()])
             else:
-                if self.debug:
+                if self.api.debug:
                     if self.case_insensitive:
                         print("case insensitive enabled")
                         print(self.rev_lookup_ci)
@@ -138,31 +139,29 @@ class FastRunContainer(object):
                 return True
             match_sets.append(temp_set)
 
-        if cqid:
-            matching_qids = {cqid}
-        else:
-            matching_qids = match_sets[0].intersection(*match_sets[1:])
+        matching_qids = match_sets[0].intersection(*match_sets[1:])
 
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
-            if self.debug:
+            if self.api.debug:
                 print("no matches ({})".format(len(matching_qids)))
             return True
 
         qid = matching_qids.pop()
+        print(qid)
         self.current_qid = qid
 
-    def write_required(self, data: list, cqid=None) -> bool:
+    def write_required(self, data: list) -> bool:
         del_props = set()
         data_props = set()
         append_props = [x.get_prop_nr() for x in data if 'APPEND' in x.if_exists]
 
         for x in data:
-            if x.value and x.data_type:
+            if x.value and x.datatype:
                 data_props.add(x.get_prop_nr())
         write_required = False
-        self.load_item(data, cqid)
+        self.load_item(data)
 
         reconstructed_statements = self.reconstruct_statements(self.current_qid)
         tmp_rs = copy.deepcopy(reconstructed_statements)
@@ -194,11 +193,11 @@ class FastRunContainer(object):
         for date in data:
             # ensure that statements meant for deletion get handled properly
             reconst_props = set([x.get_prop_nr() for x in tmp_rs])
-            if (not date.value or not date.data_type) and date.get_prop_nr() in reconst_props:
-                if self.debug:
+            if (not date.value or not date.datatype) and date.get_prop_nr() in reconst_props:
+                if self.api.debug:
                     print("returned from delete prop handling")
                 return True
-            elif not date.value or not date.data_type:
+            elif not date.value or not date.datatype:
                 # Ignore the deletion statements which are not in the reconstructed statements.
                 continue
 
@@ -206,7 +205,7 @@ class FastRunContainer(object):
                 # TODO: check if value already exist and already have the same value
                 continue
 
-            if not date.get_value() and not date.data_type:
+            if not date.get_value() and not date.datatype:
                 del_props.add(date.get_prop_nr())
 
             # this is where the magic happens
@@ -232,7 +231,7 @@ class FastRunContainer(object):
             x.get_prop_nr() not in del_props for x in tmp_rs]
             """
 
-            if self.debug:
+            if self.api.debug:
                 print("bool_vec: {}".format(bool_vec))
                 print("-----------------------------------")
                 for x in tmp_rs:
@@ -244,17 +243,17 @@ class FastRunContainer(object):
                         print(date.get_prop_nr(), date.get_value(), [z.get_value() for z in date.get_qualifiers()])
 
             if not any(bool_vec):
-                if self.debug:
+                if self.api.debug:
                     print(len(bool_vec))
                     print("fast run failed at", date.get_prop_nr())
                 write_required = True
             else:
-                if self.debug:
+                if self.api.debug:
                     print("fast run success")
                 tmp_rs.pop(bool_vec.index(True))
 
         if len(tmp_rs) > 0:
-            if self.debug:
+            if self.api.debug:
                 print("failed because not zero")
                 for x in tmp_rs:
                     print("xxx", x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
@@ -314,7 +313,7 @@ class FastRunContainer(object):
         else:
             for s in lang_data:
                 if s.strip().casefold() not in all_lang_strings:
-                    if self.debug:
+                    if self.api.debug:
                         print("fastrun failed at: {}, string: {}".format(lang_data_type, s))
                     return True
 
@@ -368,7 +367,7 @@ class FastRunContainer(object):
                 if i['v']['type'] == 'uri' and prop_dt == 'wikibase-item':
                     i['v'] = i['v']['value'].split('/')[-1]
                 elif i['v']['type'] == 'literal' and prop_dt == 'quantity':
-                    i['v'] = self.format_amount(i['v']['value'])
+                    i['v'] = Helpers.format_amount(i['v']['value'])
                 else:
                     i['v'] = i['v']['value']
 
@@ -385,7 +384,7 @@ class FastRunContainer(object):
                 if i['qval']['type'] == 'uri' and qual_prop_dt == 'wikibase-item':
                     i['qval'] = i['qval']['value'].split('/')[-1]
                 elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
-                    i['qval'] = self.format_amount(i['qval']['value'])
+                    i['qval'] = Helpers.format_amount(i['qval']['value'])
                 else:
                     i['qval'] = i['qval']['value']
 
@@ -396,19 +395,6 @@ class FastRunContainer(object):
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 else:
                     i['rval'] = i['rval']['value']
-
-    @staticmethod
-    def format_amount(amount) -> str:
-        # Remove .0 by casting to int
-        if float(amount) % 1 == 0:
-            amount = int(float(amount))
-
-        # Adding prefix + for positive number and 0
-        if not str(amount).startswith('+') and float(amount) >= 0:
-            amount = str('+{}'.format(amount))
-
-        # return as string
-        return str(amount)
 
     def update_frc_from_query(self, r: list, prop_nr: str) -> None:
         # r is the output of format_query_results
@@ -449,7 +435,7 @@ class FastRunContainer(object):
         page_size = 10000
         page_count = 0
         num_pages = None
-        if self.debug:
+        if self.api.debug:
             # get the number of pages/queries so we can show a progress bar
             query = """
             SELECT (COUNT(?item) as ?c) where {{
@@ -457,7 +443,7 @@ class FastRunContainer(object):
                   ?item <{wb_url}/prop/{prop_nr}> ?sid .
             }}""".format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
 
-            if self.debug:
+            if self.api.debug:
                 print(query)
 
             r = self.api.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
@@ -540,7 +526,7 @@ class FastRunContainer(object):
             # Format the query
             query = query.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr, offset=str(page_count * page_size), page_size=str(page_size))
 
-            if self.debug:
+            if self.api.debug:
                 print(query)
 
             results = self.api.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
@@ -576,7 +562,7 @@ class FastRunContainer(object):
         }}
         '''.format(base_filter=self.base_filter_string, lang_data_type=lang_data_type_dict[lang_data_type], lang=lang)
 
-        if self.debug:
+        if self.api.debug:
             print(query)
 
         return self.api.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
@@ -593,7 +579,7 @@ class FastRunContainer(object):
     @lru_cache(maxsize=100000)
     def get_prop_datatype(self, prop_nr: str) -> str:
         from wikibaseintegrator import WikibaseIntegrator
-        wbi = WikibaseIntegrator(sparql_endpoint_url=self.sparql_endpoint_url, mediawiki_api_url=self.mediawiki_api_url, wikibase_url=self.wikibase_url, debug=self.debug)
+        wbi = WikibaseIntegrator(sparql_endpoint_url=self.sparql_endpoint_url, mediawiki_api_url=self.mediawiki_api_url, wikibase_url=self.wikibase_url, debug=self.api.debug)
         property = wbi.property.get(prop_nr)
         return property.datatype
 

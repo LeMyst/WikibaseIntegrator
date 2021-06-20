@@ -3,10 +3,18 @@ from wikibaseintegrator.models.language_values import LanguageValue
 
 class Aliases:
     def __init__(self, language=None, value=None):
-        self.aliases = {}
+        self.__aliases = {}
 
         if language is not None:
             self.set(language=language, value=value)
+
+    @property
+    def aliases(self):
+        return self.__aliases
+
+    @aliases.setter
+    def aliases(self, value):
+        self.__aliases = value
 
     def get(self, language=None):
         return self.aliases[language]
@@ -18,7 +26,7 @@ class Aliases:
         self.aliases[language].append(alias)
         return alias
 
-    def get_json(self) -> []:
+    def get_json(self) -> {}:
         json_data = {}
         for language in self.aliases:
             if language not in json_data:
@@ -33,6 +41,10 @@ class Aliases:
                 self.set(alias['language'], alias['value'])
 
         return self
+
+    # def __contains__(self, item):
+    #     all_aliases = [item for sublist in list(self.aliases.values()) for item in sublist]
+    #     return item in list(map(lambda x: x.value, all_aliases))
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

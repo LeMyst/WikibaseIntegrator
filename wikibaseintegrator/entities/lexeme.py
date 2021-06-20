@@ -7,6 +7,8 @@ from wikibaseintegrator.models.senses import Senses
 
 
 class Lexeme(BaseEntity):
+    ETYPE = 'lexeme'
+
     def __init__(self, api, lemmas=None, lexical_category=None, language=None, forms=None, senses=None, **kwargs):
         self.api = api
 

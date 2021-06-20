@@ -1,3 +1,5 @@
+import re
+
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_jsonparser import JsonParser
 

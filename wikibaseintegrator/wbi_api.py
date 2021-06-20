@@ -3,18 +3,16 @@ from time import sleep
 
 import requests
 
-from wikibaseintegrator.datatypes import BaseDataType
+from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
-from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
 class Api(object):
-    fast_run_store = []
 
     def __init__(self, mediawiki_api_url, mediawiki_index_url, mediawiki_rest_url, sparql_endpoint_url, wikibase_url, property_constraint_pid, distinct_values_constraint_qid,
-                 search_only, fast_run, fast_run_base_filter, fast_run_use_refs, fast_run_case_insensitive, is_bot, language, login, debug=None):
+                 search_only, is_bot, language, login, debug=None):
         self.mediawiki_api_url = mediawiki_api_url
         self.mediawiki_index_url = mediawiki_index_url
         self.mediawiki_rest_url = mediawiki_rest_url
@@ -24,70 +22,10 @@ class Api(object):
         self.distinct_values_constraint_qid = distinct_values_constraint_qid
         self.search_only = search_only
 
-        # Fast Run
-        self.fast_run = fast_run
-        self.fast_run_base_filter = fast_run_base_filter
-        self.fast_run_use_refs = fast_run_use_refs
-        self.fast_run_case_insensitive = fast_run_case_insensitive
-
         self.is_bot = is_bot
         self.language = language
         self.login = login
         self.debug = debug or config['DEBUG']
-
-        self.fast_run_container = None
-
-        if self.fast_run_case_insensitive and not self.search_only:
-            raise ValueError("If using fast run case insensitive, search_only must be set")
-
-        if self.fast_run:
-            self.init_fastrun()
-            # if self.debug:
-            #     if self.require_write:
-            #         if self.search_only:
-            #             print("Successful fastrun, search_only mode, we can't determine if data is up to date.")
-            #         else:
-            #             print("Successful fastrun, because no full data match you need to update the item.")
-            #     else:
-            #         print("Successful fastrun, no write to Wikibase instance required.")
-
-    def init_fastrun(self):
-        print('Initialize Fast Run')
-        # We search if we already have a FastRunContainer with the same parameters to re-use it
-        for c in Api.fast_run_store:
-            if (c.base_filter == self.fast_run_base_filter) and (c.use_refs == self.fast_run_use_refs) and (c.sparql_endpoint_url == self.sparql_endpoint_url):
-                self.fast_run_container = c
-                self.fast_run_container.current_qid = ''
-                self.fast_run_container.base_data_type = BaseDataType
-                self.fast_run_container.mediawiki_api_url = self.mediawiki_api_url
-                self.fast_run_container.wikibase_url = self.wikibase_url
-                if self.debug:
-                    print("Found an already existing FastRunContainer")
-
-        if not self.fast_run_container:
-            if self.debug:
-                print("Create a new FastRunContainer")
-            self.fast_run_container = FastRunContainer(api=self,
-                                                       base_filter=self.fast_run_base_filter,
-                                                       use_refs=self.fast_run_use_refs,
-                                                       sparql_endpoint_url=self.sparql_endpoint_url,
-                                                       base_data_type=BaseDataType,
-                                                       mediawiki_api_url=self.mediawiki_api_url,
-                                                       wikibase_url=self.wikibase_url,
-                                                       case_insensitive=self.fast_run_case_insensitive)
-            Api.fast_run_store.append(self.fast_run_container)
-
-        # TODO: Do something here
-        # if not self.search_only:
-        #     self.require_write = self.fast_run_container.write_required(self.data, cqid=self.id)
-        #     # set item id based on fast run data
-        #     if not self.require_write and not self.id:
-        #         self.id = self.fast_run_container.current_qid
-        # else:
-        #     self.fast_run_container.load_item(self.data)
-        #     # set item id based on fast run data
-        #     if not self.id:
-        #         self.id = self.fast_run_container.current_qid
 
     @staticmethod
     @wbi_backoff()
@@ -192,6 +130,8 @@ class Api(object):
         if data is not None:
             if login is not None and 'token' not in data:
                 data.update({'token': login.get_edit_token()})
+            elif 'token' not in data:
+                data.update({'token': '+\\'})
 
             if not allow_anonymous:
                 # Always assert user if allow_anonymous is False
@@ -408,42 +348,42 @@ class Api(object):
         return results
 
     @staticmethod
-    def generate_item_instances(items, mediawiki_api_url=None, login=None, allow_anonymous=True, user_agent=None):
+    def generate_entity_instances(entities, mediawiki_api_url=None, login=None, allow_anonymous=True, user_agent=None):
         """
-        A method which allows for retrieval of a list of Wikidata items or properties. The method generates a list of
-        tuples where the first value in the tuple is the QID or property ID, whereas the second is the new instance of
-        wbi_item.Item containing all the data of the item. This is most useful for mass retrieval of items.
+        A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
+        second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
         :param user_agent: A custom user agent
         :type user_agent: str
-        :param items: A list of QIDs or property IDs
-        :type items: list
+        :param entities: A list of IDs. Item, Property or Lexeme.
+        :type entities: list
         :param mediawiki_api_url: The MediaWiki url which should be used
         :type mediawiki_api_url: str
-        :return: A list of tuples, first value in the tuple is the QID or property ID string, second value is the instance of wbi_item.Item with the corresponding
-            item data.
+        :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
         :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
         :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
         :type allow_anonymous: bool
         """
 
-        from wikibaseintegrator.entities import item
+        if isinstance(entities, str):
+            entities = [entities]
 
-        assert type(items) == list
+        assert type(entities) == list
 
         params = {
             'action': 'wbgetentities',
-            'ids': '|'.join(items),
+            'ids': '|'.join(entities),
             'format': 'json'
         }
 
         reply = Api.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
 
-        item_instances = []
+        entity_instances = []
         for qid, v in reply['entities'].items():
             from wikibaseintegrator import WikibaseIntegrator
             wbi = WikibaseIntegrator(mediawiki_api_url=mediawiki_api_url)
-            ii = item.Item(wbi.api).from_json(v)
+            f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
+            ii = f(api=wbi.api).from_json(v)
             ii.mediawiki_api_url = mediawiki_api_url
-            item_instances.append((qid, ii))
+            entity_instances.append((qid, ii))
 
-        return item_instances
+        return entity_instances

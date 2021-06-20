@@ -1,0 +1,32 @@
+from __future__ import annotations
+
+from typing import Optional
+
+from wikibaseintegrator.models.snaks import Snak
+
+
+class Qualifiers:
+    def __init__(self):
+        self.qualifiers = {}
+
+    def get(self, property=None):
+        return self.qualifiers[property]
+
+    def add(self, qualifier: Optional[Snak] = None):
+        if qualifier is not None:
+            assert isinstance(qualifier, Snak)
+
+        property = qualifier.property
+
+        if property not in self.qualifiers:
+            self.qualifiers[property] = {}
+
+        self.qualifiers[property] = qualifier
+
+        return self
+
+    def from_json(self, json_data) -> Qualifiers:
+        for property in json_data:
+            for snak in json_data[property]:
+                self.add(qualifier=Snak().from_json(snak))
+        return self

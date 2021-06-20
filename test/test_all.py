@@ -1,15 +1,14 @@
 import copy
 import unittest
-from pprint import pprint
 
 import requests
 
 from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
+from wikibaseintegrator.entities import Item
 from wikibaseintegrator.entities.baseentity import MWApiError
-from wikibaseintegrator.entities.item import Item
 from wikibaseintegrator.wbi_api import Api
 
-wbi = WikibaseIntegrator(fast_run=True, fast_run_base_filter={'P361': 'Q18589965'})
+wbi = WikibaseIntegrator()
 
 
 class TestMediawikiApiCall(unittest.TestCase):
@@ -29,7 +28,7 @@ class TestDataType(unittest.TestCase):
     def test_quantity(self):
         dt = datatypes.Quantity(quantity='34.5', prop_nr='P43')
 
-        dt_json = dt.get_json_representation()
+        dt_json = dt.get_json()
 
         if not dt_json['mainsnak']['datatype'] == 'quantity':
             raise
@@ -44,7 +43,7 @@ class TestDataType(unittest.TestCase):
 
         dt2 = datatypes.Quantity(quantity='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
 
-        value = dt2.get_json_representation()['mainsnak']['datavalue']
+        value = dt2.get_json()['mainsnak']['datavalue']
 
         if not value['value']['amount'] == '+34.5':
             raise
@@ -61,7 +60,7 @@ class TestDataType(unittest.TestCase):
     def test_geoshape(self):
         dt = datatypes.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
 
-        dt_json = dt.get_json_representation()
+        dt_json = dt.get_json()
 
         if not dt_json['mainsnak']['datatype'] == 'geo-shape':
             raise
@@ -72,21 +71,6 @@ class TestDataType(unittest.TestCase):
             raise
 
         if not value['type'] == 'string':
-            raise
-
-    def test_live_item(self):
-        """
-        Test an item against Wikidata
-        """
-        item = wbi.item.get('Q423111')
-
-        mass_statements = item.claims.get('P2067')
-
-        mass_statement = mass_statements[next(iter(mass_statements))]
-        pprint(mass_statement)
-        pprint(mass_statement.get_json_representation())
-
-        if not mass_statement:
             raise
 
 
@@ -118,8 +102,8 @@ class TestFastRun(unittest.TestCase):
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
         fast_run_base_filter = {'P361': 'Q18589965'}
-        wbi_fr = WikibaseIntegrator(fast_run=True, fast_run_base_filter=fast_run_base_filter, debug=True)
-        item = wbi_fr.item.new()
+        wbi_fr = WikibaseIntegrator(debug=True)
+        item = Item(fast_run_base_filter=fast_run_base_filter)
         item.claims.add(datatypes.ExternalID('/m/02j71', 'P646'))
 
         frc = Api.fast_run_store[0]

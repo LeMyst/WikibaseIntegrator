@@ -36,9 +36,33 @@ class LanguageValues:
 
 class LanguageValue:
     def __init__(self, language=None, value=None):
-        self.language = language
-        self.value = value
-        self.removed = False
+        self.__language = language
+        self.__value = value
+        self.__removed = False
+
+    @property
+    def language(self):
+        return self.__language
+
+    @language.setter
+    def language(self, value):
+        self.__language = value
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+        self.__value = value
+
+    @property
+    def removed(self):
+        return self.__removed
+
+    @removed.setter
+    def removed(self, value):
+        self.__removed = value
 
     def remove(self):
         self.removed = True
@@ -52,6 +76,15 @@ class LanguageValue:
         if self.removed:
             json_data['remove'] = ''
         return json_data
+
+    def __eq__(self, other):
+        if isinstance(other, LanguageValue):
+            return self.value == other.value and self.language == other.language
+        else:
+            return self.value == other
+
+    def __contains__(self, item):
+        return item in self.value
 
     def __str__(self):
         return self.value

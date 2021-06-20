@@ -1,5 +1,6 @@
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_helpers import Helpers
 from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
@@ -62,12 +63,12 @@ class Quantity(BaseDataType):
         self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
         if self.quantity is not None:
-            self.quantity = self.format_amount(self.quantity)
+            self.quantity = Helpers.format_amount(self.quantity)
             self.unit = str(self.unit)
             if self.upper_bound:
-                self.upper_bound = self.format_amount(self.upper_bound)
+                self.upper_bound = Helpers.format_amount(self.upper_bound)
             if self.lower_bound:
-                self.lower_bound = self.format_amount(self.lower_bound)
+                self.lower_bound = Helpers.format_amount(self.lower_bound)
 
             # Integrity checks for value and bounds
             try:
@@ -119,16 +120,3 @@ class Quantity(BaseDataType):
         upper_bound = value['upperBound'] if 'upperBound' in value else None
         lower_bound = value['lowerBound'] if 'lowerBound' in value else None
         return cls(quantity=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound, lower_bound=lower_bound, unit=value['unit'])
-
-    @staticmethod
-    def format_amount(amount):
-        # Remove .0 by casting to int
-        if float(amount) % 1 == 0:
-            amount = int(float(amount))
-
-        # Adding prefix + for positive number and 0
-        if not str(amount).startswith('+') and float(amount) >= 0:
-            amount = str('+{}'.format(amount))
-
-        # return as string
-        return str(amount)

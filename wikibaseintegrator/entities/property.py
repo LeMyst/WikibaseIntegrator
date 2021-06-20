@@ -7,6 +7,8 @@ from wikibaseintegrator.models.labels import Labels
 
 
 class Property(BaseEntity):
+    ETYPE = 'property'
+
     def __init__(self, api, datatype=None, labels=None, descriptions=None, aliases=None, **kwargs):
         self.api = api
 

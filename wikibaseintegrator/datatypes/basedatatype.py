@@ -1,10 +1,10 @@
-import copy
 import re
 
+from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
 from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
-class BaseDataType(object):
+class BaseDataType(Claim):
     """
     The base class for all Wikibase data types, they inherit from it
     """
@@ -40,13 +40,10 @@ class BaseDataType(object):
         :type is_qualifier: boolean
         :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
-        :param check_qualifier_equality: When comparing two objects, test if qualifiers are equals between them. Default to true.
-        :type check_qualifier_equality: boolean
-        :param if_exists: Replace or append the statement. You can force an append if the statement already exists.
-        :type if_exists: A string of one of three allowed values: 'REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP'
         :return:
         """
 
+        super().__init__()
         self.value = value
         self.datatype = kwargs.pop('datatype', self.DTYPE)
         self.snaktype = kwargs.pop('snaktype', 'value')
@@ -55,13 +52,26 @@ class BaseDataType(object):
         self.is_reference = kwargs.pop('is_reference', None)
         self.is_qualifier = kwargs.pop('is_qualifier', None)
         self.rank = kwargs.pop('rank', 'normal')
-        self.check_qualifier_equality = kwargs.pop('check_qualifier_equality', True)
-        self.if_exists = kwargs.pop('if_exists', 'REPLACE')
 
         self._statement_ref_mode = 'KEEP_GOOD'
 
         if not self.references:
-            self.references = []
+            self.references = References()
+        elif isinstance(self.references, Reference):
+            self.references = References().add(self.references)
+        elif isinstance(self.references, list):
+            references = References()
+            for ref_list in self.references:
+                if isinstance(ref_list, list):
+                    for reference in ref_list:
+                        if reference.is_reference is False:
+                            raise ValueError('A reference can\'t be declared as is_reference=False')
+                        elif reference.is_reference is None:
+                            reference.is_reference = True
+                    # generer une liste de ref et l'ajouter
+                elif isinstance(ref_list, Claim):
+                    # mettre le claim dans la liste pour ajouter la reference
+                    pass
         else:
             for ref_list in self.references:
                 for reference in ref_list:
@@ -71,7 +81,7 @@ class BaseDataType(object):
                         reference.is_reference = True
 
         if not self.qualifiers:
-            self.qualifiers = []
+            self.qualifiers = Snaks()
         else:
             for qualifier in self.qualifiers:
                 if qualifier.is_qualifier is False:
@@ -80,7 +90,7 @@ class BaseDataType(object):
                     qualifier.is_qualifier = True
 
         if isinstance(prop_nr, int):
-            self.prop_nr = 'P' + str(prop_nr)
+            self.property = 'P' + str(prop_nr)
         else:
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(prop_nr)
@@ -88,24 +98,21 @@ class BaseDataType(object):
             if not matches:
                 raise ValueError('Invalid prop_nr, format must be "P[0-9]+"')
             else:
-                self.prop_nr = 'P' + str(matches.group(1))
+                self.property = 'P' + str(matches.group(1))
 
         # Internal ID and hash are issued by the Wikibase instance
-        self.id = ''
-        self.hash = ''
+        self.id = None
+        self.hash = None
 
         self.json_representation = {
             'snaktype': self.snaktype,
-            'property': self.prop_nr,
+            'property': self.property,
             'datavalue': {},
             'datatype': self.datatype
         }
 
         if self.snaktype not in ['value', 'novalue', 'somevalue']:
             raise ValueError('{} is not a valid snak type'.format(self.snaktype))
-
-        if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP']:
-            raise ValueError('{} is not a valid if_exists value'.format(self.if_exists))
 
         if self.value is None and self.snaktype == 'value':
             raise ValueError('Parameter \'value\' can\'t be \'None\' if \'snaktype\' is \'value\'')
@@ -115,35 +122,7 @@ class BaseDataType(object):
         if (len(self.references) > 0 or len(self.qualifiers) > 0) and (self.is_qualifier or self.is_reference):
             raise ValueError('Qualifiers or references cannot have references or qualifiers')
 
-    def has_equal_qualifiers(self, other):
-        # check if the qualifiers are equal with the 'other' object
-        equal_qualifiers = True
-        self_qualifiers = copy.deepcopy(self.get_qualifiers())
-        other_qualifiers = copy.deepcopy(other.get_qualifiers())
-
-        if len(self_qualifiers) != len(other_qualifiers):
-            equal_qualifiers = False
-        else:
-            flg = [False for _ in range(len(self_qualifiers))]
-            for count, i in enumerate(self_qualifiers):
-                for q in other_qualifiers:
-                    if i == q:
-                        flg[count] = True
-            if not all(flg):
-                equal_qualifiers = False
-
-        return equal_qualifiers
-
-    def __eq__(self, other):
-        equal_qualifiers = self.has_equal_qualifiers(other)
-        equal_values = self.get_value() == other.get_value() and self.get_prop_nr() == other.get_prop_nr()
-
-        if not (self.check_qualifier_equality and other.check_qualifier_equality) and equal_values:
-            return True
-        elif equal_values and equal_qualifiers:
-            return True
-        else:
-            return False
+        self.mainsnak = Snak().from_json(self.json_representation)
 
     @property
     def statement_ref_mode(self):
@@ -172,6 +151,8 @@ class BaseDataType(object):
         elif 'datavalue' not in self.json_representation:
             self.json_representation['datavalue'] = {}
 
+        self.mainsnak = Snak().from_json(self.json_representation)
+
         self.value = value
 
     def get_references(self):
@@ -189,9 +170,6 @@ class BaseDataType(object):
         references = temp_references
 
         self.references = references
-
-    def get_qualifiers(self):
-        return self.qualifiers
 
     def set_qualifiers(self, qualifiers):
         # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in Wikibase
@@ -223,83 +201,14 @@ class BaseDataType(object):
     def set_id(self, claim_id):
         self.id = claim_id
 
-    def set_hash(self, claim_hash):
-        self.hash = claim_hash
-
-    def get_hash(self):
-        return self.hash
-
     def get_prop_nr(self):
-        return self.prop_nr
+        return self.property
 
     def set_prop_nr(self, prop_nr):
         if prop_nr[0] != 'P':
             raise ValueError("Invalid property number")
 
-        self.prop_nr = prop_nr
-
-    def get_json_representation(self):
-        if self.is_qualifier or self.is_reference:
-            tmp_json = {
-                self.prop_nr: [self.json_representation]
-            }
-            if self.hash != '' and self.is_qualifier:
-                self.json_representation.update({'hash': self.hash})
-
-            return tmp_json
-        else:
-            ref_json = []
-            for count, ref in enumerate(self.references):
-                snaks_order = []
-                snaks = {}
-                ref_json.append({
-                    'snaks': snaks,
-                    'snaks-order': snaks_order
-                })
-                for sub_ref in ref:
-                    prop_nr = sub_ref.get_prop_nr()
-                    # set the hash for the reference block
-                    if sub_ref.get_hash() != '':
-                        ref_json[count].update({'hash': sub_ref.get_hash()})
-                    tmp_json = sub_ref.get_json_representation()
-
-                    # if more reference values with the same property number, append to its specific property list.
-                    if prop_nr in snaks:
-                        snaks[prop_nr].append(tmp_json[prop_nr][0])
-                    else:
-                        snaks.update(tmp_json)
-                    snaks_order.append(prop_nr)
-
-            qual_json = {}
-            qualifiers_order = []
-            for qual in self.qualifiers:
-                prop_nr = qual.get_prop_nr()
-                if prop_nr in qual_json:
-                    qual_json[prop_nr].append(qual.get_json_representation()[prop_nr][0])
-                else:
-                    qual_json.update(qual.get_json_representation())
-                qualifiers_order.append(qual.get_prop_nr())
-
-            if hasattr(self, 'remove'):
-                statement = {
-                    'remove': ''
-                }
-            else:
-                statement = {
-                    'mainsnak': self.json_representation,
-                    'type': 'statement',
-                    'rank': self.rank
-                }
-                if qual_json:
-                    statement['qualifiers'] = qual_json
-                if qualifiers_order:
-                    statement['qualifiers-order'] = qualifiers_order
-                if ref_json:
-                    statement['references'] = ref_json
-            if self.id != '':
-                statement.update({'id': self.id})
-
-            return statement
+        self.property = prop_nr
 
     @classmethod
     @JsonParser
