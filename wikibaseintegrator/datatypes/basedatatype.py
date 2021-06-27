@@ -1,4 +1,5 @@
 import re
+from pprint import pprint
 
 from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
 from wikibaseintegrator.wbi_jsonparser import JsonParser
@@ -62,16 +63,22 @@ class BaseDataType(Claim):
         elif isinstance(self.references, list):
             references = References()
             for ref_list in self.references:
+                reference = Reference()
                 if isinstance(ref_list, list):
-                    for reference in ref_list:
-                        if reference.is_reference is False:
-                            raise ValueError('A reference can\'t be declared as is_reference=False')
-                        elif reference.is_reference is None:
-                            reference.is_reference = True
-                    # generer une liste de ref et l'ajouter
+                    snaks = Snaks()
+                    for ref_claim in ref_list:
+                        if isinstance(ref_claim, Claim):
+                            snaks.add(Snak().from_json(ref_claim.get_json()['mainsnak']))
+                            references.add(reference=reference)
+                        else:
+                            raise ValueError
+                    reference.snaks = snaks
                 elif isinstance(ref_list, Claim):
-                    # mettre le claim dans la liste pour ajouter la reference
-                    pass
+                    reference.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
+                elif isinstance(ref_list, Reference):
+                    reference = ref_list
+                references.add(reference=reference)
+            self.references = references
         else:
             for ref_list in self.references:
                 for reference in ref_list:

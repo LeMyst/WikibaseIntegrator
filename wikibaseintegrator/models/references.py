@@ -7,34 +7,33 @@ from wikibaseintegrator.models.snaks import Snaks
 
 class References:
     def __init__(self):
-        self.references = {}
+        self.references = []
 
     def get(self, hash=None):
-        return self.references[hash]
+        for reference in self.references:
+            if reference.hash == hash:
+                return reference
+        return None
 
-    def add(self, hash=None, reference: Optional[Reference] = None):
+    def add(self, reference: Optional[Reference] = None, if_exists='REPLACE'):
         if reference is not None:
             assert isinstance(reference, Reference)
-        if hash is None:
-            hash = reference.hash
 
-        if hash not in self.references:
-            self.references[hash] = {}
-
-        self.references[hash] = reference
+        if reference not in self.references:
+            self.references.append(reference)
 
         return self
 
     def from_json(self, json_data) -> References:
-        for snak in json_data:
-            self.add(hash=snak['hash'], reference=Reference().from_json(snak))
+        for reference in json_data:
+            self.add(reference=Reference().from_json(reference))
 
         return self
 
     def get_json(self) -> []:
         json_data = []
         for reference in self.references:
-            json_data.append(self.references[reference].get_json())
+            json_data.append(reference.get_json())
         return json_data
 
     def __len__(self):
