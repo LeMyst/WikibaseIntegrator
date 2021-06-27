@@ -113,14 +113,17 @@ class LanguageValue:
             json_data['remove'] = ''
         return json_data
 
+    def __contains__(self, item):
+        return item in self.value
+
     def __eq__(self, other):
         if isinstance(other, LanguageValue):
             return self.value == other.value and self.language == other.language
         else:
             return self.value == other
 
-    def __contains__(self, item):
-        return item in self.value
+    def __len__(self):
+        return len(self.value)
 
     def __str__(self):
         return self.value

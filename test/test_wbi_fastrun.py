@@ -180,19 +180,19 @@ def test_append_props():
     # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
-    frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
+    frc = FakeQueryDataAppendProps(api=wbi.api, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
     # with append
-    statements = [Item(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
-    assert frc.write_required(data=statements, cqid=qid) is False
+    statements = [Item(value='Q24784025', prop_nr='P527')]
+    assert frc.write_required(data=statements, if_exists='APPEND', cqid=qid) is False
     # with force append
-    statements = [Item(value='Q24784025', prop_nr='P527', if_exists='FORCE_APPEND')]
-    assert frc.write_required(data=statements, cqid=qid) is True
+    statements = [Item(value='Q24784025', prop_nr='P527')]
+    assert frc.write_required(data=statements, if_exists='FORCE_APPEND', cqid=qid) is True
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid) is True
 
     # if we are in append mode, and the refs are different, we should write
-    frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
+    frc = FakeQueryDataAppendProps(api=wbi.api, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
     assert frc.write_required(data=statements, cqid=qid) is True

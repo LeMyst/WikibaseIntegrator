@@ -44,8 +44,9 @@ class Claims:
                 if claim is not None:
                     assert isinstance(claim, Claim)
                 property = claim.mainsnak.property
-                for claim_to_remove in self.claims[property]:
-                    claim_to_remove.remove()
+                if property in self.claims:
+                    for claim_to_remove in self.claims[property]:
+                        claim_to_remove.remove()
 
         for claim in claims:
             if claim is not None:

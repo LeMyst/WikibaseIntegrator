@@ -3,6 +3,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
+from pprint import pprint
 
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import Helpers
@@ -95,7 +96,7 @@ class FastRunContainer(object):
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def load_item(self, claims: list) -> bool:
+    def load_item(self, claims: list, cqid=None) -> bool:
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -139,7 +140,10 @@ class FastRunContainer(object):
                 return True
             match_sets.append(temp_set)
 
-        matching_qids = match_sets[0].intersection(*match_sets[1:])
+        if cqid:
+            matching_qids = {cqid}
+        else:
+            matching_qids = match_sets[0].intersection(*match_sets[1:])
 
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
@@ -152,19 +156,23 @@ class FastRunContainer(object):
         print(qid)
         self.current_qid = qid
 
-    def write_required(self, data: list) -> bool:
+    def write_required(self, data: list, if_exists='REPLACE', cqid=None) -> bool:
         del_props = set()
         data_props = set()
-        append_props = [x.get_prop_nr() for x in data if 'APPEND' in x.if_exists]
+        append_props = []
+        if if_exists == 'APPEND':
+            append_props = [x.get_prop_nr() for x in data]
 
         for x in data:
             if x.value and x.datatype:
                 data_props.add(x.get_prop_nr())
         write_required = False
-        self.load_item(data)
+        self.load_item(data, cqid)
 
         reconstructed_statements = self.reconstruct_statements(self.current_qid)
         tmp_rs = copy.deepcopy(reconstructed_statements)
+
+        pprint(tmp_rs)
 
         # handle append properties
         for p in append_props:
@@ -174,12 +182,7 @@ class FastRunContainer(object):
             for x in app_data:
                 for y in rec_app_data:
                     if x.get_value() == y.get_value():
-                        if self.use_refs and self.ref_handler:
-                            to_be = copy.deepcopy(y)
-                            self.ref_handler(to_be, x)
-                        else:
-                            to_be = x
-                        if y.equals(to_be, include_ref=self.use_refs) and x.if_exists != 'FORCE_APPEND':
+                        if y.equals(x, include_ref=self.use_refs) and if_exists != 'FORCE_APPEND':
                             comp.append(True)
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
@@ -215,12 +218,7 @@ class FastRunContainer(object):
             for x in tmp_rs:
                 if (x.get_value() == date.get_value() or (
                         self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and x.get_prop_nr() not in del_props:
-                    if self.use_refs and self.ref_handler and callable(self.ref_handler):
-                        to_be = copy.deepcopy(x)
-                        self.ref_handler(to_be, date)
-                    else:
-                        to_be = date
-                    if x.equals(to_be, include_ref=self.use_refs):
+                    if x.equals(date, include_ref=self.use_refs):
                         bool_vec.append(True)
                     else:
                         bool_vec.append(False)

@@ -4,7 +4,7 @@ import unittest
 import requests
 
 from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
-from wikibaseintegrator.entities import Item
+from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_api import Api
 
@@ -102,34 +102,32 @@ class TestFastRun(unittest.TestCase):
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
         fast_run_base_filter = {'P361': 'Q18589965'}
-        wbi_fr = WikibaseIntegrator(debug=True)
-        item = Item(fast_run_base_filter=fast_run_base_filter)
+        item = WikibaseIntegrator(debug=True).item.get('Q2')
+        item.init_fastrun(base_filter=fast_run_base_filter)
         item.claims.add(datatypes.ExternalID('/m/02j71', 'P646'))
 
-        frc = Api.fast_run_store[0]
-        frc.debug = True
+        frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P699': ''}, base_data_type=BaseDataType)
 
-        assert item.labels.get('en') == "Earth"
-        descr = item.get_description('en')
+        assert item.labels.get(language='en') == "Earth"
+        descr = item.descriptions.get(language='en')
         assert len(descr) > 3
-        aliases = item.get_aliases()
-        assert "Terra" in aliases
+        assert "Terra" in item.aliases.get()
 
         assert list(item.fast_run_container.get_language_data("Q2", 'en', 'label'))[0] == "Earth"
         assert item.fast_run_container.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "Terra" in item.get_aliases()
-        assert "planet" in item.get_description()
+        assert "Terra" in item.aliases.get()
+        assert "planet" in item.descriptions.get()
 
-        assert item.get_label("es") == "Tierra"
+        assert item.labels.get('es') == "Tierra"
 
-        item.set_description(descr)
-        item.set_description("fghjkl")
-        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
-        item.set_label("Earth")
-        item.set_label("xfgfdsg")
-        assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
-        item.set_aliases(["fake alias"], if_exists='APPEND')
-        assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
+        item.descriptions.set(value=descr)
+        item.descriptions.set(value="fghjkl")
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
+        item.labels.set(value="Earth")
+        item.labels.set(value="xfgfdsg")
+        assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        item.aliases.set(values=["fake alias"], if_exists='APPEND')
+        assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
 
         # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
         frc.check_language_data("Q2", ['Ewiase'], 'ak', 'label')
@@ -138,12 +136,12 @@ class TestFastRun(unittest.TestCase):
         frc.check_language_data("Q2", [], 'ak', 'aliases')
         frc.check_language_data("Q2", ['sdf', 'sdd'], 'ak', 'aliases')
 
-        item.get_label("ak")
-        item.get_description("ak")
-        item.get_aliases("ak")
-        item.set_label("label", lang="ak")
-        item.set_description("d", lang="ak")
-        item.set_aliases(["a"], lang="ak", if_exists='APPEND')
+        item.labels.get(language="ak")
+        item.descriptions.get(language='ak')
+        item.aliases.get(language="ak")
+        item.labels.set(value="label", language="ak")
+        item.descriptions.set(value="d", language="ak")
+        item.aliases.set(values=["a"], language="ak", if_exists='APPEND')
 
 
 def test_sitelinks():

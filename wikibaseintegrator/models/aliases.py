@@ -19,11 +19,15 @@ class Aliases:
 
     def get(self, language=None):
         if language is None:
-            return self.aliases.values()
+            # TODO: Don't return a list of list, just a list
+            return [item for sublist in self.aliases.values() for item in sublist]
         else:
-            return self.aliases[language]
+            if language in self.aliases:
+                return self.aliases[language]
+            else:
+                return None
 
-    def set(self, language, values=None, if_exists='APPEND'):
+    def set(self, language=None, values=None, if_exists='APPEND'):
         language = config['DEFAULT_LANGUAGE'] if language is None else language
         assert if_exists in ['REPLACE', 'APPEND', 'KEEP']
 
