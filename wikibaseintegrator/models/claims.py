@@ -91,6 +91,9 @@ class Claims:
 
         return self
 
+    def __len__(self):
+        return len(self.claims)
+
     def __iter__(self):
         iterate = []
         for claim in self.claims.values():

@@ -70,46 +70,56 @@ class TestWbiCore(unittest.TestCase):
         pprint(descr)
         assert len(descr) > 3
 
-        assert "Terra" in item.aliases
-        assert "planet" in item.descriptions
+        assert "Terra" in item.aliases.get('es')
+        assert "planet" in item.descriptions.get('en')
 
-        assert item.get_label("es") == "Tierra"
+        assert item.labels.get("es") == "Tierra"
 
         # set_description on already existing description
-        item.set_description(descr)
-        item.set_description("fghjkl")
-        item.set_description("fghjkltest", lang='en', if_exists='KEEP')
-        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
+        item.descriptions.set(value=descr)
+        assert item.descriptions.get() == descr
+        item.descriptions.set(value='fghjkl')
+        assert item.descriptions.get() == 'fghjkl'
+        item.descriptions.set(value='fghjkltest', language='es')
+        assert item.descriptions.get('es') == 'fghjkltest'
+        item.descriptions.set(value='fghjkltest', language='en', if_exists='KEEP')
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
         # set_description on empty desription
-        item.set_description("")
-        item.set_description("zaehjgreytret", lang='en', if_exists='KEEP')
-        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'zaehjgreytret'}
+        item.descriptions.set(value='')
+        item.descriptions.set(value='zaehjgreytret', language='en', if_exists='KEEP')
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'zaehjgreytret'}
 
-        item.set_label("Earth")
-        item.set_label("xfgfdsg")
-        item.set_label("xfgfdsgtest", lang='en', if_exists='KEEP')
-        assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
-        assert item.json_representation['labels']['fr'] == {'language': 'fr', 'value': 'Terre'}
-        item.set_aliases(["fake alias"], if_exists='APPEND')
-        assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
+        item.labels.set(value='Earth')
+        item.labels.set(value='xfgfdsg')
+        item.labels.set(language='en', value='xfgfdsgtest', if_exists='KEEP')
+        assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        assert item.get_json()['labels']['fr'] == {'language': 'fr', 'value': 'Terre'}
+        item.aliases.set(values=["fake alias"], if_exists='APPEND')
+        assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
 
-        item.set_label(label=None, lang='fr')
-        item.set_label(label=None, lang='non-exist-key')
-        assert 'remove' in item.json_representation['labels']['fr']
+        item.labels.set(language='fr', value=None)
+        item.labels.set(language='non-exist-key', value=None)
+        assert 'remove' in item.get_json()['labels']['fr']
 
-        item.get_label("ak")
-        item.get_description("ak")
-        item.get_aliases("ak")
-        item.set_label("label", lang='ak')
-        item.set_description("d", lang='ak')
-        item.set_aliases(["a"], lang='ak', if_exists='APPEND')
-        assert item.get_aliases('ak') == ['a']
-        item.set_aliases("b", lang='ak')
-        assert item.get_aliases('ak') == ['a', 'b']
-        item.set_aliases("b", lang='ak', if_exists='REPLACE')
-        assert item.get_aliases('ak') == ['b']
-        item.set_aliases(["c"], lang='ak', if_exists='REPLACE')
-        assert item.get_aliases('ak') == ['c']
+        item.labels.set(language='ak')
+        item.descriptions.set(language='ak')
+        item.aliases.set(language='ak')
+        item.labels.set(value='label', language='ak')
+        item.descriptions.set(value='d', language='ak')
+        item.aliases.set(values=['a'], language='ak', if_exists='APPEND')
+        assert item.aliases.get('ak') == ['a']
+        item.aliases.set(values='b', language='ak')
+        assert item.aliases.get('ak') == ['a', 'b']
+        item.aliases.set(values='b', language='ak', if_exists='REPLACE')
+        assert item.aliases.get('ak') == ['b']
+        item.aliases.set(values=['c'], language='ak', if_exists='REPLACE')
+        assert item.aliases.get('ak') == ['c']
+        item.aliases.set(values=['d'], language='ak', if_exists='KEEP')
+        assert 'd' not in item.aliases.get('ak')
+        item.aliases.set(language='ak', if_exists='KEEP')
+        assert 'remove' not in item.get_json()['aliases']['ak'][0]
+        item.aliases.set(language='ak')
+        assert 'remove' in item.get_json()['aliases']['ak'][0]
 
     def test_wd_search(self):
         t = Api.search_entities('rivaroxaban')
@@ -177,5 +187,4 @@ class TestWbiCore(unittest.TestCase):
         self.assertTrue(len(self.common_item.claims.get('P2067')[0].references))
 
     def test_get_qualifier_properties(self):
-        print(self.common_item.get_qualifier_properties(prop_id='P170'))
-        self.assertTrue(len(self.common_item.get_qualifier_properties(prop_id='P2067')))
+        self.assertTrue(len(self.common_item.claims.get(property='P2067')))

@@ -1,4 +1,5 @@
 from wikibaseintegrator.models.language_values import LanguageValue
+from wikibaseintegrator.wbi_config import config
 
 
 class Aliases:
@@ -6,7 +7,7 @@ class Aliases:
         self.__aliases = {}
 
         if language is not None:
-            self.set(language=language, value=value)
+            self.set(language=language, values=value)
 
     @property
     def aliases(self):
@@ -17,14 +18,48 @@ class Aliases:
         self.__aliases = value
 
     def get(self, language=None):
-        return self.aliases[language]
+        if language is None:
+            return self.aliases.values()
+        else:
+            return self.aliases[language]
 
-    def set(self, language=None, value=None):
+    def set(self, language, values=None, if_exists='APPEND'):
+        language = config['DEFAULT_LANGUAGE'] if language is None else language
+        assert if_exists in ['REPLACE', 'APPEND', 'KEEP']
+
+        assert language is not None
+
+        if isinstance(values, str):
+            values = [values]
+        elif not isinstance(values, list) and values is not None:
+            raise TypeError("value must be a str or list")
+
         if language not in self.aliases:
             self.aliases[language] = []
-        alias = Alias(language, value)
-        self.aliases[language].append(alias)
-        return alias
+
+        if values is None:
+            if if_exists != 'KEEP':
+                for alias in self.aliases[language]:
+                    alias.remove()
+            return self.aliases[language]
+
+        if if_exists == 'REPLACE':
+            aliases = []
+            for value in values:
+                alias = Alias(language, value)
+                aliases.append(alias)
+            self.aliases[language] = aliases
+        else:
+            for value in values:
+                alias = Alias(language, value)
+
+                if if_exists == 'APPEND':
+                    if alias not in self.aliases[language]:
+                        self.aliases[language].append(alias)
+                elif if_exists == 'KEEP':
+                    if not self.aliases[language]:
+                        self.aliases[language].append(alias)
+        return self.aliases[language]
 
     def get_json(self) -> {}:
         json_data = {}

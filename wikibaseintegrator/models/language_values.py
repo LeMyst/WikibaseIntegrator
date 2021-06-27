@@ -1,14 +1,44 @@
+from wikibaseintegrator.wbi_config import config
+
+
 class LanguageValues:
     def __init__(self):
         self.values = {}
 
-    def get(self, language=None):
-        return self.values[language]
+    @property
+    def values(self):
+        return self.__values
 
-    def set(self, language=None, value=None):
+    @values.setter
+    def values(self, value):
+        self.__values = value
+
+    def add(self, language_value):
+        assert isinstance(language_value, LanguageValue)
+        self.values[language_value.language] = language_value
+
+    def get(self, language=None):
+        language = config['DEFAULT_LANGUAGE'] if language is None else language
+        if language in self.values:
+            return self.values[language]
+        else:
+            return None
+
+    def set(self, language=None, value=None, if_exists='REPLACE'):
+        language = config['DEFAULT_LANGUAGE'] if language is None else language
+        assert if_exists in ['REPLACE', 'KEEP']
+
+        # Remove value if None
+        if value is None and language in self.values:
+            self.values[language].remove()
+            return None
+
         language_value = LanguageValue(language, value)
-        self.values[language] = language_value
-        return language_value
+        if if_exists == 'REPLACE' or not str(self.get(language=language)):
+            self.add(language_value)
+            return language_value
+        else:
+            return self.get(language=language)
 
     def get_json(self) -> {}:
         json_data = {}
@@ -35,10 +65,10 @@ class LanguageValues:
 
 
 class LanguageValue:
-    def __init__(self, language=None, value=None):
-        self.__language = language
-        self.__value = value
-        self.__removed = False
+    def __init__(self, language, value=None):
+        self.language = language
+        self.value = value
+        self.removed = False
 
     @property
     def language(self):
@@ -46,6 +76,12 @@ class LanguageValue:
 
     @language.setter
     def language(self, value):
+        if value is None:
+            raise ValueError("language can't be None")
+
+        if not isinstance(value, str):
+            raise ValueError("language must be a str")
+
         self.__language = value
 
     @property
