@@ -3,7 +3,6 @@ import copy
 from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
-from pprint import pprint
 
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import Helpers
@@ -171,8 +170,6 @@ class FastRunContainer(object):
 
         reconstructed_statements = self.reconstruct_statements(self.current_qid)
         tmp_rs = copy.deepcopy(reconstructed_statements)
-
-        pprint(tmp_rs)
 
         # handle append properties
         for p in append_props:

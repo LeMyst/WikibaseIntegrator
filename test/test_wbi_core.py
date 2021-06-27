@@ -1,6 +1,5 @@
 import unittest
 from copy import deepcopy
-from pprint import pprint
 
 from wikibaseintegrator import datatypes, WikibaseIntegrator
 from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, MonolingualText, Quantity, CommonsMedia, GlobeCoordinate, GeoShape, Property, TabularData, \
@@ -67,7 +66,6 @@ class TestWbiCore(unittest.TestCase):
 
         assert item.labels.get('en') == "Earth"
         descr = item.descriptions.get('en').value
-        pprint(descr)
         assert len(descr) > 3
 
         assert "Terra" in item.aliases.get('es')
@@ -177,7 +175,6 @@ class TestWbiCore(unittest.TestCase):
             assert item.get_json()
 
         item = wbi.item.new().add_claims(data)
-        pprint(item.get_json())
         assert item.get_json()
 
     def test_get_property_list(self):
