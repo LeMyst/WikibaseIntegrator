@@ -22,7 +22,7 @@ class Item(BaseEntity):
         """
         self.api = api
 
-        super(Item, self).__init__(api=self.api, entity_type='item', **kwargs)
+        super(Item, self).__init__(api=self.api, **kwargs)
 
         # Item and property specific
         self.labels = labels or Labels()
@@ -32,8 +32,8 @@ class Item(BaseEntity):
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
-    def new(self) -> Item:
-        return Item(self.api)
+    def new(self, **kwargs) -> Item:
+        return Item(self.api, **kwargs)
 
     def get(self, entity_id) -> Item:
         json_data = super(Item, self).get(entity_id=entity_id)

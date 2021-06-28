@@ -20,8 +20,8 @@ class Lexeme(BaseEntity):
         self.forms = forms or Forms()
         self.senses = senses or Senses()
 
-    def new(self, lemmas=None, lexical_category=None, language=None, forms=None, senses=None, **kwargs) -> Lexeme:
-        return Lexeme(self.api, lemmas=lemmas, lexical_category=lexical_category, language=language, forms=forms, senses=senses, **kwargs)
+    def new(self, **kwargs) -> Lexeme:
+        return Lexeme(self.api, **kwargs)
 
     def get(self, entity_id) -> Lexeme:
         json_data = super(Lexeme, self).get(entity_id=entity_id)
