@@ -12,13 +12,16 @@ class Lexeme(BaseEntity):
     def __init__(self, api, lemmas=None, lexical_category=None, language=None, forms=None, senses=None, **kwargs):
         self.api = api
 
-        super().__init__(api=self.api, entity_type='lexeme', **kwargs)
+        super().__init__(api=self.api, **kwargs)
 
         self.lemmas = lemmas or Lemmas()
-        self.lexicalCategory = lexical_category
-        self.language = language or self.api.language
+        self.lexical_category = lexical_category
+        self.language = language or self.api.lexeme_language
         self.forms = forms or Forms()
         self.senses = senses or Senses()
+
+    def new(self, lemmas=None, lexical_category=None, language=None, forms=None, senses=None, **kwargs) -> Lexeme:
+        return Lexeme(self.api, lemmas=lemmas, lexical_category=lexical_category, language=language, forms=forms, senses=senses, **kwargs)
 
     def get(self, entity_id) -> Lexeme:
         json_data = super(Lexeme, self).get(entity_id=entity_id)
@@ -31,7 +34,7 @@ class Lexeme(BaseEntity):
     def get_json(self) -> {}:
         return {
             'lemmas': self.lemmas.get_json(),
-            'lexicalCategory': self.lexicalCategory,
+            'lexicalCategory': self.lexical_category,
             'language': self.language,
             'forms': self.forms.get_json(),
             'senses': self.senses.get_json(),
@@ -42,7 +45,7 @@ class Lexeme(BaseEntity):
         super(Lexeme, self).from_json(json_data=json_data)
 
         self.lemmas = Lemmas().from_json(json_data['lemmas'])
-        self.lexicalCategory = json_data['lexicalCategory']
+        self.lexical_category = json_data['lexicalCategory']
         self.language = json_data['language']
         self.forms = Forms().from_json(json_data['forms'])
         self.senses = Senses().from_json(json_data['senses'])
@@ -50,5 +53,8 @@ class Lexeme(BaseEntity):
         return self
 
     def write(self):
+        if self.lexical_category is None:
+            raise ValueError("lexical_category can't be None")
+
         json_data = super(Lexeme, self)._write(data=self.get_json())
         return self.from_json(json_data=json_data)

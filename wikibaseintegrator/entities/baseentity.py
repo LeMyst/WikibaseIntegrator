@@ -22,12 +22,11 @@ class BaseEntity(object):
         self.api = api
 
         self.lastrevid = kwargs.pop('lastrevid', None)
-        self.type = kwargs.pop('type', None)
+        self.type = kwargs.pop('type', self.ETYPE)
         self.id = kwargs.pop('id', None)
         self.claims = kwargs.pop('claims', Claims())
 
         # WikibaseIntegrator specific
-        self.entity_type = kwargs.pop('entity_type', None)
         self.new_item = kwargs.pop('new_item', False)
         if self.id and self.new_item:
             raise ValueError("Cannot create a new item, when an identifier is given.")
@@ -58,11 +57,15 @@ class BaseEntity(object):
         return self.api.fast_run_container.write_required(self.claims) or self.api.fast_run_container.check_language_data
 
     def get_json(self) -> {}:
-        return {
+        json_data = {
             'type': self.type,
             'id': self.id,
             'claims': self.claims.get_json()
         }
+        if not self.id:
+            del json_data['id']
+
+        return json_data
 
     def from_json(self, json_data):
         self.json = json_data
@@ -152,7 +155,7 @@ class BaseEntity(object):
             payload.update({'bot': ''})
 
         if self.new_item:
-            payload.update({u'new': self.entity_type})
+            payload.update({u'new': self.type})
         else:
             payload.update({u'id': self.id})
 

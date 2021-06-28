@@ -34,5 +34,6 @@ config = {
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
     'WIKIBASE_URL': 'http://www.wikidata.org',
     'DEFAULT_LANGUAGE': 'en',
+    'DEFAULT_LEXEME_LANGUAGE': 'Q1860',
     'DEBUG': False
 }

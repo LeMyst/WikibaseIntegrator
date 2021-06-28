@@ -18,6 +18,7 @@ class WikibaseIntegrator(object):
                  search_only=False,
                  is_bot=False,
                  language=None,
+                 lexeme_language=None,
                  login=None,
                  debug=False):
         self.debug = debug
@@ -31,10 +32,11 @@ class WikibaseIntegrator(object):
         property_constraint_pid = config['PROPERTY_CONSTRAINT_PID'] if property_constraint_pid is None else property_constraint_pid
         distinct_values_constraint_qid = config['DISTINCT_VALUES_CONSTRAINT_QID'] if distinct_values_constraint_qid is None else distinct_values_constraint_qid
         language = config['DEFAULT_LANGUAGE'] if language is None else language
+        lexeme_language = config['DEFAULT_LEXEME_LANGUAGE'] if lexeme_language is None else lexeme_language
 
         self.api = Api(mediawiki_api_url=mediawiki_api_url, mediawiki_index_url=mediawiki_index_url, mediawiki_rest_url=mediawiki_rest_url, sparql_endpoint_url=sparql_endpoint_url,
                        wikibase_url=wikibase_url, property_constraint_pid=property_constraint_pid, distinct_values_constraint_qid=distinct_values_constraint_qid,
-                       search_only=search_only, is_bot=is_bot, language=language, login=login, debug=self.debug)
+                       search_only=search_only, is_bot=is_bot, language=language, lexeme_language=lexeme_language, login=login, debug=self.debug)
 
         self.item = Item(api=self.api)
         self.property = Property(api=self.api)

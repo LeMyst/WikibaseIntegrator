@@ -12,7 +12,7 @@ from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
 class Api(object):
 
     def __init__(self, mediawiki_api_url, mediawiki_index_url, mediawiki_rest_url, sparql_endpoint_url, wikibase_url, property_constraint_pid, distinct_values_constraint_qid,
-                 search_only, is_bot, language, login, debug=None):
+                 search_only, is_bot, language, lexeme_language, login, debug=None):
         self.mediawiki_api_url = mediawiki_api_url
         self.mediawiki_index_url = mediawiki_index_url
         self.mediawiki_rest_url = mediawiki_rest_url
@@ -24,6 +24,7 @@ class Api(object):
 
         self.is_bot = is_bot
         self.language = language
+        self.lexeme_language = lexeme_language
         self.login = login
         self.debug = debug or config['DEBUG']
 
