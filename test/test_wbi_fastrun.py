@@ -45,7 +45,6 @@ def test_query_data_unit():
     test_fastrun.test_query_data_unit
     This hits live wikidata and may change !!
     """
-    frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P2044': '', 'P30': 'Q46'}, base_data_type=BaseDataType)
     frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P2044': '', 'P30': 'Q46', 'P31': 'Q5119'}, base_data_type=BaseDataType)
     # get a quantity value
     frc._query_data('P2044', use_units=True)
