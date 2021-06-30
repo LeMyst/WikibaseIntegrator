@@ -30,21 +30,17 @@ class TabularData(BaseDataType):
         :type rank: str
         """
 
-        super(TabularData, self).__init__(value=value, **kwargs)
+        super(TabularData, self).__init__(**kwargs)
 
-        self.set_value(value)
-
-    def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
+        if value is not None:
             # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
                 raise ValueError("Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.")
-            self.value = value
+
+        self.value = value
 
         self.mainsnak.datavalue = {
             'value': self.value,

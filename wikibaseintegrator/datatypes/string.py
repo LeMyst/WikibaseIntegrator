@@ -25,11 +25,8 @@ class String(BaseDataType):
         :type rank: str
         """
 
-        super(String, self).__init__(value=value, **kwargs)
+        super(String, self).__init__(**kwargs)
 
-        self.set_value(value)
-
-    def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         self.value = value
 

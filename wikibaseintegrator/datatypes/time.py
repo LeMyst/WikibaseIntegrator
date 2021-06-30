@@ -46,6 +46,8 @@ class Time(BaseDataType):
         :type rank: str
         """
 
+        super(Time, self).__init__(**kwargs)
+
         calendarmodel = calendarmodel or config['CALENDAR_MODEL_QID']
         wikibase_url = wikibase_url or config['WIKIBASE_URL']
 
@@ -61,11 +63,6 @@ class Time(BaseDataType):
 
         value = (time, before, after, precision, timezone, calendarmodel)
 
-        super(Time, self).__init__(value=value, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
         self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
         assert isinstance(self.time, str) or self.time is None, "Expected str, found {} ({})".format(type(self.time), self.time)
 
@@ -79,8 +76,6 @@ class Time(BaseDataType):
             self.value = value
             if self.precision < 0 or self.precision > 15:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
-        elif self.snaktype == 'value':
-            raise ValueError("Parameter 'time' can't be 'None' if 'snaktype' is 'value'")
 
         self.mainsnak.datavalue = {
             'value': {

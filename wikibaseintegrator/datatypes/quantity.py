@@ -39,6 +39,8 @@ class Quantity(BaseDataType):
         :type rank: str
         """
 
+        super(Quantity, self).__init__(**kwargs)
+
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
         if unit.startswith('Q'):
@@ -51,11 +53,6 @@ class Quantity(BaseDataType):
 
         value = (quantity, unit, upper_bound, lower_bound)
 
-        super(Quantity, self).__init__(value=value, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
         self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
         if self.quantity is not None:

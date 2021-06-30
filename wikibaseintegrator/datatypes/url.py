@@ -32,21 +32,17 @@ class URL(BaseDataType):
         :type rank: str
         """
 
-        super(URL, self).__init__(value=value, **kwargs)
+        super(URL, self).__init__(**kwargs)
 
-        self.set_value(value)
-
-    def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
+        if value is not None:
             pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError("Invalid URL {}".format(value))
-            self.value = value
+
+        self.value = value
 
         self.mainsnak.datavalue = {
             'value': self.value,

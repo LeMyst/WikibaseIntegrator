@@ -109,6 +109,7 @@ class Claims:
 
 class Claim:
     DTYPE = 'claim'
+    subclasses = []
 
     def __init__(self, **kwargs):
         self.mainsnak = Snak(datatype=self.DTYPE)
@@ -122,6 +123,10 @@ class Claim:
         # self.references = References()
         self.references = kwargs.pop('references', References())
         self.removed = False
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.subclasses.append(cls)
 
     @property
     def mainsnak(self):

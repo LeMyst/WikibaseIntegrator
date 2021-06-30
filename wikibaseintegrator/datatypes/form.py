@@ -32,22 +32,17 @@ class Form(BaseDataType):
         :type rank: str
         """
 
-        super(Form, self).__init__(value=value, **kwargs)
+        super(Form, self).__init__(**kwargs)
 
-        self.set_value(value)
-
-    def set_value(self, value):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        else:
+        if value is not None:
             pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
 
-            self.value = value
+        self.value = value
 
         self.mainsnak.datavalue = {
             'value': {

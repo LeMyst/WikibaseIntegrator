@@ -69,7 +69,7 @@ class FastRunContainer(object):
             for uid, d in dt.items():
                 qualifiers = []
                 for q in d['qual']:
-                    f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[q[0]]][0]
+                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[q[0]]][0]
                     # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
                     if self.prop_dt_map[q[0]] == 'quantity':
                         qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
@@ -80,11 +80,11 @@ class FastRunContainer(object):
                 for ref_id, refs in d['ref'].items():
                     this_ref = []
                     for ref in refs:
-                        f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[ref[0]]][0]
+                        f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[ref[0]]][0]
                         this_ref.append(f(ref[1], prop_nr=ref[0], is_reference=True))
                     references.append(this_ref)
 
-                f = [x for x in self.base_data_type.__subclasses__() if x.DTYPE == self.prop_dt_map[prop_nr]][0]
+                f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[prop_nr]][0]
                 # TODO: Add support for more data type
                 if self.prop_dt_map[prop_nr] == 'quantity':
                     reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))

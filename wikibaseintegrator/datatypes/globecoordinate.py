@@ -35,6 +35,8 @@ class GlobeCoordinate(BaseDataType):
         :type rank: str
         """
 
+        super(GlobeCoordinate, self).__init__(**kwargs)
+
         globe = globe or config['COORDINATE_GLOBE_QID']
         wikibase_url = wikibase_url or config['WIKIBASE_URL']
 
@@ -48,11 +50,6 @@ class GlobeCoordinate(BaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(GlobeCoordinate, self).__init__(value=value, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
         # TODO: Introduce validity checks for coordinates, etc.
         # TODO: Add check if latitude/longitude/precision is None
         self.latitude, self.longitude, self.precision, self.globe = value

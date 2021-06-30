@@ -32,11 +32,8 @@ class Item(BaseDataType):
         :type rank: str
         """
 
-        super(Item, self).__init__(value=value, **kwargs)
+        super(Item, self).__init__(**kwargs)
 
-        self.set_value(value)
-
-    def set_value(self, value):
         assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
         if value is None:
             self.value = value

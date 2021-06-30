@@ -33,16 +33,13 @@ class MonolingualText(BaseDataType):
         :type rank: str
         """
 
+        super(MonolingualText, self).__init__(**kwargs)
+
         self.text = None
         self.language = language or config['DEFAULT_LANGUAGE']
 
         value = (text, self.language)
 
-        super(MonolingualText, self).__init__(value=value, **kwargs)
-
-        self.set_value(value)
-
-    def set_value(self, value):
         self.text, self.language = value
         if self.text is not None:
             assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
