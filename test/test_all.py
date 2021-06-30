@@ -1,6 +1,5 @@
 import copy
 import unittest
-from pprint import pprint
 
 import requests
 
@@ -62,8 +61,6 @@ class TestDataType(unittest.TestCase):
         dt = datatypes.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
 
         dt_json = dt.get_json()
-
-        pprint(dt_json)
 
         if not dt_json['mainsnak']['datatype'] == 'geo-shape':
             raise
