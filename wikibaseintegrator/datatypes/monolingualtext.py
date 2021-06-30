@@ -1,6 +1,5 @@
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
 class MonolingualText(BaseDataType):
@@ -63,12 +62,3 @@ class MonolingualText(BaseDataType):
 
     def get_sparql_value(self):
         return '"' + self.text.replace('"', r'\"') + '"@' + self.language
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(text=None, prop_nr=jsn['property'], snaktype=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        return cls(text=value['text'], prop_nr=jsn['property'], language=value['language'])

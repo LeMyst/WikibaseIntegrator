@@ -1,5 +1,4 @@
 from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
-from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
 class BaseDataType(Claim):
@@ -106,11 +105,6 @@ class BaseDataType(Claim):
 
     def set_prop_nr(self, prop_nr):
         self.mainsnak.property_number = prop_nr
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, json_representation):
-        pass
 
     def equals(self, that, include_ref=False, fref=None):
         """

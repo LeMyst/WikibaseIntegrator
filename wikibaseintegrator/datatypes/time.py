@@ -2,7 +2,6 @@ import re
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
 class Time(BaseDataType):
@@ -99,13 +98,3 @@ class Time(BaseDataType):
 
     def get_sparql_value(self):
         return self.time
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(time=None, prop_nr=jsn['property'], snaktype=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        return cls(time=value['time'], prop_nr=jsn['property'], before=value['before'], after=value['after'], precision=value['precision'], timezone=value['timezone'],
-                   calendarmodel=value['calendarmodel'])

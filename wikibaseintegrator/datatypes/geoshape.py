@@ -1,7 +1,6 @@
 import re
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
 class GeoShape(BaseDataType):
@@ -53,10 +52,3 @@ class GeoShape(BaseDataType):
             'value': self.value,
             'type': 'string'
         }
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(value=None, prop_nr=jsn['property'], snaktype=jsn['snaktype'])
-        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])

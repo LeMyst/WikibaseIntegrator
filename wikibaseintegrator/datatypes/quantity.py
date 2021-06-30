@@ -1,7 +1,6 @@
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import Helpers
-from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
 class Quantity(BaseDataType):
@@ -103,14 +102,3 @@ class Quantity(BaseDataType):
 
     def get_sparql_value(self):
         return self.quantity
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(quantity=None, prop_nr=jsn['property'], snaktype=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        upper_bound = value['upperBound'] if 'upperBound' in value else None
-        lower_bound = value['lowerBound'] if 'lowerBound' in value else None
-        return cls(quantity=value['amount'], prop_nr=jsn['property'], upper_bound=upper_bound, lower_bound=lower_bound, unit=value['unit'])

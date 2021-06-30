@@ -1,6 +1,5 @@
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
 class GlobeCoordinate(BaseDataType):
@@ -69,16 +68,6 @@ class GlobeCoordinate(BaseDataType):
         }
 
         self.value = (self.latitude, self.longitude, self.precision, self.globe)
+
     def get_sparql_value(self):
         return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
-
-    @classmethod
-    @JsonParser
-    def from_json(cls, jsn):
-        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
-            return cls(latitude=None, longitude=None, precision=None, prop_nr=jsn['property'],
-                       snaktype=jsn['snaktype'])
-
-        value = jsn['datavalue']['value']
-        return cls(latitude=value['latitude'], longitude=value['longitude'], precision=value['precision'],
-                   prop_nr=jsn['property'])
