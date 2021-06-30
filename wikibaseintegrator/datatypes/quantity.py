@@ -16,7 +16,7 @@ class Quantity(BaseDataType):
         }}
     '''
 
-    def __init__(self, quantity, prop_nr, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
+    def __init__(self, quantity, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param quantity: The quantity value
@@ -30,9 +30,6 @@ class Quantity(BaseDataType):
         :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
             The default is dimensionless, represented by a '1'
         :type unit: str
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -55,7 +52,7 @@ class Quantity(BaseDataType):
 
         value = (quantity, unit, upper_bound, lower_bound)
 
-        super(Quantity, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(Quantity, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -84,10 +81,8 @@ class Quantity(BaseDataType):
 
             if self.upper_bound and float(self.upper_bound) < float(self.quantity):
                 raise ValueError("Upper bound too small")
-        elif self.snaktype == 'value':
-            raise ValueError("Parameter 'quantity' can't be 'None' if 'snaktype' is 'value'")
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': {
                 'amount': self.quantity,
                 'unit': self.unit,
@@ -99,13 +94,12 @@ class Quantity(BaseDataType):
 
         # remove bounds from json if they are undefined
         if not self.upper_bound:
-            del self.json_representation['datavalue']['value']['upperBound']
+            del self.mainsnak.datavalue['value']['upperBound']
 
         if not self.lower_bound:
-            del self.json_representation['datavalue']['value']['lowerBound']
+            del self.mainsnak.datavalue['value']['lowerBound']
 
         self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
-        super(Quantity, self).set_value(value=self.value)
 
     def get_sparql_value(self):
         return self.quantity

@@ -15,7 +15,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text, prop_nr, language=None, **kwargs):
+    def __init__(self, text, language=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param text: The language specific string to be used as the value
@@ -24,10 +24,6 @@ class MonolingualText(BaseDataType):
         :type prop_nr: str with a 'P' prefix followed by digits
         :param language: Specifies the language the value belongs to
         :type language: str
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -39,11 +35,11 @@ class MonolingualText(BaseDataType):
         """
 
         self.text = None
-        self.language = config['DEFAULT_LANGUAGE'] if language is None else language
+        self.language = language or config['DEFAULT_LANGUAGE']
 
         value = (text, self.language)
 
-        super(MonolingualText, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(MonolingualText, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -55,7 +51,7 @@ class MonolingualText(BaseDataType):
             raise ValueError("Parameter 'text' can't be 'None' if 'snaktype' is 'value'")
         assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': {
                 'text': self.text,
                 'language': self.language
@@ -64,7 +60,6 @@ class MonolingualText(BaseDataType):
         }
 
         self.value = (self.text, self.language)
-        super(MonolingualText, self).set_value(value=self.value)
 
     def get_sparql_value(self):
         return '"' + self.text.replace('"', r'\"') + '"@' + self.language

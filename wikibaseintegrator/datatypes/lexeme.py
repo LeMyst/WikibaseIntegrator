@@ -16,17 +16,13 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, **kwargs):
+    def __init__(self, value, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The lexeme number to serve as a value
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -37,7 +33,7 @@ class Lexeme(BaseDataType):
         :type rank: str
         """
 
-        super(Lexeme, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(Lexeme, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -56,7 +52,7 @@ class Lexeme(BaseDataType):
             else:
                 self.value = int(matches.group(1))
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': {
                 'entity-type': 'lexeme',
                 'numeric-id': self.value,
@@ -64,8 +60,6 @@ class Lexeme(BaseDataType):
             },
             'type': 'wikibase-entityid'
         }
-
-        super(Lexeme, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser

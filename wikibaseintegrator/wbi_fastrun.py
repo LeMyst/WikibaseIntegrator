@@ -24,9 +24,9 @@ class FastRunContainer(object):
         self.current_qid = ''
 
         self.base_data_type = base_data_type
-        self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        self.sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if sparql_endpoint_url is None else sparql_endpoint_url
-        self.wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+        self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
+        self.sparql_endpoint_url = sparql_endpoint_url or config['SPARQL_ENDPOINT_URL']
+        self.wikibase_url = wikibase_url or config['WIKIBASE_URL']
         self.use_refs = use_refs
         self.case_insensitive = case_insensitive
 
@@ -103,13 +103,13 @@ class FastRunContainer(object):
             if not current_value and not claim.datatype:
                 continue
 
-            prop_nr = claim.property
+            prop_nr = claim.mainsnak.property_number
 
             if prop_nr not in self.prop_dt_map:
                 if self.api.debug:
                     print("{} not found in fastrun".format(prop_nr))
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr=prop_nr, use_units=claim.datatype == 'quantity')
+                self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
 
             # more sophisticated data types like dates and globe coordinates need special treatment here
             if self.prop_dt_map[prop_nr] == 'time':
@@ -163,7 +163,7 @@ class FastRunContainer(object):
             append_props = [x.get_prop_nr() for x in data]
 
         for x in data:
-            if x.value and x.datatype:
+            if x.value and x.mainsnak.datatype:
                 data_props.add(x.get_prop_nr())
         write_required = False
         self.load_item(data, cqid)
@@ -178,7 +178,7 @@ class FastRunContainer(object):
             comp = []
             for x in app_data:
                 for y in rec_app_data:
-                    if x.get_value() == y.get_value():
+                    if x.mainsnak.datavalue == y.mainsnak.datavalue:
                         if y.equals(x, include_ref=self.use_refs) and if_exists != 'FORCE_APPEND':
                             comp.append(True)
 
@@ -193,11 +193,11 @@ class FastRunContainer(object):
         for date in data:
             # ensure that statements meant for deletion get handled properly
             reconst_props = set([x.get_prop_nr() for x in tmp_rs])
-            if (not date.value or not date.datatype) and date.get_prop_nr() in reconst_props:
+            if (not date.value or not date.mainsnak.datatype) and date.get_prop_nr() in reconst_props:
                 if self.api.debug:
                     print("returned from delete prop handling")
                 return True
-            elif not date.value or not date.datatype:
+            elif not date.value or not date.mainsnak.datatype:
                 # Ignore the deletion statements which are not in the reconstructed statements.
                 continue
 
@@ -205,7 +205,7 @@ class FastRunContainer(object):
                 # TODO: check if value already exist and already have the same value
                 continue
 
-            if not date.get_value() and not date.datatype:
+            if not date.mainsnak.datavalue and not date.mainsnak.datatype:
                 del_props.add(date.get_prop_nr())
 
             # this is where the magic happens
@@ -213,8 +213,8 @@ class FastRunContainer(object):
             # tmp_rs are the reconstructed statements == current state of the item
             bool_vec = []
             for x in tmp_rs:
-                if (x.get_value() == date.get_value() or (
-                        self.case_insensitive and x.get_value().casefold() == date.get_value().casefold())) and x.get_prop_nr() not in del_props:
+                if (x.mainsnak.datavalue == date.mainsnak.datavalue or (
+                        self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.get_prop_nr() not in del_props:
                     if x.equals(date, include_ref=self.use_refs):
                         bool_vec.append(True)
                     else:
@@ -231,11 +231,11 @@ class FastRunContainer(object):
                 print("-----------------------------------")
                 for x in tmp_rs:
                     if date == x and x.get_prop_nr() not in del_props:
-                        print(x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
-                        print(date.get_prop_nr(), date.get_value(), [z.get_value() for z in date.get_qualifiers()])
+                        print(x.get_prop_nr(), x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
+                        print(date.get_prop_nr(), date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
                     elif x.get_prop_nr() == date.get_prop_nr():
-                        print(x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
-                        print(date.get_prop_nr(), date.get_value(), [z.get_value() for z in date.get_qualifiers()])
+                        print(x.get_prop_nr(), x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
+                        print(date.get_prop_nr(), date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
 
             if not any(bool_vec):
                 if self.api.debug:
@@ -251,7 +251,7 @@ class FastRunContainer(object):
             if self.api.debug:
                 print("failed because not zero")
                 for x in tmp_rs:
-                    print("xxx", x.get_prop_nr(), x.get_value(), [z.get_value() for z in x.get_qualifiers()])
+                    print("xxx", x.get_prop_nr(), x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
                 print("failed because not zero--END")
             write_required = True
         return write_required

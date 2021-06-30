@@ -10,7 +10,7 @@ class TabularData(BaseDataType):
     """
     DTYPE = 'tabular-data'
 
-    def __init__(self, value, prop_nr, **kwargs):
+    def __init__(self, value, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
@@ -31,7 +31,7 @@ class TabularData(BaseDataType):
         :type rank: str
         """
 
-        super(TabularData, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(TabularData, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -47,12 +47,10 @@ class TabularData(BaseDataType):
                 raise ValueError("Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.")
             self.value = value
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': self.value,
             'type': 'string'
         }
-
-        super(TabularData, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser

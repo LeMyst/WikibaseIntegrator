@@ -15,7 +15,7 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude, longitude, precision, prop_nr, globe=None, wikibase_url=None, **kwargs):
+    def __init__(self, latitude, longitude, precision, globe=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
@@ -26,10 +26,6 @@ class GlobeCoordinate(BaseDataType):
         :type precision: float or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -40,8 +36,8 @@ class GlobeCoordinate(BaseDataType):
         :type rank: str
         """
 
-        globe = config['COORDINATE_GLOBE_QID'] if globe is None else globe
-        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+        globe = globe or config['COORDINATE_GLOBE_QID']
+        wikibase_url = wikibase_url or config['WIKIBASE_URL']
 
         self.latitude = None
         self.longitude = None
@@ -53,7 +49,7 @@ class GlobeCoordinate(BaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(GlobeCoordinate, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(GlobeCoordinate, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -62,7 +58,7 @@ class GlobeCoordinate(BaseDataType):
         # TODO: Add check if latitude/longitude/precision is None
         self.latitude, self.longitude, self.precision, self.globe = value
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': {
                 'latitude': self.latitude,
                 'longitude': self.longitude,
@@ -73,8 +69,6 @@ class GlobeCoordinate(BaseDataType):
         }
 
         self.value = (self.latitude, self.longitude, self.precision, self.globe)
-        super(GlobeCoordinate, self).set_value(value=self.value)
-
     def get_sparql_value(self):
         return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
 

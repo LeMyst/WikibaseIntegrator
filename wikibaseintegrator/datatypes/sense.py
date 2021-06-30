@@ -16,17 +16,13 @@ class Sense(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, **kwargs):
+    def __init__(self, value, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -37,7 +33,7 @@ class Sense(BaseDataType):
         :type rank: str
         """
 
-        super(Sense, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(Sense, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -54,15 +50,13 @@ class Sense(BaseDataType):
 
             self.value = value
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': {
                 'entity-type': 'sense',
                 'id': self.value
             },
             'type': 'wikibase-entityid'
         }
-
-        super(Sense, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser

@@ -8,17 +8,13 @@ class CommonsMedia(BaseDataType):
     """
     DTYPE = 'commonsMedia'
 
-    def __init__(self, value, prop_nr, **kwargs):
+    def __init__(self, value, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The media file name from Wikimedia commons to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -31,7 +27,7 @@ class CommonsMedia(BaseDataType):
 
         self.value = None
 
-        super(CommonsMedia, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(CommonsMedia, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -39,12 +35,10 @@ class CommonsMedia(BaseDataType):
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
         self.value = value
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': self.value,
             'type': 'string'
         }
-
-        super(CommonsMedia, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser

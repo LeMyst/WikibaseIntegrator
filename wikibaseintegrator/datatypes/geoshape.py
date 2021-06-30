@@ -16,17 +16,13 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, prop_nr, **kwargs):
+    def __init__(self, value, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
         :type value: str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -37,7 +33,7 @@ class GeoShape(BaseDataType):
         :type rank: str
         """
 
-        super(GeoShape, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(GeoShape, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -53,12 +49,10 @@ class GeoShape(BaseDataType):
                 raise ValueError("Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.")
             self.value = value
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': self.value,
             'type': 'string'
         }
-
-        super(GeoShape, self).set_value(value=self.value)
 
     @classmethod
     @JsonParser

@@ -28,7 +28,7 @@ class Aliases:
                 return None
 
     def set(self, language=None, values=None, if_exists='APPEND'):
-        language = config['DEFAULT_LANGUAGE'] if language is None else language
+        language = language or config['DEFAULT_LANGUAGE']
         assert if_exists in ['REPLACE', 'APPEND', 'KEEP']
 
         assert language is not None

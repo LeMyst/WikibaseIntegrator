@@ -1,5 +1,5 @@
-from wikibaseintegrator.models.language_values import LanguageValues
 from wikibaseintegrator.models.claims import Claims
+from wikibaseintegrator.models.language_values import LanguageValues
 
 
 class Forms:
@@ -45,9 +45,9 @@ class Forms:
 class Form:
     def __init__(self, form_id=None, representations=None, grammatical_features=None, claims=None):
         self.id = form_id
-        self.representations = LanguageValues() if representations is None else representations
-        self.grammatical_features = [] if grammatical_features is None else grammatical_features
-        self.claims = Claims() if claims is None else claims
+        self.representations = representations or LanguageValues()
+        self.grammatical_features = grammatical_features or []
+        self.claims = claims or Claims()
 
     @property
     def id(self):

@@ -125,12 +125,12 @@ def test_fastrun_ref_ensembl():
 
     # statement has the same ref
     statements = [
-        ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q29458763", "P248", is_reference=True), ExternalID("ENSG00000123374", "P594", is_reference=True)]])]
+        ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q29458763", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594")]])]
     assert not frc.write_required(data=statements)
 
     # new statement has an different stated in
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594',
-                             references=[[Item("Q99999999999", "P248", is_reference=True), ExternalID("ENSG00000123374", "P594", is_reference=True)]])]
+                             references=[[Item("Q99999999999", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594", )]])]
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,
@@ -140,7 +140,7 @@ def test_fastrun_ref_ensembl():
 
     # fastrun don't check references, statement has reference,
     frc = FastRunContainerFakeQueryDataEnsemblNoRef(api=wbi.api, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
-    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q123", "P31", is_reference=True)]])]
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q123", prop_nr="P31")]])]
     assert not frc.write_required(data=statements)
 
 
@@ -180,6 +180,7 @@ def test_append_props():
     # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
+    wbi.api.debug = True
     frc = FakeQueryDataAppendProps(api=wbi.api, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]

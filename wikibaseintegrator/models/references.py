@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
-
-from wikibaseintegrator.models.snaks import Snaks
+from wikibaseintegrator.models.snaks import Snaks, Snak
 
 
 class References:
@@ -15,7 +13,12 @@ class References:
                 return reference
         return None
 
-    def add(self, reference: Optional[Reference] = None, if_exists='REPLACE'):
+    # TODO: implement if_exists
+    def add(self, reference=None, if_exists='REPLACE'):
+        from wikibaseintegrator.models.claims import Claim
+        if isinstance(reference, Claim):
+            reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
+
         if reference is not None:
             assert isinstance(reference, Reference)
 
@@ -36,6 +39,23 @@ class References:
             json_data.append(reference.get_json())
         return json_data
 
+    def remove(self, reference_to_remove):
+        from wikibaseintegrator.models.claims import Claim
+        if isinstance(reference_to_remove, Claim):
+            reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(reference_to_remove.get_json()['mainsnak'])))
+
+        assert isinstance(reference_to_remove, Reference)
+
+        for reference in self.references:
+            if reference == reference_to_remove:
+                self.references.remove(reference)
+                return True
+
+        return False
+
+    def __iter__(self):
+        return iter(self.references)
+
     def __len__(self):
         return len(self.references)
 
@@ -49,10 +69,10 @@ class References:
 
 
 class Reference:
-    def __init__(self):
+    def __init__(self, snaks=None, snaks_order=None):
         self.hash = None
-        self.snaks = Snaks()
-        self.snaks_order = []
+        self.snaks = snaks or Snaks()
+        self.snaks_order = snaks_order or []
 
     @property
     def hash(self):
@@ -78,6 +98,19 @@ class Reference:
     def snaks_order(self, value):
         self.__snaks_order = value
 
+    # TODO: implement if_exists
+    def add(self, snak=None, if_exists='REPLACE'):
+        from wikibaseintegrator.models.claims import Claim
+        if isinstance(snak, Claim):
+            snak = Snak().from_json(snak.get_json()['mainsnak'])
+
+        if snak is not None:
+            assert isinstance(snak, Snak)
+
+        self.snaks.add(snak)
+
+        return self
+
     def from_json(self, json_data) -> Reference:
         self.hash = json_data['hash']
         self.snaks = Snaks().from_json(json_data['snaks'])
@@ -91,6 +124,12 @@ class Reference:
             'snaks-order': self.snaks_order
         }
         return json_data
+
+    def __iter__(self):
+        return iter(self.snaks)
+
+    def __len__(self):
+        return len(self.snaks)
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

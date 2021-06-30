@@ -17,7 +17,7 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time, prop_nr, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
+    def __init__(self, time, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
@@ -37,10 +37,6 @@ class Time(BaseDataType):
         :type timezone: int
         :param calendarmodel: The calendar model used for the date. URL to the Wikibase calendar model item or the QID.
         :type calendarmodel: str
-        :param is_reference: Whether this snak is a reference
-        :type is_reference: boolean
-        :param is_qualifier: Whether this snak is a qualifier
-        :type is_qualifier: boolean
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
         :type snaktype: str
         :param references: List with reference objects
@@ -51,8 +47,8 @@ class Time(BaseDataType):
         :type rank: str
         """
 
-        calendarmodel = config['CALENDAR_MODEL_QID'] if calendarmodel is None else calendarmodel
-        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+        calendarmodel = calendarmodel or config['CALENDAR_MODEL_QID']
+        wikibase_url = wikibase_url or config['WIKIBASE_URL']
 
         self.time = None
         self.before = None
@@ -66,7 +62,7 @@ class Time(BaseDataType):
 
         value = (time, before, after, precision, timezone, calendarmodel)
 
-        super(Time, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super(Time, self).__init__(value=value, **kwargs)
 
         self.set_value(value)
 
@@ -87,7 +83,7 @@ class Time(BaseDataType):
         elif self.snaktype == 'value':
             raise ValueError("Parameter 'time' can't be 'None' if 'snaktype' is 'value'")
 
-        self.json_representation['datavalue'] = {
+        self.mainsnak.datavalue = {
             'value': {
                 'time': self.time,
                 'before': self.before,
@@ -100,7 +96,6 @@ class Time(BaseDataType):
         }
 
         self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
-        super(Time, self).set_value(value=self.value)
 
     def get_sparql_value(self):
         return self.time

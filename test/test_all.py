@@ -1,5 +1,6 @@
 import copy
 import unittest
+from pprint import pprint
 
 import requests
 
@@ -62,6 +63,8 @@ class TestDataType(unittest.TestCase):
 
         dt_json = dt.get_json()
 
+        pprint(dt_json)
+
         if not dt_json['mainsnak']['datatype'] == 'geo-shape':
             raise
 
@@ -104,7 +107,7 @@ class TestFastRun(unittest.TestCase):
         fast_run_base_filter = {'P361': 'Q18589965'}
         item = WikibaseIntegrator(debug=True).item.get('Q2')
         item.init_fastrun(base_filter=fast_run_base_filter)
-        item.claims.add(datatypes.ExternalID('/m/02j71', 'P646'))
+        item.claims.add(datatypes.ExternalID(value='/m/02j71', prop_nr='P646'))
 
         frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P699': ''}, base_data_type=BaseDataType)
 
@@ -168,24 +171,26 @@ def test_nositelinks():
 ####
 def test_ref_equals():
     # statements are identical
-    oldref = [datatypes.ExternalID(value='P58742', prop_nr='P352', is_reference=True),
-              datatypes.Item(value='Q24784025', prop_nr='P527', is_reference=True),
-              datatypes.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813', is_reference=True)]
-    olditem = datatypes.Item("Q123", "P123", references=[oldref])
+    oldref = [datatypes.ExternalID(value='P58742', prop_nr='P352'),
+              datatypes.Item(value='Q24784025', prop_nr='P527'),
+              datatypes.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813')]
+    olditem = datatypes.Item(value='Q123', prop_nr='P123', references=[oldref])
     newitem = copy.deepcopy(olditem)
+
     assert olditem.equals(newitem, include_ref=False)
     assert olditem.equals(newitem, include_ref=True)
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references[0][2] = datatypes.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813')
+    newitem.references.remove(datatypes.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813'))
+    newitem.references.add(datatypes.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813'))
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 
     # multiple refs
     newitem = copy.deepcopy(olditem)
-    newitem.references.append([datatypes.ExternalID(value='99999', prop_nr='P352')])
+    newitem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
-    olditem.references.append([datatypes.ExternalID(value='99999', prop_nr='P352')])
+    olditem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
     assert olditem.equals(newitem, include_ref=True)

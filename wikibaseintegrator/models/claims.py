@@ -43,7 +43,7 @@ class Claims:
             for claim in claims:
                 if claim is not None:
                     assert isinstance(claim, Claim)
-                property = claim.mainsnak.property
+                property = claim.mainsnak.property_number
                 if property in self.claims:
                     for claim_to_remove in self.claims[property]:
                         claim_to_remove.remove()
@@ -51,10 +51,7 @@ class Claims:
         for claim in claims:
             if claim is not None:
                 assert isinstance(claim, Claim)
-            property = claim.mainsnak.property
-
-            if property is None:
-                property = claim.mainsnak.property
+            property = claim.mainsnak.property_number
 
             if property not in self.claims:
                 self.claims[property] = []
@@ -111,14 +108,19 @@ class Claims:
 
 
 class Claim:
-    def __init__(self):
-        self.mainsnak = Snak()
+    DTYPE = 'claim'
+
+    def __init__(self, **kwargs):
+        self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
-        self.qualifiers = Snaks()
+        # self.qualifiers = Snaks()
+        self.qualifiers = kwargs.pop('qualifiers', Snaks())
         self.qualifiers_order = []
         self.id = None
-        self.rank = None
-        self.references = References()
+        # self.rank = None
+        self.rank = kwargs.pop('rank', 'normal')
+        # self.references = References()
+        self.references = kwargs.pop('references', References())
         self.removed = False
 
     @property
@@ -249,7 +251,7 @@ class Claim:
 
     def __eq__(self, other):
         if isinstance(other, Claim):
-            return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property == other.mainsnak.property and self.has_equal_qualifiers(other)
+            return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
         raise TypeError
 
     def __repr__(self):

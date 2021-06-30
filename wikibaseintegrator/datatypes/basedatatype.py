@@ -1,6 +1,3 @@
-import re
-from pprint import pprint
-
 from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
 from wikibaseintegrator.wbi_jsonparser import JsonParser
 
@@ -17,7 +14,7 @@ class BaseDataType(Claim):
         }}
     '''
 
-    def __init__(self, value, prop_nr, **kwargs):
+    def __init__(self, **kwargs):
         """
         Constructor, will be called by all data types.
         :param value: Data value of the Wikibase data snak
@@ -35,30 +32,14 @@ class BaseDataType(Claim):
         :type references: A one level nested list with instances of BaseDataType or children of it.
         :param qualifiers: A list of qualifiers for the Wikibase mainsnak
         :type qualifiers: A list with instances of BaseDataType or children of it.
-        :param is_reference: States if the snak is a reference, mutually exclusive with qualifier
-        :type is_reference: boolean
-        :param is_qualifier: States if the snak is a qualifier, mutually exlcusive with reference
-        :type is_qualifier: boolean
         :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
         :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
         :return:
         """
 
-        super().__init__()
-        self.value = value
-        self.datatype = kwargs.pop('datatype', self.DTYPE)
-        self.snaktype = kwargs.pop('snaktype', 'value')
-        self.references = kwargs.pop('references', None)
-        self.qualifiers = kwargs.pop('qualifiers', None)
-        self.is_reference = kwargs.pop('is_reference', None)
-        self.is_qualifier = kwargs.pop('is_qualifier', None)
-        self.rank = kwargs.pop('rank', 'normal')
+        super().__init__(**kwargs)
 
-        self._statement_ref_mode = 'KEEP_GOOD'
-
-        if not self.references:
-            self.references = References()
-        elif isinstance(self.references, Reference):
+        if isinstance(self.references, Reference):
             self.references = References().add(self.references)
         elif isinstance(self.references, list):
             references = References()
@@ -79,96 +60,17 @@ class BaseDataType(Claim):
                     reference = ref_list
                 references.add(reference=reference)
             self.references = references
-        else:
-            for ref_list in self.references:
-                for reference in ref_list:
-                    if reference.is_reference is False:
-                        raise ValueError('A reference can\'t be declared as is_reference=False')
-                    elif reference.is_reference is None:
-                        reference.is_reference = True
 
-        if not self.qualifiers:
-            self.qualifiers = Snaks()
-        else:
-            for qualifier in self.qualifiers:
-                if qualifier.is_qualifier is False:
-                    raise ValueError('A qualifier can\'t be declared as is_qualifier=False')
-                elif qualifier.is_qualifier is None:
-                    qualifier.is_qualifier = True
-
-        if isinstance(prop_nr, int):
-            self.property = 'P' + str(prop_nr)
-        else:
-            pattern = re.compile(r'^P?([0-9]+)$')
-            matches = pattern.match(prop_nr)
-
-            if not matches:
-                raise ValueError('Invalid prop_nr, format must be "P[0-9]+"')
-            else:
-                self.property = 'P' + str(matches.group(1))
-
-        # Internal ID and hash are issued by the Wikibase instance
-        self.id = None
-        self.hash = None
-
-        self.json_representation = {
-            'snaktype': self.snaktype,
-            'property': self.property,
-            'datavalue': {},
-            'datatype': self.datatype
-        }
-
-        if self.snaktype not in ['value', 'novalue', 'somevalue']:
-            raise ValueError('{} is not a valid snak type'.format(self.snaktype))
-
-        if self.value is None and self.snaktype == 'value':
-            raise ValueError('Parameter \'value\' can\'t be \'None\' if \'snaktype\' is \'value\'')
-
-        if self.is_qualifier and self.is_reference:
-            raise ValueError('A claim cannot be a reference and a qualifer at the same time')
-        if (len(self.references) > 0 or len(self.qualifiers) > 0) and (self.is_qualifier or self.is_reference):
-            raise ValueError('Qualifiers or references cannot have references or qualifiers')
-
-        self.mainsnak = Snak().from_json(self.json_representation)
-
-    @property
-    def statement_ref_mode(self):
-        return self._statement_ref_mode
-
-    @statement_ref_mode.setter
-    def statement_ref_mode(self, value):
-        """Set the reference mode for a statement, always overrides the global reference state."""
-        valid_values = ['STRICT_KEEP', 'STRICT_KEEP_APPEND', 'STRICT_OVERWRITE', 'KEEP_GOOD', 'CUSTOM']
-        if value not in valid_values:
-            raise ValueError('Not an allowed reference mode, allowed values {}'.format(' '.join(valid_values)))
-
-        self._statement_ref_mode = value
-
-    def get_value(self):
-        return self.value
+        self.value = None
+        self.mainsnak.property_number = kwargs.pop('prop_nr', None)
 
     def get_sparql_value(self):
         return self.value
-
-    def set_value(self, value):
-        if value is None and self.snaktype not in {'novalue', 'somevalue'}:
-            raise ValueError("If 'value' is None, snaktype must be novalue or somevalue")
-        if self.snaktype in {'novalue', 'somevalue'}:
-            del self.json_representation['datavalue']
-        elif 'datavalue' not in self.json_representation:
-            self.json_representation['datavalue'] = {}
-
-        self.mainsnak = Snak().from_json(self.json_representation)
-
-        self.value = value
 
     def get_references(self):
         return self.references
 
     def set_references(self, references):
-        if len(references) > 0 and (self.is_qualifier or self.is_reference):
-            raise ValueError("Qualifiers or references cannot have references")
-
         # Force clean duplicate references
         temp_references = []
         for reference in references:
@@ -180,21 +82,12 @@ class BaseDataType(Claim):
 
     def set_qualifiers(self, qualifiers):
         # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in Wikibase
-        if len(qualifiers) > 0 and (self.is_qualifier or self.is_reference):
-            raise ValueError("Qualifiers or references cannot have qualifiers")
-
         self.qualifiers = qualifiers
 
     def get_rank(self):
-        if self.is_qualifier or self.is_reference:
-            return ''
-        else:
-            return self.rank
+        return self.rank
 
     def set_rank(self, rank):
-        if self.is_qualifier or self.is_reference:
-            raise ValueError("References or qualifiers do not have ranks")
-
         valid_ranks = ['normal', 'deprecated', 'preferred']
 
         if rank not in valid_ranks:
@@ -209,13 +102,10 @@ class BaseDataType(Claim):
         self.id = claim_id
 
     def get_prop_nr(self):
-        return self.property
+        return self.mainsnak.property_number
 
     def set_prop_nr(self, prop_nr):
-        if prop_nr[0] != 'P':
-            raise ValueError("Invalid property number")
-
-        self.property = prop_nr
+        self.mainsnak.property_number = prop_nr
 
     @classmethod
     @JsonParser
