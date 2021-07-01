@@ -5,6 +5,7 @@ from wikibaseintegrator import datatypes, WikibaseIntegrator
 from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, MonolingualText, Quantity, CommonsMedia, GlobeCoordinate, GeoShape, Property, TabularData, \
     MusicalNotation, Lexeme, Form, Sense
 from wikibaseintegrator.entities import Item
+from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.wbi_api import Api
 
 wbi = WikibaseIntegrator()
@@ -83,6 +84,7 @@ class TestWbiCore(unittest.TestCase):
         item.descriptions.set(value='fghjkltest', language='en', if_exists='KEEP')
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
         # set_description on empty desription
+        item.descriptions = LanguageValues()
         item.descriptions.set(value='')
         item.descriptions.set(value='zaehjgreytret', language='en', if_exists='KEEP')
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'zaehjgreytret'}

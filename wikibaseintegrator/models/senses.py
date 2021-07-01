@@ -4,23 +4,27 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 class Senses:
     def __init__(self):
-        self.senses = {}
+        self.senses = []
 
     def get(self, id):
-        return self.senses[id]
+        for sense in self.senses:
+            if sense.id == id:
+                return sense
+        return None
 
-    def add(self, form):
-        self.senses[form.id] = form
+    # TODO: implement if_exists
+    def add(self, sense, if_exists='REPLACE'):
+        self.senses.append(sense)
 
     def get_json(self) -> []:
         json_data = []
         for sense in self.senses:
-            json_data.append(self.senses[sense].get_json())
+            json_data.append(sense.get_json())
         return json_data
 
     def from_json(self, json_data):
         for sense in json_data:
-            self.add(Sense(form_id=sense['id'], glosses=Glosses().from_json(sense['glosses']), claims=Claims().from_json(sense['claims'])))
+            self.add(Sense(sense_id=sense['id'], glosses=Glosses().from_json(sense['glosses']), claims=Claims().from_json(sense['claims'])))
 
         return self
 
@@ -34,8 +38,8 @@ class Senses:
 
 
 class Sense:
-    def __init__(self, form_id=None, glosses=None, claims=None):
-        self.id = form_id
+    def __init__(self, sense_id=None, glosses=None, claims=None):
+        self.id = sense_id
         self.glosses = glosses or Glosses()
         self.claims = claims or Claims()
         self.removed = False
@@ -46,8 +50,14 @@ class Sense:
             'glosses': self.glosses.get_json(),
             'claims': self.claims.get_json()
         }
+
+        if self.id is None:
+            json_data['add'] = ''
+            del json_data['id']
+
         if self.removed:
             json_data['remove'] = ''
+
         return json_data
 
     def remove(self):

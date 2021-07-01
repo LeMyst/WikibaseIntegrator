@@ -32,7 +32,7 @@ class Lexeme(BaseEntity):
         return self
 
     def get_json(self) -> {}:
-        return {
+        json_data = {
             'lemmas': self.lemmas.get_json(),
             'lexicalCategory': self.lexical_category,
             'language': self.language,
@@ -40,6 +40,11 @@ class Lexeme(BaseEntity):
             'senses': self.senses.get_json(),
             **super(Lexeme, self).get_json()
         }
+
+        if self.lexical_category is None:
+            del json_data['lexicalCategory']
+
+        return json_data
 
     def from_json(self, json_data) -> Lexeme:
         super(Lexeme, self).from_json(json_data=json_data)

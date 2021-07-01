@@ -87,12 +87,18 @@ class Form:
         self.__claims = value
 
     def get_json(self) -> {}:
-        return {
+        json_data = {
             'id': self.id,
             'representations': self.representations.get_json(),
             'grammaticalFeatures': self.grammatical_features,
             'claims': self.claims.get_json()
         }
+
+        if self.id is None:
+            json_data['add'] = ''
+            del json_data['id']
+
+        return json_data
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

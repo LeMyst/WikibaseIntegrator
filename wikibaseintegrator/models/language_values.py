@@ -15,7 +15,11 @@ class LanguageValues:
 
     def add(self, language_value):
         assert isinstance(language_value, LanguageValue)
-        self.values[language_value.language] = language_value
+
+        if language_value.value:
+            self.values[language_value.language] = language_value
+
+        return self
 
     def get(self, language=None):
         language = config['DEFAULT_LANGUAGE'] if language is None else language
@@ -33,8 +37,8 @@ class LanguageValues:
             self.values[language].remove()
             return None
 
-        language_value = LanguageValue(language, value)
-        if if_exists == 'REPLACE' or not str(self.get(language=language)):
+        if if_exists == 'REPLACE' or self.get(language=language) is None:
+            language_value = LanguageValue(language, value)
             self.add(language_value)
             return language_value
         else:
@@ -78,6 +82,9 @@ class LanguageValue:
     def language(self, value):
         if value is None:
             raise ValueError("language can't be None")
+
+        if value == '':
+            raise ValueError("language can't be empty")
 
         if not isinstance(value, str):
             raise ValueError("language must be a str")
