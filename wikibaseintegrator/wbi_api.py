@@ -35,8 +35,7 @@ class Api(object):
         :param method: 'GET' or 'POST'
         :param mediawiki_api_url:
         :param session: If a session is passed, it will be used. Otherwise a new requests session is created
-        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to
-        `max_retries` times
+        :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
         :type max_retries: int
         :param retry_after: Number of seconds to wait before retrying request (see max_retries)
         :type retry_after: int
