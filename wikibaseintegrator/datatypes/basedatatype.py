@@ -66,46 +66,6 @@ class BaseDataType(Claim):
     def get_sparql_value(self):
         return self.value
 
-    def get_references(self):
-        return self.references
-
-    def set_references(self, references):
-        # Force clean duplicate references
-        temp_references = []
-        for reference in references:
-            if reference not in temp_references:
-                temp_references.append(reference)
-        references = temp_references
-
-        self.references = references
-
-    def set_qualifiers(self, qualifiers):
-        # TODO: introduce a check to prevent duplicate qualifiers, those are not allowed in Wikibase
-        self.qualifiers = qualifiers
-
-    def get_rank(self):
-        return self.rank
-
-    def set_rank(self, rank):
-        valid_ranks = ['normal', 'deprecated', 'preferred']
-
-        if rank not in valid_ranks:
-            raise ValueError("{} not a valid rank".format(rank))
-
-        self.rank = rank
-
-    def get_id(self):
-        return self.id
-
-    def set_id(self, claim_id):
-        self.id = claim_id
-
-    def get_prop_nr(self):
-        return self.mainsnak.property_number
-
-    def set_prop_nr(self, prop_nr):
-        self.mainsnak.property_number = prop_nr
-
     def equals(self, that, include_ref=False, fref=None):
         """
         Tests for equality of two statements.
