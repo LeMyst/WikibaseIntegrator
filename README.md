@@ -5,6 +5,12 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+# Breaking changes in v0.12 #
+
+I am currently doing a big rewrite from this library.<br>
+You can track the progress and ask questions in the Pull Request #152.<br>
+This change will break the compatibility with all existing scripts.
+
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
