@@ -174,6 +174,9 @@ class Claim:
 
     @rank.setter
     def rank(self, value):
+        if value not in ['normal', 'deprecated', 'preferred']:
+            raise ValueError("{} not a valid rank".format(value))
+
         self.__rank = value
 
     @property
