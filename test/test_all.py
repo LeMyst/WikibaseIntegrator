@@ -8,7 +8,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_api import Api
 
-wbi = WikibaseIntegrator()
+wbi = WikibaseIntegrator(debug=True)
 
 
 class TestMediawikiApiCall(unittest.TestCase):
@@ -96,14 +96,15 @@ class TestFastRun(unittest.TestCase):
         print(fast_run_result, message)
 
         # here, fastrun should succeed, if not, test failed
-        # if fast_run_result:
-        #    raise ValueError
+        if fast_run_result:
+            raise ValueError
 
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
         fast_run_base_filter = {'P361': 'Q18589965'}
         item = WikibaseIntegrator(debug=True).item.get('Q2')
         item.init_fastrun(base_filter=fast_run_base_filter)
+        item.init_fastrun(base_filter=fast_run_base_filter)  # Test if we found the same FastRunContainer
         item.claims.add(datatypes.ExternalID(value='/m/02j71', prop_nr='P646'))
 
         frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P699': ''}, base_data_type=BaseDataType)

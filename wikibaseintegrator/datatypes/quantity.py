@@ -98,4 +98,4 @@ class Quantity(BaseDataType):
         self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
 
     def get_sparql_value(self):
-        return self.quantity
+        return Helpers.format_amount(self.quantity)

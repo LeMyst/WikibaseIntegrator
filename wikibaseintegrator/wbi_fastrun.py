@@ -99,8 +99,7 @@ class FastRunContainer(object):
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
-            current_value = claim.value
-            if not current_value and not claim.datatype:
+            if not claim.mainsnak.datavalue and not claim.datatype:
                 continue
 
             prop_nr = claim.mainsnak.property_number
@@ -111,33 +110,32 @@ class FastRunContainer(object):
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
 
-            # more sophisticated data types like dates and globe coordinates need special treatment here
-            if self.prop_dt_map[prop_nr] == 'time':
-                current_value = current_value[0]
-            elif self.prop_dt_map[prop_nr] == 'wikibase-item':
+            current_value = claim.get_sparql_value()
+
+            if self.prop_dt_map[prop_nr] == 'wikibase-item':
                 if not str(current_value).startswith('Q'):
                     current_value = 'Q{}'.format(current_value)
-            elif self.prop_dt_map[prop_nr] == 'quantity':
-                current_value = Helpers.format_amount(current_value[0])
 
             if self.api.debug:
                 print(current_value)
+                if self.case_insensitive:
+                    print("case insensitive enabled")
+                    print(self.rev_lookup_ci)
+                else:
+                    print(self.rev_lookup)
 
             if current_value in self.rev_lookup:
                 # quick check for if the value has ever been seen before, if not, write required
-                temp_set = set(self.rev_lookup[current_value])
+                match_sets.append(set(self.rev_lookup[current_value]))
             elif self.case_insensitive and current_value.casefold() in self.rev_lookup_ci:
-                temp_set = set(self.rev_lookup_ci[current_value.casefold()])
+                match_sets.append(set(self.rev_lookup_ci[current_value.casefold()]))
             else:
                 if self.api.debug:
-                    if self.case_insensitive:
-                        print("case insensitive enabled")
-                        print(self.rev_lookup_ci)
-                    else:
-                        print(self.rev_lookup)
                     print("no matches for rev lookup")
-                return True
-            match_sets.append(temp_set)
+                # return True
+
+        if not match_sets:
+            return True
 
         if cqid:
             matching_qids = {cqid}
@@ -160,11 +158,11 @@ class FastRunContainer(object):
         data_props = set()
         append_props = []
         if if_exists == 'APPEND':
-            append_props = [x.get_prop_nr() for x in data]
+            append_props = [x.mainsnak.property_number for x in data]
 
         for x in data:
             if x.value and x.mainsnak.datatype:
-                data_props.add(x.get_prop_nr())
+                data_props.add(x.mainsnak.property_number)
         write_required = False
         self.load_item(data, cqid)
 
@@ -173,8 +171,8 @@ class FastRunContainer(object):
 
         # handle append properties
         for p in append_props:
-            app_data = [x for x in data if x.get_prop_nr() == p]  # new statements
-            rec_app_data = [x for x in tmp_rs if x.get_prop_nr() == p]  # orig statements
+            app_data = [x for x in data if x.mainsnak.property_number == p]  # new statements
+            rec_app_data = [x for x in tmp_rs if x.mainsnak.property_number == p]  # orig statements
             comp = []
             for x in app_data:
                 for y in rec_app_data:
@@ -188,12 +186,12 @@ class FastRunContainer(object):
                     print("failed append: {}".format(p))
                 return True
 
-        tmp_rs = [x for x in tmp_rs if x.get_prop_nr() not in append_props and x.get_prop_nr() in data_props]
+        tmp_rs = [x for x in tmp_rs if x.mainsnak.property_number not in append_props and x.mainsnak.property_number in data_props]
 
         for date in data:
             # ensure that statements meant for deletion get handled properly
-            reconst_props = set([x.get_prop_nr() for x in tmp_rs])
-            if (not date.value or not date.mainsnak.datatype) and date.get_prop_nr() in reconst_props:
+            reconst_props = set([x.mainsnak.property_number for x in tmp_rs])
+            if (not date.value or not date.mainsnak.datatype) and date.mainsnak.property_number in reconst_props:
                 if self.api.debug:
                     print("returned from delete prop handling")
                 return True
@@ -201,12 +199,12 @@ class FastRunContainer(object):
                 # Ignore the deletion statements which are not in the reconstructed statements.
                 continue
 
-            if date.get_prop_nr() in append_props:
+            if date.mainsnak.property_number in append_props:
                 # TODO: check if value already exist and already have the same value
                 continue
 
             if not date.mainsnak.datavalue and not date.mainsnak.datatype:
-                del_props.add(date.get_prop_nr())
+                del_props.add(date.mainsnak.property_number)
 
             # this is where the magic happens
             # date is a new statement, proposed to be written
@@ -214,7 +212,7 @@ class FastRunContainer(object):
             bool_vec = []
             for x in tmp_rs:
                 if (x.mainsnak.datavalue == date.mainsnak.datavalue or (
-                        self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.get_prop_nr() not in del_props:
+                        self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.mainsnak.property_number not in del_props:
                     if x.equals(date, include_ref=self.use_refs):
                         bool_vec.append(True)
                     else:
@@ -223,24 +221,24 @@ class FastRunContainer(object):
                     bool_vec.append(False)
             """
             bool_vec = [x.equals(date, include_ref=self.use_refs, fref=self.ref_comparison_f) and
-            x.get_prop_nr() not in del_props for x in tmp_rs]
+            x.mainsnak.property_number not in del_props for x in tmp_rs]
             """
 
             if self.api.debug:
                 print("bool_vec: {}".format(bool_vec))
                 print("-----------------------------------")
                 for x in tmp_rs:
-                    if date == x and x.get_prop_nr() not in del_props:
-                        print(x.get_prop_nr(), x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
-                        print(date.get_prop_nr(), date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
-                    elif x.get_prop_nr() == date.get_prop_nr():
-                        print(x.get_prop_nr(), x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
-                        print(date.get_prop_nr(), date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
+                    if date == x and x.mainsnak.property_number not in del_props:
+                        print(x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
+                        print(date.mainsnak.property_number, date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
+                    elif x.mainsnak.property_number == date.mainsnak.property_number:
+                        print(x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
+                        print(date.mainsnak.property_number, date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
 
             if not any(bool_vec):
                 if self.api.debug:
                     print(len(bool_vec))
-                    print("fast run failed at", date.get_prop_nr())
+                    print("fast run failed at", date.mainsnak.property_number)
                 write_required = True
             else:
                 if self.api.debug:
@@ -251,7 +249,7 @@ class FastRunContainer(object):
             if self.api.debug:
                 print("failed because not zero")
                 for x in tmp_rs:
-                    print("xxx", x.get_prop_nr(), x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
+                    print("xxx", x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
                 print("failed because not zero--END")
             write_required = True
         return write_required
@@ -388,6 +386,8 @@ class FastRunContainer(object):
                 ref_prop_dt = self.get_prop_datatype(prop_nr=i['pr'])
                 if i['rval']['type'] == 'uri' and ref_prop_dt == 'wikibase-item':
                     i['rval'] = i['rval']['value'].split('/')[-1]
+                elif i['rval']['type'] == 'literal' and ref_prop_dt == 'quantity':
+                    i['rval'] = Helpers.format_amount(i['rval']['value'])
                 else:
                     i['rval'] = i['rval']['value']
 

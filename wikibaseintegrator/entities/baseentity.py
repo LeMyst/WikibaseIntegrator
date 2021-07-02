@@ -183,25 +183,6 @@ class BaseEntity(object):
             self.lastrevid = json_data['entity']['lastrevid']
         return json_data['entity']
 
-    def fr_search(self, base_filter=None, use_refs=False, case_insensitive=False):
-        if base_filter is None:
-            base_filter = {}
-        self.init_fastrun(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
-        self.fast_run_container.load_item(self.claims)
-        self.id = self.fast_run_container.current_qid
-
-        # TODO: Do something here
-        # if not self.search_only:
-        #     self.require_write = self.fast_run_container.write_required(self.data, cqid=self.id)
-        #     # set item id based on fast run data
-        #     if not self.require_write and not self.id:
-        #         self.id = self.fast_run_container.current_qid
-        # else:
-        #     self.fast_run_container.load_item(self.data)
-        #     # set item id based on fast run data
-        #     if not self.id:
-        #         self.id = self.fast_run_container.current_qid
-
     def init_fastrun(self, base_filter=None, use_refs=False, case_insensitive=False, ):
         if base_filter is None:
             base_filter = {}

@@ -3,7 +3,7 @@ from wikibaseintegrator.datatypes import BaseDataType, Item, ExternalID
 
 # wbi_fastrun.FastRunContainer.debug = True
 
-wbi = WikibaseIntegrator()
+wbi = WikibaseIntegrator(debug=True)
 
 
 def test_query_data():
