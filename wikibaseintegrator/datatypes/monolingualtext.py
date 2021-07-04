@@ -43,7 +43,7 @@ class MonolingualText(BaseDataType):
         self.text, self.language = value
         if self.text is not None:
             assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
-        elif self.snaktype == 'value':
+        elif self.mainsnak.snaktype == 'value':
             raise ValueError("Parameter 'text' can't be 'None' if 'snaktype' is 'value'")
         assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
 

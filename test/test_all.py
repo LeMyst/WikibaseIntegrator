@@ -6,7 +6,7 @@ import requests
 from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
-from wikibaseintegrator.wbi_api import Api
+from wikibaseintegrator.wbi_helpers import Helpers
 
 wbi = WikibaseIntegrator(debug=True)
 
@@ -14,13 +14,13 @@ wbi = WikibaseIntegrator(debug=True)
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            Api.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=3,
-                                          retry_after=1, allow_anonymous=True)
+            Helpers.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=3,
+                                              retry_after=1, allow_anonymous=True)
         with self.assertRaises(requests.HTTPError):
-            Api.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
+            Helpers.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
-        test = Api.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
-                                             allow_anonymous=True)
+        test = Helpers.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
+                                                 allow_anonymous=True)
         print(test)
 
 
@@ -85,7 +85,7 @@ class TestFastRun(unittest.TestCase):
             datatypes.ExternalID(value='YER158C', prop_nr='P705')
         ]
 
-        frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P352': '', 'P703': 'Q27510868'}, base_data_type=datatypes.BaseDataType)
+        frc = wbi_fastrun.FastRunContainer(api=wbi, base_filter={'P352': '', 'P703': 'Q27510868'}, base_data_type=datatypes.BaseDataType)
 
         fast_run_result = frc.write_required(data=statements)
 
@@ -107,7 +107,7 @@ class TestFastRun(unittest.TestCase):
         item.init_fastrun(base_filter=fast_run_base_filter)  # Test if we found the same FastRunContainer
         item.claims.add(datatypes.ExternalID(value='/m/02j71', prop_nr='P646'))
 
-        frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P699': ''}, base_data_type=BaseDataType)
+        frc = wbi_fastrun.FastRunContainer(api=wbi, base_filter={'P699': ''}, base_data_type=BaseDataType)
 
         assert item.labels.get(language='en') == "Earth"
         descr = item.descriptions.get(language='en')

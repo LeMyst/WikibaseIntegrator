@@ -6,7 +6,7 @@ from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, Mo
     MusicalNotation, Lexeme, Form, Sense
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
-from wikibaseintegrator.wbi_api import Api
+from wikibaseintegrator.wbi_helpers import Helpers
 
 wbi = WikibaseIntegrator()
 
@@ -15,13 +15,13 @@ class TestWbiCore(unittest.TestCase):
     common_item = wbi.item.new().get('Q2')
 
     def test_item_engine(self):
-        Item(api=wbi.api)
+        Item(api=wbi)
         wbi.item.new()
-        Item(api=wbi.api).add_claims(String(value='test', prop_nr='P1'))
-        Item(api=wbi.api).add_claims([String(value='test', prop_nr='P1')])
-        Item(api=wbi.api, id='Q2')
+        Item(api=wbi).add_claims(String(value='test', prop_nr='P1'))
+        Item(api=wbi).add_claims([String(value='test', prop_nr='P1')])
+        Item(api=wbi, id='Q2')
         with self.assertRaises(TypeError):
-            Item(api=wbi.api).add_claims('test')
+            Item(api=wbi).add_claims('test')
 
     def test_search_only(self):
         item = wbi.item.new().get(entity_id='Q2')
@@ -122,14 +122,14 @@ class TestWbiCore(unittest.TestCase):
         assert 'remove' in item.get_json()['aliases']['ak'][0]
 
     def test_wd_search(self):
-        t = Api.search_entities('rivaroxaban')
+        t = Helpers.search_entities('rivaroxaban')
         print('Number of results: ', len(t))
         self.assertIsNot(len(t), 0)
 
     def test_entity_generator(self):
         entities = ['Q408883', 'P715', 'Q18046452']
 
-        entity_instances = Api.generate_entity_instances(entities=entities)
+        entity_instances = Helpers.generate_entity_instances(entities=entities)
 
         for qid, entity in entity_instances:
             self.assertIn(qid, entities)

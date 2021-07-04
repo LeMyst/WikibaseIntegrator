@@ -3,30 +3,12 @@ from time import sleep
 
 import requests
 
-from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
 
 
-class Api(object):
-
-    def __init__(self, mediawiki_api_url, mediawiki_index_url, mediawiki_rest_url, sparql_endpoint_url, wikibase_url, property_constraint_pid, distinct_values_constraint_qid,
-                 search_only, is_bot, language, lexeme_language, login, debug=None):
-        self.mediawiki_api_url = mediawiki_api_url
-        self.mediawiki_index_url = mediawiki_index_url
-        self.mediawiki_rest_url = mediawiki_rest_url
-        self.sparql_endpoint_url = sparql_endpoint_url
-        self.wikibase_url = wikibase_url
-        self.property_constraint_pid = property_constraint_pid
-        self.distinct_values_constraint_qid = distinct_values_constraint_qid
-        self.search_only = search_only
-
-        self.is_bot = is_bot
-        self.language = language
-        self.lexeme_language = lexeme_language
-        self.login = login
-        self.debug = debug or config['DEBUG']
+class Helpers(object):
 
     @staticmethod
     @wbi_backoff()
@@ -143,9 +125,12 @@ class Api(object):
                 # Always assert anon if allow_anonymous is True
                 data.update({'assert': 'anon'})
 
+        if config['MAXLAG'] > 0:
+            data.update({'maxlag': config['MAXLAG']})
+
         login_session = login.get_session() if login is not None else None
 
-        return Api.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after)
+        return Helpers.mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after)
 
     @staticmethod
     @wbi_backoff()
@@ -207,7 +192,7 @@ class Api(object):
             return results
 
     @staticmethod
-    def merge_items(from_id, to_id, ignore_conflicts='', mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
+    def merge_items(from_id, to_id, ignore_conflicts='', **kwargs):
         """
         A static method to merge two items
         :param from_id: The QID which should be merged into another item
@@ -234,13 +219,34 @@ class Api(object):
             'ignoreconflicts': ignore_conflicts
         }
 
-        if config['MAXLAG'] > 0:
-            params.update({'maxlag': config['MAXLAG']})
-
-        return Api.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
+        return Helpers.mediawiki_api_call_helper(data=params, **kwargs)
 
     @staticmethod
-    def remove_claims(claim_id, summary=None, revision=None, mediawiki_api_url=None, login=None, allow_anonymous=False, user_agent=None):
+    def merge_lexemes(source, target, summary=None, **kwargs):
+        """
+        A static method to merge two items
+
+        :param source: The QID which should be merged into another item
+        :type source: string with 'Q' prefix
+        :param target: The QID into which another item should be merged
+        :type target: string with 'Q' prefix
+        """
+
+        params = {
+            'action': 'wblmergelexemes',
+            'fromid': source,
+            'toid': target,
+            'format': 'json',
+            'bot': ''
+        }
+
+        if summary:
+            params.update({'summary': summary})
+
+        return Helpers.mediawiki_api_call_helper(data=params, **kwargs)
+
+    @staticmethod
+    def remove_claims(claim_id, summary=None, revision=None, **kwargs):
         """
         Delete an item
         :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
@@ -261,20 +267,20 @@ class Api(object):
         params = {
             'action': 'wbremoveclaims',
             'claim': claim_id,
-            'summary': summary,
-            'baserevid': revision,
-            'bot': True,
+            'bot': '',
             'format': 'json'
         }
 
-        if config['MAXLAG'] > 0:
-            params.update({'maxlag': config['MAXLAG']})
+        if summary:
+            params.update({'summary': summary})
 
-        return Api.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
+        if revision:
+            params.update({'revision': revision})
+
+        return Helpers.mediawiki_api_call_helper(data=params, **kwargs)
 
     @staticmethod
-    def search_entities(search_string, language=None, strict_language=True, search_type='item', mediawiki_api_url=None, max_results=500, dict_result=False, login=None,
-                        allow_anonymous=True, user_agent=None):
+    def search_entities(search_string, language=None, strict_language=True, search_type='item', max_results=500, dict_result=False, **kwargs):
         """
         Performs a search for entities in the Wikibase instance using labels and aliases.
         :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
@@ -317,8 +323,7 @@ class Api(object):
         while True:
             params.update({'continue': cont_count})
 
-            search_results = Api.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent,
-                                                           allow_anonymous=allow_anonymous)
+            search_results = Helpers.mediawiki_api_call_helper(data=params, **kwargs)
 
             if search_results['success'] != 1:
                 raise SearchError('Wikibase API wbsearchentities failed')
@@ -348,7 +353,7 @@ class Api(object):
         return results
 
     @staticmethod
-    def generate_entity_instances(entities, mediawiki_api_url=None, login=None, allow_anonymous=True, user_agent=None):
+    def generate_entity_instances(entities, **kwargs):
         """
         A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
         second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
@@ -364,6 +369,8 @@ class Api(object):
         :type allow_anonymous: bool
         """
 
+        from wikibaseintegrator.entities.baseentity import BaseEntity
+
         if isinstance(entities, str):
             entities = [entities]
 
@@ -375,15 +382,28 @@ class Api(object):
             'format': 'json'
         }
 
-        reply = Api.mediawiki_api_call_helper(data=params, login=login, mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=allow_anonymous)
+        reply = Helpers.mediawiki_api_call_helper(data=params, **kwargs)
 
         entity_instances = []
         for qid, v in reply['entities'].items():
             from wikibaseintegrator import WikibaseIntegrator
             wbi = WikibaseIntegrator(mediawiki_api_url=mediawiki_api_url)
             f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
-            ii = f(api=wbi.api).from_json(v)
+            ii = f(api=wbi).from_json(v)
             ii.mediawiki_api_url = mediawiki_api_url
             entity_instances.append((qid, ii))
 
         return entity_instances
+
+    @staticmethod
+    def format_amount(amount) -> str:
+        # Remove .0 by casting to int
+        if float(amount) % 1 == 0:
+            amount = int(float(amount))
+
+        # Adding prefix + for positive number and 0
+        if not str(amount).startswith('+') and float(amount) >= 0:
+            amount = str('+{}'.format(amount))
+
+        # return as string
+        return str(amount)

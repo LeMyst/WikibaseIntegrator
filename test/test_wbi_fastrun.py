@@ -1,8 +1,6 @@
 from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator
 from wikibaseintegrator.datatypes import BaseDataType, Item, ExternalID
 
-# wbi_fastrun.FastRunContainer.debug = True
-
 wbi = WikibaseIntegrator(debug=True)
 
 
@@ -14,7 +12,7 @@ def test_query_data():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     without getting references
     """
-    frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P699': ''}, base_data_type=BaseDataType)
+    frc = wbi_fastrun.FastRunContainer(api=wbi, base_filter={'P699': ''}, base_data_type=BaseDataType)
     # get a string value
     frc._query_data('P699')
     # wikidata-item value
@@ -64,7 +62,7 @@ def test_query_data_ref():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     WITH getting references
     """
-    frc = wbi_fastrun.FastRunContainer(api=wbi.api, base_filter={'P699': ''}, base_data_type=BaseDataType, use_refs=True)
+    frc = wbi_fastrun.FastRunContainer(api=wbi, base_filter={'P699': ''}, base_data_type=BaseDataType, use_refs=True)
     frc._query_data('P699')
 
     # https://www.wikidata.org/wiki/Q10874
@@ -117,7 +115,7 @@ class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
 
 def test_fastrun_ref_ensembl():
     # fastrun checks refs
-    frc = FastRunContainerFakeQueryDataEnsembl(api=wbi.api, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
+    frc = FastRunContainerFakeQueryDataEnsembl(api=wbi, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
 
     # statement has no ref
     frc.debug = True
@@ -135,12 +133,12 @@ def test_fastrun_ref_ensembl():
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,
-    frc = FastRunContainerFakeQueryDataEnsemblNoRef(api=wbi.api, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
+    frc = FastRunContainerFakeQueryDataEnsemblNoRef(api=wbi, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert not frc.write_required(data=statements)
 
     # fastrun don't check references, statement has reference,
-    frc = FastRunContainerFakeQueryDataEnsemblNoRef(api=wbi.api, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
+    frc = FastRunContainerFakeQueryDataEnsemblNoRef(api=wbi, base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q123", prop_nr="P31")]])]
     assert not frc.write_required(data=statements)
 
@@ -181,8 +179,8 @@ def test_append_props():
     # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
-    wbi.api.debug = True
-    frc = FakeQueryDataAppendProps(api=wbi.api, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
+    wbi.debug = True
+    frc = FakeQueryDataAppendProps(api=wbi, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, if_exists='APPEND', cqid=qid) is False
@@ -194,7 +192,7 @@ def test_append_props():
     assert frc.write_required(data=statements, cqid=qid) is True
 
     # if we are in append mode, and the refs are different, we should write
-    frc = FakeQueryDataAppendProps(api=wbi.api, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
+    frc = FakeQueryDataAppendProps(api=wbi, base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
     assert frc.write_required(data=statements, cqid=qid) is True
