@@ -124,9 +124,8 @@ class Helpers(object):
             elif 'assert' not in data:
                 # Always assert anon if allow_anonymous is True
                 data.update({'assert': 'anon'})
-
-        if config['MAXLAG'] > 0:
-            data.update({'maxlag': config['MAXLAG']})
+            if config['MAXLAG'] > 0:
+                data.update({'maxlag': config['MAXLAG']})
 
         login_session = login.get_session() if login is not None else None
 
@@ -280,7 +279,7 @@ class Helpers(object):
         return Helpers.mediawiki_api_call_helper(data=params, **kwargs)
 
     @staticmethod
-    def search_entities(search_string, language=None, strict_language=True, search_type='item', max_results=500, dict_result=False, **kwargs):
+    def search_entities(search_string, language=None, strict_language=True, search_type='item', max_results=500, dict_result=False, allow_anonymous=True, **kwargs):
         """
         Performs a search for entities in the Wikibase instance using labels and aliases.
         :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
@@ -323,7 +322,7 @@ class Helpers(object):
         while True:
             params.update({'continue': cont_count})
 
-            search_results = Helpers.mediawiki_api_call_helper(data=params, **kwargs)
+            search_results = Helpers.mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
 
             if search_results['success'] != 1:
                 raise SearchError('Wikibase API wbsearchentities failed')
@@ -353,7 +352,7 @@ class Helpers(object):
         return results
 
     @staticmethod
-    def generate_entity_instances(entities, **kwargs):
+    def generate_entity_instances(entities, allow_anonymous=True, **kwargs):
         """
         A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
         second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
@@ -382,7 +381,9 @@ class Helpers(object):
             'format': 'json'
         }
 
-        reply = Helpers.mediawiki_api_call_helper(data=params, **kwargs)
+        reply = Helpers.mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+
+        mediawiki_api_url = kwargs.pop('mediawiki_api_url', None)
 
         entity_instances = []
         for qid, v in reply['entities'].items():
@@ -390,7 +391,7 @@ class Helpers(object):
             wbi = WikibaseIntegrator(mediawiki_api_url=mediawiki_api_url)
             f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
             ii = f(api=wbi).from_json(v)
-            ii.mediawiki_api_url = mediawiki_api_url
+            ii.mediawiki_api_url = wbi.mediawiki_api_url
             entity_instances.append((qid, ii))
 
         return entity_instances
