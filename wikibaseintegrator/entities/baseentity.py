@@ -8,7 +8,6 @@ from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
 class BaseEntity(object):
-    distinct_value_props = {}
     fast_run_store = []
 
     ETYPE = 'base-entity'
@@ -26,15 +25,7 @@ class BaseEntity(object):
         self.id = kwargs.pop('id', None)
         self.claims = kwargs.pop('claims', Claims())
 
-        # WikibaseIntegrator specific
-        self.new_item = kwargs.pop('new_item', False)
-        if self.id and self.new_item:
-            raise ValueError("Cannot create a new item, when an identifier is given.")
-        elif not self.id:
-            self.new_item = True
-
         self.json = {}
-        self.statements = []
 
         if self.api.search_only:
             self.require_write = False
@@ -77,8 +68,6 @@ class BaseEntity(object):
         self.type = json_data['type']
         self.id = json_data['id']
         self.claims = Claims().from_json(json_data['claims'])
-
-        self.new_item = False
 
     def get(self, entity_id):
         """
@@ -140,10 +129,10 @@ class BaseEntity(object):
         if self.api.is_bot:
             payload.update({'bot': ''})
 
-        if self.new_item:
-            payload.update({u'new': self.type})
-        else:
+        if self.id:
             payload.update({u'id': self.id})
+        else:
+            payload.update({u'new': self.type})
 
         if self.api.debug:
             print(payload)
