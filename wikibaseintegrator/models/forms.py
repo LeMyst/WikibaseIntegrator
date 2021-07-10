@@ -20,6 +20,8 @@ class Forms:
     def add(self, form):
         self.forms[form.id] = form
 
+        return self
+
     def get_json(self) -> []:
         json_data = []
         for form in self.forms:

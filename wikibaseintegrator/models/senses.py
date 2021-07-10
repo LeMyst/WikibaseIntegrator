@@ -16,6 +16,8 @@ class Senses:
     def add(self, sense, if_exists='REPLACE'):
         self.senses.append(sense)
 
+        return self
+
     def get_json(self) -> []:
         json_data = []
         for sense in self.senses:
