@@ -149,7 +149,7 @@ class BaseEntity(object):
             print(payload)
 
         try:
-            json_data = self.api.mediawiki_api_call_helper(data=payload, login=self.api.login, mediawiki_api_url=self.api.mediawiki_api_url, allow_anonymous=allow_anonymous)
+            json_data = self.api.helpers.mediawiki_api_call_helper(data=payload, login=self.api.login, mediawiki_api_url=self.api.mediawiki_api_url, allow_anonymous=allow_anonymous)
 
             if 'error' in json_data and 'messages' in json_data['error']:
                 error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
