@@ -155,5 +155,4 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # Other stuff
-/test*.py
-config.py
+/drafts/
