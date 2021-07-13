@@ -7,7 +7,7 @@
 
 # Breaking changes in v0.12 #
 
-I am currently doing a big rewrite from this library.<br>
+I am currently doing a big rewrite of this library.<br>
 You can track the progress and ask questions in the Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
 This change will break the compatibility with all existing scripts.
 
