@@ -516,7 +516,7 @@ class ItemEngine(object):
                 return
 
         if 'descriptions' not in self.json_representation or not self.json_representation['descriptions']:
-                self.json_representation['descriptions'] = {}
+            self.json_representation['descriptions'] = {}
 
         self.json_representation['descriptions'][lang] = {
             'language': lang,
