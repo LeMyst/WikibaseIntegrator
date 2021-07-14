@@ -73,8 +73,11 @@ class TestWbiCore(unittest.TestCase):
         item.set_description("lorem ipsum", lang='en', if_exists='KEEP')
         assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
 
+        item.set_description("lorem", lang='fr', if_exists='KEEP')
         item.set_description("lorem ipsum", lang='fr', if_exists='REPLACE')
+        item.set_description("lorem", lang='en', if_exists='KEEP')
         assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
+        assert item.json_representation['descriptions']['fr'] == {'language': 'fr', 'value': 'lorem ipsum'}
 
     def test_label(self):
         item = wbi_core.ItemEngine(item_id="Q2")
