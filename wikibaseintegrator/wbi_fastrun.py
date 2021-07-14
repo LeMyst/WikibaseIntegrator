@@ -4,13 +4,12 @@ from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
 
+from wikibaseintegrator import Helpers
 from wikibaseintegrator.wbi_config import config
 
 
 class FastRunContainer(object):
-    def __init__(self, api, base_data_type, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, case_insensitive=False):
-        self.api = api
-
+    def __init__(self, base_data_type, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, case_insensitive=False, debug=None):
         self.reconstructed_statements = []
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
@@ -28,6 +27,8 @@ class FastRunContainer(object):
         self.wikibase_url = wikibase_url or config['WIKIBASE_URL']
         self.use_refs = use_refs
         self.case_insensitive = case_insensitive
+
+        self.debug = debug or config['DEBUG']
 
         if base_filter and any(base_filter):
             self.base_filter = base_filter
@@ -104,7 +105,7 @@ class FastRunContainer(object):
             prop_nr = claim.mainsnak.property_number
 
             if prop_nr not in self.prop_dt_map:
-                if self.api.debug:
+                if self.debug:
                     print("{} not found in fastrun".format(prop_nr))
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
@@ -115,7 +116,7 @@ class FastRunContainer(object):
                 if not str(current_value).startswith('Q'):
                     current_value = 'Q{}'.format(current_value)
 
-            if self.api.debug:
+            if self.debug:
                 print(current_value)
                 if self.case_insensitive:
                     print("case insensitive enabled")
@@ -129,7 +130,7 @@ class FastRunContainer(object):
             elif self.case_insensitive and current_value.casefold() in self.rev_lookup_ci:
                 match_sets.append(set(self.rev_lookup_ci[current_value.casefold()]))
             else:
-                if self.api.debug:
+                if self.debug:
                     print("no matches for rev lookup")
                 # return True
 
@@ -144,7 +145,7 @@ class FastRunContainer(object):
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
-            if self.api.debug:
+            if self.debug:
                 print("no matches ({})".format(len(matching_qids)))
             return True
 
@@ -181,7 +182,7 @@ class FastRunContainer(object):
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
             if len(comp) != len(app_data):
-                if self.api.debug:
+                if self.debug:
                     print("failed append: {}".format(p))
                 return True
 
@@ -191,7 +192,7 @@ class FastRunContainer(object):
             # ensure that statements meant for deletion get handled properly
             reconst_props = set([x.mainsnak.property_number for x in tmp_rs])
             if (not date.value or not date.mainsnak.datatype) and date.mainsnak.property_number in reconst_props:
-                if self.api.debug:
+                if self.debug:
                     print("returned from delete prop handling")
                 return True
             elif not date.value or not date.mainsnak.datatype:
@@ -223,7 +224,7 @@ class FastRunContainer(object):
             x.mainsnak.property_number not in del_props for x in tmp_rs]
             """
 
-            if self.api.debug:
+            if self.debug:
                 print("bool_vec: {}".format(bool_vec))
                 print("-----------------------------------")
                 for x in tmp_rs:
@@ -235,17 +236,17 @@ class FastRunContainer(object):
                         print(date.mainsnak.property_number, date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
 
             if not any(bool_vec):
-                if self.api.debug:
+                if self.debug:
                     print(len(bool_vec))
                     print("fast run failed at", date.mainsnak.property_number)
                 write_required = True
             else:
-                if self.api.debug:
+                if self.debug:
                     print("fast run success")
                 tmp_rs.pop(bool_vec.index(True))
 
         if len(tmp_rs) > 0:
-            if self.api.debug:
+            if self.debug:
                 print("failed because not zero")
                 for x in tmp_rs:
                     print("xxx", x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
@@ -305,7 +306,7 @@ class FastRunContainer(object):
         else:
             for s in lang_data:
                 if s.strip().casefold() not in all_lang_strings:
-                    if self.api.debug:
+                    if self.debug:
                         print("fastrun failed at: {}, string: {}".format(lang_data_type, s))
                     return True
 
@@ -359,7 +360,7 @@ class FastRunContainer(object):
                 if i['v']['type'] == 'uri' and prop_dt == 'wikibase-item':
                     i['v'] = i['v']['value'].split('/')[-1]
                 elif i['v']['type'] == 'literal' and prop_dt == 'quantity':
-                    i['v'] = self.api.helpers.format_amount(i['v']['value'])
+                    i['v'] = Helpers.format_amount(i['v']['value'])
                 else:
                     i['v'] = i['v']['value']
 
@@ -376,7 +377,7 @@ class FastRunContainer(object):
                 if i['qval']['type'] == 'uri' and qual_prop_dt == 'wikibase-item':
                     i['qval'] = i['qval']['value'].split('/')[-1]
                 elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
-                    i['qval'] = self.api.helpers.format_amount(i['qval']['value'])
+                    i['qval'] = Helpers.format_amount(i['qval']['value'])
                 else:
                     i['qval'] = i['qval']['value']
 
@@ -386,7 +387,7 @@ class FastRunContainer(object):
                 if i['rval']['type'] == 'uri' and ref_prop_dt == 'wikibase-item':
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 elif i['rval']['type'] == 'literal' and ref_prop_dt == 'quantity':
-                    i['rval'] = self.api.helpers.format_amount(i['rval']['value'])
+                    i['rval'] = Helpers.format_amount(i['rval']['value'])
                 else:
                     i['rval'] = i['rval']['value']
 
@@ -429,7 +430,7 @@ class FastRunContainer(object):
         page_size = 10000
         page_count = 0
         num_pages = None
-        if self.api.debug:
+        if self.debug:
             # get the number of pages/queries so we can show a progress bar
             query = """
             SELECT (COUNT(?item) as ?c) where {{
@@ -437,10 +438,10 @@ class FastRunContainer(object):
                   ?item <{wb_url}/prop/{prop_nr}> ?sid .
             }}""".format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
 
-            if self.api.debug:
+            if self.debug:
                 print(query)
 
-            r = self.api.helpers.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            r = Helpers.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
             print("Count: {}".format(count))
             num_pages = (int(count) // page_size) + 1
@@ -520,10 +521,10 @@ class FastRunContainer(object):
             # Format the query
             query = query.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr, offset=str(page_count * page_size), page_size=str(page_size))
 
-            if self.api.debug:
+            if self.debug:
                 print(query)
 
-            results = self.api.helpers.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = Helpers.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -556,10 +557,10 @@ class FastRunContainer(object):
         }}
         '''.format(base_filter=self.base_filter_string, lang_data_type=lang_data_type_dict[lang_data_type], lang=lang)
 
-        if self.api.debug:
+        if self.debug:
             print(query)
 
-        return self.api.helpers.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+        return Helpers.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
     def _process_lang(result: list):
@@ -573,7 +574,7 @@ class FastRunContainer(object):
     @lru_cache(maxsize=100000)
     def get_prop_datatype(self, prop_nr: str) -> str:
         from wikibaseintegrator import WikibaseIntegrator
-        wbi = WikibaseIntegrator(sparql_endpoint_url=self.sparql_endpoint_url, mediawiki_api_url=self.mediawiki_api_url, wikibase_url=self.wikibase_url, debug=self.api.debug)
+        wbi = WikibaseIntegrator()
         property = wbi.property.get(prop_nr)
         return property.datatype
 

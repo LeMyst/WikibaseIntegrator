@@ -383,15 +383,12 @@ class Helpers(object):
 
         reply = Helpers.mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
 
-        mediawiki_api_url = kwargs.pop('mediawiki_api_url', None)
-
         entity_instances = []
         for qid, v in reply['entities'].items():
             from wikibaseintegrator import WikibaseIntegrator
-            wbi = WikibaseIntegrator(mediawiki_api_url=mediawiki_api_url)
+            wbi = WikibaseIntegrator()
             f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
             ii = f(api=wbi).from_json(v)
-            ii.mediawiki_api_url = wbi.mediawiki_api_url
             entity_instances.append((qid, ii))
 
         return entity_instances

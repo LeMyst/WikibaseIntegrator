@@ -6,9 +6,12 @@ import requests
 from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
+from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import Helpers
 
-wbi = WikibaseIntegrator(debug=True)
+config['debug'] = True
+
+wbi = WikibaseIntegrator()
 
 
 class TestMediawikiApiCall(unittest.TestCase):
@@ -85,7 +88,7 @@ class TestFastRun(unittest.TestCase):
             datatypes.ExternalID(value='YER158C', prop_nr='P705')
         ]
 
-        frc = wbi_fastrun.FastRunContainer(api=wbi, base_filter={'P352': '', 'P703': 'Q27510868'}, base_data_type=datatypes.BaseDataType)
+        frc = wbi_fastrun.FastRunContainer(base_filter={'P352': '', 'P703': 'Q27510868'}, base_data_type=datatypes.BaseDataType)
 
         fast_run_result = frc.write_required(data=statements)
 
@@ -102,12 +105,12 @@ class TestFastRun(unittest.TestCase):
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
         fast_run_base_filter = {'P361': 'Q18589965'}
-        item = WikibaseIntegrator(debug=True).item.get('Q2')
+        item = WikibaseIntegrator().item.get('Q2')
         item.init_fastrun(base_filter=fast_run_base_filter)
         item.init_fastrun(base_filter=fast_run_base_filter)  # Test if we found the same FastRunContainer
         item.claims.add(datatypes.ExternalID(value='/m/02j71', prop_nr='P646'))
 
-        frc = wbi_fastrun.FastRunContainer(api=wbi, base_filter={'P699': ''}, base_data_type=BaseDataType)
+        frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=BaseDataType)
 
         assert item.labels.get(language='en') == "Earth"
         descr = item.descriptions.get(language='en')

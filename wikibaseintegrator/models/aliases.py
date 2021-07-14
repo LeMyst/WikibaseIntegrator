@@ -63,7 +63,8 @@ class Aliases:
                 elif if_exists == 'KEEP':
                     if not self.aliases[language]:
                         self.aliases[language].append(alias)
-        return self.aliases[language]
+
+        return self
 
     def get_json(self) -> {}:
         json_data = {}

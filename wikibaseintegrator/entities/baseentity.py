@@ -13,11 +13,6 @@ class BaseEntity(object):
     ETYPE = 'base-entity'
 
     def __init__(self, api, **kwargs):
-        """
-
-        :param api:
-        :param kwargs:
-        """
         self.api = api
 
         self.lastrevid = kwargs.pop('lastrevid', None)
@@ -34,6 +29,8 @@ class BaseEntity(object):
 
         self.fast_run_container = None
 
+        self.debug = config['DEBUG']
+
     def add_claims(self, claims, if_exists='APPEND'):
         if isinstance(claims, Claim):
             claims = [claims]
@@ -43,9 +40,6 @@ class BaseEntity(object):
         self.claims.add(claims=claims, if_exists=if_exists)
 
         return self
-
-    def fastrun_require_write(self):
-        return self.api.fast_run_container.write_required(self.claims) or self.api.fast_run_container.check_language_data
 
     def get_json(self) -> {}:
         json_data = {
@@ -82,7 +76,7 @@ class BaseEntity(object):
             'format': 'json'
         }
 
-        return self.api.helpers.mediawiki_api_call_helper(data=params, mediawiki_api_url=self.api.mediawiki_api_url, allow_anonymous=True)
+        return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True)
 
     def _write(self, data=None, summary='', allow_anonymous=False):
         """
@@ -134,11 +128,12 @@ class BaseEntity(object):
         else:
             payload.update({u'new': self.type})
 
-        if self.api.debug:
+        if self.debug:
             print(payload)
 
         try:
-            json_data = self.api.helpers.mediawiki_api_call_helper(data=payload, login=self.api.login, mediawiki_api_url=self.api.mediawiki_api_url, allow_anonymous=allow_anonymous)
+            json_data = self.api.helpers.mediawiki_api_call_helper(data=payload, login=self.api.login, mediawiki_api_url=self.api.mediawiki_api_url,
+                                                                   allow_anonymous=allow_anonymous)
 
             if 'error' in json_data and 'messages' in json_data['error']:
                 error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
@@ -165,25 +160,20 @@ class BaseEntity(object):
         print('Initialize Fast Run')
         # We search if we already have a FastRunContainer with the same parameters to re-use it
         for c in BaseEntity.fast_run_store:
-            if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (c.sparql_endpoint_url == self.api.sparql_endpoint_url):
+            if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
+                    c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
                 self.fast_run_container = c
                 self.fast_run_container.current_qid = ''
                 self.fast_run_container.base_data_type = BaseDataType
-                self.fast_run_container.mediawiki_api_url = self.api.mediawiki_api_url
-                self.fast_run_container.wikibase_url = self.api.wikibase_url
-                if self.api.debug:
+                if self.debug:
                     print("Found an already existing FastRunContainer")
 
         if not self.fast_run_container:
-            if self.api.debug:
+            if self.debug:
                 print("Create a new FastRunContainer")
-            self.fast_run_container = FastRunContainer(api=self.api,
-                                                       base_filter=base_filter,
+            self.fast_run_container = FastRunContainer(base_filter=base_filter,
                                                        use_refs=use_refs,
-                                                       sparql_endpoint_url=self.api.sparql_endpoint_url,
                                                        base_data_type=BaseDataType,
-                                                       mediawiki_api_url=self.api.mediawiki_api_url,
-                                                       wikibase_url=self.api.wikibase_url,
                                                        case_insensitive=case_insensitive)
             BaseEntity.fast_run_store.append(self.fast_run_container)
 

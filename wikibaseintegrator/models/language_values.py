@@ -22,14 +22,14 @@ class LanguageValues:
         return self
 
     def get(self, language=None):
-        language = config['DEFAULT_LANGUAGE'] if language is None else language
+        language = language or config['DEFAULT_LANGUAGE']
         if language in self.values:
             return self.values[language]
         else:
             return None
 
     def set(self, language=None, value=None, if_exists='REPLACE'):
-        language = config['DEFAULT_LANGUAGE'] if language is None else language
+        language = language or config['DEFAULT_LANGUAGE']
         assert if_exists in ['REPLACE', 'KEEP']
 
         # Remove value if None

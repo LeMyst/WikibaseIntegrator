@@ -4,6 +4,7 @@ from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
 from wikibaseintegrator.models.senses import Senses
+from wikibaseintegrator.wbi_config import config
 
 
 class Lexeme(BaseEntity):
@@ -16,7 +17,7 @@ class Lexeme(BaseEntity):
 
         self.lemmas = lemmas or Lemmas()
         self.lexical_category = lexical_category
-        self.language = language or self.api.lexeme_language
+        self.language = language or config['DEFAULT_LEXEME_LANGUAGE']
         self.forms = forms or Forms()
         self.senses = senses or Senses()
 
@@ -26,10 +27,6 @@ class Lexeme(BaseEntity):
     def get(self, entity_id) -> Lexeme:
         json_data = super(Lexeme, self).get(entity_id=entity_id)
         return Lexeme(self.api).from_json(json_data=json_data['entities'][entity_id])
-
-    def set(self, **kwargs) -> Lexeme:
-        self.__init__(self.api, **kwargs)
-        return self
 
     def get_json(self) -> {}:
         json_data = {
