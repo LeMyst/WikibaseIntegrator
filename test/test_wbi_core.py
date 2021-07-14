@@ -71,12 +71,17 @@ class TestWbiCore(unittest.TestCase):
         assert "planet" in item.descriptions.get('en')
 
         # set_description on already existing description
-        item.descriptions.set(descr)
-        item.descriptions.set(language='en', value="lorem")
+        item.descriptions.set(value=descr)
+        assert item.descriptions.get() == descr
+        item.descriptions.set(value="lorem")
+        assert item.descriptions.get() == "lorem"
+        item.descriptions.set(language='es', value="lorem ipsum")
+        assert item.descriptions.get('es') == "lorem ipsum"
         item.descriptions.set(language='en', value="lorem ipsum", if_exists='KEEP')
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem'}
         # set_description on empty desription
-        item.descriptions.set("")
+        item.descriptions = LanguageValues()
+        item.descriptions.set(value='')
         item.descriptions.set(language='en', value="lorem ipsum", if_exists='KEEP')
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
 
@@ -85,6 +90,8 @@ class TestWbiCore(unittest.TestCase):
         item.descriptions.set(language='en', value="lorem", if_exists='KEEP')
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
         assert item.get_json()['descriptions']['fr'] == {'language': 'fr', 'value': 'lorem ipsum'}
+
+        # TODO: Test deletion of description?
 
     def test_label(self):
         item = wbi.item.get('Q2')
