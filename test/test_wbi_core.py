@@ -56,32 +56,39 @@ class TestWbiCore(unittest.TestCase):
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
         assert len(claims) == 2 and 'Q1234' not in claims
 
+    def test_description(self):
+        item = wbi_core.ItemEngine(item_id="Q2")
+        descr = item.get_description('en')
+        assert len(descr) > 3
+
+        assert "planet" in item.get_description()
+
+        # set_description on already existing description
+        item.set_description(descr)
+        item.set_description("lorem")
+        item.set_description("lorem ipsum", lang='en', if_exists='KEEP')
+        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'lorem'}
+        # set_description on empty desription
+        item.set_description("")
+        item.set_description("lorem ipsum", lang='en', if_exists='KEEP')
+        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
+
+        item.set_description("lorem ipsum", lang='fr', if_exists='REPLACE')
+        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
+
     def test_label(self):
         item = wbi_core.ItemEngine(item_id="Q2")
 
         assert item.get_label('en') == "Earth"
-        descr = item.get_description('en')
-        assert len(descr) > 3
 
         assert "Terra" in item.get_aliases()
-        assert "planet" in item.get_description()
 
         assert item.get_label("es") == "Tierra"
 
-        # set_description on already existing description
-        item.set_description(descr)
-        item.set_description("fghjkl")
-        item.set_description("fghjkltest", lang='en', if_exists='KEEP')
-        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
-        # set_description on empty desription
-        item.set_description("")
-        item.set_description("zaehjgreytret", lang='en', if_exists='KEEP')
-        assert item.json_representation['descriptions']['en'] == {'language': 'en', 'value': 'zaehjgreytret'}
-
         item.set_label("Earth")
-        item.set_label("xfgfdsg")
-        item.set_label("xfgfdsgtest", lang='en', if_exists='KEEP')
-        assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        item.set_label("lorem")
+        item.set_label("lorem ipsum", lang='en', if_exists='KEEP')
+        assert item.json_representation['labels']['en'] == {'language': 'en', 'value': 'lorem'}
         assert item.json_representation['labels']['fr'] == {'language': 'fr', 'value': 'Terre'}
         item.set_aliases(["fake alias"], if_exists='APPEND')
         assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
