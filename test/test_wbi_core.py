@@ -62,32 +62,38 @@ class TestWbiCore(unittest.TestCase):
         removed_claims = [True for x in item.claims.get('P31') if x.removed]
         assert len(claims) == len_claims_original + 2 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims
 
+    def test_description(self):
+        item = wbi.item.get('Q2')
+
+        descr = item.descriptions.get('en').value
+        assert len(descr) > 3
+
+        assert "planet" in item.descriptions.get('en')
+
+        # set_description on already existing description
+        item.descriptions.set(descr)
+        item.descriptions.set(language='en', value="lorem")
+        item.descriptions.set(language='en', value="lorem ipsum", if_exists='KEEP')
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem'}
+        # set_description on empty desription
+        item.descriptions.set("")
+        item.descriptions.set(language='en', value="lorem ipsum", if_exists='KEEP')
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
+
+        item.descriptions.set(language='fr', value="lorem", if_exists='KEEP')
+        item.descriptions.set(language='fr', value="lorem ipsum", if_exists='REPLACE')
+        item.descriptions.set(language='en', value="lorem", if_exists='KEEP')
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
+        assert item.get_json()['descriptions']['fr'] == {'language': 'fr', 'value': 'lorem ipsum'}
+
     def test_label(self):
         item = wbi.item.get('Q2')
 
         assert item.labels.get('en') == "Earth"
-        descr = item.descriptions.get('en').value
-        assert len(descr) > 3
 
         assert "Terra" in item.aliases.get('es')
-        assert "planet" in item.descriptions.get('en')
 
         assert item.labels.get("es") == "Tierra"
-
-        # set_description on already existing description
-        item.descriptions.set(value=descr)
-        assert item.descriptions.get() == descr
-        item.descriptions.set(value='fghjkl')
-        assert item.descriptions.get() == 'fghjkl'
-        item.descriptions.set(value='fghjkltest', language='es')
-        assert item.descriptions.get('es') == 'fghjkltest'
-        item.descriptions.set(value='fghjkltest', language='en', if_exists='KEEP')
-        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
-        # set_description on empty desription
-        item.descriptions = LanguageValues()
-        item.descriptions.set(value='')
-        item.descriptions.set(value='zaehjgreytret', language='en', if_exists='KEEP')
-        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'zaehjgreytret'}
 
         item.labels.set(value='Earth')
         item.labels.set(value='xfgfdsg')
