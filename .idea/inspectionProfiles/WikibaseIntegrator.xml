@@ -24,6 +24,7 @@
           <option value="http://schemas.xmlsoap.org/" />
           <option value="http://cxf.apache.org/schemas/" />
           <option value="http://www.wikidata.org" />
+          <option value="http://wikibase.svc" />
         </list>
       </option>
     </inspection_tool>
