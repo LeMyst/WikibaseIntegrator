@@ -9,7 +9,7 @@ from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import Helpers
 
-config['debug'] = True
+config['DEBUG'] = True
 
 wbi = WikibaseIntegrator()
 
