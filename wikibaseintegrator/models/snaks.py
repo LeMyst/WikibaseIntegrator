@@ -124,7 +124,8 @@ class Snak:
             self.hash = json_data['hash']
         if 'datavalue' in json_data:
             self.datavalue = json_data['datavalue']
-        self.datatype = json_data['datatype']
+        if 'datatype' in json_data:  # datatype can be null with MediaInfo
+            self.datatype = json_data['datatype']
         return self
 
     def get_json(self) -> {}:

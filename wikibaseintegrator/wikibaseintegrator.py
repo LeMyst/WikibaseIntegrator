@@ -1,5 +1,6 @@
 from wikibaseintegrator.entities.item import Item
 from wikibaseintegrator.entities.lexeme import Lexeme
+from wikibaseintegrator.entities.mediainfo import MediaInfo
 from wikibaseintegrator.entities.property import Property
 from wikibaseintegrator.wbi_helpers import Helpers
 
@@ -18,6 +19,7 @@ class WikibaseIntegrator(object):
         self.item = Item(api=self)
         self.property = Property(api=self)
         self.lexeme = Lexeme(api=self)
+        self.mediainfo = MediaInfo(api=self)
 
         # Helpers
         self.helpers = Helpers()
