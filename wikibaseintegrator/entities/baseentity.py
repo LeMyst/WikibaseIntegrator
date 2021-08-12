@@ -68,7 +68,7 @@ class BaseEntity(object):
         else:
             self.claims = Claims().from_json(json_data['claims'])
 
-    def get(self, entity_id):
+    def get(self, entity_id, **kwargs):
         """
         retrieve an item in json representation from the Wikibase instance
         :rtype: dict
@@ -81,7 +81,7 @@ class BaseEntity(object):
             'format': 'json'
         }
 
-        return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True)
+        return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
 
     def _write(self, data=None, summary='', allow_anonymous=False):
         """

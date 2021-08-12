@@ -31,17 +31,11 @@ class MediaInfo(BaseEntity):
     def new(self, **kwargs) -> MediaInfo:
         return MediaInfo(self.api, **kwargs)
 
-    def get(self, entity_id) -> MediaInfo:
-        json_data = super(MediaInfo, self).get(entity_id=entity_id)
+    def get(self, entity_id, **kwargs) -> MediaInfo:
+        json_data = super(MediaInfo, self).get(entity_id=entity_id, **kwargs)
         return MediaInfo(self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_by_title(self, title, sites='commonswiki') -> MediaInfo:
-        """
-        retrieve an item in json representation from the Wikibase instance
-        :rtype: dict
-        :return: python complex dictionary representation of a json
-        """
-
+    def get_by_title(self, title, sites='commonswiki', **kwargs) -> MediaInfo:
         params = {
             'action': 'wbgetentities',
             'sites': sites,
@@ -49,7 +43,7 @@ class MediaInfo(BaseEntity):
             'format': 'json'
         }
 
-        json_data = self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True)
+        json_data = self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
 
         if len(json_data['entities'].keys()) == 0:
             raise Exception('Title not found')
