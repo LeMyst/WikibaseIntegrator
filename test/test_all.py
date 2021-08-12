@@ -195,3 +195,11 @@ def test_ref_equals():
     assert not olditem.equals(newitem, include_ref=True)
     olditem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
     assert olditem.equals(newitem, include_ref=True)
+
+
+def test_mediainfo():
+    mediainfo_item_by_title = wbi.mediainfo.get_by_title(title='File:2018-07-05-budapest-buda-hill.jpg', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
+    assert mediainfo_item_by_title.id == 'M75908279'
+
+    mediainfo_item_by_id = wbi.mediainfo.get(entity_id='M75908279', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
+    assert mediainfo_item_by_id.id == 'M75908279'
