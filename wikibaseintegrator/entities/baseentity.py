@@ -47,7 +47,7 @@ class BaseEntity(object):
             'id': self.id,
             'claims': self.claims.get_json()
         }
-        if self.type == 'mediainfo':
+        if self.type == 'mediainfo':  # MediaInfo change name of 'claims' to 'statements'
             json_data['statements'] = json_data.pop('claims')
         if not self.id:
             del json_data['id']
