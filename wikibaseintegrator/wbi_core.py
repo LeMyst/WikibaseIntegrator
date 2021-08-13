@@ -597,7 +597,9 @@ class ItemEngine(object):
         :type allow_anonymous: bool
         :return: the entity ID on successful write
         """
-
+        if login is None:
+            raise Exception("login was None. This function needs a valid login-object to work")
+          
         if self.search_only:
             raise SearchOnlyError
 
