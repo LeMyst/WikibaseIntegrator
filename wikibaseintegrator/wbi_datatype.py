@@ -87,7 +87,7 @@ class BaseDataType(object):
             matches = pattern.match(prop_nr)
 
             if not matches:
-                raise ValueError('Invalid prop_nr, format must be "P[0-9]+"')
+                raise ValueError(f'Invalid prop_nr, format must be "P[0-9]+", got {prop_nr}')
             else:
                 self.prop_nr = 'P' + str(matches.group(1))
 
