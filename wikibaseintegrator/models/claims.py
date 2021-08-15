@@ -124,6 +124,7 @@ class Claim:
         self.references = kwargs.pop('references', References())
         self.removed = False
 
+    # Allow registration of subclasses of Claim into Claim.subclasses
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
