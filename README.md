@@ -67,12 +67,13 @@ for ['Human'](https://www.wikidata.org/entity/Q5)):
 
 ```python
 
-from wikibaseintegrator.entities import item
+from wikibaseintegrator import WikibaseIntegrator
 
-my_first_wikidata_item = item.Item(item_id='Q5')
+wbi = WikibaseIntegrator()
+my_first_wikidata_item = wbi.item.get(entity_id='Q5')
 
 # to check successful installation and retrieval of the data, you can print the json representation of the item
-print(my_first_wikidata_item.get_json_representation())
+print(my_first_wikidata_item.get_json())
 ```
 
 # Using a Wikibase instance #
