@@ -160,10 +160,10 @@ class Login(object):
                 elif debug:
                     print("Successfully logged in as", login_result['login']['lgusername'])
 
-                if 'warnings' in login_result:
-                    print("MediaWiki login warnings messages:")
-                    for message in login_result['warnings']:
-                        print("* {}: {}".format(message, login_result['warnings'][message]['*']))
+            if 'warnings' in login_result:
+                print("MediaWiki login warnings messages:")
+                for message in login_result['warnings']:
+                    print("* {}: {}".format(message, login_result['warnings'][message]['*']))
 
             self.generate_edit_credentials()
 
