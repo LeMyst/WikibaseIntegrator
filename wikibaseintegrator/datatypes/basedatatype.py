@@ -103,11 +103,3 @@ class BaseDataType(Claim):
             return True
         else:
             return False
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
