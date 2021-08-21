@@ -3,8 +3,9 @@ from __future__ import annotations
 import copy
 from typing import Union
 
+from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
-from wikibaseintegrator.models.snaks import Snak, Snaks
+from wikibaseintegrator.models.snaks import Snak
 
 
 class Claims:
@@ -39,6 +40,7 @@ class Claims:
         elif not isinstance(claims, list):
             raise ValueError
 
+        # TODO: Don't replace if claim is the same
         if if_exists == 'REPLACE':
             for claim in claims:
                 if claim is not None:
@@ -46,7 +48,8 @@ class Claims:
                 property = claim.mainsnak.property_number
                 if property in self.claims:
                     for claim_to_remove in self.claims[property]:
-                        claim_to_remove.remove()
+                        if claim_to_remove not in claims:
+                            claim_to_remove.remove()
 
         for claim in claims:
             if claim is not None:
@@ -65,12 +68,18 @@ class Claims:
                 if claim not in self.claims[property]:
                     self.claims[property].append(claim)
             elif if_exists == 'REPLACE':
-                self.claims[property].append(claim)
+                if claim not in self.claims[property]:
+                    self.claims[property].append(claim)
 
         return self
 
-    def clear(self):
-        self.claims = {}
+    def from_json(self, json_data) -> Claims:
+        for property in json_data:
+            for claim in json_data[property]:
+                # data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == alias['mainsnak']['datatype']][0]
+                self.add(claims=Claim().from_json(claim), if_exists='FORCE_APPEND')
+
+        return self
 
     def get_json(self) -> {}:
         json_data = {}
@@ -81,13 +90,9 @@ class Claims:
                 json_data[property].append(claim.get_json())
         return json_data
 
-    def from_json(self, json_data) -> Claims:
-        for property in json_data:
-            for claim in json_data[property]:
-                # data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == alias['mainsnak']['datatype']][0]
-                self.add(claims=Claim().from_json(claim), if_exists='FORCE_APPEND')
 
-        return self
+    def clear(self):
+        self.claims = {}
 
     def __len__(self):
         return len(self.claims)
@@ -114,13 +119,10 @@ class Claim:
     def __init__(self, **kwargs):
         self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
-        # self.qualifiers = Snaks()
-        self.qualifiers = kwargs.pop('qualifiers', Snaks())
+        self.qualifiers = kwargs.pop('qualifiers', Qualifiers())
         self.qualifiers_order = []
         self.id = None
-        # self.rank = None
         self.rank = kwargs.pop('rank', 'normal')
-        # self.references = References()
         self.references = kwargs.pop('references', References())
         self.removed = False
 
@@ -151,7 +153,11 @@ class Claim:
 
     @qualifiers.setter
     def qualifiers(self, value):
-        self.__qualifiers = value
+        assert isinstance(value, (Qualifiers, list))
+        if isinstance(value, list):
+            self.__qualifiers = Qualifiers().set(value)
+        else:
+            self.__qualifiers = value
 
     @property
     def qualifiers_order(self):
@@ -203,7 +209,7 @@ class Claim:
         self.mainsnak = Snak().from_json(json_data['mainsnak'])
         self.type = json_data['type']
         if 'qualifiers' in json_data:
-            self.qualifiers = Snaks().from_json(json_data['qualifiers'])
+            self.qualifiers = Qualifiers().from_json(json_data['qualifiers'])
         if 'qualifiers-order' in json_data:
             self.qualifiers_order = json_data['qualifiers-order']
         self.id = json_data['id']
