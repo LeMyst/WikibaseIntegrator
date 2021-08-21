@@ -12,13 +12,13 @@ class BaseEntity(object):
 
     ETYPE = 'base-entity'
 
-    def __init__(self, api, **kwargs):
+    def __init__(self, api, lastrevid=None, type=None, id=None, claims=None):
         self.api = api
 
-        self.lastrevid = kwargs.pop('lastrevid', None)
-        self.type = kwargs.pop('type', self.ETYPE)
-        self.id = kwargs.pop('id', None)
-        self.claims = kwargs.pop('claims', Claims())
+        self.lastrevid = lastrevid
+        self.type = type or self.ETYPE
+        self.id = id
+        self.claims = claims or Claims()
 
         self.json = {}
 
@@ -161,7 +161,7 @@ class BaseEntity(object):
         if base_filter is None:
             base_filter = {}
 
-        print('Initialize Fast Run')
+        print('Initialize Fast Run init_fastrun')
         # We search if we already have a FastRunContainer with the same parameters to re-use it
         for c in BaseEntity.fast_run_store:
             if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
