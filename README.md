@@ -5,14 +5,6 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
-# Breaking changes in v0.12 #
-
-I am currently doing a big rewrite of this library.<br>
-You can track the progress and ask questions in the Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
-It's a work in progress and can heavily change during development..<br>
-This change will break the compatibility with all existing scripts.<br>
-I will continue to maintain the current version (v0.11) even after the release of V0.12+ (if the merge is performed).
-<hr>
 
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
@@ -69,7 +61,6 @@ To test for correct installation, start a Python console and execute the followi
 for ['Human'](https://www.wikidata.org/entity/Q5)):
 
 ```python
-
 from wikibaseintegrator import WikibaseIntegrator
 
 wbi = WikibaseIntegrator()
@@ -359,8 +350,8 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
 raw_data = {
-  '50943': 'ENST00000376197',
-  '1029': 'ENST00000498124'
+    '50943': 'ENST00000376197',
+    '1029': 'ENST00000498124'
 }
 
 for entrez_id, ensembl in raw_data.items():
