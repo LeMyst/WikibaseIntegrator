@@ -4,7 +4,6 @@ from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
 
-from wikibaseintegrator import Helpers
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
 
