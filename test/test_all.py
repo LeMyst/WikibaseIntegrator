@@ -7,7 +7,7 @@ from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_helpers import Helpers
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 config['DEBUG'] = True
 
@@ -17,13 +17,13 @@ wbi = WikibaseIntegrator()
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            Helpers.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=3,
-                                              retry_after=1, allow_anonymous=True)
+            mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=3,
+                                      retry_after=1, allow_anonymous=True)
         with self.assertRaises(requests.HTTPError):
-            Helpers.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
+            mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
-        test = Helpers.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
-                                                 allow_anonymous=True)
+        test = mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
+                                         allow_anonymous=True)
         print(test)
 
 

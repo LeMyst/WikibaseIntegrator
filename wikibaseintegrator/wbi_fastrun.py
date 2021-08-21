@@ -6,6 +6,7 @@ from itertools import chain
 
 from wikibaseintegrator import Helpers
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
 
 
 class FastRunContainer(object):
@@ -360,7 +361,7 @@ class FastRunContainer(object):
                 if i['v']['type'] == 'uri' and prop_dt == 'wikibase-item':
                     i['v'] = i['v']['value'].split('/')[-1]
                 elif i['v']['type'] == 'literal' and prop_dt == 'quantity':
-                    i['v'] = Helpers.format_amount(i['v']['value'])
+                    i['v'] = format_amount(i['v']['value'])
                 else:
                     i['v'] = i['v']['value']
 
@@ -377,7 +378,7 @@ class FastRunContainer(object):
                 if i['qval']['type'] == 'uri' and qual_prop_dt == 'wikibase-item':
                     i['qval'] = i['qval']['value'].split('/')[-1]
                 elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
-                    i['qval'] = Helpers.format_amount(i['qval']['value'])
+                    i['qval'] = format_amount(i['qval']['value'])
                 else:
                     i['qval'] = i['qval']['value']
 
@@ -387,7 +388,7 @@ class FastRunContainer(object):
                 if i['rval']['type'] == 'uri' and ref_prop_dt == 'wikibase-item':
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 elif i['rval']['type'] == 'literal' and ref_prop_dt == 'quantity':
-                    i['rval'] = Helpers.format_amount(i['rval']['value'])
+                    i['rval'] = format_amount(i['rval']['value'])
                 else:
                     i['rval'] = i['rval']['value']
 
@@ -441,7 +442,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = Helpers.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            r = execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
             print("Count: {}".format(count))
             num_pages = (int(count) // page_size) + 1
@@ -524,7 +525,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            results = Helpers.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
@@ -560,7 +561,7 @@ class FastRunContainer(object):
         if self.debug:
             print(query)
 
-        return Helpers.execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+        return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
     def _process_lang(result: list):

@@ -1,11 +1,12 @@
+from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.entities.item import Item
 from wikibaseintegrator.entities.lexeme import Lexeme
 from wikibaseintegrator.entities.mediainfo import MediaInfo
 from wikibaseintegrator.entities.property import Property
-from wikibaseintegrator.wbi_helpers import Helpers
 
 
 class WikibaseIntegrator(object):
+
     def __init__(self,
                  search_only=False,
                  is_bot=False,
@@ -22,4 +23,4 @@ class WikibaseIntegrator(object):
         self.mediainfo = MediaInfo(api=self)
 
         # Helpers
-        self.helpers = Helpers()
+        self.helpers = wbi_helpers

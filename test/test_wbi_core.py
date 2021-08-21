@@ -6,7 +6,7 @@ from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, Mo
     MusicalNotation, Lexeme, Form, Sense
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
-from wikibaseintegrator.wbi_helpers import Helpers
+from wikibaseintegrator.wbi_helpers import search_entities, generate_entity_instances
 
 wbi = WikibaseIntegrator()
 
@@ -135,14 +135,14 @@ class TestWbiCore(unittest.TestCase):
         assert 'remove' in item.get_json()['aliases']['ak'][0]
 
     def test_wd_search(self):
-        t = Helpers.search_entities('rivaroxaban')
+        t = search_entities('rivaroxaban')
         print('Number of results: ', len(t))
         self.assertIsNot(len(t), 0)
 
     def test_entity_generator(self):
         entities = ['Q408883', 'P715', 'Q18046452']
 
-        entity_instances = Helpers.generate_entity_instances(entities=entities)
+        entity_instances = generate_entity_instances(entities=entities)
 
         for qid, entity in entity_instances:
             self.assertIn(qid, entities)

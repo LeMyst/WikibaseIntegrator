@@ -5,6 +5,7 @@ from wikibaseintegrator.models.claims import Claims, Claim
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import SearchOnlyError, NonUniqueLabelDescriptionPairError, MWApiError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
 class BaseEntity(object):
@@ -137,7 +138,7 @@ class BaseEntity(object):
             print(payload)
 
         try:
-            json_data = self.api.helpers.mediawiki_api_call_helper(data=payload, login=self.api.login, allow_anonymous=allow_anonymous)
+            json_data = mediawiki_api_call_helper(data=payload, login=self.api.login, allow_anonymous=allow_anonymous, is_bot=self.api.is_bot)
 
             if 'error' in json_data and 'messages' in json_data['error']:
                 error_msg_names = set(x.get('name') for x in json_data['error']['messages'])

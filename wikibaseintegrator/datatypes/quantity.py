@@ -1,6 +1,6 @@
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_helpers import Helpers
+from wikibaseintegrator.wbi_helpers import format_amount
 
 
 class Quantity(BaseDataType):
@@ -56,12 +56,12 @@ class Quantity(BaseDataType):
         self.quantity, self.unit, self.upper_bound, self.lower_bound = value
 
         if self.quantity is not None:
-            self.quantity = Helpers.format_amount(self.quantity)
+            self.quantity = format_amount(self.quantity)
             self.unit = str(self.unit)
             if self.upper_bound:
-                self.upper_bound = Helpers.format_amount(self.upper_bound)
+                self.upper_bound = format_amount(self.upper_bound)
             if self.lower_bound:
-                self.lower_bound = Helpers.format_amount(self.lower_bound)
+                self.lower_bound = format_amount(self.lower_bound)
 
             # Integrity checks for value and bounds
             try:
@@ -98,4 +98,4 @@ class Quantity(BaseDataType):
         self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
 
     def get_sparql_value(self):
-        return Helpers.format_amount(self.quantity)
+        return format_amount(self.quantity)
