@@ -33,19 +33,19 @@ class Aliases:
 
         assert language is not None
 
-        if isinstance(values, str):
-            values = [values]
-        elif not isinstance(values, list) and values is not None:
-            raise TypeError("value must be a str or list")
-
         if language not in self.aliases:
             self.aliases[language] = []
 
-        if values is None:
+        if values is None or values == '':
             if if_exists != 'KEEP':
                 for alias in self.aliases[language]:
                     alias.remove()
             return self.aliases[language]
+
+        if isinstance(values, str):
+            values = [values]
+        elif not isinstance(values, list) and values is not None:
+            raise TypeError("value must be a str or list")
 
         if if_exists == 'REPLACE':
             aliases = []
