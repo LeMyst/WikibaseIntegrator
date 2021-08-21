@@ -7,6 +7,26 @@ class Qualifiers:
     def __init__(self):
         self.qualifiers = {}
 
+    @property
+    def qualifiers(self):
+        return self.__qualifiers
+
+    @qualifiers.setter
+    def qualifiers(self, value):
+        assert isinstance(value, dict)
+        self.__qualifiers = value
+
+    def set(self, qualifiers):
+        if isinstance(qualifiers, list):
+            for qualifier in qualifiers:
+                self.add(qualifier)
+        elif qualifiers is None:
+            self.qualifiers = {}
+        else:
+            self.qualifiers = qualifiers
+
+        return self
+
     def get(self, property=None):
         return self.qualifiers[property]
 
@@ -43,6 +63,12 @@ class Qualifiers:
             for qualifier in self.qualifiers[property]:
                 json_data[property].append(qualifier.get_json())
         return json_data
+
+    def __iter__(self):
+        iterate = []
+        for qualifier in self.qualifiers.values():
+            iterate.extend(qualifier)
+        return iter(iterate)
 
     def __len__(self):
         return len(self.qualifiers)
