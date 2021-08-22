@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class ActionIfExists(Enum):
@@ -6,10 +6,10 @@ class ActionIfExists(Enum):
     Action to take if a statement with a property already
     exists on the item or lexeme.
     """
-    APPEND = 0
-    FORCE_APPEND = 1
-    KEEP = 2
-    REPLACE = 3
+    APPEND = auto()
+    FORCE_APPEND = auto()
+    KEEP = auto()
+    REPLACE = auto()
 
 
 class WikibaseRank(Enum):
