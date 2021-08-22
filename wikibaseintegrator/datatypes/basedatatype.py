@@ -22,8 +22,8 @@ class BaseDataType(Claim):
         :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
         :param datatype: The Wikibase data type declaration of this snak
         :type datatype: str
-        :param snaktype: One of the values in the enum WikibaseSnakValueType denoting the action to take:
-            APPEND or REPLACE
+        :param snaktype: One of the values in the enum WikibaseSnakValueType denoting the state of the value:
+            KNOWN_VALUE, NO_VALUE or UNKNOWN_VALUE
         :type snaktype: WikibaseSnakValueType
         :param references: A one level nested list with reference Wikibase snaks of base type BaseDataType,
             e.g. references=[[<BaseDataType>, <BaseDataType>], [<BaseDataType>]]
