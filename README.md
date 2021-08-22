@@ -8,7 +8,8 @@
 # Breaking changes in v0.12 #
 
 I am currently doing a big rewrite of this library.<br>
-You can track the progress and ask questions in the Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
+You can track the progress and ask questions in the Pull
+Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
 It's a work in progress and can heavily change during development..<br>
 This change will break the compatibility with all existing scripts.<br>
 I will continue to maintain the current version (v0.11) even after the release of V0.12+ (if the merge is performed).
@@ -16,25 +17,26 @@ I will continue to maintain the current version (v0.11) even after the release o
 
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
-- [Wikibase Integrator](#wikibase-integrator)
-- [Breaking changes in v0.12](#breaking-changes-in-v012)
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
-  - [WMF User-Agent policy](#wmf-user-agent-policy)
+    - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
 - [The Core Parts](#the-core-parts)
-  - [wbi_core.ItemEngine](#wbi_coreitemengine)
-  - [wbi_functions](#wbi_functions)
-  - [wbi_login.Login](#wbi_loginlogin)
-  - [Wikibase Data Types](#wikibase-data-types)
+    - [wbi_core.ItemEngine](#wbi_coreitemengine)
+    - [wbi_functions](#wbi_functions)
+        - [Use MediaWiki API](#use-mediawiki-api)
+    - [wbi_login.Login](#wbi_loginlogin)
+        - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
+        - [Login with a username and a password](#login-with-a-username-and-a-password)
+    - [Wikibase Data Types](#wikibase-data-types)
 - [Helper Methods](#helper-methods)
-  - [Execute SPARQL queries](#execute-sparql-queries)
-  - [Use Mediawiki API](#use-mediawiki-api)
-  - [Wikibase search entities](#wikibase-search-entities)
-  - [Merge Wikibase items](#merge-wikibase-items)
+    - [Execute SPARQL queries](#execute-sparql-queries)
+    - [Use Mediawiki API](#use-mediawiki-api)
+    - [Wikibase search entities](#wikibase-search-entities)
+    - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
-  - [A Minimal Bot](#a-minimal-bot)
-  - [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+    - [A Minimal Bot](#a-minimal-bot)
+    - [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
 
 # WikibaseIntegrator / WikidataIntegrator #
@@ -95,9 +97,22 @@ wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 
 You can find more default parameters in the file wbi_config.py
 
-## WMF User-Agent policy ##
+## Wikimedia Foundation User-Agent policy ##
 
-To follow the policy and avoid getting banned we recommend setting a custom User-Agent. See [an example](https://github.com/csisc/OpenCitations-Bot/blob/93f5132c9ce22201d6510ef1ec92759f2ec0a3e3/OCtoWikidata.py#L42) of how to do that.
+If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Mediawiki Commons, etc.),
+it's highly advised to follow the User-Agent policy that you can find on the
+page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
+of the Wikimedia Meta-Wiki.
+
+You can change the default User-Agent used by Wikibase Integrator by overloading the variable in wbi_config.
+
+For example:
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'WikibaseBot/1.0 (https://github.com/MyUserName/MyBotRepository) Author: MyUser@wikidata'
+```
 
 # The Core Parts #
 
