@@ -44,23 +44,27 @@ class TestWbiCore(unittest.TestCase):
         item = deepcopy(item_original)
         item.add_claims(instances, if_exists='APPEND')
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31')]
+        # Append claims to item, only one unique added
         assert len(claims) == len_claims_original + 1 and 'Q1234' in claims and claims.count('Q1234') == 1
 
         item = deepcopy(item_original)
         item.add_claims(instances, if_exists='FORCE_APPEND')
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31')]
+        # Append claims to item, force two to be added
         assert len(claims) == len_claims_original + 2 and 'Q1234' in claims and claims.count('Q1234') == 2
 
         item = deepcopy(item_original)
         item.add_claims(instances, if_exists='KEEP')
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31')]
+        # Append claims to item, there is already claims, so nothing added
         assert len(claims) == len_claims_original and 'Q1234' not in claims
 
         item = deepcopy(item_original)
         item.add_claims(instances, if_exists='REPLACE')
-        claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31')]
+        claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31') if not x.removed]
         removed_claims = [True for x in item.claims.get('P31') if x.removed]
-        assert len(claims) == len_claims_original + 2 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims
+        # Append claims to item, replace already existing claims with new ones, only one if it's the same property number
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims and claims.count('Q1234') == 1
 
     def test_description(self):
         item = wbi.item.get('Q2')

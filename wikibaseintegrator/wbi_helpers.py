@@ -404,3 +404,11 @@ def format_amount(amount) -> str:
 
     # return as string
     return str(amount)
+
+
+def __deepcopy__(memo):
+    # Don't return a copy of the module
+    # Deepcopy don't allow copy of modules (https://bugs.python.org/issue43093)
+    # It's really the good way to solve this?
+    from wikibaseintegrator import wikibaseintegrator
+    return wikibaseintegrator.wbi_helpers
