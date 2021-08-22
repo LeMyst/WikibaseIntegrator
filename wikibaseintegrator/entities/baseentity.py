@@ -33,10 +33,7 @@ class BaseEntity(object):
 
         self.debug = config['DEBUG']
 
-    def add_claims(self,
-                   claims,
-                   # Default to append
-                   if_exists=ActionIfExists.APPEND):
+    def add_claims(self, claims, if_exists=ActionIfExists.APPEND):
         if isinstance(claims, Claim):
             claims = [claims]
         elif not isinstance(claims, list):
