@@ -207,3 +207,8 @@ def test_ref_equals():
     assert not olditem.equals(newitem, include_ref=True)
     olditem.references.append([wbi_datatype.ExternalID(value='99999', prop_nr='P352')])
     assert olditem.equals(newitem, include_ref=True)
+
+
+def test_mediainfo():
+    item = wbi_core.ItemEngine(item_id='M75908279', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
+    pprint.pprint(item)

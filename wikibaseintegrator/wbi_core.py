@@ -240,6 +240,9 @@ class ItemEngine(object):
         :return: returns the json representation containing 'labels', 'descriptions', 'claims', 'aliases', 'sitelinks'.
         """
 
+        if json_data['type'] == 'mediainfo':
+            json_data['claims'] = json_data.pop('statements')
+
         data = {x: json_data[x] for x in ('labels', 'descriptions', 'claims', 'aliases') if x in json_data}
         data['sitelinks'] = {}
         self.entity_metadata = {x: json_data[x] for x in json_data if x not in ('labels', 'descriptions', 'claims', 'aliases', 'sitelinks')}
@@ -303,7 +306,7 @@ class ItemEngine(object):
             'format': 'json'
         }
 
-        json_data = wbi_functions.mediawiki_api_call_helper(data=params, allow_anonymous=True)
+        json_data = wbi_functions.mediawiki_api_call_helper(data=params, allow_anonymous=True, mediawiki_api_url=self.mediawiki_api_url)
         return self.parse_json(json_data=json_data['entities'][self.item_id])
 
     def get_property_list(self):
@@ -610,6 +613,8 @@ class ItemEngine(object):
                 del self.json_representation['sitelinks']
 
         if all_claims:
+            if entity_type == 'mediainfo':
+                self.json_representation['statements'] = self.json_representation.pop('claims')
             data = json.JSONEncoder().encode(self.json_representation)
         else:
             new_json_repr = {k: self.json_representation[k] for k in set(list(self.json_representation.keys())) - {'claims'}}
@@ -622,6 +627,8 @@ class ItemEngine(object):
                             new_json_repr['claims'][claim].remove(statement)
                     if not new_json_repr['claims'][claim]:
                         new_json_repr['claims'].pop(claim)
+            if entity_type == 'mediainfo':
+                new_json_repr['statements'] = new_json_repr.pop('claims')
             data = json.JSONEncoder().encode(new_json_repr)
 
         payload = {
