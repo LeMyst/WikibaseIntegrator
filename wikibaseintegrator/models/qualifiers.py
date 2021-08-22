@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from wikibaseintegrator.models.snaks import Snak
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Qualifiers:
@@ -31,7 +32,7 @@ class Qualifiers:
         return self.qualifiers[property]
 
     # TODO: implement if_exists
-    def add(self, qualifier=None, if_exists='REPLACE'):
+    def add(self, qualifier=None, if_exists=ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])

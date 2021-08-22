@@ -7,6 +7,7 @@ from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 config['DEBUG'] = True
@@ -130,7 +131,7 @@ class TestFastRun(unittest.TestCase):
         item.labels.set(value="Earth")
         item.labels.set(value="xfgfdsg")
         assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
-        item.aliases.set(values=["fake alias"], if_exists='APPEND')
+        item.aliases.set(values=["fake alias"], if_exists=ActionIfExists.APPEND)
         assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
 
         # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
@@ -145,7 +146,7 @@ class TestFastRun(unittest.TestCase):
         item.aliases.get(language="ak")
         item.labels.set(value="label", language="ak")
         item.descriptions.set(value="d", language="ak")
-        item.aliases.set(values=["a"], language="ak", if_exists='APPEND')
+        item.aliases.set(values=["a"], language="ak", if_exists=ActionIfExists.APPEND)
 
 
 def test_sitelinks():

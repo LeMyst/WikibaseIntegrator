@@ -3,6 +3,7 @@ import simplejson
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claims, Claim
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import SearchOnlyError, NonUniqueLabelDescriptionPairError, MWApiError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
@@ -32,7 +33,10 @@ class BaseEntity(object):
 
         self.debug = config['DEBUG']
 
-    def add_claims(self, claims, if_exists='APPEND'):
+    def add_claims(self,
+                   claims,
+                   # Default to append
+                   if_exists=ActionIfExists.APPEND):
         if isinstance(claims, Claim):
             claims = [claims]
         elif not isinstance(claims, list):

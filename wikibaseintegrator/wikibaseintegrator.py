@@ -1,18 +1,9 @@
-from enum import Enum
-
 from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.entities.item import Item
 from wikibaseintegrator.entities.lexeme import Lexeme
 from wikibaseintegrator.entities.mediainfo import MediaInfo
 from wikibaseintegrator.entities.property import Property
 
-class ActionIfExists(Enum):
-    """
-    Action to take if a statement with a property already 
-    exists on the item or lexeme.
-    """
-    APPEND = 0
-    REPLACE = 1
 
 class WikibaseIntegrator(object):
 

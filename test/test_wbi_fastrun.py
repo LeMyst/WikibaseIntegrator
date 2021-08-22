@@ -1,6 +1,7 @@
 from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator
 from wikibaseintegrator.datatypes import BaseDataType, Item, ExternalID
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 config['DEBUG'] = True
 
@@ -186,10 +187,10 @@ def test_append_props():
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, if_exists='APPEND', cqid=qid) is False
+    assert frc.write_required(data=statements, if_exists=ActionIfExists.APPEND, cqid=qid) is False
     # with force append
     statements = [Item(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, if_exists='FORCE_APPEND', cqid=qid) is True
+    assert frc.write_required(data=statements, if_exists=ActionIfExists.FORCE_APPEND, cqid=qid) is True
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid) is True
@@ -197,7 +198,7 @@ def test_append_props():
     # if we are in append mode, and the refs are different, we should write
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
     # with append
-    statements = [Item(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
+    statements = [Item(value='Q24784025', prop_nr='P527', if_exists=ActionIfExists.APPEND)]
     assert frc.write_required(data=statements, cqid=qid) is True
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]

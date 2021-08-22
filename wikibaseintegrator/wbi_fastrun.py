@@ -5,6 +5,7 @@ from functools import lru_cache
 from itertools import chain
 
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
 
 
@@ -153,11 +154,11 @@ class FastRunContainer(object):
         print(qid)
         self.current_qid = qid
 
-    def write_required(self, data: list, if_exists='REPLACE', cqid=None) -> bool:
+    def write_required(self, data: list, if_exists=ActionIfExists.REPLACE, cqid=None) -> bool:
         del_props = set()
         data_props = set()
         append_props = []
-        if if_exists == 'APPEND':
+        if if_exists == ActionIfExists.APPEND:
             append_props = [x.mainsnak.property_number for x in data]
 
         for x in data:
@@ -177,7 +178,7 @@ class FastRunContainer(object):
             for x in app_data:
                 for y in rec_app_data:
                     if x.mainsnak.datavalue == y.mainsnak.datavalue:
-                        if y.equals(x, include_ref=self.use_refs) and if_exists != 'FORCE_APPEND':
+                        if y.equals(x, include_ref=self.use_refs) and if_exists != ActionIfExists.FORCE_APPEND:
                             comp.append(True)
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
@@ -289,7 +290,9 @@ class FastRunContainer(object):
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str, if_exists: str = 'APPEND') -> bool:
+    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str,
+                            # Default to append
+                            if_exists: ActionIfExists = ActionIfExists.APPEND) -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
@@ -301,7 +304,7 @@ class FastRunContainer(object):
         """
         all_lang_strings = set(x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type))
 
-        if if_exists == 'REPLACE':
+        if if_exists == ActionIfExists.REPLACE:
             return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(), lang_data))
         else:
             for s in lang_data:
