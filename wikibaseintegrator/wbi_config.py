@@ -1,3 +1,6 @@
+import os
+import sys
+
 import pkg_resources
 
 try:
@@ -22,7 +25,7 @@ USER_AGENT_DEFAULT: default user agent string used for http requests. Both to Wi
 config = {
     'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
-    'USER_AGENT_DEFAULT': "WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator)".format(__version__),
+    'USER_AGENT_DEFAULT': "WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator) script:\"{}\"".format(__version__, os.path.basename(sys.argv[0])),
     'MAXLAG': 5,
     'PROPERTY_CONSTRAINT_PID': 'P2302',
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',
