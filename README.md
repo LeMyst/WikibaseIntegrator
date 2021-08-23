@@ -5,12 +5,12 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
-
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
+    - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
 - [The Core Parts](#the-core-parts)
     - [wbi_item.Item](#wbi_coreitemengine)
     - [wbi_functions](#wbi_functions)
@@ -87,6 +87,23 @@ wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
 You can find more default parameters in the file wbi_config.py
+
+## Wikimedia Foundation User-Agent policy ##
+
+If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Mediawiki Commons, etc.),
+it's highly advised to follow the User-Agent policy that you can find on the
+page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
+of the Wikimedia Meta-Wiki.
+
+You can change the default User-Agent used by Wikibase Integrator by overloading the variable in wbi_config.
+
+For example:
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'WikibaseBot/1.0 (https://github.com/MyUserName/MyBotRepository) Author: MyUser@wikidata'
+```
 
 # The Core Parts #
 
