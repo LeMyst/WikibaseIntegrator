@@ -3,25 +3,19 @@ from functools import partial
 
 import backoff
 import requests
-import simplejson as json
+from simplejson import JSONDecodeError
 
 from wikibaseintegrator.wbi_config import config
 
-JSONDecodeError = json.JSONDecodeError
 
-
-def get_config(name):
-    return partial(config.get, name)
-
-
-def backoff_hdlr(details):
+def wbi_backoff_backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
     if exc_type == JSONDecodeError:
         print(exc_value.doc)  # pragma: no cover
     print("Backing off {wait:0.1f} seconds afters {tries} tries calling function with args {args} and kwargs {kwargs}".format(**details))
 
 
-def check_json_decode_error(e):
+def wbi_backoff_check_json_decode_error(e):
     """
     Check if the error message is "Expecting value: line 1 column 1 (char 0)"
     if not, its a real error and we shouldn't retry
@@ -31,7 +25,7 @@ def check_json_decode_error(e):
     return type(e) == JSONDecodeError and str(e) != "Expecting value: line 1 column 1 (char 0)"
 
 
-exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError)
+wbi_backoff_exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError)
 
-wbi_backoff = partial(backoff.on_exception, backoff.expo, exceptions, max_value=get_config("BACKOFF_MAX_VALUE"), giveup=check_json_decode_error, on_backoff=backoff_hdlr,
-                      jitter=None, max_tries=get_config("BACKOFF_MAX_TRIES"))
+wbi_backoff = partial(backoff.on_exception, backoff.expo, wbi_backoff_exceptions, max_value=partial(config.get, 'BACKOFF_MAX_VALUE'), giveup=wbi_backoff_check_json_decode_error,
+                      on_backoff=wbi_backoff_backoff_hdlr, jitter=None, max_tries=partial(config.get, 'BACKOFF_MAX_TRIES'))

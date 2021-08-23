@@ -50,9 +50,9 @@ class Login(object):
         :return: None
         """
 
-        self.mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-        self.mediawiki_index_url = config['MEDIAWIKI_INDEX_URL'] if mediawiki_index_url is None else mediawiki_index_url
-        self.mediawiki_rest_url = config['MEDIAWIKI_REST_URL'] if mediawiki_rest_url is None else mediawiki_rest_url
+        self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
+        self.mediawiki_index_url = mediawiki_index_url or config['MEDIAWIKI_INDEX_URL']
+        self.mediawiki_rest_url = mediawiki_rest_url or config['MEDIAWIKI_REST_URL']
 
         if debug:
             print(self.mediawiki_api_url)
@@ -160,10 +160,10 @@ class Login(object):
                 elif debug:
                     print("Successfully logged in as", login_result['login']['lgusername'])
 
-                if 'warnings' in login_result:
-                    print("MediaWiki login warnings messages:")
-                    for message in login_result['warnings']:
-                        print("* {}: {}".format(message, login_result['warnings'][message]['*']))
+            if 'warnings' in login_result:
+                print("MediaWiki login warnings messages:")
+                for message in login_result['warnings']:
+                    print("* {}: {}".format(message, login_result['warnings'][message]['*']))
 
             self.generate_edit_credentials()
 
