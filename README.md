@@ -95,14 +95,14 @@ it's highly advised to follow the User-Agent policy that you can find on the
 page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
 of the Wikimedia Meta-Wiki.
 
-You can change the default User-Agent used by Wikibase Integrator by overloading the variable in wbi_config.
+You can set a complementary User-Agent by modifying the variable `wbi_config['USER_AGENT']` in wbi_config.
 
-For example:
+For example, with your library name and contact information:
 
 ```python
 from wikibaseintegrator.wbi_config import config as wbi_config
 
-wbi_config['USER_AGENT'] = 'WikibaseBot/1.0 (https://github.com/MyUserName/MyBotRepository) Author: MyUser@wikidata'
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 ```
 
 # The Core Parts #
