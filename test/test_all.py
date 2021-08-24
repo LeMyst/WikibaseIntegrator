@@ -7,7 +7,7 @@ from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent
 
 config['DEBUG'] = True
 
@@ -213,3 +213,9 @@ def test_user_agent(capfd):
     mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
     out, err = capfd.readouterr()
     assert not out
+
+    # Test if the user agent is correctly added
+    new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5', username='Wikibot')
+    assert new_user_agent.startswith('MyWikibaseBot/0.5')
+    assert 'Wikibot' in new_user_agent
+    assert 'WikibaseIntegrator' in new_user_agent
