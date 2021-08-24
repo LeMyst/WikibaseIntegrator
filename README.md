@@ -11,6 +11,7 @@
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
+    - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
 - [The Core Parts](#the-core-parts)
     - [wbi_item.Item](#wbi_coreitemengine)
     - [wbi_functions](#wbi_functions)
@@ -87,6 +88,23 @@ wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
 You can find more default parameters in the file wbi_config.py
+
+## Wikimedia Foundation User-Agent policy ##
+
+If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Mediawiki Commons, etc.),
+it's highly advised to follow the User-Agent policy that you can find on the
+page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
+of the Wikimedia Meta-Wiki.
+
+You can set a complementary User-Agent by modifying the variable `wbi_config['USER_AGENT']` in wbi_config.
+
+For example, with your library name and contact information:
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
+```
 
 # The Core Parts #
 
