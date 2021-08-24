@@ -5,6 +5,7 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
