@@ -1,5 +1,6 @@
 import datetime
 from time import sleep
+from urllib.parse import urlparse
 
 import requests
 
@@ -94,6 +95,10 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
     mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
     user_agent = config['USER_AGENT'] if user_agent is None else user_agent
 
+    if urlparse(mediawiki_api_url).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+        print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
+        print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+
     if not allow_anonymous:
         if login is None:
             # Force allow_anonymous as False by default to ask for a login object
@@ -150,6 +155,10 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
 
     sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if endpoint is None else endpoint
     user_agent = (config['USER_AGENT'] if user_agent is None else user_agent)
+
+    if urlparse(endpoint).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+        print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
+        print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
     if prefix:
         query = prefix + '\n' + query
