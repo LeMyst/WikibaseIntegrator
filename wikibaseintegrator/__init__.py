@@ -2,8 +2,6 @@ import pkg_resources
 
 from .wikibaseintegrator import WikibaseIntegrator
 
-__import__("pkg_resources").declare_namespace(__name__)
-
 try:
     __version__ = pkg_resources.get_distribution('wikibaseintegrator').version
 except pkg_resources.DistributionNotFound as e:  # pragma: no cover
