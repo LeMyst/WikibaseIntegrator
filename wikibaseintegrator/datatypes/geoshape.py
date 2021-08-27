@@ -15,7 +15,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
@@ -44,7 +44,8 @@ class GeoShape(BaseDataType):
 
         self.value = value
 
-        self.mainsnak.datavalue = {
-            'value': self.value,
-            'type': 'string'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': self.value,
+                'type': 'string'
+            }

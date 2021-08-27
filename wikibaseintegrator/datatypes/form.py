@@ -15,7 +15,7 @@ class Form(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
@@ -44,10 +44,11 @@ class Form(BaseDataType):
 
         self.value = value
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'form',
-                'id': self.value
-            },
-            'type': 'wikibase-entityid'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'form',
+                    'id': self.value
+                },
+                'type': 'wikibase-entityid'
+            }

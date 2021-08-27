@@ -15,7 +15,7 @@ class URL(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The URL to be used as the value
@@ -44,7 +44,8 @@ class URL(BaseDataType):
 
         self.value = value
 
-        self.mainsnak.datavalue = {
-            'value': self.value,
-            'type': 'string'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': self.value,
+                'type': 'string'
+            }

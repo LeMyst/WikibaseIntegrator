@@ -15,7 +15,7 @@ class Property(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The property number to serve as a value
@@ -48,11 +48,12 @@ class Property(BaseDataType):
             else:
                 self.value = int(matches.group(1))
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'property',
-                'numeric-id': self.value,
-                'id': 'P{}'.format(self.value)
-            },
-            'type': 'wikibase-entityid'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'property',
+                    'numeric-id': self.value,
+                    'id': 'P{}'.format(self.value)
+                },
+                'type': 'wikibase-entityid'
+            }

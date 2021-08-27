@@ -27,36 +27,25 @@ class TestMediawikiApiCall(unittest.TestCase):
 
 class TestDataType(unittest.TestCase):
     def test_quantity(self):
-        dt = datatypes.Quantity(quantity='34.5', prop_nr='P43')
+        dt = datatypes.Quantity(amount='34.5', prop_nr='P43')
 
         dt_json = dt.get_json()
 
-        if not dt_json['mainsnak']['datatype'] == 'quantity':
-            raise
+        assert dt_json['mainsnak']['datatype'] == 'quantity'
 
         value = dt_json['mainsnak']['datavalue']
 
-        if not value['value']['amount'] == '+34.5':
-            raise
+        assert value['value']['amount'] == '+34.5'
+        assert value['value']['unit'] == '1'
 
-        if not value['value']['unit'] == '1':
-            raise
-
-        dt2 = datatypes.Quantity(quantity='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
+        dt2 = datatypes.Quantity(amount='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
 
         value = dt2.get_json()['mainsnak']['datavalue']
 
-        if not value['value']['amount'] == '+34.5':
-            raise
-
-        if not value['value']['unit'] == 'http://www.wikidata.org/entity/Q11573':
-            raise
-
-        if not value['value']['upperBound'] == '+35.3':
-            raise
-
-        if not value['value']['lowerBound'] == '+33.7':
-            raise
+        assert value['value']['amount'] == '+34.5'
+        assert value['value']['unit'] == 'http://www.wikidata.org/entity/Q11573'
+        assert value['value']['upperBound'] == '+35.3'
+        assert value['value']['lowerBound'] == '+33.7'
 
     def test_geoshape(self):
         dt = datatypes.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')

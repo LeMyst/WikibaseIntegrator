@@ -9,7 +9,7 @@ class TabularData(BaseDataType):
     """
     DTYPE = 'tabular-data'
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
@@ -42,7 +42,8 @@ class TabularData(BaseDataType):
 
         self.value = value
 
-        self.mainsnak.datavalue = {
-            'value': self.value,
-            'type': 'string'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': self.value,
+                'type': 'string'
+            }

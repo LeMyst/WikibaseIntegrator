@@ -15,7 +15,7 @@ class Sense(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
@@ -44,10 +44,11 @@ class Sense(BaseDataType):
 
         self.value = value
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'sense',
-                'id': self.value
-            },
-            'type': 'wikibase-entityid'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'sense',
+                    'id': self.value
+                },
+                'type': 'wikibase-entityid'
+            }

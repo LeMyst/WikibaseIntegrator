@@ -16,7 +16,7 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
+    def __init__(self, time=None, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
@@ -77,19 +77,23 @@ class Time(BaseDataType):
             if self.precision < 0 or self.precision > 15:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'time': self.time,
-                'before': self.before,
-                'after': self.after,
-                'precision': self.precision,
-                'timezone': self.timezone,
-                'calendarmodel': self.calendarmodel
-            },
-            'type': 'time'
-        }
+        if self.time:
+            self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
+        else:
+            self.value = None
 
-        self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'time': self.time,
+                    'before': self.before,
+                    'after': self.after,
+                    'precision': self.precision,
+                    'timezone': self.timezone,
+                    'calendarmodel': self.calendarmodel
+                },
+                'type': 'time'
+            }
 
     def get_sparql_value(self):
         return self.time

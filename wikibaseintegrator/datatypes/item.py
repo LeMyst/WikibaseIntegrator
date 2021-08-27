@@ -15,7 +15,7 @@ class Item(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The item ID to serve as the value
@@ -48,11 +48,12 @@ class Item(BaseDataType):
             else:
                 self.value = int(matches.group(1))
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'item',
-                'numeric-id': self.value,
-                'id': 'Q{}'.format(self.value)
-            },
-            'type': 'wikibase-entityid'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'item',
+                    'numeric-id': self.value,
+                    'id': 'Q{}'.format(self.value)
+                },
+                'type': 'wikibase-entityid'
+            }

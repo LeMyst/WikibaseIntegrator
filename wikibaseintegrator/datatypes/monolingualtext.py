@@ -14,7 +14,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text, language=None, **kwargs):
+    def __init__(self, text=None, language=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param text: The language specific string to be used as the value
@@ -47,13 +47,14 @@ class MonolingualText(BaseDataType):
             raise ValueError("Parameter 'text' can't be 'None' if 'snaktype' is 'value'")
         assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'text': self.text,
-                'language': self.language
-            },
-            'type': 'monolingualtext'
-        }
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'text': self.text,
+                    'language': self.language
+                },
+                'type': 'monolingualtext'
+            }
 
         self.value = (self.text, self.language)
 

@@ -15,18 +15,18 @@ class Quantity(BaseDataType):
         }}
     '''
 
-    def __init__(self, quantity, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
+    def __init__(self, amount=None, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
-        :param quantity: The quantity value
-        :type quantity: float, str or None
+        :param amount: The amount value
+        :type amount: float, str or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
         :type upper_bound: float, str
         :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
         :type lower_bound: float, str
-        :param unit: The unit item URL or the QID a certain quantity has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
+        :param unit: The unit item URL or the QID a certain amount has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
             The default is dimensionless, represented by a '1'
         :type unit: str
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
@@ -46,17 +46,17 @@ class Quantity(BaseDataType):
         if unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
-        self.quantity = None
+        self.amount = None
         self.unit = None
         self.upper_bound = None
         self.lower_bound = None
 
-        value = (quantity, unit, upper_bound, lower_bound)
+        value = (amount, unit, upper_bound, lower_bound)
 
-        self.quantity, self.unit, self.upper_bound, self.lower_bound = value
+        self.amount, self.unit, self.upper_bound, self.lower_bound = value
 
-        if self.quantity is not None:
-            self.quantity = format_amount(self.quantity)
+        if self.amount is not None:
+            self.amount = format_amount(self.amount)
             self.unit = str(self.unit)
             if self.upper_bound:
                 self.upper_bound = format_amount(self.upper_bound)
@@ -65,37 +65,41 @@ class Quantity(BaseDataType):
 
             # Integrity checks for value and bounds
             try:
-                for i in [self.quantity, self.upper_bound, self.lower_bound]:
+                for i in [self.amount, self.upper_bound, self.lower_bound]:
                     if i:
                         float(i)
             except ValueError:
                 raise ValueError("Value, bounds and units must parse as integers or float")
 
             if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
-                                                            or float(self.lower_bound) > float(self.quantity)):
+                                                            or float(self.lower_bound) > float(self.amount)):
                 raise ValueError("Lower bound too large")
 
-            if self.upper_bound and float(self.upper_bound) < float(self.quantity):
+            if self.upper_bound and float(self.upper_bound) < float(self.amount):
                 raise ValueError("Upper bound too small")
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'amount': self.quantity,
-                'unit': self.unit,
-                'upperBound': self.upper_bound,
-                'lowerBound': self.lower_bound
-            },
-            'type': 'quantity'
-        }
+        if self.amount:
+            self.value = (self.amount, self.unit, self.upper_bound, self.lower_bound)
+        else:
+            self.value = None
 
-        # remove bounds from json if they are undefined
-        if not self.upper_bound:
-            del self.mainsnak.datavalue['value']['upperBound']
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'amount': self.amount,
+                    'unit': self.unit,
+                    'upperBound': self.upper_bound,
+                    'lowerBound': self.lower_bound
+                },
+                'type': 'quantity'
+            }
 
-        if not self.lower_bound:
-            del self.mainsnak.datavalue['value']['lowerBound']
+            # remove bounds from json if they are undefined
+            if not self.upper_bound:
+                del self.mainsnak.datavalue['value']['upperBound']
 
-        self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
+            if not self.lower_bound:
+                del self.mainsnak.datavalue['value']['lowerBound']
 
     def get_sparql_value(self):
-        return format_amount(self.quantity)
+        return format_amount(self.amount)
