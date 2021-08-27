@@ -28,10 +28,9 @@ class String(BaseDataType):
         super(String, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        self.value = value
 
-        if self.value:
+        if value:
             self.mainsnak.datavalue = {
-                'value': self.value,
+                'value': value,
                 'type': 'string'
             }

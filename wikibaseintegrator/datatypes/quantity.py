@@ -43,63 +43,49 @@ class Quantity(BaseDataType):
 
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
+        unit = unit or '1'
+
         if unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
-        self.amount = None
-        self.unit = None
-        self.upper_bound = None
-        self.lower_bound = None
-
-        value = (amount, unit, upper_bound, lower_bound)
-
-        self.amount, self.unit, self.upper_bound, self.lower_bound = value
-
-        if self.amount is not None:
-            self.amount = format_amount(self.amount)
-            self.unit = str(self.unit)
-            if self.upper_bound:
-                self.upper_bound = format_amount(self.upper_bound)
-            if self.lower_bound:
-                self.lower_bound = format_amount(self.lower_bound)
+        if amount:
+            amount = format_amount(amount)
+            unit = str(unit)
+            if upper_bound:
+                upper_bound = format_amount(upper_bound)
+            if lower_bound:
+                lower_bound = format_amount(lower_bound)
 
             # Integrity checks for value and bounds
             try:
-                for i in [self.amount, self.upper_bound, self.lower_bound]:
+                for i in [amount, upper_bound, lower_bound]:
                     if i:
                         float(i)
             except ValueError:
                 raise ValueError("Value, bounds and units must parse as integers or float")
 
-            if (self.lower_bound and self.upper_bound) and (float(self.lower_bound) > float(self.upper_bound)
-                                                            or float(self.lower_bound) > float(self.amount)):
+            if (lower_bound and upper_bound) and (float(lower_bound) > float(upper_bound) or float(lower_bound) > float(amount)):
                 raise ValueError("Lower bound too large")
 
-            if self.upper_bound and float(self.upper_bound) < float(self.amount):
+            if upper_bound and float(upper_bound) < float(amount):
                 raise ValueError("Upper bound too small")
 
-        if self.amount:
-            self.value = (self.amount, self.unit, self.upper_bound, self.lower_bound)
-        else:
-            self.value = None
-
-        if self.value:
             self.mainsnak.datavalue = {
                 'value': {
-                    'amount': self.amount,
-                    'unit': self.unit,
-                    'upperBound': self.upper_bound,
-                    'lowerBound': self.lower_bound
+                    'amount': amount,
+                    'unit': unit,
+                    'upperBound': upper_bound,
+                    'lowerBound': lower_bound
                 },
                 'type': 'quantity'
             }
 
             # remove bounds from json if they are undefined
-            if not self.upper_bound:
+            if not upper_bound:
                 del self.mainsnak.datavalue['value']['upperBound']
 
-            if not self.lower_bound:
+            if not lower_bound:
                 del self.mainsnak.datavalue['value']['lowerBound']
 
     def get_sparql_value(self):
-        return format_amount(self.amount)
+        return format_amount(self.mainsnak.datavalue['value']['amount'])
