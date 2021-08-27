@@ -35,17 +35,15 @@ class URL(BaseDataType):
         super(URL, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is not None:
+
+        if value:
             pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError("Invalid URL {}".format(value))
 
-        self.value = value
-
-        if self.value:
             self.mainsnak.datavalue = {
-                'value': self.value,
+                'value': value,
                 'type': 'string'
             }

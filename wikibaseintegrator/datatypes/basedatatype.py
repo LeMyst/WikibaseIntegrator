@@ -74,7 +74,7 @@ class BaseDataType(Claim):
         self.__value = value
 
     def get_sparql_value(self):
-        return self.value
+        return self.mainsnak.datavalue['value']
 
     def equals(self, that, include_ref=False, fref=None):
         """

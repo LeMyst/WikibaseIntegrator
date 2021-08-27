@@ -35,20 +35,21 @@ class Form(BaseDataType):
         super(Form, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is not None:
+
+        if value:
             pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
 
-        self.value = value
-
-        if self.value:
             self.mainsnak.datavalue = {
                 'value': {
                     'entity-type': 'form',
-                    'id': self.value
+                    'id': value
                 },
                 'type': 'wikibase-entityid'
             }
+
+    def get_sparql_value(self):
+        return self.mainsnak.datavalue['value']['id']
