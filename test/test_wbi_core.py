@@ -4,6 +4,7 @@ from copy import deepcopy
 from wikibaseintegrator import datatypes, WikibaseIntegrator
 from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, MonolingualText, Quantity, CommonsMedia, GlobeCoordinate, GeoShape, Property, TabularData, \
     MusicalNotation, Lexeme, Form, Sense
+from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.wbi_helpers import search_entities, generate_entity_instances
@@ -185,6 +186,21 @@ class TestWbiCore(unittest.TestCase):
             Lexeme(value=123, prop_nr="P15"),
             Form(value="L123-F123", prop_nr="P16"),
             Sense(value="L123-S123", prop_nr="P17")
+        ]
+
+        for d in data:
+            item = wbi.item.new().add_claims([d])
+            assert item.get_json()
+            item = wbi.item.new().add_claims(d)
+            assert item.get_json()
+
+        item = wbi.item.new().add_claims(data)
+        assert item.get_json()
+
+    def test_new_extra_item_creation(self):
+        data = [
+            EDTF(value='test1', prop_nr='P1'),
+            LocalMedia(value='test2', prop_nr='P2')
         ]
 
         for d in data:
