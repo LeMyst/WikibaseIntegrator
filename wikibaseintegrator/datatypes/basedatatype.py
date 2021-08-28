@@ -1,4 +1,5 @@
 from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class BaseDataType(Claim):
@@ -22,9 +23,9 @@ class BaseDataType(Claim):
         :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
         :param datatype: The Wikibase data type declaration of this snak
         :type datatype: str
-        :param snaktype: The snak type of the Wikibase data snak, three values possible, depending if the value is a known (value), not existent (novalue) or
-            unknown (somevalue). See Wikibase documentation.
-        :type snaktype: a str of either 'value', 'novalue' or 'somevalue'
+        :param snaktype: One of the values in the enum WikibaseSnakValueType denoting the state of the value:
+            KNOWN_VALUE, NO_VALUE or UNKNOWN_VALUE
+        :type snaktype: WikibaseSnakType
         :param references: A one level nested list with reference Wikibase snaks of base type BaseDataType,
             e.g. references=[[<BaseDataType>, <BaseDataType>], [<BaseDataType>]]
             This will create two references, the first one with two statements, the second with one
@@ -70,7 +71,7 @@ class BaseDataType(Claim):
     @value.setter
     def value(self, value):
         if not value:
-            self.mainsnak.snaktype = 'novalue'
+            self.mainsnak.snaktype = WikibaseSnakType.NO_VALUE
         self.__value = value
 
     def get_sparql_value(self):

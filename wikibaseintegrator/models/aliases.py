@@ -1,5 +1,6 @@
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Aliases:
@@ -27,9 +28,9 @@ class Aliases:
             else:
                 return None
 
-    def set(self, language=None, values=None, if_exists='APPEND'):
+    def set(self, language=None, values=None, if_exists=ActionIfExists.APPEND):
         language = language or config['DEFAULT_LANGUAGE']
-        assert if_exists in ['REPLACE', 'APPEND', 'KEEP']
+        assert if_exists in ActionIfExists
 
         assert language is not None
 
@@ -37,7 +38,7 @@ class Aliases:
             self.aliases[language] = []
 
         if values is None or values == '':
-            if if_exists != 'KEEP':
+            if if_exists != ActionIfExists.KEEP:
                 for alias in self.aliases[language]:
                     alias.remove()
             return self.aliases[language]
@@ -47,7 +48,7 @@ class Aliases:
         elif not isinstance(values, list) and values is not None:
             raise TypeError("value must be a str or list")
 
-        if if_exists == 'REPLACE':
+        if if_exists == ActionIfExists.REPLACE:
             aliases = []
             for value in values:
                 alias = Alias(language, value)
@@ -57,10 +58,10 @@ class Aliases:
             for value in values:
                 alias = Alias(language, value)
 
-                if if_exists == 'APPEND':
+                if if_exists == ActionIfExists.APPEND:
                     if alias not in self.aliases[language]:
                         self.aliases[language].append(alias)
-                elif if_exists == 'KEEP':
+                elif if_exists == ActionIfExists.KEEP:
                     if not self.aliases[language]:
                         self.aliases[language].append(alias)
 

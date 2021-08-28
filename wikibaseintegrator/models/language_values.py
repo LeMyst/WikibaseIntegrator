@@ -1,4 +1,5 @@
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class LanguageValues:
@@ -28,16 +29,16 @@ class LanguageValues:
         else:
             return None
 
-    def set(self, language=None, value=None, if_exists='REPLACE'):
+    def set(self, language=None, value=None, if_exists=ActionIfExists.REPLACE):
         language = language or config['DEFAULT_LANGUAGE']
-        assert if_exists in ['REPLACE', 'KEEP']
+        assert if_exists in [ActionIfExists.REPLACE, ActionIfExists.KEEP]
 
         # Remove value if None
         if value is None and language in self.values:
             self.values[language].remove()
             return None
 
-        if if_exists == 'REPLACE' or self.get(language=language) is None:
+        if if_exists == ActionIfExists.REPLACE or self.get(language=language) is None:
             language_value = LanguageValue(language, value)
             self.add(language_value)
             return language_value

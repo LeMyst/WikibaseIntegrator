@@ -1,5 +1,6 @@
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Senses:
@@ -13,7 +14,7 @@ class Senses:
         return None
 
     # TODO: implement if_exists
-    def add(self, sense, if_exists='REPLACE'):
+    def add(self, sense, if_exists=ActionIfExists.REPLACE):
         self.senses.append(sense)
 
         return self

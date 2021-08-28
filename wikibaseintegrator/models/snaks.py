@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
+
 
 class Snaks:
     def __init__(self):
@@ -56,8 +58,8 @@ class Snaks:
 
 
 class Snak:
-    def __init__(self, snaktype=None, property_number=None, hash=None, datavalue=None, datatype=None):
-        self.snaktype = snaktype or 'value'
+    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number=None, hash=None, datavalue=None, datatype=None):
+        self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash
         self.datavalue = datavalue or {}
@@ -68,11 +70,9 @@ class Snak:
         return self.__snaktype
 
     @snaktype.setter
-    def snaktype(self, value):
-        if value not in ['value', 'novalue', 'somevalue']:
-            raise ValueError('{} is not a valid snak type'.format(value))
-
-        self.__snaktype = value
+    def snaktype(self, value: WikibaseSnakType):
+        """Parse the snaktype. The enum thows an error if it is not one of the recognized values"""
+        self.__snaktype = WikibaseSnakType(value)
 
     @property
     def property_number(self):
@@ -108,7 +108,7 @@ class Snak:
     @datavalue.setter
     def datavalue(self, value):
         if value is not None:
-            self.snaktype = 'value'
+            self.snaktype = WikibaseSnakType.KNOWN_VALUE
         self.__datavalue = value
 
     @property
@@ -120,7 +120,7 @@ class Snak:
         self.__datatype = value
 
     def from_json(self, json_data) -> Snak:
-        self.snaktype = json_data['snaktype']
+        self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
         self.property_number = json_data['property']
         if 'hash' in json_data:
             self.hash = json_data['hash']
@@ -132,13 +132,13 @@ class Snak:
 
     def get_json(self) -> {}:
         json_data = {
-            'snaktype': self.snaktype,
+            'snaktype': self.snaktype.value,
             'property': self.property_number,
             'datatype': self.datatype,
             'datavalue': self.datavalue
         }
 
-        if self.snaktype in {'novalue', 'somevalue'}:
+        if self.snaktype in [WikibaseSnakType.NO_VALUE, WikibaseSnakType.UNKNOWN_VALUE]:
             del json_data['datavalue']
 
         return json_data

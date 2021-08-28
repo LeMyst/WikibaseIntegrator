@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from wikibaseintegrator.models.snaks import Snaks, Snak
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class References:
@@ -14,7 +15,7 @@ class References:
         return None
 
     # TODO: implement if_exists
-    def add(self, reference=None, if_exists='REPLACE'):
+    def add(self, reference=None, if_exists=ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
@@ -99,7 +100,7 @@ class Reference:
         self.__snaks_order = value
 
     # TODO: implement if_exists
-    def add(self, snak=None, if_exists='REPLACE'):
+    def add(self, snak=None, if_exists=ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])

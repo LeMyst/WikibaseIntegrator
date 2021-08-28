@@ -6,6 +6,7 @@ from typing import Union
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
 from wikibaseintegrator.models.snaks import Snak
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 
 class Claims:
@@ -23,17 +24,17 @@ class Claims:
     def get(self, property=None) -> list:
         return self.claims[property]
 
-    def add(self, claims: Union[list, Claim, None] = None, if_exists='REPLACE') -> Claims:
+    def add(self, claims: Union[list, Claim, None] = None, if_exists=ActionIfExists.REPLACE) -> Claims:
         """
 
         :param claims:
         :param if_exists: Replace or append the statement. You can force an append if the statement already exists.
-        :type if_exists: A string of one of three allowed values: 'REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP'
+        :type if_exists: One of the values of the enum ActionIfExists: REPLACE, APPEND, FORCE_APPEND, KEEP
         :return: Claims
         """
 
-        if if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP']:
-            raise ValueError('{} is not a valid if_exists value'.format(if_exists))
+        if if_exists not in ActionIfExists:
+            raise ValueError('{} is not a valid if_exists value. Use the enum ActionIfExists'.format(if_exists))
 
         if isinstance(claims, Claim):
             claims = [claims]
@@ -41,7 +42,7 @@ class Claims:
             raise ValueError
 
         # TODO: Don't replace if claim is the same
-        if if_exists == 'REPLACE':
+        if if_exists == ActionIfExists.REPLACE:
             for claim in claims:
                 if claim is not None:
                     assert isinstance(claim, Claim)
@@ -59,15 +60,15 @@ class Claims:
             if property not in self.claims:
                 self.claims[property] = []
 
-            if if_exists == 'KEEP':
+            if if_exists == ActionIfExists.KEEP:
                 if len(self.claims[property]) == 0:
                     self.claims[property].append(claim)
-            elif if_exists == 'FORCE_APPEND':
+            elif if_exists == ActionIfExists.FORCE_APPEND:
                 self.claims[property].append(claim)
-            elif if_exists == 'APPEND':
+            elif if_exists == ActionIfExists.APPEND:
                 if claim not in self.claims[property]:
                     self.claims[property].append(claim)
-            elif if_exists == 'REPLACE':
+            elif if_exists == ActionIfExists.REPLACE:
                 if claim not in self.claims[property]:
                     self.claims[property].append(claim)
 
@@ -81,7 +82,7 @@ class Claims:
                     data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
                 else:
                     data_type = Claim
-                self.add(claims=data_type().from_json(claim), if_exists='FORCE_APPEND')
+                self.add(claims=data_type().from_json(claim), if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
 
@@ -125,7 +126,7 @@ class Claim:
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
-        self.rank = rank or 'normal'
+        self.rank: WikibaseRank = rank or WikibaseRank.NORMAL
         self.references = references or References()
         self.removed = False
 
@@ -184,10 +185,8 @@ class Claim:
 
     @rank.setter
     def rank(self, value):
-        if value not in ['normal', 'deprecated', 'preferred']:
-            raise ValueError("{} not a valid rank".format(value))
-
-        self.__rank = value
+        """Parse the rank. The enum thows an error if it is not one of the recognized values"""
+        self.__rank = WikibaseRank(value)
 
     @property
     def references(self):
@@ -216,7 +215,7 @@ class Claim:
         if 'qualifiers-order' in json_data:
             self.qualifiers_order = json_data['qualifiers-order']
         self.id = json_data['id']
-        self.rank = json_data['rank']
+        self.rank: WikibaseRank = WikibaseRank(json_data['rank'])
         if 'references' in json_data:
             self.references = References().from_json(json_data['references'])
 
@@ -227,7 +226,7 @@ class Claim:
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,
-            'rank': self.rank
+            'rank': self.rank.value
         }
         # Remove id if it's a temporary one
         if not self.id:
