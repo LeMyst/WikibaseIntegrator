@@ -1,4 +1,5 @@
 from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
+from wikibaseintegrator.wbi_enums import WikibaseSnakValueType
 
 
 class BaseDataType(Claim):
@@ -70,7 +71,7 @@ class BaseDataType(Claim):
     @value.setter
     def value(self, value):
         if not value:
-            self.mainsnak.snaktype = 'novalue'
+            self.mainsnak.snaktype = WikibaseSnakValueType.NO_VALUE
         self.__value = value
 
     def get_sparql_value(self):
