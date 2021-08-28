@@ -14,7 +14,7 @@ class BaseDataType(Claim):
         }}
     '''
 
-    def __init__(self, **kwargs):
+    def __init__(self, prop_nr=None, **kwargs):
         """
         Constructor, will be called by all data types.
         :param value: Data value of the Wikibase data snak
@@ -62,7 +62,7 @@ class BaseDataType(Claim):
             self.references = references
 
         self.value = None
-        self.mainsnak.property_number = kwargs.pop('prop_nr', None)
+        self.mainsnak.property_number = prop_nr or None
 
     @property
     def value(self):

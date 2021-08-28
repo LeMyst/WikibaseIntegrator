@@ -120,15 +120,14 @@ class Claim:
     DTYPE = 'claim'
     subclasses = []
 
-    def __init__(self, **kwargs):
-        # FIXME document here why we are use pop() instead of get()
+    def __init__(self, qualifiers=None, rank=None, references=None):
         self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
-        self.qualifiers = kwargs.pop('qualifiers', Qualifiers())
+        self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
-        self.rank: WikibaseRank = kwargs.pop('rank', WikibaseRank.NORMAL.value)
-        self.references = kwargs.pop('references', References())
+        self.rank: WikibaseRank = rank or WikibaseRank.NORMAL.value
+        self.references = references or References()
         self.removed = False
 
     # Allow registration of subclasses of Claim into Claim.subclasses

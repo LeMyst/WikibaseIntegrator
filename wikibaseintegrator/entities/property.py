@@ -28,7 +28,7 @@ class Property(BaseEntity):
         return Property(self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Property:
-        json_data = super(Property, self).get(entity_id=entity_id)
+        json_data = super(Property, self).get(entity_id=entity_id, **kwargs)
         return Property(self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:
