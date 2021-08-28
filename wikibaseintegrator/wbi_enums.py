@@ -3,8 +3,7 @@ from enum import Enum, auto
 
 class ActionIfExists(Enum):
     """
-    Action to take if a statement with a property already
-    exists on the item or lexeme.
+    Action to take if a statement with a property already exists on the item or lexeme.
     """
     APPEND = auto()
     FORCE_APPEND = auto()
@@ -18,7 +17,7 @@ class WikibaseRank(Enum):
     PREFERRED = "preferred"
 
 
-class WikibaseSnakValueType(Enum):
+class WikibaseSnakType(Enum):
     """
     The snak type of the Wikibase data snak, three values possible, 
     depending if the value is a known (value), not existent (novalue) or

@@ -126,7 +126,7 @@ class Claim:
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
-        self.rank: WikibaseRank = rank or WikibaseRank.NORMAL.value
+        self.rank: WikibaseRank = rank or WikibaseRank.NORMAL
         self.references = references or References()
         self.removed = False
 
@@ -185,8 +185,7 @@ class Claim:
 
     @rank.setter
     def rank(self, value):
-        """Parse the rank.
-        The enum thows an error if it is not one of the recognized values"""
+        """Parse the rank. The enum thows an error if it is not one of the recognized values"""
         self.__rank = WikibaseRank(value)
 
     @property
@@ -224,8 +223,6 @@ class Claim:
 
     def get_json(self) -> {}:
         json_data = {
-            # FIXME this is not covered by a test (commenting out the ".value"
-            # FIXME ending on "self.rank" should cause a test to fail
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,

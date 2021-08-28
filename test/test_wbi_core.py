@@ -7,7 +7,7 @@ from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, Mo
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
-from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import search_entities, generate_entity_instances
 
 wbi = WikibaseIntegrator()
@@ -152,6 +152,36 @@ class TestWbiCore(unittest.TestCase):
 
         for qid, entity in entity_instances:
             self.assertIn(qid, entities)
+
+    def test_rank(self):
+        t1 = String(value='test1', prop_nr='P1', rank='preferred')
+        assert t1.rank == WikibaseRank.PREFERRED
+
+        t2 = String(value='test1', prop_nr='P1', rank=WikibaseRank.NORMAL)
+        assert t2.rank == WikibaseRank.NORMAL
+
+        t2 = String(value='test1', prop_nr='P1', rank=WikibaseRank.DEPRECATED)
+        assert t2.get_json()['rank'] == WikibaseRank.DEPRECATED.value
+
+        with self.assertRaises(ValueError):
+            String(value='test1', prop_nr='P1', rank='invalid_rank')
+
+    def test_snaktype(self):
+        t1 = String(value='test1', prop_nr='P1')
+        t1.mainsnak.snaktype = 'novalue'
+        assert t1.mainsnak.snaktype == WikibaseSnakType.NO_VALUE
+
+        t2 = String(value='test1', prop_nr='P1')
+        t2.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        assert t2.mainsnak.snaktype == WikibaseSnakType.UNKNOWN_VALUE
+
+        t3 = String(value='test1', prop_nr='P1')
+        t3.mainsnak.snaktype = WikibaseSnakType.KNOWN_VALUE
+        assert t3.mainsnak.get_json()['snaktype'] == WikibaseSnakType.KNOWN_VALUE.value
+
+        t4 = String(value='test1', prop_nr='P1')
+        with self.assertRaises(ValueError):
+            t4.mainsnak.snaktype = 'invalid_value'
 
     def test_new_item_creation(self):
         data = [
