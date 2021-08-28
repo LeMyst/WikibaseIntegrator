@@ -14,7 +14,7 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude, longitude, precision, globe=None, wikibase_url=None, **kwargs):
+    def __init__(self, latitude=None, longitude=None, precision=None, globe=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param latitude: Latitute in decimal format
@@ -48,23 +48,28 @@ class GlobeCoordinate(BaseDataType):
         if globe.startswith('Q'):
             globe = wikibase_url + '/entity/' + globe
 
-        value = (latitude, longitude, precision, globe)
-
         # TODO: Introduce validity checks for coordinates, etc.
         # TODO: Add check if latitude/longitude/precision is None
-        self.latitude, self.longitude, self.precision, self.globe = value
+        self.latitude = latitude
+        self.longitude = longitude
+        self.precision = precision
+        self.globe = globe
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'latitude': self.latitude,
-                'longitude': self.longitude,
-                'precision': self.precision,
-                'globe': self.globe
-            },
-            'type': 'globecoordinate'
-        }
+        if self.latitude and self.longitude and self.precision:
+            self.value = (self.latitude, self.longitude, self.precision, self.globe)
+        else:
+            self.value = None
 
-        self.value = (self.latitude, self.longitude, self.precision, self.globe)
+        if self.value:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'latitude': self.latitude,
+                    'longitude': self.longitude,
+                    'precision': self.precision,
+                    'globe': self.globe
+                },
+                'type': 'globecoordinate'
+            }
 
     def get_sparql_value(self):
         return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'

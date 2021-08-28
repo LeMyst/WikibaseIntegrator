@@ -8,6 +8,7 @@ from requests_oauthlib import OAuth1, OAuth2Session, OAuth2
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_helpers import get_user_agent
 
 """
 Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
@@ -50,6 +51,8 @@ class Login(object):
         :return: None
         """
 
+        self.user = user
+
         self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
         self.mediawiki_index_url = mediawiki_index_url or config['MEDIAWIKI_INDEX_URL']
         self.mediawiki_rest_url = mediawiki_rest_url or config['MEDIAWIKI_REST_URL']
@@ -71,13 +74,8 @@ class Login(object):
         self.response_qs = None
         self.callback_url = callback_url
 
-        if user_agent:
-            self.user_agent = user_agent
-        else:
-            # if a user is given append " (User:USER)" to the UA string and update that value in CONFIG
-            if user and user.casefold() not in config['USER_AGENT_DEFAULT'].casefold():
-                config['USER_AGENT_DEFAULT'] += " (User:{})".format(user)
-            self.user_agent = config['USER_AGENT_DEFAULT']
+        self.user_agent = get_user_agent(user_agent if user_agent else config['USER_AGENT'], self.user)
+
         self.session.headers.update({
             'User-Agent': self.user_agent
         })

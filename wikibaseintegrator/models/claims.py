@@ -77,8 +77,12 @@ class Claims:
     def from_json(self, json_data) -> Claims:
         for property in json_data:
             for claim in json_data[property]:
-                # data_type = [x for x in BaseDataType.__subclasses__() if x.DTYPE == alias['mainsnak']['datatype']][0]
-                self.add(claims=Claim().from_json(claim), if_exists=ActionIfExists.FORCE_APPEND)
+                from wikibaseintegrator.datatypes import BaseDataType
+                if 'datatype' in 'mainsnak':
+                    data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
+                else:
+                    data_type = Claim
+                self.add(claims=data_type().from_json(claim), if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
 
@@ -90,7 +94,6 @@ class Claims:
             for claim in self.claims[property]:
                 json_data[property].append(claim.get_json())
         return json_data
-
 
     def clear(self):
         self.claims = {}

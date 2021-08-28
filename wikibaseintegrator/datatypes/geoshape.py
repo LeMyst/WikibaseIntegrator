@@ -15,7 +15,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
@@ -35,16 +35,15 @@ class GeoShape(BaseDataType):
         super(GeoShape, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is not None:
+
+        if value:
             # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map
             pattern = re.compile(r'^Data:((?![:|#]).)+\.map$')
             matches = pattern.match(value)
             if not matches:
                 raise ValueError("Value must start with Data: and end with .map. In addition title should not contain characters like colon, hash or pipe.")
 
-        self.value = value
-
-        self.mainsnak.datavalue = {
-            'value': self.value,
-            'type': 'string'
-        }
+            self.mainsnak.datavalue = {
+                'value': value,
+                'type': 'string'
+            }

@@ -15,7 +15,7 @@ class Property(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The property number to serve as a value
@@ -35,24 +35,25 @@ class Property(BaseDataType):
         super(Property, self).__init__(**kwargs)
 
         assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        elif isinstance(value, int):
-            self.value = value
-        else:
-            pattern = re.compile(r'^P?([0-9]+)$')
-            matches = pattern.match(value)
 
-            if not matches:
-                raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(value))
-            else:
-                self.value = int(matches.group(1))
+        if value:
+            if isinstance(value, str):
+                pattern = re.compile(r'^P?([0-9]+)$')
+                matches = pattern.match(value)
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'property',
-                'numeric-id': self.value,
-                'id': 'P{}'.format(self.value)
-            },
-            'type': 'wikibase-entityid'
-        }
+                if not matches:
+                    raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(value))
+                else:
+                    value = int(matches.group(1))
+
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'property',
+                    'numeric-id': value,
+                    'id': 'P{}'.format(value)
+                },
+                'type': 'wikibase-entityid'
+            }
+
+    def get_sparql_value(self):
+        return self.mainsnak.datavalue['value']['id']

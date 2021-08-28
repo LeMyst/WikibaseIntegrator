@@ -16,7 +16,7 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
+    def __init__(self, time=None, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
@@ -51,45 +51,33 @@ class Time(BaseDataType):
         calendarmodel = calendarmodel or config['CALENDAR_MODEL_QID']
         wikibase_url = wikibase_url or config['WIKIBASE_URL']
 
-        self.time = None
-        self.before = None
-        self.after = None
-        self.precision = None
-        self.timezone = None
-        self.calendarmodel = None
-
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        value = (time, before, after, precision, timezone, calendarmodel)
+        assert isinstance(time, str) or time is None, "Expected str, found {} ({})".format(type(time), time)
 
-        self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
-        assert isinstance(self.time, str) or self.time is None, "Expected str, found {} ({})".format(type(self.time), self.time)
-
-        if self.time is not None:
-            if not (self.time.startswith("+") or self.time.startswith("-")):
-                self.time = "+" + self.time
+        if time:
+            if not (time.startswith("+") or time.startswith("-")):
+                time = "+" + time
             pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
-            matches = pattern.match(self.time)
+            matches = pattern.match(time)
             if not matches:
                 raise ValueError("Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
-            self.value = value
-            if self.precision < 0 or self.precision > 15:
+
+            if precision < 0 or precision > 15:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'time': self.time,
-                'before': self.before,
-                'after': self.after,
-                'precision': self.precision,
-                'timezone': self.timezone,
-                'calendarmodel': self.calendarmodel
-            },
-            'type': 'time'
-        }
-
-        self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
+            self.mainsnak.datavalue = {
+                'value': {
+                    'time': time,
+                    'before': before,
+                    'after': after,
+                    'precision': precision,
+                    'timezone': timezone,
+                    'calendarmodel': calendarmodel
+                },
+                'type': 'time'
+            }
 
     def get_sparql_value(self):
-        return self.time
+        return self.mainsnak.datavalue['value']['time']

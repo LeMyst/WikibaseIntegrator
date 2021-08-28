@@ -11,11 +11,11 @@ class Lexeme(BaseDataType):
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
-          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/L{value}> .
+          ?s <{wb_url}/prop/statement/{pid}> <{wb_url}/entity/{value}> .
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The lexeme number to serve as a value
@@ -35,24 +35,25 @@ class Lexeme(BaseDataType):
         super(Lexeme, self).__init__(**kwargs)
 
         assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
-        if value is None:
-            self.value = value
-        elif isinstance(value, int):
-            self.value = value
-        else:
-            pattern = re.compile(r'^L?([0-9]+)$')
-            matches = pattern.match(value)
 
-            if not matches:
-                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
-            else:
-                self.value = int(matches.group(1))
+        if value:
+            if isinstance(value, str):
+                pattern = re.compile(r'^L?([0-9]+)$')
+                matches = pattern.match(value)
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'lexeme',
-                'numeric-id': self.value,
-                'id': 'L{}'.format(self.value)
-            },
-            'type': 'wikibase-entityid'
-        }
+                if not matches:
+                    raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
+                else:
+                    value = int(matches.group(1))
+
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'lexeme',
+                    'numeric-id': value,
+                    'id': 'L{}'.format(value)
+                },
+                'type': 'wikibase-entityid'
+            }
+
+    def get_sparql_value(self):
+        return self.mainsnak.datavalue['value']['id']

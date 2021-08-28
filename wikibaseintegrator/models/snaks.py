@@ -110,6 +110,8 @@ class Snak:
 
     @datavalue.setter
     def datavalue(self, value):
+        if value is not None:
+            self.snaktype = 'value'
         self.__datavalue = value
 
     @property

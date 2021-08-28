@@ -15,7 +15,7 @@ class Sense(BaseDataType):
         }}
     '''
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Value using the format "L<Lexeme ID>-S<Sense ID>" (example: L252248-S123)
@@ -35,19 +35,21 @@ class Sense(BaseDataType):
         super(Sense, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is not None:
+
+        if value:
             pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
                 raise ValueError("Invalid sense ID ({}), format must be 'L[0-9]+-S[0-9]+'".format(value))
 
-        self.value = value
+            self.mainsnak.datavalue = {
+                'value': {
+                    'entity-type': 'sense',
+                    'id': value
+                },
+                'type': 'wikibase-entityid'
+            }
 
-        self.mainsnak.datavalue = {
-            'value': {
-                'entity-type': 'sense',
-                'id': self.value
-            },
-            'type': 'wikibase-entityid'
-        }
+    def get_sparql_value(self):
+        return self.mainsnak.datavalue['value']['id']

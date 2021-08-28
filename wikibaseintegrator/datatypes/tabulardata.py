@@ -9,7 +9,7 @@ class TabularData(BaseDataType):
     """
     DTYPE = 'tabular-data'
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: Reference to tabular data file on Wikimedia Commons.
@@ -33,16 +33,15 @@ class TabularData(BaseDataType):
         super(TabularData, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        if value is not None:
+
+        if value:
             # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Taipei+Population.tab
             pattern = re.compile(r'^Data:((?![:|#]).)+\.tab$')
             matches = pattern.match(value)
             if not matches:
                 raise ValueError("Value must start with Data: and end with .tab. In addition title should not contain characters like colon, hash or pipe.")
 
-        self.value = value
-
-        self.mainsnak.datavalue = {
-            'value': self.value,
-            'type': 'string'
-        }
+            self.mainsnak.datavalue = {
+                'value': value,
+                'type': 'string'
+            }

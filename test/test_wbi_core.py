@@ -4,6 +4,7 @@ from copy import deepcopy
 from wikibaseintegrator import datatypes, WikibaseIntegrator
 from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, MonolingualText, Quantity, CommonsMedia, GlobeCoordinate, GeoShape, Property, TabularData, \
     MusicalNotation, Lexeme, Form, Sense
+from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -171,8 +172,8 @@ class TestWbiCore(unittest.TestCase):
             URL(value="ssh://user@server/project.git", prop_nr="P6"),
             URL(value="svn+ssh://user@server:8888/path", prop_nr="P6"),
             MonolingualText(text="xxx", language="fr", prop_nr="P7"),
-            Quantity(quantity=-5.04, prop_nr="P8"),
-            Quantity(quantity=5.06, upper_bound=9.99, lower_bound=-2.22, unit="Q11573", prop_nr="P8"),
+            Quantity(amount=-5.04, prop_nr="P8"),
+            Quantity(amount=5.06, upper_bound=9.99, lower_bound=-2.22, unit="Q11573", prop_nr="P8"),
             CommonsMedia(value="xxx", prop_nr="P9"),
             GlobeCoordinate(latitude=1.2345, longitude=-1.2345, precision=12, prop_nr="P10"),
             GeoShape(value="Data:xxx.map", prop_nr="P11"),
@@ -186,6 +187,21 @@ class TestWbiCore(unittest.TestCase):
             Lexeme(value=123, prop_nr="P15"),
             Form(value="L123-F123", prop_nr="P16"),
             Sense(value="L123-S123", prop_nr="P17")
+        ]
+
+        for d in data:
+            item = wbi.item.new().add_claims([d])
+            assert item.get_json()
+            item = wbi.item.new().add_claims(d)
+            assert item.get_json()
+
+        item = wbi.item.new().add_claims(data)
+        assert item.get_json()
+
+    def test_new_extra_item_creation(self):
+        data = [
+            EDTF(value='test1', prop_nr='P1'),
+            LocalMedia(value='test2', prop_nr='P2')
         ]
 
         for d in data:

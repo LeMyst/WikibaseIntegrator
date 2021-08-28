@@ -1,5 +1,6 @@
 import datetime
 from time import sleep
+from urllib.parse import urlparse
 
 import requests
 
@@ -92,7 +93,11 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
 
 def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60, is_bot=False):
     mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-    user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+    user_agent = config['USER_AGENT'] if user_agent is None else user_agent
+
+    if urlparse(mediawiki_api_url).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+        print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
+        print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
     if not allow_anonymous:
         if login is None:
@@ -102,7 +107,7 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
             raise ValueError("mediawiki_api_url can't be different with the one in the login object.")
 
     headers = {
-        'User-Agent': user_agent
+        'User-Agent': get_user_agent(user_agent, login.user if login else None)
     }
 
     if data is not None:
@@ -119,7 +124,8 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
                 else:
                     data.update({'assert': 'user'})
             if 'token' in data and data['token'] == '+\\':
-                raise Exception("Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
+                raise Exception("Anonymous edit are not allowed by default. "
+                                "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         elif 'assert' not in data:
             # Always assert anon if allow_anonymous is True
             data.update({'assert': 'anon'})
@@ -148,7 +154,11 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
     """
 
     sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if endpoint is None else endpoint
-    user_agent = config['USER_AGENT_DEFAULT'] if user_agent is None else user_agent
+    user_agent = (config['USER_AGENT'] if user_agent is None else user_agent)
+
+    if urlparse(endpoint).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+        print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
+        print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
     if prefix:
         query = prefix + '\n' + query
@@ -160,7 +170,7 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
 
     headers = {
         'Accept': 'application/sparql-results+json',
-        'User-Agent': user_agent,
+        'User-Agent': get_user_agent(user_agent),
         'Content-Type': 'multipart/form-data'
     }
 
@@ -404,6 +414,21 @@ def format_amount(amount) -> str:
 
     # return as string
     return str(amount)
+
+
+def get_user_agent(user_agent, username=None):
+    from wikibaseintegrator import __version__
+    wbi_user_agent = "WikibaseIntegrator/{}".format(__version__)
+
+    if user_agent is None:
+        return_user_agent = wbi_user_agent
+    else:
+        return_user_agent = user_agent + ' ' + wbi_user_agent
+
+    if username:
+        return_user_agent += " (User:{})".format(username)
+
+    return return_user_agent
 
 
 def __deepcopy__(memo):

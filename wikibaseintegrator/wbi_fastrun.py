@@ -162,7 +162,7 @@ class FastRunContainer(object):
             append_props = [x.mainsnak.property_number for x in data]
 
         for x in data:
-            if x.value and x.mainsnak.datatype:
+            if x.mainsnak.datavalue and x.mainsnak.datatype:
                 data_props.add(x.mainsnak.property_number)
         write_required = False
         self.load_item(data, cqid)
@@ -192,11 +192,11 @@ class FastRunContainer(object):
         for date in data:
             # ensure that statements meant for deletion get handled properly
             reconst_props = set([x.mainsnak.property_number for x in tmp_rs])
-            if (not date.value or not date.mainsnak.datatype) and date.mainsnak.property_number in reconst_props:
+            if not date.mainsnak.datatype and date.mainsnak.property_number in reconst_props:
                 if self.debug:
                     print("returned from delete prop handling")
                 return True
-            elif not date.value or not date.mainsnak.datatype:
+            elif not date.mainsnak.datavalue or not date.mainsnak.datatype:
                 # Ignore the deletion statements which are not in the reconstructed statements.
                 continue
 

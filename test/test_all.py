@@ -8,7 +8,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent
 
 config['DEBUG'] = True
 
@@ -23,43 +23,30 @@ class TestMediawikiApiCall(unittest.TestCase):
         with self.assertRaises(requests.HTTPError):
             mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
-        test = mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
-                                         allow_anonymous=True)
-        print(test)
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
 
 
 class TestDataType(unittest.TestCase):
     def test_quantity(self):
-        dt = datatypes.Quantity(quantity='34.5', prop_nr='P43')
+        dt = datatypes.Quantity(amount='34.5', prop_nr='P43')
 
         dt_json = dt.get_json()
 
-        if not dt_json['mainsnak']['datatype'] == 'quantity':
-            raise
+        assert dt_json['mainsnak']['datatype'] == 'quantity'
 
         value = dt_json['mainsnak']['datavalue']
 
-        if not value['value']['amount'] == '+34.5':
-            raise
+        assert value['value']['amount'] == '+34.5'
+        assert value['value']['unit'] == '1'
 
-        if not value['value']['unit'] == '1':
-            raise
-
-        dt2 = datatypes.Quantity(quantity='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
+        dt2 = datatypes.Quantity(amount='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
 
         value = dt2.get_json()['mainsnak']['datavalue']
 
-        if not value['value']['amount'] == '+34.5':
-            raise
-
-        if not value['value']['unit'] == 'http://www.wikidata.org/entity/Q11573':
-            raise
-
-        if not value['value']['upperBound'] == '+35.3':
-            raise
-
-        if not value['value']['lowerBound'] == '+33.7':
-            raise
+        assert value['value']['amount'] == '+34.5'
+        assert value['value']['unit'] == 'http://www.wikidata.org/entity/Q11573'
+        assert value['value']['upperBound'] == '+35.3'
+        assert value['value']['lowerBound'] == '+33.7'
 
     def test_geoshape(self):
         dt = datatypes.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
@@ -204,3 +191,21 @@ def test_mediainfo():
 
     mediainfo_item_by_id = wbi.mediainfo.get(entity_id='M75908279', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
     assert mediainfo_item_by_id.id == 'M75908279'
+
+
+def test_user_agent(capfd):
+    # Test there is a warning
+    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
+    out, err = capfd.readouterr()
+    assert out
+
+    # Test there is no warning because of the user agent
+    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
+    out, err = capfd.readouterr()
+    assert not out
+
+    # Test if the user agent is correctly added
+    new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5', username='Wikibot')
+    assert new_user_agent.startswith('MyWikibaseBot/0.5')
+    assert 'Wikibot' in new_user_agent
+    assert 'WikibaseIntegrator' in new_user_agent

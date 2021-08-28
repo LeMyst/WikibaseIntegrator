@@ -14,7 +14,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text, language=None, **kwargs):
+    def __init__(self, text=None, language=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param text: The language specific string to be used as the value
@@ -35,27 +35,19 @@ class MonolingualText(BaseDataType):
 
         super(MonolingualText, self).__init__(**kwargs)
 
-        self.text = None
-        self.language = language or config['DEFAULT_LANGUAGE']
+        language = language or config['DEFAULT_LANGUAGE']
 
-        value = (text, self.language)
+        assert isinstance(text, str) or text is None, "Expected str, found {} ({})".format(type(text), text)
+        assert isinstance(language, str), "Expected str, found {} ({})".format(type(language), language)
 
-        self.text, self.language = value
-        if self.text is not None:
-            assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
-        elif self.mainsnak.snaktype == 'value':
-            raise ValueError("Parameter 'text' can't be 'None' if 'snaktype' is 'value'")
-        assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
-
-        self.mainsnak.datavalue = {
-            'value': {
-                'text': self.text,
-                'language': self.language
-            },
-            'type': 'monolingualtext'
-        }
-
-        self.value = (self.text, self.language)
+        if text and language:
+            self.mainsnak.datavalue = {
+                'value': {
+                    'text': text,
+                    'language': language
+                },
+                'type': 'monolingualtext'
+            }
 
     def get_sparql_value(self):
-        return '"' + self.text.replace('"', r'\"') + '"@' + self.language
+        return '"' + self.mainsnak.datavalue['value']['text'].replace('"', r'\"') + '"@' + self.mainsnak.datavalue['value']['language']

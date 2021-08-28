@@ -8,7 +8,7 @@ class String(BaseDataType):
 
     DTYPE = 'string'
 
-    def __init__(self, value, **kwargs):
+    def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
         :param value: The string to be used as the value
@@ -28,9 +28,9 @@ class String(BaseDataType):
         super(String, self).__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
-        self.value = value
 
-        self.mainsnak.datavalue = {
-            'value': self.value,
-            'type': 'string'
-        }
+        if value:
+            self.mainsnak.datavalue = {
+                'value': value,
+                'type': 'string'
+            }

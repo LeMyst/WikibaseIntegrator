@@ -183,7 +183,6 @@ def test_append_props():
     # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
-    wbi.debug = True
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]

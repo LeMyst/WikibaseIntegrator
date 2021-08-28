@@ -63,8 +63,18 @@ class BaseDataType(Claim):
         self.value = None
         self.mainsnak.property_number = kwargs.pop('prop_nr', None)
 
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+        if not value:
+            self.mainsnak.snaktype = 'novalue'
+        self.__value = value
+
     def get_sparql_value(self):
-        return self.value
+        return self.mainsnak.datavalue['value']
 
     def equals(self, that, include_ref=False, fref=None):
         """
