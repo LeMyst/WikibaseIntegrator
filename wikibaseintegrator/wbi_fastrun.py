@@ -81,7 +81,7 @@ class FastRunContainer(object):
                     this_ref = []
                     for ref in refs:
                         f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[ref[0]]][0]
-                        this_ref.append(f(ref[1], prop_nr=ref[0], is_reference=True))
+                        this_ref.append(f(ref[1], prop_nr=ref[0]))
                     references.append(this_ref)
 
                 f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[prop_nr]][0]

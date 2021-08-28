@@ -196,8 +196,8 @@ def test_append_props():
     # if we are in append mode, and the refs are different, we should write
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
     # with append
-    statements = [Item(value='Q24784025', prop_nr='P527', if_exists='APPEND')]
-    assert frc.write_required(data=statements, cqid=qid) is True
+    statements = [Item(value='Q24784025', prop_nr='P527')]
+    assert frc.write_required(data=statements, cqid=qid, if_exists='APPEND') is True
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid) is True

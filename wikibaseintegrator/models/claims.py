@@ -126,7 +126,7 @@ class Claim:
         self.qualifiers_order = []
         self.id = None
         self.rank = rank or 'normal'
-        self.references = references or References
+        self.references = references or References()
         self.removed = False
 
     # Allow registration of subclasses of Claim into Claim.subclasses
