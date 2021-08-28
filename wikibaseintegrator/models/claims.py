@@ -119,14 +119,14 @@ class Claim:
     DTYPE = 'claim'
     subclasses = []
 
-    def __init__(self, **kwargs):
+    def __init__(self, qualifiers=None, rank=None, references=None):
         self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
-        self.qualifiers = kwargs.pop('qualifiers', Qualifiers())
+        self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
-        self.rank = kwargs.pop('rank', 'normal')
-        self.references = kwargs.pop('references', References())
+        self.rank = rank or 'normal'
+        self.references = references or References
         self.removed = False
 
     # Allow registration of subclasses of Claim into Claim.subclasses

@@ -24,8 +24,8 @@ class Lexeme(BaseEntity):
     def new(self, **kwargs) -> Lexeme:
         return Lexeme(self.api, **kwargs)
 
-    def get(self, entity_id) -> Lexeme:
-        json_data = super(Lexeme, self).get(entity_id=entity_id)
+    def get(self, entity_id, **kwargs) -> Lexeme:
+        json_data = super(Lexeme, self).get(entity_id=entity_id, **kwargs)
         return Lexeme(self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:

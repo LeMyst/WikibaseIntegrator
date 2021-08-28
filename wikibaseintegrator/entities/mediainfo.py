@@ -9,7 +9,7 @@ from wikibaseintegrator.models.labels import Labels
 class MediaInfo(BaseEntity):
     ETYPE = 'mediainfo'
 
-    def __init__(self, api, labels=None, descriptions=None, aliases=None, sitelinks=None, **kwargs) -> None:
+    def __init__(self, api, labels=None, descriptions=None, aliases=None, **kwargs) -> None:
         """
 
         :param api:
