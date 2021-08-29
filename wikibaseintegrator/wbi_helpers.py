@@ -91,7 +91,7 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
     return json_data
 
 
-def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60, is_bot=False):
+def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60, is_bot=False, **kwargs):
     mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
     user_agent = config['USER_AGENT'] if user_agent is None else user_agent
 
@@ -134,7 +134,8 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
 
     login_session = login.get_session() if login is not None else None
 
-    return mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after)
+    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=login_session, data=data, headers=headers, max_retries=max_retries,
+                              retry_after=retry_after, **kwargs)
 
 
 @wbi_backoff()
@@ -368,7 +369,7 @@ def generate_entity_instances(entities, allow_anonymous=True, **kwargs):
     :param user_agent: A custom user agent
     :type user_agent: str
     :param entities: A list of IDs. Item, Property or Lexeme.
-    :type entities: list
+    :type entities: list, str
     :param mediawiki_api_url: The MediaWiki url which should be used
     :type mediawiki_api_url: str
     :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
