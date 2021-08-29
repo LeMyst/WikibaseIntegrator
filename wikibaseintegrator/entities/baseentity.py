@@ -124,9 +124,6 @@ class BaseEntity(object):
             'summary': summary
         }
 
-        if config['MAXLAG'] > 0:
-            payload.update({'maxlag': config['MAXLAG']})
-
         if self.api.is_bot:
             payload.update({'bot': ''})
 
