@@ -9,6 +9,18 @@ from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
 
 
+class BColors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries=1000, retry_after=60, **kwargs):
     """
     :param method: 'GET' or 'POST'
@@ -174,8 +186,8 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
         'Content-Type': 'multipart/form-data'
     }
 
-    if debug:
-        print(params['query'])
+    if debug or config['DEBUG']:
+        print(BColors.WARNING + params['query'] + BColors.ENDC)
 
     for n in range(max_retries):
         try:

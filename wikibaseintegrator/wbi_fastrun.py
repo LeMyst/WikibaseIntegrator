@@ -1,12 +1,18 @@
 import collections
 import copy
 from collections import defaultdict
-from functools import lru_cache
+from functools import lru_cache, wraps
 from itertools import chain
+from pprint import pprint
 
+from frozendict import frozendict
+
+from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
+
+fastrun_store = []
 
 
 class FastRunContainer(object):
@@ -90,11 +96,17 @@ class FastRunContainer(object):
                 if self.prop_dt_map[prop_nr] == 'quantity':
                     reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
+                    print('aaa')
+                    pprint(qualifiers)
                     reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
 
         # this isn't used. done for debugging purposes
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
+
+    def get_item(self, claims: list, cqid=None):
+        self.load_item(claims=claims, cqid=cqid)
+        return self.current_qid
 
     def load_item(self, claims: list, cqid=None) -> bool:
         match_sets = []
@@ -151,7 +163,6 @@ class FastRunContainer(object):
             return True
 
         qid = matching_qids.pop()
-        print(qid)
         self.current_qid = qid
 
     def write_required(self, data: list, action_if_exists=ActionIfExists.REPLACE, cqid=None) -> bool:
@@ -444,7 +455,7 @@ class FastRunContainer(object):
             if self.debug:
                 print(query)
 
-            r = execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            r = execute_sparql_query(query, endpoint=self.sparql_endpoint_url, debug=self.debug)['results']['bindings']
             count = int(r[0]['c']['value'])
             print("Count: {}".format(count))
             num_pages = (int(count) // page_size) + 1
@@ -486,25 +497,38 @@ class FastRunContainer(object):
                 '''
 
             # Qualifiers
-            query += '''
-            # Get qualifiers
-            OPTIONAL
-            {{
-              {{
-                # Get simple values for qualifiers which are not of type quantity
-                ?sid ?propQualifier ?qval .
-                ?pq wikibase:qualifier ?propQualifier .
-                ?pq wikibase:propertyType ?qualifer_property_type .
-                FILTER (?qualifer_property_type != wikibase:Quantity)
-              }}
-              UNION
-              {{
-                # Get amount and unit for qualifiers of type quantity
-                ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
-                ?pq wikibase:qualifierValue ?pqv .
-              }}
-            }}
-            '''
+            # Amount and unit
+            if use_units:
+                query += '''
+                # Get qualifiers
+                OPTIONAL
+                {{
+                  {{
+                    # Get simple values for qualifiers which are not of type quantity
+                    ?sid ?propQualifier ?qval .
+                    ?pq wikibase:qualifier ?propQualifier .
+                    ?pq wikibase:propertyType ?qualifer_property_type .
+                    FILTER (?qualifer_property_type != wikibase:Quantity)
+                  }}
+                  UNION
+                  {{
+                    # Get amount and unit for qualifiers of type quantity
+                    ?sid ?pqv [wikibase:quantityAmount ?qval; wikibase:quantityUnit ?qunit] .
+                    ?pq wikibase:qualifierValue ?pqv .
+                  }}
+                }}
+                '''
+            else:
+                query += '''
+                # Get qualifiers
+                OPTIONAL
+                {{
+                  # Get simple values for qualifiers
+                  ?sid ?propQualifier ?qval .
+                  ?pq wikibase:qualifier ?propQualifier .
+                  ?pq wikibase:propertyType ?qualifer_property_type .
+                }}
+                '''
 
             # References
             if self.use_refs:
@@ -597,3 +621,57 @@ class FastRunContainer(object):
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
         )
+
+
+def freezeargs(func):
+    """Transform mutable dictionnary
+    Into immutable
+    Useful to be compatible with cache
+    """
+
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        args = tuple([frozendict(arg) if isinstance(arg, dict) else arg for arg in args])
+        kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
+        return func(*args, **kwargs)
+
+    return wrapped
+
+
+def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=False):
+    if base_filter is None:
+        base_filter = {}
+
+    fastrun_container = search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
+    fastrun_container.current_qid = ''
+    fastrun_container.base_data_type = BaseDataType
+
+    return fastrun_container
+
+
+@freezeargs
+@lru_cache
+def search_fastrun_store(base_filter=None, use_refs=False, case_insensitive=False):
+    for c in fastrun_store:
+        if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
+                c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
+            return c
+
+    # In case nothing was found in the fastrun_store
+    if config['DEBUG']:
+        print("Create a new FastRunContainer")
+    fastrun_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
+    fastrun_store.append(fastrun_container)
+    return fastrun_container
+
+    # TODO: Do something here
+    # if not self.search_only:
+    #     self.require_write = self.fastrun_container.write_required(self.data, cqid=self.id)
+    #     # set item id based on fast run data
+    #     if not self.require_write and not self.id:
+    #         self.id = self.fastrun_container.current_qid
+    # else:
+    #     self.fastrun_container.load_item(self.data)
+    #     # set item id based on fast run data
+    #     if not self.id:
+    #         self.id = self.fastrun_container.current_qid

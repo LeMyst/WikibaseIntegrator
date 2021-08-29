@@ -24,10 +24,10 @@ class BaseEntity(object):
 
         self.json = {}
 
-        if self.api.search_only:
-            self.require_write = False
-        else:
-            self.require_write = True
+        # if self.api.search_only:
+        #     self.require_write = False
+        # else:
+        #     self.require_write = True
 
         self.fast_run_container = None
 
@@ -84,6 +84,12 @@ class BaseEntity(object):
         }
 
         return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
+
+    def require_write(self):
+        if self.api.search_only:
+            return False
+        else:
+            return self.claims.require_write()
 
     def _write(self, data=None, summary='', allow_anonymous=False, **kwargs):
         """
@@ -182,6 +188,26 @@ class BaseEntity(object):
                                                        base_data_type=BaseDataType,
                                                        case_insensitive=case_insensitive)
             BaseEntity.fast_run_store.append(self.fast_run_container)
+
+        # TODO: Do something here
+        # if not self.search_only:
+        #     self.require_write = self.fast_run_container.write_required(self.data, cqid=self.id)
+        #     # set item id based on fast run data
+        #     if not self.require_write and not self.id:
+        #         self.id = self.fast_run_container.current_qid
+        # else:
+        #     self.fast_run_container.load_item(self.data)
+        #     # set item id based on fast run data
+        #     if not self.id:
+        #         self.id = self.fast_run_container.current_qid
+
+    def fr_search(self, base_filter=None, use_refs=False, case_insensitive=False):
+        if base_filter is None:
+            base_filter = {}
+        self.init_fastrun(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
+        self.fast_run_container.load_item(self.claims)
+
+        return self.fast_run_container.current_qid
 
         # TODO: Do something here
         # if not self.search_only:

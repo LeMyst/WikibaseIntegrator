@@ -95,6 +95,12 @@ class Claims:
                 json_data[property].append(claim.get_json())
         return json_data
 
+    def require_write(self):
+        for property in self.claims:
+            if self.claims[property].require_write():
+                return True
+        return False
+
     def clear(self):
         self.claims = {}
 
