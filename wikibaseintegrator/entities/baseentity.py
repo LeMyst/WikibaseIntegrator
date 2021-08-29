@@ -97,8 +97,7 @@ class BaseEntity(object):
         if self.api.search_only:
             raise SearchOnlyError
 
-        if data is None:
-            raise ValueError
+        data = data or {}
 
         # if all_claims:
         #     data = json.JSONEncoder().encode(self.json_representation)
