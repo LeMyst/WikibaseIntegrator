@@ -375,7 +375,7 @@ def generate_entity_instances(entities, allow_anonymous=True, **kwargs):
     :param user_agent: A custom user agent
     :type user_agent: str
     :param entities: A list of IDs. Item, Property or Lexeme.
-    :type entities: list
+    :type entities: list, str
     :param mediawiki_api_url: The MediaWiki url which should be used
     :type mediawiki_api_url: str
     :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
