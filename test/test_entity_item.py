@@ -3,6 +3,7 @@ import unittest
 from simplejson import JSONDecodeError
 
 from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import Item
 
 wbi = WikibaseIntegrator()
 
@@ -35,3 +36,10 @@ class TestEntityItem(unittest.TestCase):
     def test_write(self):
         with self.assertRaises(JSONDecodeError):
             wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url='https://httpstat.us/200')
+
+    def test_write_required(self):
+        assert not wbi.item.get('Q582').write_required(base_filter={'P1791': ''})
+
+        item = wbi.item.get('Q582')
+        item.claims.add(Item(prop_nr='P1791', value='Q42'))
+        assert item.write_required(base_filter={'P1791': ''})

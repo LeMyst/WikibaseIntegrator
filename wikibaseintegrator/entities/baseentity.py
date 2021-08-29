@@ -24,11 +24,6 @@ class BaseEntity(object):
 
         self.json = {}
 
-        # if self.api.search_only:
-        #     self.require_write = False
-        # else:
-        #     self.require_write = True
-
         self.fast_run_container = None
 
         self.debug = config['DEBUG']
@@ -84,12 +79,6 @@ class BaseEntity(object):
         }
 
         return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
-
-    def require_write(self):
-        if self.api.search_only:
-            return False
-        else:
-            return self.claims.require_write()
 
     def _write(self, data=None, summary='', allow_anonymous=False, **kwargs):
         """
@@ -165,7 +154,7 @@ class BaseEntity(object):
             self.lastrevid = json_data['entity']['lastrevid']
         return json_data['entity']
 
-    def init_fastrun(self, base_filter=None, use_refs=False, case_insensitive=False, ):
+    def init_fastrun(self, base_filter=None, use_refs=False, case_insensitive=False):
         if base_filter is None:
             base_filter = {}
 
@@ -201,13 +190,9 @@ class BaseEntity(object):
         #     if not self.id:
         #         self.id = self.fast_run_container.current_qid
 
-    def fr_search(self, base_filter=None, use_refs=False, case_insensitive=False):
-        if base_filter is None:
-            base_filter = {}
-        self.init_fastrun(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
+    def fr_search(self, **kwargs):
+        self.init_fastrun(**kwargs)
         self.fast_run_container.load_item(self.claims)
-
-        return self.fast_run_container.current_qid
 
         # TODO: Do something here
         # if not self.search_only:
@@ -220,6 +205,21 @@ class BaseEntity(object):
         #     # set item id based on fast run data
         #     if not self.id:
         #         self.id = self.fast_run_container.current_qid
+
+        return self.fast_run_container.current_qid
+
+    def write_required(self, base_filter=None, **kwargs):
+        self.init_fastrun(base_filter=base_filter, **kwargs)
+
+        if base_filter is None:
+            base_filter = {}
+
+        claims_to_check = []
+        for claim in self.claims:
+            if claim.mainsnak.property_number in base_filter:
+                claims_to_check.append(claim)
+
+        return self.fast_run_container.write_required(data=claims_to_check, cqid=self.id)
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

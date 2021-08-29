@@ -78,7 +78,7 @@ class Claims:
         for property in json_data:
             for claim in json_data[property]:
                 from wikibaseintegrator.datatypes import BaseDataType
-                if 'datatype' in 'mainsnak':
+                if 'datatype' in claim['mainsnak']:
                     data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
                 else:
                     data_type = Claim
@@ -94,12 +94,6 @@ class Claims:
             for claim in self.claims[property]:
                 json_data[property].append(claim.get_json())
         return json_data
-
-    def require_write(self):
-        for property in self.claims:
-            if self.claims[property].require_write():
-                return True
-        return False
 
     def clear(self):
         self.claims = {}
