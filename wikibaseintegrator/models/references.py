@@ -14,8 +14,8 @@ class References:
                 return reference
         return None
 
-    # TODO: implement if_exists
-    def add(self, reference=None, if_exists=ActionIfExists.REPLACE):
+    # TODO: implement action_if_exists
+    def add(self, reference=None, action_if_exists=ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
@@ -99,8 +99,8 @@ class Reference:
     def snaks_order(self, value):
         self.__snaks_order = value
 
-    # TODO: implement if_exists
-    def add(self, snak=None, if_exists=ActionIfExists.REPLACE):
+    # TODO: implement action_if_exists
+    def add(self, snak=None, action_if_exists=ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])

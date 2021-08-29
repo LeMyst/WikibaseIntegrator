@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
@@ -25,6 +27,19 @@ class Lexeme(BaseEntity):
         return Lexeme(self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Lexeme:
+        if isinstance(entity_id, str):
+            pattern = re.compile(r'^L?([0-9]+)$')
+            matches = pattern.match(entity_id)
+
+            if not matches:
+                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(entity_id))
+            else:
+                entity_id = int(matches.group(1))
+
+        if entity_id < 1:
+            raise ValueError("Lexeme ID must be greater than 0")
+
+        entity_id = 'L{}'.format(entity_id)
         json_data = super(Lexeme, self).get(entity_id=entity_id, **kwargs)
         return Lexeme(self.api).from_json(json_data=json_data['entities'][entity_id])
 
@@ -54,9 +69,9 @@ class Lexeme(BaseEntity):
 
         return self
 
-    def write(self):
+    def write(self, **kwargs):
         if self.lexical_category is None:
             raise ValueError("lexical_category can't be None")
 
-        json_data = super(Lexeme, self)._write(data=self.get_json())
+        json_data = super(Lexeme, self)._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

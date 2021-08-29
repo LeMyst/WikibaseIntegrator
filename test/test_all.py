@@ -118,7 +118,7 @@ class TestFastRun(unittest.TestCase):
         item.labels.set(value="Earth")
         item.labels.set(value="xfgfdsg")
         assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
-        item.aliases.set(values=["fake alias"], if_exists=ActionIfExists.APPEND)
+        item.aliases.set(values=["fake alias"], action_if_exists=ActionIfExists.APPEND)
         assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
 
         # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
@@ -133,7 +133,7 @@ class TestFastRun(unittest.TestCase):
         item.aliases.get(language="ak")
         item.labels.set(value="label", language="ak")
         item.descriptions.set(value="d", language="ak")
-        item.aliases.set(values=["a"], language="ak", if_exists=ActionIfExists.APPEND)
+        item.aliases.set(values=["a"], language="ak", action_if_exists=ActionIfExists.APPEND)
 
 
 def test_sitelinks():

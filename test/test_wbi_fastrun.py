@@ -186,10 +186,10 @@ def test_append_props():
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, if_exists=ActionIfExists.APPEND, cqid=qid) is False
+    assert frc.write_required(data=statements, action_if_exists=ActionIfExists.APPEND, cqid=qid) is False
     # with force append
     statements = [Item(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, if_exists=ActionIfExists.FORCE_APPEND, cqid=qid) is True
+    assert frc.write_required(data=statements, action_if_exists=ActionIfExists.FORCE_APPEND, cqid=qid) is True
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid) is True
@@ -198,7 +198,7 @@ def test_append_props():
     frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]
-    assert frc.write_required(data=statements, cqid=qid, if_exists=ActionIfExists.APPEND) is True
+    assert frc.write_required(data=statements, cqid=qid, action_if_exists=ActionIfExists.APPEND) is True
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid) is True

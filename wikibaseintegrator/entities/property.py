@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
@@ -28,6 +30,19 @@ class Property(BaseEntity):
         return Property(self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Property:
+        if isinstance(entity_id, str):
+            pattern = re.compile(r'^P?([0-9]+)$')
+            matches = pattern.match(entity_id)
+
+            if not matches:
+                raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(entity_id))
+            else:
+                entity_id = int(matches.group(1))
+
+        if entity_id < 1:
+            raise ValueError("Property ID must be greater than 0")
+
+        entity_id = 'P{}'.format(entity_id)
         json_data = super(Property, self).get(entity_id=entity_id, **kwargs)
         return Property(self.api).from_json(json_data=json_data['entities'][entity_id])
 
@@ -50,6 +65,6 @@ class Property(BaseEntity):
 
         return self
 
-    def write(self):
-        json_data = super(Property, self)._write(data=self.get_json())
+    def write(self, **kwargs):
+        json_data = super(Property, self)._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

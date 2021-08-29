@@ -30,7 +30,7 @@ class Forms:
 
     def from_json(self, json_data):
         for form in json_data:
-            self.add(Form(form_id=form['id'], representations=form['representations'], grammatical_features=form['grammaticalFeatures'],
+            self.add(Form(form_id=form['id'], representations=LanguageValues().from_json(form['representations']), grammatical_features=form['grammaticalFeatures'],
                           claims=Claims().from_json(form['claims'])))
 
         return self

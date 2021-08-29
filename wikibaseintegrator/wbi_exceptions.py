@@ -6,10 +6,7 @@ class MWApiError(Exception):
         :type error_message: A Python json representation dictionary of the error message
         :return:
         """
-        self.error_msg = error_message
-
-    def __str__(self):
-        return repr(self.error_msg)
+        pass
 
 
 class NonUniqueLabelDescriptionPairError(MWApiError):
@@ -44,19 +41,11 @@ class NonUniqueLabelDescriptionPairError(MWApiError):
 
 
 class IDMissingError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 
 class SearchError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 
 class ManualInterventionReqException(Exception):
@@ -68,19 +57,11 @@ class ManualInterventionReqException(Exception):
 
 
 class CorePropIntegrityException(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 
 class MergeError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 
 class SearchOnlyError(Exception):

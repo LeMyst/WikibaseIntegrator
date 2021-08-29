@@ -13,8 +13,8 @@ class Senses:
                 return sense
         return None
 
-    # TODO: implement if_exists
-    def add(self, sense, if_exists=ActionIfExists.REPLACE):
+    # TODO: implement action_if_exists
+    def add(self, sense, action_if_exists=ActionIfExists.REPLACE):
         self.senses.append(sense)
 
         return self

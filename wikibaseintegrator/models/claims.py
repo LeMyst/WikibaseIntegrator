@@ -24,17 +24,17 @@ class Claims:
     def get(self, property=None) -> list:
         return self.claims[property]
 
-    def add(self, claims: Union[list, Claim, None] = None, if_exists=ActionIfExists.REPLACE) -> Claims:
+    def add(self, claims: Union[list, Claim, None] = None, action_if_exists=ActionIfExists.REPLACE) -> Claims:
         """
 
         :param claims:
-        :param if_exists: Replace or append the statement. You can force an append if the statement already exists.
-        :type if_exists: One of the values of the enum ActionIfExists: REPLACE, APPEND, FORCE_APPEND, KEEP
+        :param action_if_exists: Replace or append the statement. You can force an append if the statement already exists.
+        :type action_if_exists: One of the values of the enum ActionIfExists: REPLACE, APPEND, FORCE_APPEND, KEEP
         :return: Claims
         """
 
-        if if_exists not in ActionIfExists:
-            raise ValueError('{} is not a valid if_exists value. Use the enum ActionIfExists'.format(if_exists))
+        if action_if_exists not in ActionIfExists:
+            raise ValueError('{} is not a valid action_if_exists value. Use the enum ActionIfExists'.format(action_if_exists))
 
         if isinstance(claims, Claim):
             claims = [claims]
@@ -42,7 +42,7 @@ class Claims:
             raise ValueError
 
         # TODO: Don't replace if claim is the same
-        if if_exists == ActionIfExists.REPLACE:
+        if action_if_exists == ActionIfExists.REPLACE:
             for claim in claims:
                 if claim is not None:
                     assert isinstance(claim, Claim)
@@ -60,15 +60,15 @@ class Claims:
             if property not in self.claims:
                 self.claims[property] = []
 
-            if if_exists == ActionIfExists.KEEP:
+            if action_if_exists == ActionIfExists.KEEP:
                 if len(self.claims[property]) == 0:
                     self.claims[property].append(claim)
-            elif if_exists == ActionIfExists.FORCE_APPEND:
+            elif action_if_exists == ActionIfExists.FORCE_APPEND:
                 self.claims[property].append(claim)
-            elif if_exists == ActionIfExists.APPEND:
+            elif action_if_exists == ActionIfExists.APPEND:
                 if claim not in self.claims[property]:
                     self.claims[property].append(claim)
-            elif if_exists == ActionIfExists.REPLACE:
+            elif action_if_exists == ActionIfExists.REPLACE:
                 if claim not in self.claims[property]:
                     self.claims[property].append(claim)
 
@@ -82,7 +82,7 @@ class Claims:
                     data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
                 else:
                     data_type = Claim
-                self.add(claims=data_type().from_json(claim), if_exists=ActionIfExists.FORCE_APPEND)
+                self.add(claims=data_type().from_json(claim), action_if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
 
