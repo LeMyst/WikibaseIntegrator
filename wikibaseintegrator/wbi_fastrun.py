@@ -650,7 +650,7 @@ def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=Fal
 
 
 @freezeargs
-@lru_cache
+@lru_cache()
 def search_fastrun_store(base_filter=None, use_refs=False, case_insensitive=False):
     for c in fastrun_store:
         if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
