@@ -143,6 +143,9 @@ class BaseEntity(object):
         else:
             payload.update({u'new': self.type})
 
+        if self.lastrevid:
+            payload.update({u'baserevid': self.lastrevid})
+
         if self.debug:
             print(payload)
 
