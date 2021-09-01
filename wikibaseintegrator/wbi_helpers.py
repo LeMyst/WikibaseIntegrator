@@ -79,6 +79,12 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
             # maxlag
             if 'code' in json_data['error'] and json_data['error']['code'] == 'maxlag':
                 sleep_sec = json_data['error'].get('lag', retry_after)
+                # We multiply the number of second by the number of tries
+                sleep_sec *= n + 1
+                # The number of second can't be less than 5
+                sleep_sec = max(sleep_sec, 5)
+                # The number of second can't be more than retry_after
+                sleep_sec = min(sleep_sec, retry_after)
                 print("{}: maxlag. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
                 sleep(sleep_sec)
                 continue
@@ -141,6 +147,7 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
         elif 'assert' not in data:
             # Always assert anon if allow_anonymous is True
             data.update({'assert': 'anon'})
+
         if config['MAXLAG'] > 0:
             data.update({'maxlag': config['MAXLAG']})
 
