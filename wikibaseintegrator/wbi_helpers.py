@@ -97,7 +97,7 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
     return json_data
 
 
-def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60, is_bot=False):
+def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60, is_bot=False, **kwargs):
     mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
     user_agent = config['USER_AGENT'] if user_agent is None else user_agent
 
@@ -141,7 +141,8 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
 
     login_session = login.get_session() if login is not None else None
 
-    return mediawiki_api_call('POST', mediawiki_api_url, login_session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after)
+    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=login_session, data=data, headers=headers, max_retries=max_retries,
+                              retry_after=retry_after, **kwargs)
 
 
 @wbi_backoff()

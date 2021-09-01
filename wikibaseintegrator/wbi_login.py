@@ -2,8 +2,8 @@ import time
 import webbrowser
 
 import requests
-from mwoauth import ConsumerToken, Handshaker
-from oauthlib.oauth2 import BackendApplicationClient
+from mwoauth import ConsumerToken, Handshaker, OAuthException
+from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
 from requests_oauthlib import OAuth1, OAuth2Session, OAuth2
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
@@ -21,23 +21,19 @@ class Login(object):
     """
 
     @wbi_backoff()
-    def __init__(self, user=None, pwd=None, mediawiki_api_url=None, mediawiki_index_url=None, mediawiki_rest_url=None, token_renew_period=1800, use_clientlogin=False,
-                 consumer_key=None, consumer_secret=None, access_token=None, access_secret=None, client_id=None, client_secret=None, callback_url='oob', user_agent=None,
-                 debug=False):
+    def __init__(self, auth_method='oauth2', user=None, password=None, mediawiki_api_url=None, mediawiki_index_url=None, mediawiki_rest_url=None, token_renew_period=1800,
+                 consumer_token=None, consumer_secret=None, access_token=None, access_secret=None, callback_url='oob', user_agent=None, debug=False):
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
         :param user: the username which should be used for the login
         :type user: str
-        :param pwd: the password which should be used for the login
-        :type pwd: str
+        :param password: the password which should be used for the login
+        :type password: str
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :type token_renew_period: int
-        :param use_clientlogin: use authmanager based login method instead of standard login.
-            For 3rd party data consumer, e.g. web clients
-        :type use_clientlogin: bool
-        :param consumer_key: The consumer key for OAuth
-        :type consumer_key: str
+        :param consumer_token: The consumer key for OAuth
+        :type consumer_token: str
         :param consumer_secret: The consumer secret for OAuth
         :type consumer_secret: str
         :param access_token: The access token for OAuth
@@ -51,59 +47,57 @@ class Login(object):
         :return: None
         """
 
-        self.user = user
-
+        self.auth_method = auth_method
+        self.consumer_token = consumer_token
         self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
         self.mediawiki_index_url = mediawiki_index_url or config['MEDIAWIKI_INDEX_URL']
         self.mediawiki_rest_url = mediawiki_rest_url or config['MEDIAWIKI_REST_URL']
+        self.token_renew_period = token_renew_period
+        self.callback_url = callback_url
+        self.user_agent = get_user_agent(user_agent if user_agent else config['USER_AGENT'], user)
 
-        if debug:
-            print(self.mediawiki_api_url)
+        if self.auth_method not in ['login', 'clientlogin', 'oauth1', 'oauth2']:
+            raise ValueError("The auth_method must be 'login', 'clientlogin', 'oauth1' or 'oauth2'")
 
         self.session = requests.Session()
-        self.edit_token = ''
+        self.edit_token = None
         self.instantiation_time = time.time()
-        self.token_renew_period = token_renew_period
-
-        self.consumer_key = consumer_key
-        self.consumer_secret = consumer_secret
-        self.access_token = access_token
-        self.access_secret = access_secret
-        self.client_id = client_id
-        self.client_secret = client_secret
         self.response_qs = None
-        self.callback_url = callback_url
-
-        self.user_agent = get_user_agent(user_agent if user_agent else config['USER_AGENT'], self.user)
 
         self.session.headers.update({
             'User-Agent': self.user_agent
         })
 
-        if self.consumer_key and self.consumer_secret:
-            if self.access_token and self.access_secret:
+        if auth_method == 'oauth2':
+            oauth = OAuth2Session(client=BackendApplicationClient(client_id=self.consumer_token))
+            try:
+                token = oauth.fetch_token(token_url=self.mediawiki_rest_url + '/oauth2/access_token', client_id=self.consumer_token, client_secret=consumer_secret)
+            except InvalidClientError as err:
+                raise LoginError(err)
+            auth = OAuth2(token=token)
+            self.session.auth = auth
+            self.generate_edit_credentials()
+        elif auth_method == 'oauth1':
+            if access_token and access_secret:
                 # OAuth procedure, based on https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers#Python
-                auth = OAuth1(self.consumer_key, client_secret=self.consumer_secret, resource_owner_key=self.access_token, resource_owner_secret=self.access_secret)
+                auth = OAuth1(self.consumer_token, client_secret=consumer_secret, resource_owner_key=access_token, resource_owner_secret=access_secret)
                 self.session.auth = auth
                 self.generate_edit_credentials()
             else:
                 # Oauth procedure, based on https://www.mediawiki.org/wiki/OAuth/For_Developers
                 # Consruct a "consumer" from the key/secret provided by MediaWiki
-                self.consumer_token = ConsumerToken(self.consumer_key, self.consumer_secret)
+                self.consumer_token = ConsumerToken(self.consumer_token, consumer_secret)
 
                 # Construct handshaker with wiki URI and consumer
                 self.handshaker = Handshaker(self.mediawiki_index_url, self.consumer_token, callback=self.callback_url, user_agent=self.user_agent)
 
                 # Step 1: Initialize -- ask MediaWiki for a temp key/secret for user
                 # redirect -> authorization -> callback url
-                self.redirect, self.request_token = self.handshaker.initiate(callback=self.callback_url)
-        elif self.client_id and self.client_secret:
-            oauth = OAuth2Session(client=BackendApplicationClient(client_id=self.client_id))
-            token = oauth.fetch_token(token_url=self.mediawiki_rest_url + '/oauth2/access_token', client_id=self.client_id, client_secret=self.client_secret)
-            auth = OAuth2(token=token)
-            self.session.auth = auth
-            self.generate_edit_credentials()
-        else:
+                try:
+                    self.redirect, self.request_token = self.handshaker.initiate(callback=self.callback_url)
+                except OAuthException as err:
+                    raise LoginError(err)
+        elif auth_method == 'login' or auth_method == 'clientlogin':
             params_login = {
                 'action': 'query',
                 'meta': 'tokens',
@@ -114,11 +108,29 @@ class Login(object):
             # get login token
             login_token = self.session.post(self.mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
 
-            if use_clientlogin:
+            if auth_method == 'login':
+                params = {
+                    'action': 'login',
+                    'lgname': user,
+                    'lgpassword': password,
+                    'lgtoken': login_token,
+                    'format': 'json'
+                }
+
+                login_result = self.session.post(self.mediawiki_api_url, data=params).json()
+
+                if debug:
+                    print(login_result)
+
+                if 'login' in login_result and login_result['login']['result'] == 'Success':
+                    print("Successfully logged in as", login_result['login']['lgusername'])
+                else:
+                    raise LoginError("Login failed. Reason: '{}'".format(login_result['login']['reason']))
+            else:
                 params = {
                     'action': 'clientlogin',
                     'username': user,
-                    'password': pwd,
+                    'password': password,
                     'logintoken': login_token,
                     'loginreturnurl': 'https://example.org/',
                     'format': 'json'
@@ -130,33 +142,13 @@ class Login(object):
                     print(login_result)
 
                 if 'clientlogin' in login_result:
-                    if login_result['clientlogin']['status'] != 'PASS':
-                        clientlogin = login_result['clientlogin']
+                    clientlogin = login_result['clientlogin']
+                    if clientlogin['status'] != 'PASS':
                         raise LoginError("Login failed ({}). Message: '{}'".format(clientlogin['messagecode'], clientlogin['message']))
                     elif debug:
-                        print("Successfully logged in as", login_result['clientlogin']['username'])
+                        print("Successfully logged in as", clientlogin['username'])
                 else:
-                    error = login_result['error']
-                    raise LoginError("Login failed ({}). Message: '{}'".format(error['code'], error['info']))
-
-            else:
-                params = {
-                    'action': 'login',
-                    'lgname': user,
-                    'lgpassword': pwd,
-                    'lgtoken': login_token,
-                    'format': 'json'
-                }
-
-                login_result = self.session.post(self.mediawiki_api_url, data=params).json()
-
-                if debug:
-                    print(login_result)
-
-                if login_result['login']['result'] != 'Success':
-                    raise LoginError("Login failed. Reason: '{}'".format(login_result['login']['result']))
-                elif debug:
-                    print("Successfully logged in as", login_result['login']['lgusername'])
+                    raise LoginError("Login failed ({}). Message: '{}'".format(login_result['error']['code'], login_result['error']['info']))
 
             if 'warnings' in login_result:
                 print("MediaWiki login warnings messages:")
@@ -176,8 +168,10 @@ class Login(object):
             'type': 'csrf',
             'format': 'json'
         }
-        response = self.session.get(self.mediawiki_api_url, params=params)
-        self.edit_token = response.json()['query']['tokens']['csrftoken']
+        response = self.session.get(self.mediawiki_api_url, params=params).json()
+        if 'error' in response:
+            raise LoginError("Login failed ({}). Message: '{}'".format(response['error']['code'], response['error']['info']))
+        self.edit_token = response['query']['tokens']['csrftoken']
 
         return self.session.cookies
 
