@@ -146,12 +146,35 @@ class TestWbiCore(unittest.TestCase):
         self.assertIsNot(len(t), 0)
 
     def test_entity_generator(self):
-        entities = ['Q408883', 'P715', 'Q18046452']
+        entities = {
+            'Q408883': {
+                'etype': 'item',
+                'ctype': 'Item'
+            }, 'P715': {
+                'etype': 'property',
+                'ctype': 'Property'
+            }, 'Q18046452': {
+                'etype': 'item',
+                'ctype': 'Item'
+            }, 'L5': {
+                'etype': 'lexeme',
+                'ctype': 'Lexeme'
+            }
+        }
 
-        entity_instances = generate_entity_instances(entities=entities)
+        entity_instances = generate_entity_instances(entities=list(entities.keys()))
 
         for qid, entity in entity_instances:
             self.assertIn(qid, entities)
+            assert entity.ETYPE == entities[qid]['etype']
+            assert type(entity).__name__ == entities[qid]['ctype']
+
+        entity_instances = generate_entity_instances(entities='Q408883')
+
+        for qid, entity in entity_instances:
+            assert qid == 'Q408883'
+            assert entity.ETYPE == 'item'
+            assert type(entity).__name__ == 'Item'
 
     def test_rank(self):
         t1 = String(value='test1', prop_nr='P1', rank='preferred')
