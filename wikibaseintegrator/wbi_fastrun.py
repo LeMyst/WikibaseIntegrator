@@ -663,15 +663,3 @@ def search_fastrun_store(base_filter=None, use_refs=False, case_insensitive=Fals
     fastrun_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
     fastrun_store.append(fastrun_container)
     return fastrun_container
-
-    # TODO: Do something here
-    # if not self.search_only:
-    #     self.require_write = self.fastrun_container.write_required(self.data, cqid=self.id)
-    #     # set item id based on fast run data
-    #     if not self.require_write and not self.id:
-    #         self.id = self.fastrun_container.current_qid
-    # else:
-    #     self.fastrun_container.load_item(self.data)
-    #     # set item id based on fast run data
-    #     if not self.id:
-    #         self.id = self.fastrun_container.current_qid

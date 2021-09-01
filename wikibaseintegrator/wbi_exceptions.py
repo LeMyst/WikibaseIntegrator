@@ -62,8 +62,3 @@ class CorePropIntegrityException(Exception):
 
 class MergeError(Exception):
     pass
-
-
-class SearchOnlyError(Exception):
-    """Raised when in search_only mode"""
-    pass

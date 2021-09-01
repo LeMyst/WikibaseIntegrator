@@ -4,7 +4,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claims, Claim
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import SearchOnlyError, NonUniqueLabelDescriptionPairError, MWApiError
+from wikibaseintegrator.wbi_exceptions import NonUniqueLabelDescriptionPairError, MWApiError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
@@ -91,9 +91,6 @@ class BaseEntity(object):
         :type allow_anonymous: bool
         :return: the entity ID on successful write
         """
-
-        if self.api.search_only:
-            raise SearchOnlyError
 
         data = data or {}
 
@@ -186,33 +183,9 @@ class BaseEntity(object):
                                                        case_insensitive=case_insensitive)
             BaseEntity.fast_run_store.append(self.fast_run_container)
 
-        # TODO: Do something here
-        # if not self.search_only:
-        #     self.require_write = self.fast_run_container.write_required(self.data, cqid=self.id)
-        #     # set item id based on fast run data
-        #     if not self.require_write and not self.id:
-        #         self.id = self.fast_run_container.current_qid
-        # else:
-        #     self.fast_run_container.load_item(self.data)
-        #     # set item id based on fast run data
-        #     if not self.id:
-        #         self.id = self.fast_run_container.current_qid
-
     def fr_search(self, **kwargs):
         self.init_fastrun(**kwargs)
         self.fast_run_container.load_item(self.claims)
-
-        # TODO: Do something here
-        # if not self.search_only:
-        #     self.require_write = self.fast_run_container.write_required(self.data, cqid=self.id)
-        #     # set item id based on fast run data
-        #     if not self.require_write and not self.id:
-        #         self.id = self.fast_run_container.current_qid
-        # else:
-        #     self.fast_run_container.load_item(self.data)
-        #     # set item id based on fast run data
-        #     if not self.id:
-        #         self.id = self.fast_run_container.current_qid
 
         return self.fast_run_container.current_qid
 

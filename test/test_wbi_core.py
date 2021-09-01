@@ -25,7 +25,7 @@ class TestWbiCore(unittest.TestCase):
         with self.assertRaises(TypeError):
             Item(api=wbi).add_claims('test')
 
-    def test_search_only(self):
+    def test_get(self):
         item = wbi.item.new().get(entity_id='Q2')
 
         assert item.labels.get('en').value == "Earth"
