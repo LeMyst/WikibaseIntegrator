@@ -1,5 +1,5 @@
 from wikibaseintegrator.wbi_exceptions import NonUniqueLabelDescriptionPairError, IDMissingError, SearchError, ManualInterventionReqException, CorePropIntegrityException, \
-    MergeError, SearchOnlyError, MWApiError
+    MergeError, MWApiError
 
 
 def test_mwapierror():
@@ -44,7 +44,3 @@ def test_corepropintegrityexception():
 
 def test_mergeerror():
     assert str(MergeError('MergeError')) == 'MergeError'
-
-
-def test_searchonlyerror():
-    assert str(SearchOnlyError('SearchOnlyError')) == 'SearchOnlyError'
