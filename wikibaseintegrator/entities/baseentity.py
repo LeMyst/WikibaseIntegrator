@@ -4,7 +4,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claims, Claim
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import SearchOnlyError, NonUniqueLabelDescriptionPairError, MWApiError
+from wikibaseintegrator.wbi_exceptions import NonUniqueLabelDescriptionPairError, MWApiError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
@@ -23,11 +23,6 @@ class BaseEntity(object):
         self.claims = claims or Claims()
 
         self.json = {}
-
-        if self.api.search_only:
-            self.require_write = False
-        else:
-            self.require_write = True
 
         self.fast_run_container = None
 
@@ -97,9 +92,6 @@ class BaseEntity(object):
         :return: the entity ID on successful write
         """
 
-        if self.api.search_only:
-            raise SearchOnlyError
-
         data = data or {}
 
         # if all_claims:
@@ -167,7 +159,7 @@ class BaseEntity(object):
             self.lastrevid = json_data['entity']['lastrevid']
         return json_data['entity']
 
-    def init_fastrun(self, base_filter=None, use_refs=False, case_insensitive=False, ):
+    def init_fastrun(self, base_filter=None, use_refs=False, case_insensitive=False):
         if base_filter is None:
             base_filter = {}
 
@@ -191,17 +183,24 @@ class BaseEntity(object):
                                                        case_insensitive=case_insensitive)
             BaseEntity.fast_run_store.append(self.fast_run_container)
 
-        # TODO: Do something here
-        # if not self.search_only:
-        #     self.require_write = self.fast_run_container.write_required(self.data, cqid=self.id)
-        #     # set item id based on fast run data
-        #     if not self.require_write and not self.id:
-        #         self.id = self.fast_run_container.current_qid
-        # else:
-        #     self.fast_run_container.load_item(self.data)
-        #     # set item id based on fast run data
-        #     if not self.id:
-        #         self.id = self.fast_run_container.current_qid
+    def fr_search(self, **kwargs):
+        self.init_fastrun(**kwargs)
+        self.fast_run_container.load_item(self.claims)
+
+        return self.fast_run_container.current_qid
+
+    def write_required(self, base_filter=None, **kwargs):
+        self.init_fastrun(base_filter=base_filter, **kwargs)
+
+        if base_filter is None:
+            base_filter = {}
+
+        claims_to_check = []
+        for claim in self.claims:
+            if claim.mainsnak.property_number in base_filter:
+                claims_to_check.append(claim)
+
+        return self.fast_run_container.write_required(data=claims_to_check, cqid=self.id)
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

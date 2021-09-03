@@ -8,13 +8,11 @@ from wikibaseintegrator.entities.property import Property
 class WikibaseIntegrator(object):
 
     def __init__(self,
-                 search_only=False,
                  is_bot=False,
                  login=None):
         # Runtime variables
         self.is_bot = is_bot or False
         self.login = login
-        self.search_only = search_only or False
 
         # Quick access to entities
         self.item = Item(api=self)
