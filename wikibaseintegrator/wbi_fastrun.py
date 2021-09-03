@@ -3,7 +3,6 @@ import copy
 from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
-from pprint import pprint
 
 from frozendict import frozendict
 
@@ -96,8 +95,6 @@ class FastRunContainer(object):
                 if self.prop_dt_map[prop_nr] == 'quantity':
                     reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
-                    print('aaa')
-                    pprint(qualifiers)
                     reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
 
         # this isn't used. done for debugging purposes
