@@ -1,4 +1,5 @@
 import unittest
+from pprint import pprint
 
 from simplejson import JSONDecodeError
 
@@ -37,9 +38,18 @@ class TestEntityItem(unittest.TestCase):
         with self.assertRaises(JSONDecodeError):
             wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url='https://httpstat.us/200')
 
-    def test_write_required(self):
+    def test_write_not_required(self):
         assert not wbi.item.get('Q582').write_required(base_filter={'P1791': ''})
 
+    def test_write_required(self):
         item = wbi.item.get('Q582')
         item.claims.add(Item(prop_nr='P1791', value='Q42'))
         assert item.write_required(base_filter={'P1791': ''})
+
+    def test_write_not_required_ref(self):
+        assert not wbi.item.get('Q582').write_required(base_filter={'P2581': ''}, use_refs=True)
+
+    def test_write_required_ref(self):
+        item = wbi.item.get('Q582')
+        item.claims.get('P2581')[0].references.references.pop()
+        assert item.write_required(base_filter={'P2581': ''}, use_refs=True)

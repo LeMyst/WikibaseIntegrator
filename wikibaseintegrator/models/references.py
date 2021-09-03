@@ -8,6 +8,14 @@ class References:
     def __init__(self):
         self.references = []
 
+    @property
+    def references(self):
+        return self.__references
+
+    @references.setter
+    def references(self, value):
+        self.__references = value
+
     def get(self, hash=None):
         for reference in self.references:
             if reference.hash == hash:
@@ -53,6 +61,10 @@ class References:
                 return True
 
         return False
+
+    def clear(self):
+        self.references = []
+        return self
 
     def __iter__(self):
         return iter(self.references)
