@@ -7,10 +7,16 @@
 
 # Breaking changes in v0.12 #
 
-I am currently doing a big rewrite of this library.<br>
-You can track the progress and ask questions in the Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
-It's a work in progress and can heavily change during development..<br>
+I am currently doing a rewrite of this library.<br>
+You can track the progress and ask questions in the related Pull
+Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
 This change will break the compatibility with all existing scripts.<br>
+If you want to avoid an unwanted upgrade to the v0.12, you can put in your requirements.txt this line:
+
+```
+wikibaseintegrator~=0.11.0
+```
+
 I will continue to maintain the current version (v0.11) even after the release of V0.12+ (if the merge is performed).
 <hr>
 
