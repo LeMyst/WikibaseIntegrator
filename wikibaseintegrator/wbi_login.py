@@ -80,7 +80,7 @@ class Login(object):
         elif auth_method == 'oauth1':
             if access_token and access_secret:
                 # OAuth procedure, based on https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers#Python
-                auth = OAuth1(self.consumer_token, client_secret=consumer_secret, resource_owner_key=access_token, resource_owner_secret=access_secret)
+                auth = OAuth1(client_key=self.consumer_token, client_secret=consumer_secret, resource_owner_key=access_token, resource_owner_secret=access_secret)
                 self.session.auth = auth
                 self.generate_edit_credentials()
             else:
@@ -89,7 +89,7 @@ class Login(object):
                 self.consumer_token = ConsumerToken(self.consumer_token, consumer_secret)
 
                 # Construct handshaker with wiki URI and consumer
-                self.handshaker = Handshaker(self.mediawiki_index_url, self.consumer_token, callback=self.callback_url, user_agent=self.user_agent)
+                self.handshaker = Handshaker(mw_uri=self.mediawiki_index_url, consumer_token=self.consumer_token, callback=self.callback_url, user_agent=self.user_agent)
 
                 # Step 1: Initialize -- ask MediaWiki for a temp key/secret for user
                 # redirect -> authorization -> callback url
