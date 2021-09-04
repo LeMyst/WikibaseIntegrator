@@ -116,7 +116,8 @@ def mediawiki_api_call_helper(data, login=None, mediawiki_api_url=None, user_age
             if 'assert' not in data:
                 data.update({'assert': 'user'})
             if 'token' in data and data['token'] == '+\\':
-                raise wbi_login.LoginError("Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously.")
+                raise wbi_login.LoginError(
+                    "Anonymous edit are not allowed by default. Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         elif 'assert' not in data:
             # Always assert anon if allow_anonymous is True
             data.update({'assert': 'anon'})
