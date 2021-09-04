@@ -163,7 +163,8 @@ class BaseEntity(object):
         if base_filter is None:
             base_filter = {}
 
-        print('Initialize Fast Run init_fastrun')
+        if self.debug:
+            print('Initialize Fast Run init_fastrun')
         # We search if we already have a FastRunContainer with the same parameters to re-use it
         for c in BaseEntity.fast_run_store:
             if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
