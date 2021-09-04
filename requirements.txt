@@ -5,9 +5,3 @@ backoff~=1.11.1
 pytest~=6.2.5
 setuptools~=57.4.0
 oauthlib~=3.1.1
-
-# Docs
-Sphinx~=3.2.0
-readthedocs-sphinx-ext~=2.1.1
-sphinx-rtd-theme~=0.5.0
-sphinx_github_changelog~=1.0.2
