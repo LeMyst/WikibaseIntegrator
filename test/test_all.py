@@ -205,7 +205,6 @@ def test_user_agent(capfd):
     assert not out
 
     # Test if the user agent is correctly added
-    new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5', username='Wikibot')
+    new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5')
     assert new_user_agent.startswith('MyWikibaseBot/0.5')
-    assert 'Wikibot' in new_user_agent
     assert 'WikibaseIntegrator' in new_user_agent

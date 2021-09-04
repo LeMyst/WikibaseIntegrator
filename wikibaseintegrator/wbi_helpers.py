@@ -125,7 +125,7 @@ def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, use
             raise ValueError("mediawiki_api_url can't be different with the one in the login object.")
 
     headers = {
-        'User-Agent': get_user_agent(user_agent, login.user if login else None)
+        'User-Agent': get_user_agent(user_agent)
     }
 
     if data is not None:
@@ -436,7 +436,7 @@ def format_amount(amount) -> str:
     return str(amount)
 
 
-def get_user_agent(user_agent, username=None):
+def get_user_agent(user_agent):
     from wikibaseintegrator import __version__
     wbi_user_agent = "WikibaseIntegrator/{}".format(__version__)
 
@@ -444,9 +444,6 @@ def get_user_agent(user_agent, username=None):
         return_user_agent = wbi_user_agent
     else:
         return_user_agent = user_agent + ' ' + wbi_user_agent
-
-    if username:
-        return_user_agent += " (User:{})".format(username)
 
     return return_user_agent
 

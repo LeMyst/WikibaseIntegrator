@@ -54,7 +54,7 @@ class Login(object):
         self.mediawiki_rest_url = mediawiki_rest_url or config['MEDIAWIKI_REST_URL']
         self.token_renew_period = token_renew_period
         self.callback_url = callback_url
-        self.user_agent = get_user_agent(user_agent if user_agent else config['USER_AGENT'], user)
+        self.user_agent = get_user_agent(user_agent if user_agent else config['USER_AGENT'])
 
         if self.auth_method not in ['login', 'clientlogin', 'oauth1', 'oauth2']:
             raise ValueError("The auth_method must be 'login', 'clientlogin', 'oauth1' or 'oauth2'")
