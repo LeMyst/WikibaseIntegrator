@@ -64,8 +64,16 @@ class BaseDataType(object):
         if not self.references:
             self.references = []
         else:
+            if isinstance(self.references, BaseDataType):
+                self.references = [[self.references]]
+
             for ref_list in self.references:
+                if isinstance(ref_list, BaseDataType):
+                    ref_list = [ref_list]
                 for reference in ref_list:
+                    if not isinstance(reference, BaseDataType):
+                        raise ValueError('A reference must be an instance of class BaseDataType.')
+
                     if reference.is_reference is False:
                         raise ValueError('A reference can\'t be declared as is_reference=False')
                     elif reference.is_reference is None:
@@ -74,7 +82,12 @@ class BaseDataType(object):
         if not self.qualifiers:
             self.qualifiers = []
         else:
+            if isinstance(self.qualifiers, BaseDataType):
+                self.qualifiers = [self.qualifiers]
+
             for qualifier in self.qualifiers:
+                if not isinstance(qualifier, BaseDataType):
+                    raise ValueError('A qualifier must be an instance of class BaseDataType.')
                 if qualifier.is_qualifier is False:
                     raise ValueError('A qualifier can\'t be declared as is_qualifier=False')
                 elif qualifier.is_qualifier is None:
