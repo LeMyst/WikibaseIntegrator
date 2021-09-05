@@ -1,3 +1,4 @@
+import datetime
 import re
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
@@ -20,7 +21,7 @@ class Time(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
-        :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z'
+        :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z' or now
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param before: explicit integer value for how many units after the given time it could be.
@@ -57,6 +58,9 @@ class Time(BaseDataType):
         assert isinstance(time, str) or time is None, "Expected str, found {} ({})".format(type(time), time)
 
         if time:
+            if time == "now":
+                time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
             if not (time.startswith("+") or time.startswith("-")):
                 time = "+" + time
             pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
