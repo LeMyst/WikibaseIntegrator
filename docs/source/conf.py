@@ -33,7 +33,7 @@ extensions = ['sphinx.ext.autodoc',
 # sphinx_github_changelog_token = ""
 
 # Add any paths that contain templates here, relative to this directory.
-#templates_path = ['_templates']
+# templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -96,11 +96,14 @@ html_context = {
     "conf_py_path": "/docs/"
 }
 
-# def skip(app, what, name, obj, would_skip, options):
-#     if name == "__init__":
-#         return False
-#     return would_skip
-#
-#
-# def setup(app):
-#     app.connect("autodoc-skip-member", skip)
+
+def skip(app, what, name, obj, would_skip, options):
+    if name == "__init__":
+        return False
+    if name == "sparql_query":
+        return True
+    return would_skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
