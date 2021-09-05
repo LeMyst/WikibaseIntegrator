@@ -281,6 +281,7 @@ class FastRunContainer(object):
     def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list:
         """
         get language data for specified qid
+
         :param qid:  Wikibase item id
         :param lang: language code
         :param lang_data_type: 'label', 'description' or 'aliases'

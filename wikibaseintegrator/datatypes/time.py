@@ -20,6 +20,7 @@ class Time(BaseDataType):
     def __init__(self, time=None, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
         :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z' or now
         :param prop_nr: The property number for this claim

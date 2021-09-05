@@ -17,6 +17,7 @@ class GlobeCoordinate(BaseDataType):
     def __init__(self, latitude=None, longitude=None, precision=None, globe=None, wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param latitude: Latitute in decimal format
         :type latitude: float or None
         :param longitude: Longitude in decimal format

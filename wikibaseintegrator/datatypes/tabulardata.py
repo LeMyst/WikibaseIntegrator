@@ -12,6 +12,7 @@ class TabularData(BaseDataType):
     def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: Reference to tabular data file on Wikimedia Commons.
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -28,6 +29,7 @@ class TabularData(BaseDataType):
         :type qualifiers: A data type with subclass of BaseDataType
         :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
+        :raises ValueError: Raise a ValueError Exception if the data in value parameter is not valid.
         """
 
         super(TabularData, self).__init__(**kwargs)

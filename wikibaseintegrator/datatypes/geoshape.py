@@ -18,6 +18,7 @@ class GeoShape(BaseDataType):
     def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -30,6 +31,12 @@ class GeoShape(BaseDataType):
         :type qualifiers: A data type with subclass of BaseDataType
         :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
+
+        :Keyword Arguments:
+        * *extra* (``list``) --
+          Extra stuff
+        * *supplement* (``dict``) --
+          Additional content
         """
 
         super(GeoShape, self).__init__(**kwargs)

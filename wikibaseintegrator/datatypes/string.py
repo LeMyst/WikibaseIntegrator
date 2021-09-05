@@ -11,6 +11,7 @@ class String(BaseDataType):
     def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The string to be used as the value
         :type value: str or None
         :param prop_nr: The item ID for this claim

@@ -18,6 +18,7 @@ class Item(BaseDataType):
     def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The item ID to serve as the value
         :type value: str with a 'Q' prefix, followed by several digits or only the digits without the 'Q' prefix
         :param prop_nr: The item ID for this claim

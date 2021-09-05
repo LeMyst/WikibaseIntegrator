@@ -18,6 +18,7 @@ class Form(BaseDataType):
     def __init__(self, value=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
         :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
         :param prop_nr: The property number for this claim

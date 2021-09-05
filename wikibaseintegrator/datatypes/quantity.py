@@ -18,6 +18,7 @@ class Quantity(BaseDataType):
     def __init__(self, amount=None, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param amount: The amount value
         :type amount: float, str or None
         :param prop_nr: The item ID for this claim

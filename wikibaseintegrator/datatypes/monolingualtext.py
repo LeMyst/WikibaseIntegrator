@@ -17,6 +17,7 @@ class MonolingualText(BaseDataType):
     def __init__(self, text=None, language=None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
+
         :param text: The language specific string to be used as the value
         :type text: str or None
         :param prop_nr: The item ID for this claim

@@ -17,6 +17,7 @@ class BaseDataType(Claim):
     def __init__(self, prop_nr=None, **kwargs):
         """
         Constructor, will be called by all data types.
+
         :param value: Data value of the Wikibase data snak
         :type value: str or int or tuple
         :param prop_nr: The property number a Wikibase snak belongs to

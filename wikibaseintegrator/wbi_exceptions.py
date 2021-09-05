@@ -2,6 +2,7 @@ class MWApiError(Exception):
     def __init__(self, error_message):
         """
         Base class for Mediawiki API error handling
+
         :param error_message: The error message returned by the Mediawiki API
         :type error_message: A Python json representation dictionary of the error message
         :return:
@@ -12,8 +13,8 @@ class MWApiError(Exception):
 class NonUniqueLabelDescriptionPairError(MWApiError):
     def __init__(self, error_message):
         """
-        This class handles errors returned from the API due to an attempt to create an item which has the same
-         label and description as an existing item in a certain language.
+        This class handles errors returned from the API due to an attempt to create an item which has the same label and description as an existing item in a certain language.
+
         :param error_message: An API error message containing 'wikibase-validator-label-with-description-conflict'
          as the message name.
         :type error_message: A Python json representation dictionary of the error message
@@ -24,13 +25,14 @@ class NonUniqueLabelDescriptionPairError(MWApiError):
     def get_language(self):
         """
         :return: Returns a 2 letter language string, indicating the language which triggered the error
+        :rtype: string
         """
         return self.error_msg['error']['messages'][0]['parameters'][1]
 
     def get_conflicting_item_qid(self):
         """
-        :return: Returns the QID string of the item which has the same label and description as the one which should
-         be set.
+        :return: Returns the QID string of the item which has the same label and description as the one which should be set.
+        :rtype: string
         """
         qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
 
