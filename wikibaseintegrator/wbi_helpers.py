@@ -176,7 +176,7 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
     sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if endpoint is None else endpoint
     user_agent = (config['USER_AGENT'] if user_agent is None else user_agent)
 
-    if urlparse(endpoint).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+    if urlparse(sparql_endpoint_url).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
         print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
         print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 

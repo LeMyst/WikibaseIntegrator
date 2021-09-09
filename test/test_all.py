@@ -8,7 +8,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent, execute_sparql_query
 
 config['DEBUG'] = True
 
@@ -208,3 +208,14 @@ def test_user_agent(capfd):
     new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5')
     assert new_user_agent.startswith('MyWikibaseBot/0.5')
     assert 'WikibaseIntegrator' in new_user_agent
+
+
+def test_sparql():
+    results = execute_sparql_query('''SELECT ?child ?childLabel
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
+}''')
+    assert len(results['results']['bindings']) > 1
