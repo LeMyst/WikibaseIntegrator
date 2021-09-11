@@ -4,7 +4,7 @@ import unittest
 
 import requests
 
-from wikibaseintegrator import wbi_core, wbi_fastrun
+from wikibaseintegrator import wbi_core, wbi_fastrun, wbi_functions, wbi_datatype
 from wikibaseintegrator.wbi_core import MWApiError
 
 __author__ = 'Sebastian Burgstaller-Muehlbacher'
@@ -14,19 +14,19 @@ __license__ = 'AGPLv3'
 class TestMediawikiApiCall(unittest.TestCase):
     def test_all(self):
         with self.assertRaises(MWApiError):
-            wbi_core.FunctionsEngine.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="http://www.wikidataaaaaaa.org",
-                                                               max_retries=3, retry_after=1, allow_anonymous=True)
+            wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org",
+                                                    max_retries=3, retry_after=1, allow_anonymous=True)
         with self.assertRaises(requests.HTTPError):
-            wbi_core.FunctionsEngine.mediawiki_api_call_helper(data=None, mediawiki_api_url="http://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
+            wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
-        test = wbi_core.FunctionsEngine.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
-                                                                  allow_anonymous=True)
+        test = wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
+                                                       allow_anonymous=True)
         print(test)
 
 
 class TestDataType(unittest.TestCase):
     def test_quantity(self):
-        dt = wbi_core.Quantity(quantity='34.5', prop_nr='P43')
+        dt = wbi_datatype.Quantity(quantity='34.5', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
 
@@ -41,7 +41,7 @@ class TestDataType(unittest.TestCase):
         if not value['value']['unit'] == '1':
             raise
 
-        dt2 = wbi_core.Quantity(quantity='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
+        dt2 = wbi_datatype.Quantity(quantity='34.5', prop_nr='P43', upper_bound='35.3', lower_bound='33.7', unit="Q11573")
 
         value = dt2.get_json_representation()['mainsnak']['datavalue']
 
@@ -58,7 +58,7 @@ class TestDataType(unittest.TestCase):
             raise
 
     def test_geoshape(self):
-        dt = wbi_core.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
+        dt = wbi_datatype.GeoShape(value='Data:Inner_West_Light_Rail_stops.map', prop_nr='P43')
 
         dt_json = dt.get_json_representation()
 
@@ -95,12 +95,12 @@ class TestFastRun(unittest.TestCase):
 
     def test_fast_run(self):
         statements = [
-            wbi_core.ExternalID(value='P40095', prop_nr='P352'),
-            wbi_core.ExternalID(value='YER158C', prop_nr='P705')
+            wbi_datatype.ExternalID(value='P40095', prop_nr='P352'),
+            wbi_datatype.ExternalID(value='YER158C', prop_nr='P705')
         ]
 
         frc = wbi_fastrun.FastRunContainer(base_filter={'P352': '', 'P703': 'Q27510868'},
-                                           base_data_type=wbi_core.BaseDataType, engine=wbi_core.ItemEngine)
+                                           base_data_type=wbi_datatype.BaseDataType, engine=wbi_core.ItemEngine)
 
         fast_run_result = frc.write_required(data=statements)
 
@@ -116,7 +116,7 @@ class TestFastRun(unittest.TestCase):
 
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
-        data = [wbi_core.ExternalID('/m/02j71', 'P646')]
+        data = [wbi_datatype.ExternalID('/m/02j71', 'P646')]
         fast_run_base_filter = {'P361': 'Q18589965'}
         item = wbi_core.ItemEngine(item_id="Q2", data=data, fast_run=True, fast_run_base_filter=fast_run_base_filter)
 
@@ -161,7 +161,7 @@ class TestFastRun(unittest.TestCase):
 
 
 def test_sitelinks():
-    data = [wbi_core.ItemID(value='Q12136', prop_nr='P31')]
+    data = [wbi_datatype.ItemID(value='Q12136', prop_nr='P31')]
     item = wbi_core.ItemEngine(item_id='Q622901', data=data)
     item.get_sitelink("enwiki")
     assert "enwiki" not in item.json_representation['sitelinks']
@@ -172,7 +172,7 @@ def test_sitelinks():
 
 def test_nositelinks():
     # this item doesn't and probably wont ever have any sitelinks (but who knows?? maybe one day..)
-    data = [wbi_core.ItemID(value='Q5', prop_nr='P31')]
+    data = [wbi_datatype.ItemID(value='Q5', prop_nr='P31')]
     item = wbi_core.ItemEngine(item_id='Q27869338', data=data)
     item.get_sitelink("enwiki")
     assert "enwiki" not in item.json_representation['sitelinks']
@@ -186,24 +186,24 @@ def test_nositelinks():
 ####
 def test_ref_equals():
     # statements are identical
-    oldref = [wbi_core.ExternalID(value='P58742', prop_nr='P352', is_reference=True),
-              wbi_core.ItemID(value='Q24784025', prop_nr='P527', is_reference=True),
-              wbi_core.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813', is_reference=True)]
-    olditem = wbi_core.ItemID("Q123", "P123", references=[oldref])
+    oldref = [wbi_datatype.ExternalID(value='P58742', prop_nr='P352', is_reference=True),
+              wbi_datatype.ItemID(value='Q24784025', prop_nr='P527', is_reference=True),
+              wbi_datatype.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813', is_reference=True)]
+    olditem = wbi_datatype.ItemID("Q123", "P123", references=[oldref])
     newitem = copy.deepcopy(olditem)
     assert olditem.equals(newitem, include_ref=False)
     assert olditem.equals(newitem, include_ref=True)
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references[0][2] = wbi_core.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813')
+    newitem.references[0][2] = wbi_datatype.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813')
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 
     # multiple refs
     newitem = copy.deepcopy(olditem)
-    newitem.references.append([wbi_core.ExternalID(value='99999', prop_nr='P352')])
+    newitem.references.append([wbi_datatype.ExternalID(value='99999', prop_nr='P352')])
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
-    olditem.references.append([wbi_core.ExternalID(value='99999', prop_nr='P352')])
+    olditem.references.append([wbi_datatype.ExternalID(value='99999', prop_nr='P352')])
     assert olditem.equals(newitem, include_ref=True)
