@@ -5,6 +5,21 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+# Breaking changes in v0.12 #
+
+I am currently doing a rewrite of this library.<br>
+You can track the progress and ask questions in the related Pull
+Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
+This change will break the compatibility with all existing scripts.<br>
+If you want to avoid an unwanted upgrade to the v0.12, you can put in your requirements.txt this line:
+
+```
+wikibaseintegrator~=0.11.0
+```
+
+I will continue to maintain the current version (v0.11) even after the release of V0.12+ (if the merge is performed).
+<hr>
+
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
@@ -12,7 +27,8 @@
 - [Using a Wikibase instance](#using-a-wikibase-instance)
 - [The Core Parts](#the-core-parts)
     - [wbi_core.ItemEngine](#wbi_coreitemengine)
-    - [wbi_core.FunctionsEngine](#wbi_corefunctionsengine)
+    - [wbi_functions](#wbi_functions)
+        - [Use MediaWiki API](#use-mediawiki-api)
     - [wbi_login.Login](#wbi_loginlogin)
         - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
@@ -119,17 +135,36 @@ There are two ways of working with Wikibase items:
 * A user can work with a selected QID to specifically modify the data on the item. This requires that the user knows
   what he/she is doing and should only be used with great care, as this does not perform consistency checks.
 
-Examples below illustrate the usage of ItemEngine.
+## wbi_functions ##
 
-## wbi_core.FunctionsEngine ##
-
-wbi_core.FunctionsEngine provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL
-Service.
+wbi_functions provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL Service.
 
 Features:
 
 * Minimize the number of HTTP requests for reads and writes to improve performance
 * Method to easily execute [SPARQL](https://query.wikidata.org) queries on the Wikibase SPARQL endpoint.
+
+### Use MediaWiki API ###
+
+WikibaseIntegrator don't have functions to make API call to non-wikibase actions. You can
+use `wbi_functions.mediawiki_api_call_helper()` to make a custom call.
+
+Example to get the last two revisions of entity Q42 :
+
+```python
+from wikibaseintegrator import wbi_functions
+
+data = {
+    'action': 'query',
+    'prop': 'revisions',
+    'titles': 'Q42',
+    'rvlimit': 2,
+    'rvprop': 'ids|timestamp|comment|user',
+    'rvslots': 'main'
+}
+
+print(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
+```
 
 ## wbi_login.Login ##
 
@@ -201,29 +236,30 @@ login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 ## Wikibase Data Types ##
 
-Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in wbi_core.
-Each data types has its specialties, which means that some of them require special parameters (e.g. Globe Coordinates).
+Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in
+wbi_datatype. Each data types has its specialties, which means that some of them require special parameters (e.g. Globe
+Coordinates).
 
 The data types currently implemented:
 
-* wbi_core.CommonsMedia
-* wbi_core.EDTF
-* wbi_core.ExternalID
-* wbi_core.Form
-* wbi_core.GeoShape
-* wbi_core.GlobeCoordinate
-* wbi_core.ItemID
-* wbi_core.Lexeme
-* wbi_core.Math
-* wbi_core.MonolingualText
-* wbi_core.MusicalNotation
-* wbi_core.Property
-* wbi_core.Quantity
-* wbi_core.Sense
-* wbi_core.String
-* wbi_core.TabularData
-* wbi_core.Time
-* wbi_core.Url
+* wbi_datatype.CommonsMedia
+* wbi_datatype.EDTF
+* wbi_datatype.ExternalID
+* wbi_datatype.Form
+* wbi_datatype.GeoShape
+* wbi_datatype.GlobeCoordinate
+* wbi_datatype.ItemID
+* wbi_datatype.Lexeme
+* wbi_datatype.Math
+* wbi_datatype.MonolingualText
+* wbi_datatype.MusicalNotation
+* wbi_datatype.Property
+* wbi_datatype.Quantity
+* wbi_datatype.Sense
+* wbi_datatype.String
+* wbi_datatype.TabularData
+* wbi_datatype.Time
+* wbi_datatype.Url
 
 For details of how to create values (=instances) with these data types, please (for now) consult the docstrings in the
 source code. Of note, these data type instances hold the values and, if specified, data type instances for references
@@ -243,8 +279,8 @@ address, or the URL to your bot code repository.)
 
 ## Use Mediawiki API ##
 
-The method `wbi_core.FunctionsEngine.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It
-takes a mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
+The method `wbi_functions.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It takes a
+mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
 mediawiki_api_url string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header,
 and an allow_anonymous boolean to force authentication.
 
@@ -253,7 +289,7 @@ Example:
 Retrieve last 10 revisions from Wikidata element Q2 (Earth):
 
 ```python
-from wikibaseintegrator import wbi_core
+from wikibaseintegrator import wbi_functions
 
 query = {
     'action': 'query',
@@ -262,12 +298,12 @@ query = {
     'rvlimit': 10
 }
 
-print(wbi_core.FunctionsEngine.mediawiki_api_call_helper(query, allow_anonymous=True))
+print(wbi_functions.mediawiki_api_call_helper(query, allow_anonymous=True))
 ```
 
 ## Wikibase search entities ##
 
-The method `wbi_core.ItemEngine.get_search_results()` allows for string search in a Wikibase instance. This means that
+The method `wbi_core.ItemEngine.search_entities()` allows for string search in a Wikibase instance. This means that
 labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
 search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
 Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
@@ -276,7 +312,7 @@ option dict_id_label to return a dict of item id and label as a result.
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_core.FunctionsEngine.merge_items()` takes five arguments:
+`wbi_functions.merge_items()` takes five arguments:
 the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
 merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
 information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
@@ -295,13 +331,13 @@ In order to create a minimal bot based on wbi_core, three things are required:
 * A ItemEngine object which takes the data, does the checks and performs write.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login
+from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
 # data type object, e.g. for a NCBI gene entrez ID
-entrez_gene_id = wbi_core.String(value='<some_entrez_id>', prop_nr='P351')
+entrez_gene_id = wbi_datatype.String(value='<some_entrez_id>', prop_nr='P351')
 
 # data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
@@ -317,7 +353,7 @@ An enhanced example of the previous bot just puts two of the three things into a
 or modification of items.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login
+from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -332,15 +368,15 @@ for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
         ]
     ]
 
     # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
+    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
@@ -375,7 +411,7 @@ fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
 The full example:
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login
+from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
@@ -394,15 +430,15 @@ for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            wbi_core.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_core.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_core.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
+            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
+            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
         ]
     ]
 
     # data type object
-    entrez_gene_id = wbi_core.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_core.String(value=ensembl, prop_nr='P704', references=references)
+    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
