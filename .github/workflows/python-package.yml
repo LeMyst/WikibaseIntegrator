@@ -4,17 +4,14 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches:
-      - '**'
+    branches: [ '**' ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9' ]
-        # Add this when Numpy add support to Python 3.10
-        # python-version: [ '3.7', '3.8', '3.9', '3.10-dev' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10-dev' ]
 
     steps:
       - uses: actions/checkout@v2
