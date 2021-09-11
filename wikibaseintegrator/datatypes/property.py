@@ -33,7 +33,7 @@ class Property(BaseDataType):
         :type rank: str
         """
 
-        super(Property, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
 
@@ -44,8 +44,8 @@ class Property(BaseDataType):
 
                 if not matches:
                     raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(value))
-                else:
-                    value = int(matches.group(1))
+
+                value = int(matches.group(1))
 
             self.mainsnak.datavalue = {
                 'value': {

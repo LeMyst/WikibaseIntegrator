@@ -33,7 +33,7 @@ class Lexeme(BaseDataType):
         :type rank: str
         """
 
-        super(Lexeme, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
 
@@ -44,8 +44,8 @@ class Lexeme(BaseDataType):
 
                 if not matches:
                     raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
-                else:
-                    value = int(matches.group(1))
+
+                value = int(matches.group(1))
 
             self.mainsnak.datavalue = {
                 'value': {

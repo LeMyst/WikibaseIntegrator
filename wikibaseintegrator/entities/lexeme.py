@@ -33,14 +33,14 @@ class Lexeme(BaseEntity):
 
             if not matches:
                 raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(entity_id))
-            else:
-                entity_id = int(matches.group(1))
+
+            entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("Lexeme ID must be greater than 0")
 
         entity_id = 'L{}'.format(entity_id)
-        json_data = super(Lexeme, self).get(entity_id=entity_id, **kwargs)
+        json_data = super().get(entity_id=entity_id, **kwargs)
         return Lexeme(self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:
@@ -50,7 +50,7 @@ class Lexeme(BaseEntity):
             'language': self.language,
             'forms': self.forms.get_json(),
             'senses': self.senses.get_json(),
-            **super(Lexeme, self).get_json()
+            **super().get_json()
         }
 
         if self.lexical_category is None:
@@ -59,7 +59,7 @@ class Lexeme(BaseEntity):
         return json_data
 
     def from_json(self, json_data) -> Lexeme:
-        super(Lexeme, self).from_json(json_data=json_data)
+        super().from_json(json_data=json_data)
 
         self.lemmas = Lemmas().from_json(json_data['lemmas'])
         self.lexical_category = json_data['lexicalCategory']
@@ -73,5 +73,5 @@ class Lexeme(BaseEntity):
         if self.lexical_category is None:
             raise ValueError("lexical_category can't be None")
 
-        json_data = super(Lexeme, self)._write(data=self.get_json(), **kwargs)
+        json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

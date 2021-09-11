@@ -36,7 +36,7 @@ class GlobeCoordinate(BaseDataType):
         :type rank: str
         """
 
-        super(GlobeCoordinate, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         globe = globe or config['COORDINATE_GLOBE_QID']
         wikibase_url = wikibase_url or config['WIKIBASE_URL']

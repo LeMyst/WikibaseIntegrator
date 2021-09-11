@@ -26,8 +26,8 @@ class LanguageValues:
         language = language or config['DEFAULT_LANGUAGE']
         if language in self.values:
             return self.values[language]
-        else:
-            return None
+
+        return None
 
     def set(self, language=None, value=None, action_if_exists=ActionIfExists.REPLACE):
         language = language or config['DEFAULT_LANGUAGE']
@@ -42,8 +42,8 @@ class LanguageValues:
             language_value = LanguageValue(language, value)
             self.add(language_value)
             return language_value
-        else:
-            return self.get(language=language)
+
+        return self.get(language=language)
 
     def get_json(self) -> {}:
         json_data = {}
@@ -127,8 +127,8 @@ class LanguageValue:
     def __eq__(self, other):
         if isinstance(other, LanguageValue):
             return self.value == other.value and self.language == other.language
-        else:
-            return self.value == other
+
+        return self.value == other
 
     def __len__(self):
         return len(self.value)

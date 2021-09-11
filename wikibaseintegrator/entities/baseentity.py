@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
-class BaseEntity(object):
+class BaseEntity:
     fast_run_store = []
 
     ETYPE = 'base-entity'
@@ -128,12 +128,12 @@ class BaseEntity(object):
             payload.update({'clear': True})
 
         if self.id:
-            payload.update({u'id': self.id})
+            payload.update({'id': self.id})
         else:
-            payload.update({u'new': self.type})
+            payload.update({'new': self.type})
 
         if self.lastrevid:
-            payload.update({u'baserevid': self.lastrevid})
+            payload.update({'baserevid': self.lastrevid})
 
         if self.debug:
             print(payload)
@@ -145,9 +145,10 @@ class BaseEntity(object):
                 error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
                     raise NonUniqueLabelDescriptionPairError(json_data)
-                else:
-                    raise MWApiError(json_data)
-            elif 'error' in json_data.keys():
+
+                raise MWApiError(json_data)
+
+            if 'error' in json_data.keys():
                 raise MWApiError(json_data)
         except Exception:
             print('Error while writing to the Wikibase instance')
@@ -166,10 +167,10 @@ class BaseEntity(object):
         if self.debug:
             print('Initialize Fast Run init_fastrun')
         # We search if we already have a FastRunContainer with the same parameters to re-use it
-        for c in BaseEntity.fast_run_store:
-            if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
-                    c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
-                self.fast_run_container = c
+        for fast_run in BaseEntity.fast_run_store:
+            if (fast_run.base_filter == base_filter) and (fast_run.use_refs == use_refs) and (fast_run.case_insensitive == case_insensitive) and (
+                    fast_run.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
+                self.fast_run_container = fast_run
                 self.fast_run_container.current_qid = ''
                 self.fast_run_container.base_data_type = BaseDataType
                 if self.debug:

@@ -73,6 +73,7 @@ class Form:
 
     @grammatical_features.setter
     def grammatical_features(self, value):
+        # TODO: Access to member before its definition
         if isinstance(value, int):
             self.__grammatical_features.append('Q' + str(value))
         elif isinstance(value, str):

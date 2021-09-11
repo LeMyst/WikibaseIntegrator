@@ -15,7 +15,7 @@ Login class for Wikidata. Takes username and password and stores the session coo
 """
 
 
-class Login(object):
+class Login:
     """
     A class which handles the login to Wikidata and the generation of edit-tokens
     """
@@ -73,7 +73,7 @@ class Login(object):
             try:
                 token = oauth.fetch_token(token_url=self.mediawiki_rest_url + '/oauth2/access_token', client_id=self.consumer_token, client_secret=consumer_secret)
             except InvalidClientError as err:
-                raise LoginError(err)
+                raise LoginError(err) from err
             auth = OAuth2(token=token)
             self.session.auth = auth
             self.generate_edit_credentials()
@@ -96,8 +96,8 @@ class Login(object):
                 try:
                     self.redirect, self.request_token = self.handshaker.initiate(callback=self.callback_url)
                 except OAuthException as err:
-                    raise LoginError(err)
-        elif auth_method == 'login' or auth_method == 'clientlogin':
+                    raise LoginError(err) from err
+        elif auth_method in ('login', 'clientlogin'):
             params_login = {
                 'action': 'query',
                 'meta': 'tokens',
@@ -145,7 +145,8 @@ class Login(object):
                     clientlogin = login_result['clientlogin']
                     if clientlogin['status'] != 'PASS':
                         raise LoginError("Login failed ({}). Message: '{}'".format(clientlogin['messagecode'], clientlogin['message']))
-                    elif debug:
+
+                    if debug:
                         print("Successfully logged in as", clientlogin['username'])
                 else:
                     raise LoginError("Login failed ({}). Message: '{}'".format(login_result['error']['code'], login_result['error']['info']))
@@ -232,4 +233,3 @@ class Login(object):
 
 class LoginError(Exception):
     """Raised when there is an issue with the login"""
-    pass

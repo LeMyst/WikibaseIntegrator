@@ -24,7 +24,7 @@ class Item(BaseEntity):
         """
         self.api = api
 
-        super(Item, self).__init__(api=self.api, **kwargs)
+        super().__init__(api=self.api, **kwargs)
 
         # Item and property specific
         self.labels = labels or Labels()
@@ -44,14 +44,14 @@ class Item(BaseEntity):
 
             if not matches:
                 raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(entity_id))
-            else:
-                entity_id = int(matches.group(1))
+
+            entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("Item ID must be greater than 0")
 
         entity_id = 'Q{}'.format(entity_id)
-        json_data = super(Item, self).get(entity_id=entity_id, **kwargs)
+        json_data = super().get(entity_id=entity_id, **kwargs)
         return Item(self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:
@@ -59,11 +59,11 @@ class Item(BaseEntity):
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),
-            **super(Item, self).get_json()
+            **super().get_json()
         }
 
     def from_json(self, json_data) -> Item:
-        super(Item, self).from_json(json_data=json_data)
+        super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
         self.descriptions = Descriptions().from_json(json_data['descriptions'])
@@ -73,5 +73,5 @@ class Item(BaseEntity):
         return self
 
     def write(self, **kwargs):
-        json_data = super(Item, self)._write(data=self.get_json(), **kwargs)
+        json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

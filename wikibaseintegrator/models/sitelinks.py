@@ -5,8 +5,8 @@ class Sitelinks:
     def get(self, site=None):
         if site in self.sitelinks:
             return self.sitelinks[site]
-        else:
-            return None
+
+        return None
 
     def set(self, site=None, title=None, badges=None):
         sitelink = Sitelink(site, title, badges)

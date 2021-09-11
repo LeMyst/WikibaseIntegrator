@@ -262,8 +262,10 @@ class Claim:
     def __contains__(self, item):
         if isinstance(item, Claim):
             return self == item
-        elif isinstance(item, str):
+
+        if isinstance(item, str):
             return self.mainsnak.datavalue == item
+
         raise TypeError
 
     def __eq__(self, other):

@@ -48,7 +48,7 @@ class Time(BaseDataType):
         :type rank: str
         """
 
-        super(Time, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         calendarmodel = calendarmodel or config['CALENDAR_MODEL_QID']
         wikibase_url = wikibase_url or config['WIKIBASE_URL']

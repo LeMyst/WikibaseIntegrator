@@ -1,13 +1,11 @@
 class MWApiError(Exception):
-    def __init__(self, error_message):
-        """
-        Base class for Mediawiki API error handling
+    """
+    Base class for Mediawiki API error handling
 
-        :param error_message: The error message returned by the Mediawiki API
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
-        pass
+    :param error_message: The error message returned by the Mediawiki API
+    :type error_message: A Python json representation dictionary of the error message
+    :return:
+    """
 
 
 class NonUniqueLabelDescriptionPairError(MWApiError):
@@ -20,6 +18,8 @@ class NonUniqueLabelDescriptionPairError(MWApiError):
         :type error_message: A Python json representation dictionary of the error message
         :return:
         """
+        super().__init__(error_message)
+
         self.error_msg = error_message
 
     def get_language(self):
@@ -52,6 +52,8 @@ class SearchError(Exception):
 
 class ManualInterventionReqException(Exception):
     def __init__(self, value, property_string, item_list):
+        super().__init__()
+
         self.value = value + ' Property: {}, items affected: {}'.format(property_string, item_list)
 
     def __str__(self):

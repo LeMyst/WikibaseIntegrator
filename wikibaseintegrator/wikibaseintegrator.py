@@ -5,7 +5,7 @@ from wikibaseintegrator.entities.mediainfo import MediaInfo
 from wikibaseintegrator.entities.property import Property
 
 
-class WikibaseIntegrator(object):
+class WikibaseIntegrator:
 
     def __init__(self,
                  is_bot=False,

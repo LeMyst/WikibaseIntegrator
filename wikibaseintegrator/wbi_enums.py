@@ -19,7 +19,7 @@ class WikibaseRank(Enum):
 
 class WikibaseSnakType(Enum):
     """
-    The snak type of the Wikibase data snak, three values possible, 
+    The snak type of the Wikibase data snak, three values possible,
     depending if the value is a known (value), not existent (novalue) or
     unknown (somevalue). See Wikibase documentation.
     """

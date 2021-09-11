@@ -23,7 +23,7 @@ class MediaInfo(BaseEntity):
         """
         self.api = api
 
-        super(MediaInfo, self).__init__(api=self.api, **kwargs)
+        super().__init__(api=self.api, **kwargs)
 
         # Item and property specific
         self.labels = labels or Labels()
@@ -40,14 +40,14 @@ class MediaInfo(BaseEntity):
 
             if not matches:
                 raise ValueError("Invalid MediaInfo ID ({}), format must be 'M[0-9]+'".format(entity_id))
-            else:
-                entity_id = int(matches.group(1))
+
+            entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("MediaInfo ID must be greater than 0")
 
         entity_id = 'M{}'.format(entity_id)
-        json_data = super(MediaInfo, self).get(entity_id=entity_id, **kwargs)
+        json_data = super().get(entity_id=entity_id, **kwargs)
         return MediaInfo(self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_by_title(self, title, sites='commonswiki', **kwargs) -> MediaInfo:
@@ -72,11 +72,11 @@ class MediaInfo(BaseEntity):
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),
-            **super(MediaInfo, self).get_json()
+            **super().get_json()
         }
 
     def from_json(self, json_data) -> MediaInfo:
-        super(MediaInfo, self).from_json(json_data=json_data)
+        super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
         self.descriptions = Descriptions().from_json(json_data['descriptions'])
@@ -84,5 +84,5 @@ class MediaInfo(BaseEntity):
         return self
 
     def write(self, **kwargs):
-        json_data = super(MediaInfo, self)._write(data=self.get_json(), **kwargs)
+        json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

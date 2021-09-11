@@ -91,13 +91,14 @@ class BaseDataType(Claim):
         if not include_ref:
             # return the result of BaseDataType.__eq__, which is testing for equality of value and qualifiers
             return self == that
-        else:
-            if self != that:
-                return False
-            if fref is None:
-                return BaseDataType.refs_equal(self, that)
-            else:
-                return fref(self, that)
+
+        if self != that:
+            return False
+
+        if fref is None:
+            return BaseDataType.refs_equal(self, that)
+
+        return fref(self, that)
 
     @staticmethod
     def refs_equal(olditem, newitem):
@@ -109,9 +110,6 @@ class BaseDataType(Claim):
         newrefs = newitem.references
 
         def ref_equal(oldref, newref):
-            return True if (len(oldref) == len(newref)) and all(x in oldref for x in newref) else False
+            return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
 
-        if len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs):
-            return True
-        else:
-            return False
+        return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)

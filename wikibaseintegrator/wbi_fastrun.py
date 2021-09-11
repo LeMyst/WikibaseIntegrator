@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
 fastrun_store = []
 
 
-class FastRunContainer(object):
+class FastRunContainer:
     def __init__(self, base_data_type, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, case_insensitive=False, debug=None):
         self.reconstructed_statements = []
         self.rev_lookup = defaultdict(set)
@@ -199,12 +199,13 @@ class FastRunContainer(object):
 
         for date in data:
             # ensure that statements meant for deletion get handled properly
-            reconst_props = set([x.mainsnak.property_number for x in tmp_rs])
+            reconst_props = {x.mainsnak.property_number for x in tmp_rs}
             if not date.mainsnak.datatype and date.mainsnak.property_number in reconst_props:
                 if self.debug:
                     print("returned from delete prop handling")
                 return True
-            elif not date.mainsnak.datavalue or not date.mainsnak.datatype:
+
+            if not date.mainsnak.datavalue or not date.mainsnak.datatype:
                 # Ignore the deletion statements which are not in the reconstructed statements.
                 continue
 
@@ -315,12 +316,12 @@ class FastRunContainer(object):
 
         if action_if_exists == ActionIfExists.REPLACE:
             return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(), lang_data))
-        else:
-            for s in lang_data:
-                if s.strip().casefold() not in all_lang_strings:
-                    if self.debug:
-                        print("fastrun failed at: {}, string: {}".format(lang_data_type, s))
-                    return True
+
+        for s in lang_data:
+            if s.strip().casefold() not in all_lang_strings:
+                if self.debug:
+                    print("fastrun failed at: {}, string: {}".format(lang_data_type, s))
+                return True
 
         return False
 

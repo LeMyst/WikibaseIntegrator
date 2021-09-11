@@ -40,7 +40,7 @@ class Quantity(BaseDataType):
         :type rank: str
         """
 
-        super(Quantity, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
 
@@ -62,8 +62,8 @@ class Quantity(BaseDataType):
                 for i in [amount, upper_bound, lower_bound]:
                     if i:
                         float(i)
-            except ValueError:
-                raise ValueError("Value, bounds and units must parse as integers or float")
+            except ValueError as error:
+                raise ValueError("Value, bounds and units must parse as integers or float") from error
 
             if (lower_bound and upper_bound) and (float(lower_bound) > float(upper_bound) or float(lower_bound) > float(amount)):
                 raise ValueError("Lower bound too large")

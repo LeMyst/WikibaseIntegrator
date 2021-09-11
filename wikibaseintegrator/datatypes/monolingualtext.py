@@ -34,7 +34,7 @@ class MonolingualText(BaseDataType):
         :type rank: str
         """
 
-        super(MonolingualText, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         language = language or config['DEFAULT_LANGUAGE']
 

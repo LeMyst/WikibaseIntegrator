@@ -22,11 +22,11 @@ class Aliases:
         if language is None:
             # TODO: Don't return a list of list, just a list
             return [item for sublist in self.aliases.values() for item in sublist]
-        else:
-            if language in self.aliases:
-                return self.aliases[language]
-            else:
-                return None
+
+        if language in self.aliases:
+            return self.aliases[language]
+
+        return None
 
     def set(self, language=None, values=None, action_if_exists=ActionIfExists.APPEND):
         language = language or config['DEFAULT_LANGUAGE']

@@ -32,7 +32,7 @@ class TabularData(BaseDataType):
         :raises ValueError: Raise a ValueError Exception if the data in value parameter is not valid.
         """
 
-        super(TabularData, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
 

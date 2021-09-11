@@ -121,7 +121,8 @@ def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, use
         if login is None:
             # Force allow_anonymous as False by default to ask for a login object
             raise ValueError("allow_anonymous can't be False and login is None at the same time.")
-        elif mediawiki_api_url != login.mediawiki_api_url:
+
+        if mediawiki_api_url != login.mediawiki_api_url:
             raise ValueError("mediawiki_api_url can't be different with the one in the login object.")
 
     headers = {
@@ -355,25 +356,25 @@ def search_entities(search_string, language=None, strict_language=True, search_t
 
         if search_results['success'] != 1:
             raise SearchError('Wikibase API wbsearchentities failed')
-        else:
-            for i in search_results['search']:
-                if dict_result:
-                    description = i['description'] if 'description' in i else None
-                    aliases = i['aliases'] if 'aliases' in i else None
-                    results.append({
-                        'id': i['id'],
-                        'label': i['label'],
-                        'match': i['match'],
-                        'description': description,
-                        'aliases': aliases
-                    })
-                else:
-                    results.append(i['id'])
+
+        for i in search_results['search']:
+            if dict_result:
+                description = i['description'] if 'description' in i else None
+                aliases = i['aliases'] if 'aliases' in i else None
+                results.append({
+                    'id': i['id'],
+                    'label': i['label'],
+                    'match': i['match'],
+                    'description': description,
+                    'aliases': aliases
+                })
+            else:
+                results.append(i['id'])
 
         if 'search-continue' not in search_results:
             break
-        else:
-            cont_count = search_results['search-continue']
+
+        cont_count = search_results['search-continue']
 
         if cont_count >= max_results:
             break

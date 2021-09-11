@@ -88,8 +88,8 @@ class Snak:
 
             if not matches:
                 raise ValueError('Invalid property_number, format must be "P[0-9]+"')
-            else:
-                self.__property_number = 'P' + str(matches.group(1))
+
+            self.__property_number = 'P' + str(matches.group(1))
 
         self.__property_number = value
 

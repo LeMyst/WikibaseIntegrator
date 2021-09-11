@@ -33,7 +33,7 @@ class Form(BaseDataType):
         :type rank: str
         """
 
-        super(Form, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
 

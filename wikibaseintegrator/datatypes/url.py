@@ -32,7 +32,7 @@ class URL(BaseDataType):
         :type rank: str
         """
 
-        super(URL, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
 
