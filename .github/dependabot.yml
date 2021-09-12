@@ -1,7 +1,18 @@
 version: 2
 updates:
-  - package-ecosystem: pip
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: daily
-    open-pull-requests-limit: 10
+      interval: "daily"
+    assignees:
+      - "LeMyst"
+
+  # Maintain dependencies for pip
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "LeMyst"
