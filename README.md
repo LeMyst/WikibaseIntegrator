@@ -315,20 +315,24 @@ should be resolved first.
 
 # Examples (in "normal" mode) #
 
-## A Minimal Bot ##
+In order to create a minimal bot based on wbi_core, two things are required:
 
-In order to create a minimal bot based on wbi_core, three things are required:
+* A datatype object containing a value.
+* An entity object (Item/Property/Lexeme/...) which takes the data, does the checks and performs write.
 
-* A login object, as described above.
-* A data type object containing a value.
-* A ItemEngine object which takes the data, does the checks and performs write.
+A Login object can be used to be authenticated on the Wikibase instance.
+
+## Create a new Item ##
 
 ```python
-from wikibaseintegrator import WikibaseIntegrator, wbi_login
+from wikibaseintegrator import wbi_login, WikibaseIntegrator
 from wikibaseintegrator.datatypes import ExternalID
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
+login_instance = wbi_login.Login(auth_method='login', user='<bot user name>', password='<bot password>')
 
 wbi = WikibaseIntegrator(login=login_instance)
 
@@ -338,13 +342,54 @@ entrez_gene_id = ExternalID(value='<some_entrez_id>', prop_nr='P351')
 # data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
 
-# Search for and then edit/create new item
+# Create a new item
 item = wbi.item.new()
+
+# Set an english label
+item.labels.set(language='en', value='Newly created item')
+
+# Set an french description
+item.descriptions.set(language='fr', value='Une description un peu longue')
+
 item.claims.add(data)
 item.write()
 ```
 
-## A Minimal Bot for Mass Import ##
+## Modify an existing item ##
+
+```python
+from wikibaseintegrator import wbi_login, WikibaseIntegrator
+from wikibaseintegrator.datatypes import ExternalID
+from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
+
+# login object
+login_instance = wbi_login.Login(auth_method='login', user='<bot user name>', password='<bot password>')
+
+wbi = WikibaseIntegrator(login=login_instance)
+
+# data type object, e.g. for a NCBI gene entrez ID
+entrez_gene_id = ExternalID(value='<some_entrez_id>', prop_nr='P351')
+
+# data goes into a list, because many data objects can be provided to
+data = [entrez_gene_id]
+
+# Search and then edit an Item
+item = wbi.item.get(entity_id='Q141806')
+
+# Set an english label but don't modify it if there is already an entry
+item.labels.set(language='en', value='An updated item', action_if_exists=ActionIfExists.KEEP)
+
+# Set an french description and replace the existing one
+item.descriptions.set(language='fr', value='Une description un peu longue', action_if_exists=ActionIfExists.REPLACE)
+
+item.claims.add(data)
+item.write()
+```
+
+## A bot for Mass Import ##
 
 An enhanced example of the previous bot just puts two of the three things into a 'for loop' and so allows mass creation,
 or modification of items.
@@ -352,6 +397,9 @@ or modification of items.
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.datatypes import ExternalID, Item, Time, String
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
 login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
