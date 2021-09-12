@@ -27,9 +27,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
-      - name: Install dependencies
+      - name: Upgrade setup tools
         run: |
           python -m pip install --upgrade pip setuptools
+      - name: Install dependencies
+        run: |
           pip install .[dev]
       - name: Test with pytest
         run: |
