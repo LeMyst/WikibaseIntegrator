@@ -46,7 +46,7 @@ class Aliases:
         if isinstance(values, str):
             values = [values]
         elif not isinstance(values, list) and values is not None:
-            raise TypeError("value must be a str or list")
+            raise TypeError("value must be a str or list of strings, got '{}'".format(type(values)))
 
         if action_if_exists == ActionIfExists.REPLACE:
             aliases = []
