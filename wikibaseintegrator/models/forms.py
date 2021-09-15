@@ -1,8 +1,13 @@
+from dataclasses import dataclass, field
+
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 
 
+@dataclass
 class Forms:
+    forms: dict = field(default_factory=dict)
+
     def __init__(self):
         self.forms = {}
 
@@ -35,16 +40,14 @@ class Forms:
 
         return self
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
 
-
+@dataclass
 class Form:
+    id: str
+    representations: LanguageValues
+    grammatical_features: list[str]
+    claims: Claims
+
     def __init__(self, form_id=None, representations=None, grammatical_features=None, claims=None):
         self.id = form_id
         self.representations = representations or LanguageValues()
@@ -102,11 +105,3 @@ class Form:
             del json_data['id']
 
         return json_data
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
