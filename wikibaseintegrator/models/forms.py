@@ -78,10 +78,10 @@ class Form:
             self.__grammatical_features.append('Q' + str(value))
         elif isinstance(value, str):
             self.__grammatical_features.append(value)
-        elif isinstance(value, list):
+        elif isinstance(value, list) or value is None:
             self.__grammatical_features = value
-
-        raise TypeError("value must be an int, a str or a list of strings")
+        else:
+            raise TypeError("value must be an int, a str or a list of strings, got ''".format(type(value)))
 
     @property
     def claims(self):
