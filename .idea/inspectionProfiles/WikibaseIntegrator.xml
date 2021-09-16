@@ -24,6 +24,7 @@
           <option value="http://schemas.xmlsoap.org/" />
           <option value="http://cxf.apache.org/schemas/" />
           <option value="http://www.wikidata.org" />
+          <option value="http://wikibase.svc" />
         </list>
       </option>
     </inspection_tool>
@@ -39,6 +40,15 @@
             <item index="3" class="java.lang.String" itemvalue="3.10" />
           </list>
         </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyShadowingBuiltinsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredNames">
+        <list>
+          <option value="property" />
+          <option value="hash" />
+          <option value="id" />
+        </list>
       </option>
     </inspection_tool>
     <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">

@@ -10,7 +10,7 @@ from wikibaseintegrator.wbi_config import config
 
 class TestMethods(unittest.TestCase):
     def test_all(self):
-        config['BACKOFF_MAX_TRIES'] = 2
+        config['BACKOFF_MAX_TRIES'] = 1
         config['BACKOFF_MAX_VALUE'] = 2
         with self.assertRaises(requests.RequestException):
             bad_http_code()
@@ -24,6 +24,8 @@ class TestMethods(unittest.TestCase):
         with self.assertRaises(json.JSONDecodeError):
             bad_json()
 
+
+# @backoff.on_exception(backoff.expo, (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError), max_time=60)
 
 @wbi_backoff()
 def bad_http_code():
@@ -50,4 +52,4 @@ def bad_request():
 
 
 def bad_login():
-    wbi_login.Login("name", "pass", mediawiki_api_url="www.wikidataaaaaaaaa.org")
+    wbi_login.Login(auth_method='clientlogin', user='name', password='pass', mediawiki_api_url="www.wikidataaaaaaaaa.org")
