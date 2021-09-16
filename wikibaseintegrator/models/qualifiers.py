@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Dict
+
 from wikibaseintegrator.models.snaks import Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -55,8 +57,8 @@ class Qualifiers:
                 self.add(qualifier=Snak().from_json(snak))
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
+    def get_json(self) -> Dict[str, list]:
+        json_data: Dict[str, list] = {}
         for property in self.qualifiers:
             if property not in json_data:
                 json_data[property] = []

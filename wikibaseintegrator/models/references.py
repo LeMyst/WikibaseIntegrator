@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import List, Dict, Union
+
 from wikibaseintegrator.models.snaks import Snaks, Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -42,8 +44,8 @@ class References:
 
         return self
 
-    def get_json(self) -> []:
-        json_data = []
+    def get_json(self) -> List[Dict]:
+        json_data: List[Dict] = []
         for reference in self.references:
             json_data.append(reference.get_json())
         return json_data
@@ -131,8 +133,8 @@ class Reference:
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {
+    def get_json(self) -> Dict[str, Union[Dict, list]]:
+        json_data: Dict[str, Union[Dict, list]] = {
             'snaks': self.snaks.get_json(),
             'snaks-order': self.snaks_order
         }

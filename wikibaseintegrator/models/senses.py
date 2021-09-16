@@ -1,3 +1,5 @@
+from typing import List, Dict, Union
+
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -19,8 +21,8 @@ class Senses:
 
         return self
 
-    def get_json(self) -> []:
-        json_data = []
+    def get_json(self) -> List[Dict]:
+        json_data: List[Dict] = []
         for sense in self.senses:
             json_data.append(sense.get_json())
         return json_data
@@ -47,8 +49,8 @@ class Sense:
         self.claims = claims or Claims()
         self.removed = False
 
-    def get_json(self) -> {}:
-        json_data = {
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
+        json_data: Dict[str, Union[str, Dict]] = {
             'id': self.id,
             'glosses': self.glosses.get_json(),
             'claims': self.claims.get_json()

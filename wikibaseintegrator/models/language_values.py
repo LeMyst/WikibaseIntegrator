@@ -1,3 +1,5 @@
+from typing import Dict
+
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -45,8 +47,8 @@ class LanguageValues:
 
         return self.get(language=language)
 
-    def get_json(self) -> {}:
-        json_data = {}
+    def get_json(self) -> Dict[str, Dict]:
+        json_data: Dict[str, Dict] = {}
         for value in self.values:
             json_data[value] = self.values[value].get_json()
         return json_data
@@ -112,7 +114,7 @@ class LanguageValue:
         self.removed = True
         return self
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, str]:
         json_data = {
             'language': self.language,
             'value': self.value

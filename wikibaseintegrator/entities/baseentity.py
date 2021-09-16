@@ -1,3 +1,5 @@
+from typing import List, Union, Dict
+
 import simplejson
 
 from wikibaseintegrator.datatypes import BaseDataType
@@ -10,7 +12,7 @@ from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
 class BaseEntity:
-    fast_run_store = []
+    fast_run_store: List[FastRunContainer] = []
 
     ETYPE = 'base-entity'
 
@@ -38,7 +40,7 @@ class BaseEntity:
 
         return self
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
         json_data = {
             'type': self.type,
             'id': self.id,

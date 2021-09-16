@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import Dict
 
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
@@ -13,7 +13,7 @@ class Snaks:
     def get(self, property=None):
         return self.snaks[property]
 
-    def add(self, snak: Optional[Snak] = None):
+    def add(self, snak: Snak):
         property = snak.property_number
 
         if property not in self.snaks:
@@ -30,8 +30,8 @@ class Snaks:
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
+    def get_json(self) -> Dict[str, list]:
+        json_data: Dict[str, list] = {}
         for property in self.snaks:
             if property not in json_data:
                 json_data[property] = []
@@ -130,7 +130,7 @@ class Snak:
             self.datatype = json_data['datatype']
         return self
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, str]:
         json_data = {
             'snaktype': self.snaktype.value,
             'property': self.property_number,

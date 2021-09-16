@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -67,7 +68,7 @@ class MediaInfo(BaseEntity):
 
         return MediaInfo(self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
         return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),

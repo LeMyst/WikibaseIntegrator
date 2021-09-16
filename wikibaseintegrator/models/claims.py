@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Union
+from typing import Union, List, Type, Dict
 
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
@@ -86,8 +86,8 @@ class Claims:
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
+    def get_json(self) -> Dict[str, list]:
+        json_data: Dict[str, list] = {}
         for property in self.claims:
             if property not in json_data:
                 json_data[property] = []
@@ -118,7 +118,7 @@ class Claims:
 
 class Claim:
     DTYPE = 'claim'
-    subclasses = []
+    subclasses: List[Type[Claim]] = []
 
     def __init__(self, qualifiers=None, rank=None, references=None):
         self.mainsnak = Snak(datatype=self.DTYPE)
@@ -221,7 +221,7 @@ class Claim:
 
         return self
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
         json_data = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,

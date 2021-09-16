@@ -3,6 +3,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
+from typing import List
 
 from frozendict import frozendict
 
@@ -10,8 +11,6 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
-
-fastrun_store = []
 
 
 class FastRunContainer:
@@ -57,7 +56,7 @@ class FastRunContainer:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
     def reconstruct_statements(self, qid: str) -> list:
-        reconstructed_statements: list[wbi_core.BaseDataType] = []
+        reconstructed_statements: list[BaseDataType] = []
 
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements
@@ -105,7 +104,7 @@ class FastRunContainer:
         self.load_item(claims=claims, cqid=cqid)
         return self.current_qid
 
-    def load_item(self, claims: list, cqid=None) -> bool:
+    def load_item(self, claims: list, cqid=None):
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -620,6 +619,9 @@ class FastRunContainer:
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
         )
+
+
+fastrun_store: List[FastRunContainer] = []
 
 
 def freezeargs(func):

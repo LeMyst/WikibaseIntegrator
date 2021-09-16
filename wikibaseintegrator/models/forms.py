@@ -1,3 +1,5 @@
+from typing import Dict, List, Union
+
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 
@@ -22,8 +24,8 @@ class Forms:
 
         return self
 
-    def get_json(self) -> []:
-        json_data = []
+    def get_json(self) -> List[Dict]:
+        json_data: List[Dict] = []
         for form in self.forms:
             json_data.append(self.forms[form].get_json())
         return json_data
@@ -81,7 +83,7 @@ class Form:
         elif isinstance(value, list) or value is None:
             self.__grammatical_features = value
         else:
-            raise TypeError("value must be an int, a str or a list of strings, got ''".format(type(value)))
+            raise TypeError("value must be an int, a str or a list of strings, got '{}'".format(type(value)))
 
     @property
     def claims(self):
@@ -91,8 +93,8 @@ class Form:
     def claims(self, value):
         self.__claims = value
 
-    def get_json(self) -> {}:
-        json_data = {
+    def get_json(self) -> Dict[str, Union[str, Dict, list]]:
+        json_data: Dict[str, Union[str, Dict, list]] = {
             'id': self.id,
             'representations': self.representations.get_json(),
             'grammaticalFeatures': self.grammatical_features,

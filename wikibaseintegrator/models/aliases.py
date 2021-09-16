@@ -1,3 +1,5 @@
+from typing import Dict
+
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -67,8 +69,8 @@ class Aliases:
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
+    def get_json(self) -> Dict[str, list]:
+        json_data: Dict[str, list] = {}
         for language in self.aliases:
             if language not in json_data:
                 json_data[language] = []
