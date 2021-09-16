@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
-from wikibaseintegrator.models.snaks import Snaks, Snak
+from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 

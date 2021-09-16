@@ -3,12 +3,12 @@ import unittest
 
 import requests
 
-from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
+from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities.baseentity import MWApiError
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent, execute_sparql_query
+from wikibaseintegrator.wbi_helpers import execute_sparql_query, get_user_agent, mediawiki_api_call_helper
 
 config['DEBUG'] = True
 

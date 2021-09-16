@@ -10,7 +10,7 @@ from frozendict import frozendict
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_helpers import format_amount, execute_sparql_query
+from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 
 
 class FastRunContainer:

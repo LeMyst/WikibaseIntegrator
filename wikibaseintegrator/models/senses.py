@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues

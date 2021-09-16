@@ -1,4 +1,4 @@
-from wikibaseintegrator.models import Claim, Snak, Snaks, References, Reference
+from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 

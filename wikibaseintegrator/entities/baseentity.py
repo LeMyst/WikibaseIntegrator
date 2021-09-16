@@ -1,12 +1,12 @@
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 import simplejson
 
 from wikibaseintegrator.datatypes import BaseDataType
-from wikibaseintegrator.models.claims import Claims, Claim
+from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import NonUniqueLabelDescriptionPairError, MWApiError
+from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 

@@ -1,5 +1,5 @@
-from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator
-from wikibaseintegrator.datatypes import BaseDataType, Item, ExternalID
+from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
+from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 

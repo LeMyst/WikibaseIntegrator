@@ -40,7 +40,6 @@ jobs:
           use-pycodestyle: false
           use-flake8: false
           use-black: false
-          use-isort: false
           extra-pylint-options: "--max-line-length=180"
           extra-mypy-options: ""
       - name: Test with pytest

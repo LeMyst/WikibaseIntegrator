@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Union, List, Type, Dict
+from typing import Dict, List, Type, Union
 
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
