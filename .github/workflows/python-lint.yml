@@ -1,0 +1,65 @@
+name: Python Code Quality and Lint
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Upgrade setup tools
+        run: |
+          python -m pip install --upgrade pip setuptools
+      - name: Install dependencies
+        run: |
+          pip install .[dev]
+      - name: Python isort
+        uses: ricardochaves/python-lint@v1.3.0
+        with:
+          python-root-list: "wikibaseintegrator test"
+          use-pylint: false
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: false
+          use-mypy: false
+          use-isort: true
+      - name: Python mypy
+        uses: ricardochaves/python-lint@v1.3.0
+        with:
+          python-root-list: "wikibaseintegrator test"
+          use-pylint: false
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: false
+          use-mypy: true
+          use-isort: false
+          extra-mypy-options: ""
+      - name: Python pylint
+        uses: ricardochaves/python-lint@v1.3.0
+        with:
+          python-root-list: "wikibaseintegrator test"
+          use-pylint: true
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: false
+          use-mypy: false
+          use-isort: false
+          extra-pylint-options: "--max-line-length=180"
