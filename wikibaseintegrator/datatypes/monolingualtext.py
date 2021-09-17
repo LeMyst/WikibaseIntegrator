@@ -14,24 +14,12 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text=None, language=None, **kwargs):
+    def __init__(self, text: str = None, language: str = None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
 
-        :param text: The language specific string to be used as the value
-        :type text: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param language: Specifies the language the value belongs to
-        :type language: str
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
+        :param text: The language specific string to be used as the value.
+        :param language: Specifies the language the value belongs to.
         """
 
         super().__init__(**kwargs)

@@ -15,22 +15,11 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
 
         :param value: The lexeme number to serve as a value
-        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
-        :param prop_nr: The property number for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
         """
 
         super().__init__(**kwargs)

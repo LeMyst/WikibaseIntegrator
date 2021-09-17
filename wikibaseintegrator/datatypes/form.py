@@ -15,12 +15,12 @@ class Form(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
 
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
-        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
+        :type value: str with the format "L<Lexeme ID>-F<Form>"
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
@@ -52,5 +52,5 @@ class Form(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self):
+    def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['id']

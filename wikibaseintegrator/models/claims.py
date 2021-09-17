@@ -120,13 +120,13 @@ class Claim:
     DTYPE = 'claim'
     subclasses: List[Type[Claim]] = []
 
-    def __init__(self, qualifiers=None, rank=None, references=None):
+    def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: References = None) -> None:
         self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
-        self.rank: WikibaseRank = rank or WikibaseRank.NORMAL
+        self.rank = rank or WikibaseRank.NORMAL
         self.references = references or References()
         self.removed = False
 
@@ -136,27 +136,27 @@ class Claim:
         cls.subclasses.append(cls)
 
     @property
-    def mainsnak(self):
+    def mainsnak(self) -> Snak:
         return self.__mainsnak
 
     @mainsnak.setter
-    def mainsnak(self, value):
+    def mainsnak(self, value: Snak):
         self.__mainsnak = value
 
     @property
-    def type(self):
+    def type(self) -> str:
         return self.__type
 
     @type.setter
-    def type(self, value):
+    def type(self, value: str):
         self.__type = value
 
     @property
-    def qualifiers(self):
+    def qualifiers(self) -> Qualifiers:
         return self.__qualifiers
 
     @qualifiers.setter
-    def qualifiers(self, value):
+    def qualifiers(self, value: Qualifiers):
         assert isinstance(value, (Qualifiers, list))
         if isinstance(value, list):
             self.__qualifiers = Qualifiers().set(value)
@@ -164,50 +164,50 @@ class Claim:
             self.__qualifiers = value
 
     @property
-    def qualifiers_order(self):
+    def qualifiers_order(self) -> List:
         return self.__qualifiers_order
 
     @qualifiers_order.setter
-    def qualifiers_order(self, value):
+    def qualifiers_order(self, value: List):
         self.__qualifiers_order = value
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.__id
 
     @id.setter
-    def id(self, value):
+    def id(self, value: str):
         self.__id = value
 
     @property
-    def rank(self):
+    def rank(self) -> WikibaseRank:
         return self.__rank
 
     @rank.setter
-    def rank(self, value):
+    def rank(self, value: WikibaseRank):
         """Parse the rank. The enum thows an error if it is not one of the recognized values"""
         self.__rank = WikibaseRank(value)
 
     @property
-    def references(self):
+    def references(self) -> References:
         return self.__references
 
     @references.setter
-    def references(self, value):
+    def references(self, value: References):
         self.__references = value
 
     @property
-    def removed(self):
+    def removed(self) -> bool:
         return self.__removed
 
     @removed.setter
-    def removed(self, value):
+    def removed(self, value: bool):
         self.__removed = value
 
     def remove(self, remove=True):
         self.removed = remove
 
-    def from_json(self, json_data) -> Claim:
+    def from_json(self, json_data: Dict[str, Union[str, Dict]]) -> Claim:
         self.mainsnak = Snak().from_json(json_data['mainsnak'])
         self.type = json_data['type']
         if 'qualifiers' in json_data:
@@ -240,7 +240,7 @@ class Claim:
             json_data['remove'] = ''
         return json_data
 
-    def has_equal_qualifiers(self, other):
+    def has_equal_qualifiers(self, other: Claim):
         # check if the qualifiers are equal with the 'other' object
         equal_qualifiers = True
         self_qualifiers = copy.deepcopy(self.qualifiers)

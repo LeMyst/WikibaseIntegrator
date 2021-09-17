@@ -15,7 +15,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
 

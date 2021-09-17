@@ -14,26 +14,15 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude=None, longitude=None, precision=None, globe=None, wikibase_url=None, **kwargs):
+    def __init__(self, latitude: float = None, longitude: float = None, precision: float = None, globe: str = None, wikibase_url: str = None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
 
         :param latitude: Latitute in decimal format
-        :type latitude: float or None
         :param longitude: Longitude in decimal format
-        :type longitude: float or None
         :param precision: Precision of the position measurement, default 1 / 3600
-        :type precision: float or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
+        :param globe: The globe entity concept URI (ex: http://www.wikidata.org/entity/Q2) or 'Q2'
+        :param wikibase_url: The default wikibase URL, used when the globe is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.
         """
 
         super().__init__(**kwargs)

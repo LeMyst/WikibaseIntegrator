@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Union
+
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
@@ -7,14 +11,15 @@ class BaseDataType(Claim):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
-    sparql_query = '''
+    sparql_query: str = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
           ?s <{wb_url}/prop/statement/{pid}> '{value}' .
         }}
     '''
+    references: References
 
-    def __init__(self, prop_nr=None, **kwargs):
+    def __init__(self, prop_nr: Union[int, str] = None, **kwargs):
         """
         Constructor, will be called by all data types.
 
@@ -64,10 +69,10 @@ class BaseDataType(Claim):
 
         self.mainsnak.property_number = prop_nr or None
 
-    def get_sparql_value(self):
+    def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']
 
-    def equals(self, that, include_ref=False, fref=None):
+    def equals(self, that, include_ref: bool = False, fref=None) -> bool:
         """
         Tests for equality of two statements.
         If comparing references, the order of the arguments matters!!!
@@ -90,7 +95,7 @@ class BaseDataType(Claim):
         return fref(self, that)
 
     @staticmethod
-    def refs_equal(olditem, newitem):
+    def refs_equal(olditem: BaseDataType, newitem: BaseDataType):
         """
         tests for exactly identical references
         """
