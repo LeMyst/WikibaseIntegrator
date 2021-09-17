@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: pytest ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
