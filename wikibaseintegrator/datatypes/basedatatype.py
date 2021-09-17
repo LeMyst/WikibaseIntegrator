@@ -62,18 +62,7 @@ class BaseDataType(Claim):
                 references.add(reference=reference)
             self.references = references
 
-        self.value = None
         self.mainsnak.property_number = prop_nr or None
-
-    @property
-    def value(self):
-        return self.__value
-
-    @value.setter
-    def value(self, value):
-        if not value:
-            self.mainsnak.snaktype = WikibaseSnakType.NO_VALUE
-        self.__value = value
 
     def get_sparql_value(self):
         return self.mainsnak.datavalue['value']
