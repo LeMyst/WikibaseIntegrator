@@ -22,7 +22,7 @@ class GlobeCoordinate(BaseDataType):
         :type latitude: float or None
         :param longitude: Longitude in decimal format
         :type longitude: float or None
-        :param precision: Precision of the position measurement
+        :param precision: Precision of the position measurement, default 1 / 3600
         :type precision: float or None
         :param prop_nr: The item ID for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
@@ -38,39 +38,31 @@ class GlobeCoordinate(BaseDataType):
 
         super().__init__(**kwargs)
 
+        precision = precision or 1 / 3600  # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
         globe = globe or config['COORDINATE_GLOBE_QID']
         wikibase_url = wikibase_url or config['WIKIBASE_URL']
-
-        self.latitude = None
-        self.longitude = None
-        self.precision = None
-        self.globe = None
 
         if globe.startswith('Q'):
             globe = wikibase_url + '/entity/' + globe
 
         # TODO: Introduce validity checks for coordinates, etc.
         # TODO: Add check if latitude/longitude/precision is None
-        self.latitude = latitude
-        self.longitude = longitude
-        self.precision = precision
-        self.globe = globe
 
-        if self.latitude and self.longitude and self.precision:
-            self.value = (self.latitude, self.longitude, self.precision, self.globe)
-        else:
-            self.value = None
+        if latitude and longitude:
+            if latitude < -90 or latitude > 90:
+                raise ValueError("latitude must be between -90 and 90, got '{}'".format(latitude))
+            if longitude < -180 or longitude > 180:
+                raise ValueError("longitude must be between -180 and 180, got '{}'".format(longitude))
 
-        if self.value:
             self.mainsnak.datavalue = {
                 'value': {
-                    'latitude': self.latitude,
-                    'longitude': self.longitude,
-                    'precision': self.precision,
-                    'globe': self.globe
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    'precision': precision,
+                    'globe': globe
                 },
                 'type': 'globecoordinate'
             }
 
     def get_sparql_value(self):
-        return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
+        return 'Point(' + str(self.mainsnak.datavalue['value']['latitude']) + ', ' + str(self.mainsnak.datavalue['value']['longitude']) + ')'
