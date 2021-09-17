@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v2
@@ -33,6 +32,7 @@ jobs:
           pip install .[dev]
       - name: Python isort
         uses: ricardochaves/python-lint@v1.3.0
+        continue-on-error: true
         with:
           python-root-list: "wikibaseintegrator test"
           use-pylint: false
@@ -43,6 +43,7 @@ jobs:
           use-isort: true
       - name: Python mypy
         uses: ricardochaves/python-lint@v1.3.0
+        continue-on-error: true
         with:
           python-root-list: "wikibaseintegrator test"
           use-pylint: false
@@ -54,6 +55,7 @@ jobs:
           extra-mypy-options: ""
       - name: Python pylint
         uses: ricardochaves/python-lint@v1.3.0
+        continue-on-error: true
         with:
           python-root-list: "wikibaseintegrator test"
           use-pylint: true
