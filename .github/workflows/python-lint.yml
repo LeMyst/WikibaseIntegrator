@@ -31,7 +31,7 @@ jobs:
         run: |
           pip install .[dev]
       - name: Python isort
-        uses: ricardochaves/python-lint@v1.3.0
+        uses: ricardochaves/python-lint@v1.4.0
         continue-on-error: true
         with:
           python-root-list: "wikibaseintegrator test"
@@ -42,7 +42,7 @@ jobs:
           use-mypy: false
           use-isort: true
       - name: Python mypy
-        uses: ricardochaves/python-lint@v1.3.0
+        uses: ricardochaves/python-lint@v1.4.0
         continue-on-error: true
         with:
           python-root-list: "wikibaseintegrator test"
@@ -54,7 +54,7 @@ jobs:
           use-isort: false
           extra-mypy-options: ""
       - name: Python pylint
-        uses: ricardochaves/python-lint@v1.3.0
+        uses: ricardochaves/python-lint@v1.4.0
         continue-on-error: true
         with:
           python-root-list: "wikibaseintegrator test"
