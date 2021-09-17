@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Dict
 
 """
 Config global options
@@ -14,7 +14,7 @@ USER_AGENT:        Complementary user agent string used for http requests. Both 
                    See: https://meta.wikimedia.org/wiki/User-Agent_policy
 """
 
-config: dict[str, Union[str, int, None]] = {
+config: Dict[str, Union[str, int, None]] = {
     'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
     'USER_AGENT': None,

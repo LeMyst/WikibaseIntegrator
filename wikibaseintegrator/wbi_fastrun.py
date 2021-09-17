@@ -55,8 +55,8 @@ class FastRunContainer:
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
-    def reconstruct_statements(self, qid: str) -> list:
-        reconstructed_statements: list[BaseDataType] = []
+    def reconstruct_statements(self, qid: str) -> List[BaseDataType]:
+        reconstructed_statements: List[BaseDataType] = []
 
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements
