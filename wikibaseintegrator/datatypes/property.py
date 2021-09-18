@@ -35,7 +35,7 @@ class Property(BaseDataType):
 
         super().__init__(**kwargs)
 
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
 
         if value:
             if isinstance(value, str):
@@ -43,7 +43,7 @@ class Property(BaseDataType):
                 matches = pattern.match(value)
 
                 if not matches:
-                    raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(value))
+                    raise ValueError(f"Invalid property ID ({value}), format must be 'P[0-9]+'")
 
                 value = int(matches.group(1))
 
@@ -51,7 +51,7 @@ class Property(BaseDataType):
                 'value': {
                     'entity-type': 'property',
                     'numeric-id': value,
-                    'id': 'P{}'.format(value)
+                    'id': f'P{value}'
                 },
                 'type': 'wikibase-entityid'
             }

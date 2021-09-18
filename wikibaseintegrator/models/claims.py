@@ -34,7 +34,7 @@ class Claims:
         """
 
         if action_if_exists not in ActionIfExists:
-            raise ValueError('{} is not a valid action_if_exists value. Use the enum ActionIfExists'.format(action_if_exists))
+            raise ValueError(f'{action_if_exists} is not a valid action_if_exists value. Use the enum ActionIfExists')
 
         if isinstance(claims, Claim):
             claims = [claims]
@@ -112,7 +112,7 @@ class Claims:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
 
 
@@ -278,5 +278,5 @@ class Claim:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

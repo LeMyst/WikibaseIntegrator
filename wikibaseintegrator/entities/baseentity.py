@@ -142,7 +142,7 @@ class BaseEntity:
             json_data = mediawiki_api_call_helper(data=payload, login=self.api.login, allow_anonymous=allow_anonymous, is_bot=self.api.is_bot, **kwargs)
 
             if 'error' in json_data and 'messages' in json_data['error']:
-                error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
+                error_msg_names = {x.get('name') for x in json_data['error']['messages']}
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
                     raise NonUniqueLabelDescriptionPairError(json_data)
 
@@ -209,5 +209,5 @@ class BaseEntity:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

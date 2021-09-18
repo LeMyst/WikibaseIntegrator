@@ -35,14 +35,14 @@ class Property(BaseEntity):
             matches = pattern.match(entity_id)
 
             if not matches:
-                raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(entity_id))
+                raise ValueError(f"Invalid property ID ({entity_id}), format must be 'P[0-9]+'")
 
             entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("Property ID must be greater than 0")
 
-        entity_id = 'P{}'.format(entity_id)
+        entity_id = f'P{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
         return Property(self.api).from_json(json_data=json_data['entities'][entity_id])
 

@@ -43,14 +43,14 @@ class Item(BaseEntity):
             matches = pattern.match(entity_id)
 
             if not matches:
-                raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(entity_id))
+                raise ValueError(f"Invalid item ID ({entity_id}), format must be 'Q[0-9]+'")
 
             entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("Item ID must be greater than 0")
 
-        entity_id = 'Q{}'.format(entity_id)
+        entity_id = f'Q{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
         return Item(self.api).from_json(json_data=json_data['entities'][entity_id])
 

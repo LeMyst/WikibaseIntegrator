@@ -35,14 +35,14 @@ class Sense(BaseDataType):
 
         super().__init__(**kwargs)
 
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
             pattern = re.compile(r'^L[0-9]+-S[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid sense ID ({}), format must be 'L[0-9]+-S[0-9]+'".format(value))
+                raise ValueError(f"Invalid sense ID ({value}), format must be 'L[0-9]+-S[0-9]+'")
 
             self.mainsnak.datavalue = {
                 'value': {
