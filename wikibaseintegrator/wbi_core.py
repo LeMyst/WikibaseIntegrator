@@ -10,7 +10,7 @@ from wikibaseintegrator.wbi_exceptions import (IDMissingError, SearchError, Sear
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 
 
-class ItemEngine(object):
+class ItemEngine:
     fast_run_store = []
     distinct_value_props = {}
 
@@ -360,7 +360,7 @@ class ItemEngine(object):
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists not in ('KEEP', 'REPLACE'):
-            raise ValueError("{} is not a valid value for if_exists (REPLACE or KEEP)".format(if_exists))
+            raise ValueError(f"{if_exists} is not a valid value for if_exists (REPLACE or KEEP)")
 
         # Skip set_label if the item already have one and if_exists is at 'KEEP'
         if if_exists == 'KEEP':
@@ -430,7 +430,7 @@ class ItemEngine(object):
             raise TypeError("aliases must be a list or a string")
 
         if if_exists != 'APPEND' and if_exists != 'REPLACE':
-            raise ValueError("{} is not a valid value for if_exists (REPLACE or APPEND)".format(if_exists))
+            raise ValueError(f"{if_exists} is not a valid value for if_exists (REPLACE or APPEND)")
 
         if self.fast_run and not self.require_write:
             self.require_write = self.fast_run_container.check_language_data(qid=self.item_id, lang_data=aliases, lang=lang, lang_data_type='aliases', if_exists=if_exists)
@@ -498,7 +498,7 @@ class ItemEngine(object):
         lang = config['DEFAULT_LANGUAGE'] if lang is None else lang
 
         if if_exists != 'KEEP' and if_exists != 'REPLACE':
-            raise ValueError("{} is not a valid value for if_exists (REPLACE or KEEP)".format(if_exists))
+            raise ValueError(f"{if_exists} is not a valid value for if_exists (REPLACE or KEEP)")
 
         # Skip set_description if the item already have one and if_exists is at 'KEEP'
         if if_exists == 'KEEP':
@@ -639,9 +639,9 @@ class ItemEngine(object):
             payload.update({'bot': ''})
 
         if self.create_new_item:
-            payload.update({u'new': entity_type})
+            payload.update({'new': entity_type})
         else:
-            payload.update({u'id': self.item_id})
+            payload.update({'id': self.item_id})
 
         if self.debug:
             print(payload)
@@ -650,7 +650,7 @@ class ItemEngine(object):
             json_data = wbi_functions.mediawiki_api_call_helper(data=payload, login=login, max_retries=max_retries, retry_after=retry_after, allow_anonymous=allow_anonymous)
 
             if 'error' in json_data and 'messages' in json_data['error']:
-                error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
+                error_msg_names = {x.get('name') for x in json_data['error']['messages']}
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
                     raise NonUniqueLabelDescriptionPairError(json_data)
                 else:
@@ -683,7 +683,7 @@ class ItemEngine(object):
         wbi_core_props = self.core_props
         # core prop statements that exist on the item
         cp_statements = [x for x in self.statements if x.get_prop_nr() in wbi_core_props]
-        item_core_props = set(x.get_prop_nr() for x in cp_statements)
+        item_core_props = {x.get_prop_nr() for x in cp_statements}
         # core prop statements we are loading
         cp_data = [x for x in self.data if x.get_prop_nr() in wbi_core_props]
 
@@ -713,8 +713,8 @@ class ItemEngine(object):
                                              "Matching count {}, non-matching count {}. "
                                              .format(self.item_id, core_prop_match_count,
                                                      count_existing_ids - core_prop_match_count) +
-                                             "existing unmatched core props: {}. ".format(nomatch_existing) +
-                                             "statement unmatched core props: {}.".format(nomatch_new))
+                                             f"existing unmatched core props: {nomatch_existing}. " +
+                                             f"statement unmatched core props: {nomatch_new}.")
         else:
             return True
 
@@ -925,5 +925,5 @@ class ItemEngine(object):
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

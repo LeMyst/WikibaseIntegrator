@@ -22,7 +22,7 @@ USER_AGENT_DEFAULT: default user agent string used for http requests. Both to Wi
 config = {
     'BACKOFF_MAX_TRIES': None,
     'BACKOFF_MAX_VALUE': 3600,
-    'USER_AGENT_DEFAULT': "WikibaseIntegrator/{} (https://github.com/LeMyst/WikibaseIntegrator)".format(__version__),
+    'USER_AGENT_DEFAULT': f"WikibaseIntegrator/{__version__} (https://github.com/LeMyst/WikibaseIntegrator)",
     'MAXLAG': 5,
     'PROPERTY_CONSTRAINT_PID': 'P2302',
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',
