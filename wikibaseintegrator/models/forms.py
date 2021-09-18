@@ -83,7 +83,7 @@ class Form:
         elif isinstance(value, list) or value is None:
             self.__grammatical_features = value
         else:
-            raise TypeError(f"value must be an int, a str or a list of strings, got ''")
+            raise TypeError(f"value must be an int, a str or a list of strings, got '{type(value)}'")
 
     @property
     def claims(self):
