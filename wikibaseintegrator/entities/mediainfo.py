@@ -39,14 +39,14 @@ class MediaInfo(BaseEntity):
             matches = pattern.match(entity_id)
 
             if not matches:
-                raise ValueError("Invalid MediaInfo ID ({}), format must be 'M[0-9]+'".format(entity_id))
+                raise ValueError(f"Invalid MediaInfo ID ({entity_id}), format must be 'M[0-9]+'")
 
             entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("MediaInfo ID must be greater than 0")
 
-        entity_id = 'M{}'.format(entity_id)
+        entity_id = f'M{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
         return MediaInfo(self.api).from_json(json_data=json_data['entities'][entity_id])
 

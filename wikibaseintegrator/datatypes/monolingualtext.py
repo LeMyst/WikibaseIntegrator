@@ -38,8 +38,8 @@ class MonolingualText(BaseDataType):
 
         language = language or config['DEFAULT_LANGUAGE']
 
-        assert isinstance(text, str) or text is None, "Expected str, found {} ({})".format(type(text), text)
-        assert isinstance(language, str), "Expected str, found {} ({})".format(type(language), language)
+        assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
+        assert isinstance(language, str), f"Expected str, found {type(language)} ({language})"
 
         if text and language:
             self.mainsnak.datavalue = {

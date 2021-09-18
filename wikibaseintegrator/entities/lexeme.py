@@ -32,14 +32,14 @@ class Lexeme(BaseEntity):
             matches = pattern.match(entity_id)
 
             if not matches:
-                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(entity_id))
+                raise ValueError(f"Invalid lexeme ID ({entity_id}), format must be 'L[0-9]+'")
 
             entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("Lexeme ID must be greater than 0")
 
-        entity_id = 'L{}'.format(entity_id)
+        entity_id = f'L{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
         return Lexeme(self.api).from_json(json_data=json_data['entities'][entity_id])
 

@@ -65,8 +65,8 @@ class FastRunContainer:
 
         for prop_nr, dt in self.prop_data[qid].items():
             # get datatypes for qualifier props
-            q_props = set(chain(*[[x[0] for x in d['qual']] for d in dt.values()]))
-            r_props = set(chain(*[set(chain(*[[y[0] for y in x] for x in d['ref'].values()])) for d in dt.values()]))
+            q_props = set(chain(*([x[0] for x in d['qual']] for d in dt.values())))
+            r_props = set(chain(*(set(chain(*([y[0] for y in x] for x in d['ref'].values()))) for d in dt.values())))
             props = q_props | r_props
             for prop in props:
                 if prop not in self.prop_dt_map:
@@ -116,7 +116,7 @@ class FastRunContainer:
 
             if prop_nr not in self.prop_dt_map:
                 if self.debug:
-                    print("{} not found in fastrun".format(prop_nr))
+                    print(f"{prop_nr} not found in fastrun")
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
 
@@ -124,7 +124,7 @@ class FastRunContainer:
 
             if self.prop_dt_map[prop_nr] == 'wikibase-item':
                 if not str(current_value).startswith('Q'):
-                    current_value = 'Q{}'.format(current_value)
+                    current_value = f'Q{current_value}'
 
             if self.debug:
                 print(current_value)
@@ -156,7 +156,7 @@ class FastRunContainer:
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
             if self.debug:
-                print("no matches ({})".format(len(matching_qids)))
+                print(f"no matches ({len(matching_qids)})")
             return True
 
         qid = matching_qids.pop()
@@ -192,7 +192,7 @@ class FastRunContainer:
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
             if len(comp) != len(app_data):
                 if self.debug:
-                    print("failed append: {}".format(p))
+                    print(f"failed append: {p}")
                 return True
 
         tmp_rs = [x for x in tmp_rs if x.mainsnak.property_number not in append_props and x.mainsnak.property_number in data_props]
@@ -235,7 +235,7 @@ class FastRunContainer:
             """
 
             if self.debug:
-                print("bool_vec: {}".format(bool_vec))
+                print(f"bool_vec: {bool_vec}")
                 print("-----------------------------------")
                 for x in tmp_rs:
                     if date == x and x.mainsnak.property_number not in del_props:
@@ -312,7 +312,7 @@ class FastRunContainer:
         :param action_if_exists: If aliases already exist, APPEND or REPLACE
         :return: boolean
         """
-        all_lang_strings = set(x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type))
+        all_lang_strings = {x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type)}
 
         if action_if_exists == ActionIfExists.REPLACE:
             return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(), lang_data))
@@ -320,7 +320,7 @@ class FastRunContainer:
         for s in lang_data:
             if s.strip().casefold() not in all_lang_strings:
                 if self.debug:
-                    print("fastrun failed at: {}, string: {}".format(lang_data_type, s))
+                    print(f"fastrun failed at: {lang_data_type}, string: {s}")
                 return True
 
         return False
@@ -456,9 +456,9 @@ class FastRunContainer:
 
             r = execute_sparql_query(query, endpoint=self.sparql_endpoint_url, debug=self.debug)['results']['bindings']
             count = int(r[0]['c']['value'])
-            print("Count: {}".format(count))
+            print(f"Count: {count}")
             num_pages = (int(count) // page_size) + 1
-            print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
+            print(f"Query {prop_nr}: {page_count}/{num_pages}")
         while True:
             # Query header
             query = '''
@@ -555,7 +555,7 @@ class FastRunContainer:
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
             if num_pages:
-                print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
+                print(f"Query {prop_nr}: {page_count}/{num_pages}")
             if len(results) == 0 or len(results) < page_size:
                 break
 
@@ -618,7 +618,7 @@ class FastRunContainer:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
 
 
@@ -630,7 +630,7 @@ def freezeargs(func):
 
     @wraps(func)
     def wrapped(*args, **kwargs):
-        args = tuple([frozendict(arg) if isinstance(arg, dict) else arg for arg in args])
+        args = tuple(frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
         kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
         return func(*args, **kwargs)
 

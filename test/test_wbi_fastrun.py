@@ -38,7 +38,7 @@ def test_query_data():
     assert list(frc.prop_data['Q10874']['P828'].values())[0]['v'] == "Q18228398"
 
     # uri
-    v = set([x['v'] for x in frc.prop_data['Q10874']['P2888'].values()])
+    v = {x['v'] for x in frc.prop_data['Q10874']['P2888'].values()}
     assert all(y.startswith("http") for y in v)
 
 
@@ -93,7 +93,7 @@ def test_query_data_ref():
 
 class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
     def __init__(self, *args, **kwargs):
-        super(FastRunContainerFakeQueryDataEnsembl, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
         self.prop_data['Q14911732'] = {'P594': {
             'fake statement id': {
@@ -107,7 +107,7 @@ class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
 
 class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
     def __init__(self, *args, **kwargs):
-        super(FastRunContainerFakeQueryDataEnsemblNoRef, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
         self.prop_data['Q14911732'] = {'P594': {
             'fake statement id': {
@@ -150,7 +150,7 @@ def test_fastrun_ref_ensembl():
 class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
     # an item with three values for the same property
     def __init__(self, *args, **kwargs):
-        super(FakeQueryDataAppendProps, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.debug = True
         self.prop_dt_map = {'P527': 'wikibase-item', 'P248': 'wikibase-item', 'P594': 'external-id'}
         self.rev_lookup = {

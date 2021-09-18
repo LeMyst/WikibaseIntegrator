@@ -50,9 +50,9 @@ class GlobeCoordinate(BaseDataType):
 
         if latitude and longitude:
             if latitude < -90 or latitude > 90:
-                raise ValueError("latitude must be between -90 and 90, got '{}'".format(latitude))
+                raise ValueError(f"latitude must be between -90 and 90, got '{latitude}'")
             if longitude < -180 or longitude > 180:
-                raise ValueError("longitude must be between -180 and 180, got '{}'".format(longitude))
+                raise ValueError(f"longitude must be between -180 and 180, got '{longitude}'")
 
             self.mainsnak.datavalue = {
                 'value': {
