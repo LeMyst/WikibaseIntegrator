@@ -41,7 +41,7 @@ class GeoShape(BaseDataType):
 
         super().__init__(**kwargs)
 
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
             # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map

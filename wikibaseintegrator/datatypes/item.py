@@ -24,7 +24,7 @@ class Item(BaseDataType):
 
         super().__init__(**kwargs)
 
-        assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, f'Expected str or int, found {type(value)} ({value})'
 
         if value:
             if isinstance(value, str):
@@ -32,7 +32,7 @@ class Item(BaseDataType):
                 matches = pattern.match(value)
 
                 if not matches:
-                    raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(value))
+                    raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
 
                 value = int(matches.group(1))
 
@@ -40,7 +40,7 @@ class Item(BaseDataType):
                 'value': {
                     'entity-type': 'item',
                     'numeric-id': value,
-                    'id': 'Q{}'.format(value)
+                    'id': f'Q{value}'
                 },
                 'type': 'wikibase-entityid'
             }

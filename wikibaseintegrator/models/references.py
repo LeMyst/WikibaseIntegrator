@@ -79,7 +79,7 @@ class References:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
 
 
@@ -151,5 +151,5 @@ class Reference:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

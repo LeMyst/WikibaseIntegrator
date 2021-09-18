@@ -48,7 +48,7 @@ class Aliases:
         if isinstance(values, str):
             values = [values]
         elif not isinstance(values, list) and values is not None:
-            raise TypeError("value must be a str or list of strings, got '{}'".format(type(values)))
+            raise TypeError(f"value must be a str or list of strings, got '{type(values)}'")
 
         if action_if_exists == ActionIfExists.REPLACE:
             aliases = []
@@ -94,7 +94,7 @@ class Aliases:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
 
 

@@ -42,7 +42,7 @@ class Forms:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
 
 
@@ -83,7 +83,7 @@ class Form:
         elif isinstance(value, list) or value is None:
             self.__grammatical_features = value
         else:
-            raise TypeError("value must be an int, a str or a list of strings, got '{}'".format(type(value)))
+            raise TypeError(f"value must be an int, a str or a list of strings, got ''")
 
     @property
     def claims(self):
@@ -112,5 +112,5 @@ class Form:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

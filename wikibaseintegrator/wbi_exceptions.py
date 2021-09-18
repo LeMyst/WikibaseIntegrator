@@ -54,7 +54,7 @@ class ManualInterventionReqException(Exception):
     def __init__(self, value, property_string, item_list):
         super().__init__()
 
-        self.value = value + ' Property: {}, items affected: {}'.format(property_string, item_list)
+        self.value = value + f' Property: {property_string}, items affected: {item_list}'
 
     def __str__(self):
         return repr(self.value)

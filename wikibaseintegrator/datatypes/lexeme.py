@@ -24,7 +24,7 @@ class Lexeme(BaseDataType):
 
         super().__init__(**kwargs)
 
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
 
         if value:
             if isinstance(value, str):
@@ -32,7 +32,7 @@ class Lexeme(BaseDataType):
                 matches = pattern.match(value)
 
                 if not matches:
-                    raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
+                    raise ValueError(f"Invalid lexeme ID ({value}), format must be 'L[0-9]+'")
 
                 value = int(matches.group(1))
 
@@ -40,7 +40,7 @@ class Lexeme(BaseDataType):
                 'value': {
                     'entity-type': 'lexeme',
                     'numeric-id': value,
-                    'id': 'L{}'.format(value)
+                    'id': f'L{value}'
                 },
                 'type': 'wikibase-entityid'
             }
