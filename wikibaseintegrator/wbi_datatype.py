@@ -6,7 +6,7 @@ from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_jsonparser import JsonParser
 
 
-class BaseDataType(object):
+class BaseDataType:
     """
     The base class for all Wikibase data types, they inherit from it
     """
@@ -101,7 +101,7 @@ class BaseDataType(object):
             matches = pattern.match(prop_nr)
 
             if not matches:
-                raise ValueError('Invalid prop_nr, format must be "P[0-9]+", got {}'.format(prop_nr))
+                raise ValueError(f'Invalid prop_nr, format must be "P[0-9]+", got {prop_nr}')
             else:
                 self.prop_nr = 'P' + str(matches.group(1))
 
@@ -117,10 +117,10 @@ class BaseDataType(object):
         }
 
         if self.snak_type not in ['value', 'novalue', 'somevalue']:
-            raise ValueError('{} is not a valid snak type'.format(self.snak_type))
+            raise ValueError(f'{self.snak_type} is not a valid snak type')
 
         if self.if_exists not in ['REPLACE', 'APPEND', 'FORCE_APPEND', 'KEEP']:
-            raise ValueError('{} is not a valid if_exists value'.format(self.if_exists))
+            raise ValueError(f'{self.if_exists} is not a valid if_exists value')
 
         if self.value is None and self.snak_type == 'value':
             raise ValueError('Parameter \'value\' can\'t be \'None\' if \'snak_type\' is \'value\'')
@@ -228,7 +228,7 @@ class BaseDataType(object):
         valid_ranks = ['normal', 'deprecated', 'preferred']
 
         if rank not in valid_ranks:
-            raise ValueError("{} not a valid rank".format(rank))
+            raise ValueError(f"{rank} not a valid rank")
 
         self.rank = rank
 
@@ -364,7 +364,7 @@ class BaseDataType(object):
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
 
 
@@ -397,12 +397,12 @@ class CommonsMedia(BaseDataType):
 
         self.value = None
 
-        super(CommonsMedia, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         self.value = value
 
         self.json_representation['datavalue'] = {
@@ -410,7 +410,7 @@ class CommonsMedia(BaseDataType):
             'type': 'string'
         }
 
-        super(CommonsMedia, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -447,12 +447,12 @@ class ExternalID(BaseDataType):
         :type rank: str
         """
 
-        super(ExternalID, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         self.value = value
 
         self.json_representation['datavalue'] = {
@@ -460,7 +460,7 @@ class ExternalID(BaseDataType):
             'type': 'string'
         }
 
-        super(ExternalID, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -503,12 +503,12 @@ class Form(BaseDataType):
         :type rank: str
         """
 
-        super(Form, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         if value is None:
             self.value = value
         else:
@@ -516,7 +516,7 @@ class Form(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
+                raise ValueError(f"Invalid form ID ({value}), format must be 'L[0-9]+-F[0-9]+'")
 
             self.value = value
 
@@ -528,7 +528,7 @@ class Form(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Form, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -571,12 +571,12 @@ class GeoShape(BaseDataType):
         :type rank: str
         """
 
-        super(GeoShape, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         if value is None:
             self.value = value
         else:
@@ -592,7 +592,7 @@ class GeoShape(BaseDataType):
             'type': 'string'
         }
 
-        super(GeoShape, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -652,7 +652,7 @@ class GlobeCoordinate(BaseDataType):
 
         value = (latitude, longitude, precision, globe)
 
-        super(GlobeCoordinate, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -672,7 +672,7 @@ class GlobeCoordinate(BaseDataType):
         }
 
         self.value = (self.latitude, self.longitude, self.precision, self.globe)
-        super(GlobeCoordinate, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     def get_sparql_value(self):
         return 'Point(' + str(self.latitude) + ', ' + str(self.longitude) + ')'
@@ -722,12 +722,12 @@ class ItemID(BaseDataType):
         :type rank: str
         """
 
-        super(ItemID, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, f'Expected str or int, found {type(value)} ({value})'
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -737,7 +737,7 @@ class ItemID(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(value))
+                raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
             else:
                 self.value = int(matches.group(1))
 
@@ -745,12 +745,12 @@ class ItemID(BaseDataType):
             'value': {
                 'entity-type': 'item',
                 'numeric-id': self.value,
-                'id': 'Q{}'.format(self.value)
+                'id': f'Q{self.value}'
             },
             'type': 'wikibase-entityid'
         }
 
-        super(ItemID, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -793,12 +793,12 @@ class Lexeme(BaseDataType):
         :type rank: str
         """
 
-        super(Lexeme, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -808,7 +808,7 @@ class Lexeme(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid lexeme ID ({}), format must be 'L[0-9]+'".format(value))
+                raise ValueError(f"Invalid lexeme ID ({value}), format must be 'L[0-9]+'")
             else:
                 self.value = int(matches.group(1))
 
@@ -816,12 +816,12 @@ class Lexeme(BaseDataType):
             'value': {
                 'entity-type': 'lexeme',
                 'numeric-id': self.value,
-                'id': 'L{}'.format(self.value)
+                'id': f'L{self.value}'
             },
             'type': 'wikibase-entityid'
         }
 
-        super(Lexeme, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -858,12 +858,12 @@ class Math(BaseDataType):
         :type rank: str
         """
 
-        super(Math, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         self.value = value
 
         self.json_representation['datavalue'] = {
@@ -871,7 +871,7 @@ class Math(BaseDataType):
             'type': 'string'
         }
 
-        super(Math, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -921,17 +921,17 @@ class MonolingualText(BaseDataType):
 
         value = (text, self.language)
 
-        super(MonolingualText, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
         self.text, self.language = value
         if self.text is not None:
-            assert isinstance(self.text, str) or self.text is None, "Expected str, found {} ({})".format(type(self.text), self.text)
+            assert isinstance(self.text, str) or self.text is None, f"Expected str, found {type(self.text)} ({self.text})"
         elif self.snak_type == 'value':
             raise ValueError("Parameter 'text' can't be 'None' if 'snak_type' is 'value'")
-        assert isinstance(self.language, str), "Expected str, found {} ({})".format(type(self.language), self.language)
+        assert isinstance(self.language, str), f"Expected str, found {type(self.language)} ({self.language})"
 
         self.json_representation['datavalue'] = {
             'value': {
@@ -942,7 +942,7 @@ class MonolingualText(BaseDataType):
         }
 
         self.value = (self.text, self.language)
-        super(MonolingualText, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     def get_sparql_value(self):
         return '"' + self.text.replace('"', r'\"') + '"@' + self.language
@@ -984,12 +984,12 @@ class MusicalNotation(BaseDataType):
         :type rank: str
         """
 
-        super(MusicalNotation, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         self.value = value
 
         self.json_representation['datavalue'] = {
@@ -997,7 +997,7 @@ class MusicalNotation(BaseDataType):
             'type': 'string'
         }
 
-        super(MusicalNotation, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1040,12 +1040,12 @@ class Property(BaseDataType):
         :type rank: str
         """
 
-        super(Property, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, (str, int)) or value is None, "Expected str or int, found {} ({})".format(type(value), value)
+        assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
         if value is None:
             self.value = value
         elif isinstance(value, int):
@@ -1055,7 +1055,7 @@ class Property(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid property ID ({}), format must be 'P[0-9]+'".format(value))
+                raise ValueError(f"Invalid property ID ({value}), format must be 'P[0-9]+'")
             else:
                 self.value = int(matches.group(1))
 
@@ -1063,12 +1063,12 @@ class Property(BaseDataType):
             'value': {
                 'entity-type': 'property',
                 'numeric-id': self.value,
-                'id': 'P{}'.format(self.value)
+                'id': f'P{self.value}'
             },
             'type': 'wikibase-entityid'
         }
 
-        super(Property, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1129,7 +1129,7 @@ class Quantity(BaseDataType):
 
         value = (quantity, unit, upper_bound, lower_bound)
 
-        super(Quantity, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
@@ -1179,7 +1179,7 @@ class Quantity(BaseDataType):
             del self.json_representation['datavalue']['value']['lowerBound']
 
         self.value = (self.quantity, self.unit, self.upper_bound, self.lower_bound)
-        super(Quantity, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     def get_sparql_value(self):
         return self.quantity
@@ -1204,7 +1204,7 @@ class Quantity(BaseDataType):
 
         # Adding prefix + for positive number and 0
         if not str(amount).startswith('+') and float(amount) >= 0:
-            amount = str('+{}'.format(amount))
+            amount = str(f'+{amount}')
 
         # return as string
         return str(amount)
@@ -1243,12 +1243,12 @@ class Sense(BaseDataType):
         :type rank: str
         """
 
-        super(Sense, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         if value is None:
             self.value = value
         else:
@@ -1256,7 +1256,7 @@ class Sense(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid sense ID ({}), format must be 'L[0-9]+-S[0-9]+'".format(value))
+                raise ValueError(f"Invalid sense ID ({value}), format must be 'L[0-9]+-S[0-9]+'")
 
             self.value = value
 
@@ -1268,7 +1268,7 @@ class Sense(BaseDataType):
             'type': 'wikibase-entityid'
         }
 
-        super(Sense, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1306,12 +1306,12 @@ class String(BaseDataType):
         :type rank: str
         """
 
-        super(String, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         self.value = value
 
         self.json_representation['datavalue'] = {
@@ -1319,7 +1319,7 @@ class String(BaseDataType):
             'type': 'string'
         }
 
-        super(String, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1356,12 +1356,12 @@ class TabularData(BaseDataType):
         :type rank: str
         """
 
-        super(TabularData, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         if value is None:
             self.value = value
         else:
@@ -1377,7 +1377,7 @@ class TabularData(BaseDataType):
             'type': 'string'
         }
 
-        super(TabularData, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser
@@ -1448,13 +1448,13 @@ class Time(BaseDataType):
 
         value = (time, before, after, precision, timezone, calendarmodel)
 
-        super(Time, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
         self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel = value
-        assert isinstance(self.time, str) or self.time is None, "Expected str, found {} ({})".format(type(self.time), self.time)
+        assert isinstance(self.time, str) or self.time is None, f"Expected str, found {type(self.time)} ({self.time})"
 
         if self.time is not None:
             if self.time == "now":
@@ -1485,7 +1485,7 @@ class Time(BaseDataType):
         }
 
         self.value = (self.time, self.before, self.after, self.precision, self.timezone, self.calendarmodel)
-        super(Time, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     def get_sparql_value(self):
         return self.time
@@ -1534,12 +1534,12 @@ class Url(BaseDataType):
         :type rank: str
         """
 
-        super(Url, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+        super().__init__(value=value, prop_nr=prop_nr, **kwargs)
 
         self.set_value(value)
 
     def set_value(self, value):
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
         if value is None:
             self.value = value
         else:
@@ -1547,7 +1547,7 @@ class Url(BaseDataType):
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid URL {}".format(value))
+                raise ValueError(f"Invalid URL {value}")
             self.value = value
 
         self.json_representation['datavalue'] = {
@@ -1555,7 +1555,7 @@ class Url(BaseDataType):
             'type': 'string'
         }
 
-        super(Url, self).set_value(value=self.value)
+        super().set_value(value=self.value)
 
     @classmethod
     @JsonParser

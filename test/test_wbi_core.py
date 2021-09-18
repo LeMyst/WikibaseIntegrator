@@ -162,7 +162,7 @@ class TestWbiCore(unittest.TestCase):
             wbi_datatype.Form("L123-F123", prop_nr="P16"),
             wbi_datatype.Sense("L123-S123", prop_nr="P17")
         ]
-        core_props = set(["P{}".format(x) for x in range(20)])
+        core_props = {f"P{x}" for x in range(20)}
 
         for d in data:
             item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=core_props)
