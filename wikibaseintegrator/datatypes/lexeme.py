@@ -1,4 +1,5 @@
 import re
+from typing import Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -15,7 +16,7 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: str = None, **kwargs):
+    def __init__(self, value: Union[str, int] = None, **kwargs):
         """
         Constructor, calls the superclass BaseDataType
 

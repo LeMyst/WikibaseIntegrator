@@ -28,8 +28,8 @@ class GlobeCoordinate(BaseDataType):
         super().__init__(**kwargs)
 
         precision = precision or 1 / 3600  # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
-        globe = globe or config['COORDINATE_GLOBE_QID']
-        wikibase_url = wikibase_url or config['WIKIBASE_URL']
+        globe = globe or str(config['COORDINATE_GLOBE_QID'])
+        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
         if globe.startswith('Q'):
             globe = wikibase_url + '/entity/' + globe

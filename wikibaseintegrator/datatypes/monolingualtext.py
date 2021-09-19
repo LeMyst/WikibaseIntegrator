@@ -24,7 +24,7 @@ class MonolingualText(BaseDataType):
 
         super().__init__(**kwargs)
 
-        language = language or config['DEFAULT_LANGUAGE']
+        language = language or str(config['DEFAULT_LANGUAGE'])
 
         assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
         assert isinstance(language, str), f"Expected str, found {type(language)} ({language})"
