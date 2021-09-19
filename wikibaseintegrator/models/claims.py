@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Dict, List, Type, Union
+from typing import Dict, List, Optional, Type, Union
 
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
@@ -144,11 +144,11 @@ class Claim:
         self.__mainsnak = value
 
     @property
-    def type(self) -> str:
+    def type(self) -> Union[str, Dict]:
         return self.__type
 
     @type.setter
-    def type(self, value: str):
+    def type(self, value: Union[str, Dict]):
         self.__type = value
 
     @property
@@ -164,19 +164,19 @@ class Claim:
             self.__qualifiers = value
 
     @property
-    def qualifiers_order(self) -> List:
+    def qualifiers_order(self) -> List[str]:
         return self.__qualifiers_order
 
     @qualifiers_order.setter
-    def qualifiers_order(self, value: List):
+    def qualifiers_order(self, value: List[str]):
         self.__qualifiers_order = value
 
     @property
-    def id(self) -> str:
+    def id(self) -> Optional[str]:
         return self.__id
 
     @id.setter
-    def id(self, value: str):
+    def id(self, value: Optional[str]):
         self.__id = value
 
     @property
@@ -207,22 +207,22 @@ class Claim:
     def remove(self, remove=True):
         self.removed = remove
 
-    def from_json(self, json_data: Dict[str, Union[str, Dict]]) -> Claim:
+    def from_json(self, json_data: dict[str, Union[str, dict, list]]) -> Claim:
         self.mainsnak = Snak().from_json(json_data['mainsnak'])
-        self.type = json_data['type']
+        self.type = str(json_data['type'])
         if 'qualifiers' in json_data:
             self.qualifiers = Qualifiers().from_json(json_data['qualifiers'])
         if 'qualifiers-order' in json_data:
-            self.qualifiers_order = json_data['qualifiers-order']
-        self.id = json_data['id']
+            self.qualifiers_order = list(json_data['qualifiers-order'])
+        self.id = str(json_data['id'])
         self.rank: WikibaseRank = WikibaseRank(json_data['rank'])
         if 'references' in json_data:
             self.references = References().from_json(json_data['references'])
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
-        json_data = {
+    def get_json(self) -> dict[str, Union[str, list, dict, None]]:
+        json_data: dict[str, Union[str, list, dict, None]] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,
@@ -233,7 +233,7 @@ class Claim:
             del json_data['id']
         if len(self.qualifiers) > 0:
             json_data['qualifiers'] = self.qualifiers.get_json()
-            json_data['qualifiers-order'] = self.qualifiers_order
+            json_data['qualifiers-order'] = list(self.qualifiers_order)
         if len(self.references) > 0:
             json_data['references'] = self.references.get_json()
         if self.removed:
