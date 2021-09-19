@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip setuptools
       - name: Install dependencies
         run: |
-          pip install .[dev]
+          python -m pip install .[dev]
       - name: Test with pytest
         run: |
           pytest
