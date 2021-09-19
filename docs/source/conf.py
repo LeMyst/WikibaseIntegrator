@@ -25,7 +25,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode',
               'sphinx_rtd_theme',
               'sphinx_github_changelog',
-              'm2r2']
+              'm2r2',
+              'sphinx_autodoc_typehints']
 
 # Provide a GitHub API token:
 # Pass the SPHINX_GITHUB_CHANGELOG_TOKEN environment variable to your build
