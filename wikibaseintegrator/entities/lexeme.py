@@ -12,10 +12,8 @@ from wikibaseintegrator.wbi_config import config
 class Lexeme(BaseEntity):
     ETYPE = 'lexeme'
 
-    def __init__(self, api, lemmas=None, lexical_category=None, language=None, forms=None, senses=None, **kwargs):
-        self.api = api
-
-        super().__init__(api=self.api, **kwargs)
+    def __init__(self, lemmas=None, lexical_category=None, language=None, forms=None, senses=None, **kwargs):
+        super().__init__(**kwargs)
 
         self.lemmas = lemmas or Lemmas()
         self.lexical_category = lexical_category
@@ -24,7 +22,7 @@ class Lexeme(BaseEntity):
         self.senses = senses or Senses()
 
     def new(self, **kwargs) -> Lexeme:
-        return Lexeme(self.api, **kwargs)
+        return Lexeme(api=self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Lexeme:
         if isinstance(entity_id, str):
@@ -41,7 +39,7 @@ class Lexeme(BaseEntity):
 
         entity_id = f'L{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
-        return Lexeme(self.api).from_json(json_data=json_data['entities'][entity_id])
+        return Lexeme(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:
         json_data = {

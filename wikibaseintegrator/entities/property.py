@@ -11,10 +11,8 @@ from wikibaseintegrator.models.labels import Labels
 class Property(BaseEntity):
     ETYPE = 'property'
 
-    def __init__(self, api, datatype=None, labels=None, descriptions=None, aliases=None, **kwargs):
-        self.api = api
-
-        super().__init__(api=api, **kwargs)
+    def __init__(self, datatype=None, labels=None, descriptions=None, aliases=None, **kwargs):
+        super().__init__(**kwargs)
 
         self.json = None
 
@@ -27,7 +25,7 @@ class Property(BaseEntity):
         self.aliases = aliases or Aliases()
 
     def new(self, **kwargs) -> Property:
-        return Property(self.api, **kwargs)
+        return Property(api=self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Property:
         if isinstance(entity_id, str):
@@ -44,7 +42,7 @@ class Property(BaseEntity):
 
         entity_id = f'P{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
-        return Property(self.api).from_json(json_data=json_data['entities'][entity_id])
+        return Property(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:
         return {

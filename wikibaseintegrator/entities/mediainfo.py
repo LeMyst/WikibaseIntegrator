@@ -6,12 +6,13 @@ from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
 class MediaInfo(BaseEntity):
     ETYPE = 'mediainfo'
 
-    def __init__(self, api, labels=None, descriptions=None, aliases=None, **kwargs) -> None:
+    def __init__(self, labels=None, descriptions=None, aliases=None, **kwargs) -> None:
         """
 
         :param api:
@@ -21,9 +22,7 @@ class MediaInfo(BaseEntity):
         :param sitelinks:
         :param kwargs:
         """
-        self.api = api
-
-        super().__init__(api=self.api, **kwargs)
+        super().__init__(**kwargs)
 
         # Item and property specific
         self.labels = labels or Labels()
@@ -31,7 +30,7 @@ class MediaInfo(BaseEntity):
         self.aliases = aliases or Aliases()
 
     def new(self, **kwargs) -> MediaInfo:
-        return MediaInfo(self.api, **kwargs)
+        return MediaInfo(api=self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> MediaInfo:
         if isinstance(entity_id, str):
@@ -48,7 +47,7 @@ class MediaInfo(BaseEntity):
 
         entity_id = f'M{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
-        return MediaInfo(self.api).from_json(json_data=json_data['entities'][entity_id])
+        return MediaInfo(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_by_title(self, title, sites='commonswiki', **kwargs) -> MediaInfo:
         params = {
@@ -58,14 +57,14 @@ class MediaInfo(BaseEntity):
             'format': 'json'
         }
 
-        json_data = self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
+        json_data = mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
 
         if len(json_data['entities'].keys()) == 0:
             raise Exception('Title not found')
         if len(json_data['entities'].keys()) > 1:
             raise Exception('More than one element for this title')
 
-        return MediaInfo(self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
+        return MediaInfo(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
     def get_json(self) -> {}:
         return {

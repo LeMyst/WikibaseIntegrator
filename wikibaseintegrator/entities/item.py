@@ -12,7 +12,7 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class Item(BaseEntity):
     ETYPE = 'item'
 
-    def __init__(self, api, labels=None, descriptions=None, aliases=None, sitelinks=None, **kwargs) -> None:
+    def __init__(self, labels=None, descriptions=None, aliases=None, sitelinks=None, **kwargs) -> None:
         """
 
         :param api:
@@ -22,9 +22,8 @@ class Item(BaseEntity):
         :param sitelinks:
         :param kwargs:
         """
-        self.api = api
 
-        super().__init__(api=self.api, **kwargs)
+        super().__init__(**kwargs)
 
         # Item and property specific
         self.labels = labels or Labels()
@@ -35,7 +34,7 @@ class Item(BaseEntity):
         self.sitelinks = sitelinks or Sitelinks()
 
     def new(self, **kwargs) -> Item:
-        return Item(self.api, **kwargs)
+        return Item(api=self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Item:
         if isinstance(entity_id, str):
@@ -52,7 +51,7 @@ class Item(BaseEntity):
 
         entity_id = f'Q{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
-        return Item(self.api).from_json(json_data=json_data['entities'][entity_id])
+        return Item(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> {}:
         return {

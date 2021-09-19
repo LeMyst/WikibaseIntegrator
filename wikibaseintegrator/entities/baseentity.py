@@ -1,10 +1,12 @@
+from copy import copy
+
 import simplejson
 
 from wikibaseintegrator.datatypes import BaseDataType
-from wikibaseintegrator.models.claims import Claims, Claim
+from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import NonUniqueLabelDescriptionPairError, MWApiError
+from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
@@ -14,8 +16,15 @@ class BaseEntity:
 
     ETYPE = 'base-entity'
 
-    def __init__(self, api, lastrevid=None, type=None, id=None, claims=None):
-        self.api = api
+    def __init__(self, api=None, lastrevid=None, type=None, id=None, claims=None, is_bot=None, login=None):
+        if not api:
+            from wikibaseintegrator import WikibaseIntegrator
+            self.api = WikibaseIntegrator()
+        else:
+            self.api = copy(api)
+
+        self.api.is_bot = is_bot or self.api.is_bot
+        self.api.login = login or self.api.login
 
         self.lastrevid = lastrevid
         self.type = type or self.ETYPE
@@ -78,7 +87,7 @@ class BaseEntity:
             'format': 'json'
         }
 
-        return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
+        return mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
 
     def clear(self, **kwargs):
         self._write(clear=True, **kwargs)
