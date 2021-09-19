@@ -43,7 +43,7 @@ The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator
 Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash
-pip install wikibaseintegrator
+python -m pip install wikibaseintegrator
 ```
 
 You can also clone the repo and execute with administrator rights or install into a virtualenv.
@@ -55,7 +55,7 @@ cd WikibaseIntegrator
 
 python -m pip install pip setuptools
 
-python setup.py install
+python -m pip install .
 ```
 
 To test for correct installation, start a Python console and execute the following (Will retrieve the Wikidata item

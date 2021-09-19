@@ -1,3 +1,4 @@
+from copy import copy
 from typing import TYPE_CHECKING, Any, Union
 
 import simplejson
@@ -9,6 +10,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
+from wikibaseintegrator.wbi_login import Login
 
 if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
@@ -19,10 +21,15 @@ class BaseEntity:
 
     ETYPE = 'base-entity'
 
-    def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None):
-        self.api = api
-        self.is_bot = self.api.is_bot if self.api else False
-        self.login = self.api.login if self.api else None
+    def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None, is_bot: bool = None, login: Login = None):
+        if not api:
+            from wikibaseintegrator import WikibaseIntegrator
+            self.api = WikibaseIntegrator()
+        else:
+            self.api = copy(api)
+
+        self.api.is_bot = is_bot or self.api.is_bot
+        self.api.login = login or self.api.login
 
         self.lastrevid = lastrevid
         self.type = str(type or self.ETYPE)
