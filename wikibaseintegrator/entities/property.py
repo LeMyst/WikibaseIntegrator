@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Union
+from typing import Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -12,12 +12,8 @@ from wikibaseintegrator.models.labels import Labels
 class Property(BaseEntity):
     ETYPE = 'property'
 
-    def __init__(self, api, datatype=None, labels=None, descriptions=None, aliases=None, **kwargs):
-        self.api = api
-
-        super().__init__(api=api, **kwargs)
-
-        self.json = None
+    def __init__(self, datatype: str = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs):
+        super().__init__(**kwargs)
 
         # Property specific
         self.datatype = datatype
@@ -28,7 +24,7 @@ class Property(BaseEntity):
         self.aliases = aliases or Aliases()
 
     def new(self, **kwargs) -> Property:
-        return Property(self.api, **kwargs)
+        return Property(api=self.api, **kwargs)
 
     def get(self, entity_id, **kwargs) -> Property:
         if isinstance(entity_id, str):
@@ -45,11 +41,11 @@ class Property(BaseEntity):
 
         entity_id = f'P{entity_id}'
         json_data = super().get(entity_id=entity_id, **kwargs)
-        return Property(self.api).from_json(json_data=json_data['entities'][entity_id])
+        return Property(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
+    def get_json(self) -> dict[str, Union[str, dict]]:
         return {
-            'datatype': self.datatype,
+            'datatype': str(self.datatype),
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),

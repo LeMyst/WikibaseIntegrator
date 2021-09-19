@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import simplejson
 
@@ -10,27 +10,30 @@ from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescript
 from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
+if TYPE_CHECKING:
+    from wikibaseintegrator import WikibaseIntegrator
+
 
 class BaseEntity:
-    fast_run_store: List[FastRunContainer] = []
+    fast_run_store: list[FastRunContainer] = []
 
     ETYPE = 'base-entity'
 
-    def __init__(self, api, lastrevid=None, type=None, id=None, claims=None):
+    def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None):
         self.api = api
+        self.is_bot = self.api.is_bot if self.api else False
+        self.login = self.api.login if self.api else None
 
         self.lastrevid = lastrevid
-        self.type = type or self.ETYPE
+        self.type = str(type or self.ETYPE)
         self.id = id
         self.claims = claims or Claims()
-
-        self.json = {}
 
         self.fast_run_container = None
 
         self.debug = config['DEBUG']
 
-    def add_claims(self, claims, action_if_exists=ActionIfExists.APPEND):
+    def add_claims(self, claims: Union[Claim, list], action_if_exists: ActionIfExists = ActionIfExists.APPEND):
         if isinstance(claims, Claim):
             claims = [claims]
         elif not isinstance(claims, list):
@@ -40,28 +43,25 @@ class BaseEntity:
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
-        json_data = {
+    def get_json(self) -> dict[str, Union[str, dict[str, list]]]:
+        json_data: dict = {
             'type': self.type,
-            'id': self.id,
             'claims': self.claims.get_json()
         }
+        if self.id:
+            json_data['id'] = self.id
         if self.type == 'mediainfo':  # MediaInfo change name of 'claims' to 'statements'
             json_data['statements'] = json_data.pop('claims')
-        if not self.id:
-            del json_data['id']
 
         return json_data
 
-    def from_json(self, json_data):
-        self.json = json_data
-
+    def from_json(self, json_data: dict[str, Any]):
         if 'missing' in json_data:
             raise ValueError('Entity is nonexistent')
 
-        self.lastrevid = json_data['lastrevid']
-        self.type = json_data['type']
-        self.id = json_data['id']
+        self.lastrevid = int(json_data['lastrevid'])
+        self.type = str(json_data['type'])
+        self.id = str(json_data['id'])
         if self.type == 'mediainfo':  # 'claims' is named 'statements' in Wikimedia Commons MediaInfo
             self.claims = Claims().from_json(json_data['statements'])
         else:
@@ -80,7 +80,7 @@ class BaseEntity:
             'format': 'json'
         }
 
-        return self.api.helpers.mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
+        return mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
 
     def clear(self, **kwargs):
         self._write(clear=True, **kwargs)
