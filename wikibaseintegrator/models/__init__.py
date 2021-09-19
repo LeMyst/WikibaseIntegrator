@@ -1,11 +1,11 @@
-from .aliases import Aliases, Alias
-from .claims import Claims, Claim
+from .aliases import Alias, Aliases
+from .claims import Claim, Claims
 from .descriptions import Descriptions
-from .forms import Forms, Form
+from .forms import Form, Forms
 from .labels import Labels
-from .language_values import LanguageValues, LanguageValue
+from .language_values import LanguageValue, LanguageValues
 from .lemmas import Lemmas
-from .references import References, Reference
-from .senses import Senses, Sense, Glosses
-from .sitelinks import Sitelinks, Sitelink
-from .snaks import Snaks, Snak
+from .references import Reference, References
+from .senses import Glosses, Sense, Senses
+from .sitelinks import Sitelink, Sitelinks
+from .snaks import Snak, Snaks

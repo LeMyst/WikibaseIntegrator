@@ -1,14 +1,14 @@
 import unittest
 from copy import deepcopy
 
-from wikibaseintegrator import datatypes, WikibaseIntegrator
-from wikibaseintegrator.datatypes import String, Math, ExternalID, Time, URL, MonolingualText, Quantity, CommonsMedia, GlobeCoordinate, GeoShape, Property, TabularData, \
-    MusicalNotation, Lexeme, Form, Sense
+from wikibaseintegrator import WikibaseIntegrator, datatypes
+from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
+                                          Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
-from wikibaseintegrator.wbi_helpers import search_entities, generate_entity_instances
+from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities
 
 wbi = WikibaseIntegrator()
 

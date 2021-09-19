@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from wikibaseintegrator.models.snaks import Snaks, Snak
+from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 

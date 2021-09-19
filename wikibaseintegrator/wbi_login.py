@@ -4,7 +4,7 @@ import webbrowser
 import requests
 from mwoauth import ConsumerToken, Handshaker, OAuthException
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
-from requests_oauthlib import OAuth1, OAuth2Session, OAuth2
+from requests_oauthlib import OAuth1, OAuth2, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
