@@ -14,8 +14,6 @@ class Property(BaseEntity):
     def __init__(self, datatype=None, labels=None, descriptions=None, aliases=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.json = None
-
         # Property specific
         self.datatype = datatype
 

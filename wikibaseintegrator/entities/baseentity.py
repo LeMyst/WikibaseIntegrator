@@ -31,8 +31,6 @@ class BaseEntity:
         self.id = id
         self.claims = claims or Claims()
 
-        self.json = {}
-
         self.fast_run_container = None
 
         self.debug = config['DEBUG']
@@ -61,8 +59,6 @@ class BaseEntity:
         return json_data
 
     def from_json(self, json_data):
-        self.json = json_data
-
         if 'missing' in json_data:
             raise ValueError('Entity is nonexistent')
 
