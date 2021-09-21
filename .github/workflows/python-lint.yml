@@ -27,7 +27,9 @@ jobs:
       - name: Upgrade setup tools
         run: python -m pip install --upgrade pip setuptools
       - name: Install dependencies
-        run: pip install . .[dev]
+        run: |
+          pip install . .[dev]
+          mypy --install-types --non-interactive
       - name: isort check
         run: isort --check --diff wikibaseintegrator test
       - name: mypy linting
