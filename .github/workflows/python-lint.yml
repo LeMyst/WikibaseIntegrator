@@ -45,7 +45,7 @@ jobs:
         uses: ricardochaves/python-lint@v1.4.0
         continue-on-error: true
         with:
-          python-root-list: "wikibaseintegrator test"
+          python-root-list: ""
           use-pylint: false
           use-pycodestyle: false
           use-flake8: false
@@ -64,4 +64,3 @@ jobs:
           use-black: false
           use-mypy: false
           use-isort: false
-          extra-pylint-options: "--max-line-length=180"
