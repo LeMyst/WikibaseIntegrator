@@ -30,9 +30,9 @@ jobs:
         run: |
           pip install . .[dev]
           mypy --install-types --non-interactive
-      - name: isort check
+      - name: isort imports check
         run: isort --check --diff wikibaseintegrator test
-      - name: mypy linting
+      - name: mypy typing check
         run: mypy
-      - name: pylint linting
+      - name: pylint code linting
         run: pylint wikibaseintegrator test || pylint-exit $?
