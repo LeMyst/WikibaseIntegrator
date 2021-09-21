@@ -35,4 +35,4 @@ jobs:
       - name: mypy linting
         run: mypy
       - name: pylint linting
-        run: pylint wikibaseintegrator test
+        run: pylint wikibaseintegrator test || pylint-exit $?
