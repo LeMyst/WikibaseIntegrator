@@ -25,42 +25,12 @@ jobs:
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
       - name: Upgrade setup tools
-        run: |
-          python -m pip install --upgrade pip setuptools
+        run: python -m pip install --upgrade pip setuptools
       - name: Install dependencies
-        run: |
-          pip install . .[dev]
-      - name: Python isort
-        uses: ricardochaves/python-lint@v1.4.0
-        continue-on-error: true
-        with:
-          python-root-list: "wikibaseintegrator test"
-          use-pylint: false
-          use-pycodestyle: false
-          use-flake8: false
-          use-black: false
-          use-mypy: false
-          use-isort: true
-      - name: Python mypy
-        uses: ricardochaves/python-lint@v1.4.0
-        continue-on-error: true
-        with:
-          python-root-list: ""
-          use-pylint: false
-          use-pycodestyle: false
-          use-flake8: false
-          use-black: false
-          use-mypy: true
-          use-isort: false
-          extra-mypy-options: ""
-      - name: Python pylint
-        uses: ricardochaves/python-lint@v1.4.0
-        continue-on-error: true
-        with:
-          python-root-list: "wikibaseintegrator test"
-          use-pylint: true
-          use-pycodestyle: false
-          use-flake8: false
-          use-black: false
-          use-mypy: false
-          use-isort: false
+        run: pip install . .[dev]
+      - name: isort check
+        run: isort --check --diff wikibaseintegrator test
+      - name: mypy linting
+        run: mypy
+      - name: pylint linting
+        run: pylint wikibaseintegrator test
