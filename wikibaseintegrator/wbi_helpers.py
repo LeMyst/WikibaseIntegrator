@@ -120,7 +120,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 def mediawiki_api_call_helper(data: dict[str, Any] = None, login: Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs) -> dict:
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
-    user_agent = str(user_agent or config['USER_AGENT'])
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     hostname = urlparse(mediawiki_api_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
@@ -416,7 +416,7 @@ def format_amount(amount: Union[int, str, float]) -> str:
     return str(amount)
 
 
-def get_user_agent(user_agent: str):
+def get_user_agent(user_agent: Optional[str]):
     from wikibaseintegrator import __version__
     wbi_user_agent = f"WikibaseIntegrator/{__version__}"
 
