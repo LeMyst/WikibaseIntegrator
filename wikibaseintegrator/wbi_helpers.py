@@ -61,7 +61,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
             print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:
+        if response.status_code == 503:  # pragma: no cover
             print(f"service unavailable. sleeping for {retry_after} seconds")
             sleep(retry_after)
             continue
@@ -78,7 +78,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
             error_msg_names = set()
             if 'messages' in json_data['error']:
                 error_msg_names = {x.get('name') for x in json_data['error']['messages']}
-            if 'actionthrottledtext' in error_msg_names:
+            if 'actionthrottledtext' in error_msg_names:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
                 print(f"{datetime.datetime.utcnow()}: rate limited. sleeping for {sleep_sec} seconds")
                 sleep(sleep_sec)
@@ -98,7 +98,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 continue
 
             # readonly
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
+            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
                 print(f'The Wikibase instance is currently in readonly mode, waiting for {retry_after} seconds')
                 sleep(retry_after)
                 continue
