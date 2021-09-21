@@ -234,64 +234,71 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     return None
 
 
-def merge_items(from_id: str, to_id: str, ignore_conflicts: list[str] = None, **kwargs):
+def merge_items(from_id: str, to_id: str, ignore_conflicts: list[str] = None, is_bot: bool = False, **kwargs):
     """
     A static method to merge two items
 
-    :param from_id: The QID which should be merged into another item
-    :param to_id: The QID into which another item should be merged
+    :param from_id: The ID to merge from. This parameter is required.
+    :param to_id: The ID to merge to. This parameter is required.
     :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
+    :param is_bot: Mark this edit as bot.
     """
 
     params = {
         'action': 'wbmergeitems',
         'fromid': from_id,
         'toid': to_id,
-        'format': 'json',
-        'bot': ''
+        'format': 'json'
     }
 
     if ignore_conflicts is not None:
-        params['ignoreconflicts'] = '|'.join(ignore_conflicts)
+        params.update({'ignoreconflicts': '|'.join(ignore_conflicts)})
+
+    if is_bot:
+        params.update({'bot': ''})
 
     return mediawiki_api_call_helper(data=params, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, summary=None, **kwargs):
+def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs) -> dict:
     """
     A static method to merge two items
 
-    :param source: The QID which should be merged into another item
-    :param target: The QID into which another item should be merged
+    :param source: The ID to merge from. This parameter is required.
+    :param target: The ID to merge to. This parameter is required.
+    :param summary: Summary for the edit.
+    :param is_bot: Mark this edit as bot.
     """
 
     params = {
         'action': 'wblmergelexemes',
         'fromid': source,
         'toid': target,
-        'format': 'json',
-        'bot': ''
+        'format': 'json'
     }
 
     if summary:
         params.update({'summary': summary})
 
-    return mediawiki_api_call_helper(data=params, **kwargs)
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, **kwargs) -> dict:
+def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs) -> dict:
     """
     Delete an item
 
     :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
     :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
-    :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
+    :param baserevid: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
+    :param is_bot: Mark this edit as bot.
     """
 
     params: dict[str, Union[str, int]] = {
         'action': 'wbremoveclaims',
         'claim': claim_id,
-        'bot': '',
         'format': 'json'
     }
 
@@ -300,6 +307,9 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, **k
 
     if baserevid:
         params.update({'baserevid': baserevid})
+
+    if is_bot:
+        params.update({'bot': ''})
 
     return mediawiki_api_call_helper(data=params, **kwargs)
 
@@ -416,7 +426,7 @@ def format_amount(amount: Union[int, str, float]) -> str:
     return str(amount)
 
 
-def get_user_agent(user_agent: Optional[str]):
+def get_user_agent(user_agent: Optional[str]) -> str:
     from wikibaseintegrator import __version__
     wbi_user_agent = f"WikibaseIntegrator/{__version__}"
 
