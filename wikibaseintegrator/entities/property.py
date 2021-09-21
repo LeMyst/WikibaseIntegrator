@@ -26,7 +26,7 @@ class Property(BaseEntity):
     def new(self, **kwargs) -> Property:
         return Property(api=self.api, **kwargs)
 
-    def get(self, entity_id, **kwargs) -> Property:
+    def get(self, entity_id: Union[str, int], **kwargs) -> Property:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -62,6 +62,6 @@ class Property(BaseEntity):
 
         return self
 
-    def write(self, **kwargs):
+    def write(self, **kwargs) -> Property:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

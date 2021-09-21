@@ -5,6 +5,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
+from typing import TYPE_CHECKING, Optional, Union
 
 from frozendict import frozendict
 
@@ -12,6 +13,9 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.models import Claims
 
 fastrun_store: list[FastRunContainer] = []
 
@@ -107,7 +111,7 @@ class FastRunContainer:
         self.load_item(claims=claims, cqid=cqid)
         return self.current_qid
 
-    def load_item(self, claims: list, cqid=None):
+    def load_item(self, claims: Union[list, Claims], cqid=None):
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -600,7 +604,7 @@ class FastRunContainer:
         return data
 
     @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr: str) -> str:
+    def get_prop_datatype(self, prop_nr: str) -> Optional[str]:
         from wikibaseintegrator import WikibaseIntegrator
         wbi = WikibaseIntegrator()
         property = wbi.property.get(prop_nr)

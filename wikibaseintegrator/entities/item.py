@@ -71,6 +71,6 @@ class Item(BaseEntity):
 
         return self
 
-    def write(self, **kwargs):
+    def write(self, **kwargs) -> Item:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)
