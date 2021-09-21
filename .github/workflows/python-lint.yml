@@ -29,7 +29,7 @@ jobs:
           python -m pip install --upgrade pip setuptools
       - name: Install dependencies
         run: |
-          pip install .[dev]
+          pip install . .[dev]
       - name: Python isort
         uses: ricardochaves/python-lint@v1.4.0
         continue-on-error: true
