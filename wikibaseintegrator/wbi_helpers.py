@@ -170,7 +170,7 @@ def mediawiki_api_call_helper(data: dict[str, Any] = None, login: Login = None, 
 
 @wbi_backoff()
 def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60,
-                         debug: bool = False) -> Optional[dict]:
+                         debug: bool = False) -> Optional[dict[str, dict]]:
     """
     Static method which can be used to execute any SPARQL query
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes

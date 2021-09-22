@@ -15,7 +15,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.models import Claims
+    from wikibaseintegrator.models import Claim, Claims
 
 fastrun_store: list[FastRunContainer] = []
 
@@ -107,11 +107,11 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: list, cqid=None):
+    def get_item(self, claims: list, cqid: str = None) -> str:
         self.load_item(claims=claims, cqid=cqid)
         return self.current_qid
 
-    def load_item(self, claims: Union[list, Claims], cqid=None):
+    def load_item(self, claims: Union[list, Claims], cqid: str = None) -> bool:
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -167,8 +167,9 @@ class FastRunContainer:
 
         qid = matching_qids.pop()
         self.current_qid = qid
+        return False
 
-    def write_required(self, data: list, action_if_exists=ActionIfExists.REPLACE, cqid=None) -> bool:
+    def write_required(self, data: list[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
         data_props = set()
         append_props = []
@@ -282,10 +283,11 @@ class FastRunContainer:
 
         if lang_data_type not in self.loaded_langs[lang]:
             result = self._query_lang(lang=lang, lang_data_type=lang_data_type)
-            data = self._process_lang(result)
-            self.loaded_langs[lang].update({lang_data_type: data})
+            if result is not None:
+                data = self._process_lang(result=result)
+                self.loaded_langs[lang].update({lang_data_type: data})
 
-    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list:
+    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list[str]:
         """
         get language data for specified qid
 
@@ -306,9 +308,7 @@ class FastRunContainer:
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str,
-                            # Default to append
-                            action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> bool:
+    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
@@ -331,7 +331,7 @@ class FastRunContainer:
 
         return False
 
-    def get_all_data(self) -> dict:
+    def get_all_data(self) -> dict[str, dict]:
         return self.prop_data
 
     def format_query_results(self, r: list, prop_nr: str) -> None:
@@ -565,7 +565,7 @@ class FastRunContainer:
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang: str, lang_data_type: str):
+    def _query_lang(self, lang: str, lang_data_type: str) -> Optional[list[dict[str, dict]]]:
         """
 
         :param lang:
@@ -595,7 +595,7 @@ class FastRunContainer:
         return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
-    def _process_lang(result: list):
+    def _process_lang(result: list) -> defaultdict[str, set]:
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]
@@ -643,7 +643,7 @@ def freezeargs(func):
     return wrapped
 
 
-def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=False):
+def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=False) -> FastRunContainer:
     if base_filter is None:
         base_filter = {}
 
@@ -656,7 +656,7 @@ def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=Fal
 
 @freezeargs
 @lru_cache()
-def search_fastrun_store(base_filter=None, use_refs=False, case_insensitive=False):
+def search_fastrun_store(base_filter=None, use_refs=False, case_insensitive=False) -> FastRunContainer:
     for c in fastrun_store:
         if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
                 c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
