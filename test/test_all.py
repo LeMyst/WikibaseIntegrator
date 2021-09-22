@@ -39,16 +39,13 @@ class TestDataType(unittest.TestCase):
 
         dt_json = dt.get_json()
 
-        if not dt_json['mainsnak']['datatype'] == 'geo-shape':
-            raise
+        assert dt_json['mainsnak']['datatype'] == 'geo-shape'
 
         value = dt_json['mainsnak']['datavalue']
 
-        if not value['value'] == 'Data:Inner_West_Light_Rail_stops.map':
-            raise
+        assert value['value'] == 'Data:Inner_West_Light_Rail_stops.map'
 
-        if not value['type'] == 'string':
-            raise
+        assert value['type'] == 'string'
 
 
 class TestFastRun(unittest.TestCase):
