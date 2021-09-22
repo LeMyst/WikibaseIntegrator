@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Union
 
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
@@ -81,7 +81,7 @@ class Claims:
                 if 'datatype' in claim['mainsnak']:
                     data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
                 else:
-                    data_type = Claim
+                    data_type = BaseDataType
                 self.add(claims=data_type().from_json(claim), action_if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
@@ -118,7 +118,6 @@ class Claims:
 
 class Claim:
     DTYPE = 'claim'
-    subclasses: List[Type[Claim]] = []
 
     def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: References = None) -> None:
         self.mainsnak = Snak(datatype=self.DTYPE)
@@ -129,11 +128,6 @@ class Claim:
         self.rank = rank or WikibaseRank.NORMAL
         self.references = references or References()
         self.removed = False
-
-    # Allow registration of subclasses of Claim into Claim.subclasses
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        cls.subclasses.append(cls)
 
     @property
     def mainsnak(self) -> Snak:

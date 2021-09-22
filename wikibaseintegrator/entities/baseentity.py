@@ -189,10 +189,7 @@ class BaseEntity:
         if not self.fast_run_container:
             if self.debug:
                 print("Create a new FastRunContainer")
-            self.fast_run_container = FastRunContainer(base_filter=base_filter,
-                                                       use_refs=use_refs,
-                                                       base_data_type=BaseDataType,
-                                                       case_insensitive=case_insensitive)
+            self.fast_run_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
             BaseEntity.fast_run_store.append(self.fast_run_container)
 
     def fr_search(self, **kwargs) -> str:

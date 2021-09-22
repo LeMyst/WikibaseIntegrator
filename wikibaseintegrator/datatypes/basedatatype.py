@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import Type, Union
 
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -11,6 +11,7 @@ class BaseDataType(Claim):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
+    subclasses: list[Type[BaseDataType]] = []
     sparql_query: str = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -68,6 +69,12 @@ class BaseDataType(Claim):
             self.references = references
 
         self.mainsnak.property_number = prop_nr or None
+        # self.subclasses.append(self)
+
+    # Allow registration of subclasses of BaseDataType into BaseDataType.subclasses
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.subclasses.append(cls)
 
     def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']

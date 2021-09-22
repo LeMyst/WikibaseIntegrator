@@ -5,7 +5,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Type, Union
 
 from frozendict import frozendict
 
@@ -21,16 +21,16 @@ fastrun_store: list[FastRunContainer] = []
 
 
 class FastRunContainer:
-    def __init__(self, base_data_type, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, case_insensitive=False, debug=None):
-        self.reconstructed_statements = []
-        self.rev_lookup = defaultdict(set)
-        self.rev_lookup_ci = defaultdict(set)
-        self.prop_data = {}
-        self.loaded_langs = {}
-        self.statements = []
+    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None, base_filter: dict = None,
+                 use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
+        self.reconstructed_statements: list[BaseDataType] = []
+        self.rev_lookup: defaultdict[str, set] = defaultdict(set)
+        self.rev_lookup_ci: defaultdict[str, set] = defaultdict(set)
+        self.prop_data: dict[str, dict] = {}
+        self.loaded_langs: dict[str, dict] = {}
         self.base_filter = {}
         self.base_filter_string = ''
-        self.prop_dt_map = {}
+        self.prop_dt_map: dict[str, str] = {}
         self.current_qid = ''
 
         self.base_data_type = base_data_type
@@ -84,24 +84,24 @@ class FastRunContainer:
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[q[0]]][0]
                     # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
                     if self.prop_dt_map[q[0]] == 'quantity':
-                        qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
+                        qualifiers.append(f(value=q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
                     else:
-                        qualifiers.append(f(q[1], prop_nr=q[0], is_qualifier=True))
+                        qualifiers.append(f(value=q[1], prop_nr=q[0], is_qualifier=True))
 
                 references = []
                 for ref_id, refs in d['ref'].items():
                     this_ref = []
                     for ref in refs:
                         f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[ref[0]]][0]
-                        this_ref.append(f(ref[1], prop_nr=ref[0]))
+                        this_ref.append(f(value=ref[1], prop_nr=ref[0]))
                     references.append(this_ref)
 
                 f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[prop_nr]][0]
                 # TODO: Add support for more data type
                 if self.prop_dt_map[prop_nr] == 'quantity':
-                    reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
+                    reconstructed_statements.append(f(value=d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
                 else:
-                    reconstructed_statements.append(f(d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
+                    reconstructed_statements.append(f(value=d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
 
         # this isn't used. done for debugging purposes
         self.reconstructed_statements = reconstructed_statements
