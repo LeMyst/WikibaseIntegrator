@@ -27,7 +27,8 @@ class GlobeCoordinate(BaseDataType):
 
         super().__init__(**kwargs)
 
-        precision = precision or 1 / 3600  # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
+        # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
+        precision = precision or 1 / 3600
         globe = globe or str(config['COORDINATE_GLOBE_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 

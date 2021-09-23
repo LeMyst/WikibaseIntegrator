@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
@@ -9,20 +9,20 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class Aliases:
     def __init__(self, language: str = None, value: str = None):
-        self.__aliases: dict = {}
+        self.__aliases: Dict = {}
 
         if language is not None:
             self.set(language=language, values=value)
 
     @property
-    def aliases(self) -> dict[str, list[Alias]]:
+    def aliases(self) -> Dict[str, List[Alias]]:
         return self.__aliases
 
     @aliases.setter
-    def aliases(self, value: dict[str, list[Alias]]):
+    def aliases(self, value: Dict[str, List[Alias]]):
         self.__aliases = value
 
-    def get(self, language: str = None) -> Optional[list[Alias]]:
+    def get(self, language: str = None) -> Optional[List[Alias]]:
         if language is None:
             # TODO: Don't return a list of list, just a list
             return [item for sublist in self.aliases.values() for item in sublist]

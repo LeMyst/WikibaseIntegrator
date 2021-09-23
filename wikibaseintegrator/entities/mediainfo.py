@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -67,7 +67,7 @@ class MediaInfo(BaseEntity):
 
         return MediaInfo(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
-    def get_json(self) -> dict[str, Union[str, dict]]:
+    def get_json(self) -> Dict[str, Union[str, dict]]:
         return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
@@ -75,7 +75,7 @@ class MediaInfo(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data: dict[str, Union[str, dict]]) -> MediaInfo:
+    def from_json(self, json_data: Dict[str, Union[str, dict]]) -> MediaInfo:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])

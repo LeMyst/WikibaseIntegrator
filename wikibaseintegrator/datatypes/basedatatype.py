@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Type, Union
+from typing import List, Type, Union
 
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -11,7 +11,7 @@ class BaseDataType(Claim):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
-    subclasses: list[Type[BaseDataType]] = []
+    subclasses: List[Type[BaseDataType]] = []
     sparql_query: str = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .

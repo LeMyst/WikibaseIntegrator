@@ -5,7 +5,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
-from typing import TYPE_CHECKING, Optional, Type, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Type, Union
 
 from frozendict import frozendict
 
@@ -17,20 +17,20 @@ from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 if TYPE_CHECKING:
     from wikibaseintegrator.models import Claim, Claims
 
-fastrun_store: list[FastRunContainer] = []
+fastrun_store: List[FastRunContainer] = []
 
 
 class FastRunContainer:
-    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None, base_filter: dict = None,
+    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None, base_filter: Dict = None,
                  use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
-        self.reconstructed_statements: list[BaseDataType] = []
+        self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, set] = defaultdict(set)
         self.rev_lookup_ci: defaultdict[str, set] = defaultdict(set)
-        self.prop_data: dict[str, dict] = {}
-        self.loaded_langs: dict[str, dict] = {}
+        self.prop_data: Dict[str, dict] = {}
+        self.loaded_langs: Dict[str, dict] = {}
         self.base_filter = {}
         self.base_filter_string = ''
-        self.prop_dt_map: dict[str, str] = {}
+        self.prop_dt_map: Dict[str, str] = {}
         self.current_qid = ''
 
         self.base_data_type = base_data_type
@@ -62,8 +62,8 @@ class FastRunContainer:
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
 
-    def reconstruct_statements(self, qid: str) -> list[BaseDataType]:
-        reconstructed_statements: list[BaseDataType] = []
+    def reconstruct_statements(self, qid: str) -> List[BaseDataType]:
+        reconstructed_statements: List[BaseDataType] = []
 
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements
@@ -107,7 +107,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: list, cqid: str = None) -> str:
+    def get_item(self, claims: List, cqid: str = None) -> str:
         self.load_item(claims=claims, cqid=cqid)
         return self.current_qid
 
@@ -169,7 +169,7 @@ class FastRunContainer:
         self.current_qid = qid
         return False
 
-    def write_required(self, data: list[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
         data_props = set()
         append_props = []
@@ -287,7 +287,7 @@ class FastRunContainer:
                 data = self._process_lang(result=result)
                 self.loaded_langs[lang].update({lang_data_type: data})
 
-    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list[str]:
+    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> List[str]:
         """
         get language data for specified qid
 
@@ -308,7 +308,7 @@ class FastRunContainer:
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> bool:
+    def check_language_data(self, qid: str, lang_data: List, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
@@ -331,10 +331,10 @@ class FastRunContainer:
 
         return False
 
-    def get_all_data(self) -> dict[str, dict]:
+    def get_all_data(self) -> Dict[str, dict]:
         return self.prop_data
 
-    def format_query_results(self, r: list, prop_nr: str) -> None:
+    def format_query_results(self, r: List, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
         `prop_nr` is needed to get the property datatype to determine how to format the value
@@ -410,7 +410,7 @@ class FastRunContainer:
                 else:
                     i['rval'] = i['rval']['value']
 
-    def update_frc_from_query(self, r: list, prop_nr: str) -> None:
+    def update_frc_from_query(self, r: List, prop_nr: str) -> None:
         # r is the output of format_query_results
         # this updates the frc from the query (result of _query_data)
         for i in r:
@@ -565,7 +565,7 @@ class FastRunContainer:
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang: str, lang_data_type: str) -> Optional[list[dict[str, dict]]]:
+    def _query_lang(self, lang: str, lang_data_type: str) -> Optional[List[Dict[str, dict]]]:
         """
 
         :param lang:
@@ -595,7 +595,7 @@ class FastRunContainer:
         return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
-    def _process_lang(result: list) -> defaultdict[str, set]:
+    def _process_lang(result: List) -> defaultdict[str, set]:
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import requests
@@ -29,7 +29,7 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 1000, retry_after: int = 60, **kwargs) -> dict:
+def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 1000, retry_after: int = 60, **kwargs) -> Dict:
     """
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
@@ -117,8 +117,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
     return json_data
 
 
-def mediawiki_api_call_helper(data: dict[str, Any] = None, login: Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
-                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs) -> dict:
+def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
+                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs) -> Dict:
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
@@ -170,7 +170,7 @@ def mediawiki_api_call_helper(data: dict[str, Any] = None, login: Login = None, 
 
 @wbi_backoff()
 def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60,
-                         debug: bool = False) -> Optional[dict[str, dict]]:
+                         debug: bool = False) -> Optional[Dict[str, dict]]:
     """
     Static method which can be used to execute any SPARQL query
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -234,7 +234,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     return None
 
 
-def merge_items(from_id: str, to_id: str, ignore_conflicts: list[str] = None, is_bot: bool = False, **kwargs):
+def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs):
     """
     A static method to merge two items
 
@@ -260,7 +260,7 @@ def merge_items(from_id: str, to_id: str, ignore_conflicts: list[str] = None, is
     return mediawiki_api_call_helper(data=params, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs) -> dict:
+def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs) -> Dict:
     """
     A static method to merge two items
 
@@ -286,7 +286,7 @@ def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs) -> dict:
+def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs) -> Dict:
     """
     Delete an item
 
@@ -296,7 +296,7 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_
     :param is_bot: Mark this edit as bot.
     """
 
-    params: dict[str, Union[str, int]] = {
+    params: Dict[str, Union[str, int]] = {
         'action': 'wbremoveclaims',
         'claim': claim_id,
         'format': 'json'
@@ -315,7 +315,7 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_
 
 
 def search_entities(search_string: str, language: str = None, strict_language: bool = True, search_type: str = 'item', max_results: int = 500, dict_result: bool = False,
-                    allow_anonymous: bool = True, **kwargs) -> list[dict[str, Any]]:
+                    allow_anonymous: bool = True, **kwargs) -> List[Dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
 
@@ -323,7 +323,6 @@ def search_entities(search_string: str, language: str = None, strict_language: b
     :param language: The language in which to perform the search.
     :param strict_language: Whether to disable language fallback
     :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
-    :param mediawiki_api_url: Specify the mediawiki_api_url.
     :param max_results: The maximum number of search results returned. Default 500
     :param dict_result:
     :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
@@ -377,7 +376,7 @@ def search_entities(search_string: str, language: str = None, strict_language: b
     return results
 
 
-def generate_entity_instances(entities: Union[str, list[str]], allow_anonymous: bool = True, **kwargs) -> list[tuple[str, BaseEntity]]:
+def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: bool = True, **kwargs) -> List[Tuple[str, BaseEntity]]:
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
     second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.

@@ -21,7 +21,7 @@ class Claims:
     def claims(self, claims):
         self.__claims = claims
 
-    def get(self, property=None) -> list:
+    def get(self, property=None) -> List:
         return self.claims[property]
 
     def add(self, claims: Union[list, Claim, None] = None, action_if_exists=ActionIfExists.REPLACE) -> Claims:
@@ -201,7 +201,7 @@ class Claim:
     def remove(self, remove=True):
         self.removed = remove
 
-    def from_json(self, json_data: dict[str, Union[str, dict, list]]) -> Claim:
+    def from_json(self, json_data: Dict[str, Union[str, dict, list]]) -> Claim:
         self.mainsnak = Snak().from_json(json_data['mainsnak'])
         self.type = str(json_data['type'])
         if 'qualifiers' in json_data:
@@ -215,8 +215,8 @@ class Claim:
 
         return self
 
-    def get_json(self) -> dict[str, Union[str, list, dict, None]]:
-        json_data: dict[str, Union[str, list, dict, None]] = {
+    def get_json(self) -> Dict[str, Union[str, list, dict, None]]:
+        json_data: Dict[str, Union[str, list, dict, None]] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,

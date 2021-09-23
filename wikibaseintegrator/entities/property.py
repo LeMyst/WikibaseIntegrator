@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -43,7 +43,7 @@ class Property(BaseEntity):
         json_data = super().get(entity_id=entity_id, **kwargs)
         return Property(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> dict[str, Union[str, dict]]:
+    def get_json(self) -> Dict[str, Union[str, dict]]:
         return {
             'datatype': str(self.datatype),
             'labels': self.labels.get_json(),

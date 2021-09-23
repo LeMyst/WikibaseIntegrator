@@ -1,10 +1,6 @@
 class MWApiError(Exception):
     """
     Base class for Mediawiki API error handling
-
-    :param error_message: The error message returned by the Mediawiki API
-    :type error_message: A Python json representation dictionary of the error message
-    :return:
     """
 
 
