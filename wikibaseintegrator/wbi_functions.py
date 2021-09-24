@@ -43,8 +43,8 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
             print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:
-            print(f"service unavailable. sleeping for {retry_after} seconds")
+        if response.status_code in (500, 502, 503, 504):
+            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
 
