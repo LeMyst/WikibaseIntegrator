@@ -21,7 +21,7 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries=1000, retry_after=60, **kwargs):
+def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries=100, retry_after=60, **kwargs):
     """
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
@@ -53,8 +53,8 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
             print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:  # pragma: no cover
-            print(f"service unavailable. sleeping for {retry_after} seconds")
+        if response.status_code in (500, 502, 503, 504):  # pragma: no cover
+            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
 
