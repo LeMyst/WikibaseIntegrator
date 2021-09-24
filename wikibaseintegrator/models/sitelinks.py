@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 class Sitelinks:
     def __init__(self):
         self.sitelinks = {}
 
-    def get(self, site: str = None):
+    def get(self, site: str = None) -> Optional[Sitelink]:
         if site in self.sitelinks:
             return self.sitelinks[site]
 

@@ -95,7 +95,7 @@ class Claims:
                 json_data[property].append(claim.get_json())
         return json_data
 
-    def clear(self):
+    def clear(self) -> None:
         self.claims = {}
 
     def __len__(self):
@@ -198,7 +198,7 @@ class Claim:
     def removed(self, value: bool):
         self.__removed = value
 
-    def remove(self, remove=True):
+    def remove(self, remove=True) -> None:
         self.removed = remove
 
     def from_json(self, json_data: Dict[str, Any]) -> Claim:
@@ -215,7 +215,7 @@ class Claim:
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, list, dict, None]]:
+    def get_json(self) -> Dict[str, Any]:
         json_data: Dict[str, Union[str, list, dict, None]] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
@@ -234,7 +234,7 @@ class Claim:
             json_data['remove'] = ''
         return json_data
 
-    def has_equal_qualifiers(self, other: Claim):
+    def has_equal_qualifiers(self, other: Claim) -> bool:
         # check if the qualifiers are equal with the 'other' object
         equal_qualifiers = True
         self_qualifiers = copy.deepcopy(self.qualifiers)

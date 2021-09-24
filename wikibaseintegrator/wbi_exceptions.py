@@ -18,17 +18,15 @@ class NonUniqueLabelDescriptionPairError(MWApiError):
 
         self.error_msg = error_message
 
-    def get_language(self):
+    def get_language(self) -> str:
         """
         :return: Returns a 2 letter language string, indicating the language which triggered the error
-        :rtype: string
         """
         return self.error_msg['error']['messages'][0]['parameters'][1]
 
-    def get_conflicting_item_qid(self):
+    def get_conflicting_item_qid(self) -> str:
         """
         :return: Returns the QID string of the item which has the same label and description as the one which should be set.
-        :rtype: string
         """
         qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
 

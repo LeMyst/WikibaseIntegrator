@@ -78,5 +78,5 @@ class Quantity(BaseDataType):
             if not lower_bound:
                 del self.mainsnak.datavalue['value']['lowerBound']
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return format_amount(self.mainsnak.datavalue['value']['amount'])

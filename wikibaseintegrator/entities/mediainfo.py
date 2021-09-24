@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
+from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
@@ -26,8 +27,8 @@ class MediaInfo(BaseEntity):
         super().__init__(**kwargs)
 
         # Item and property specific
-        self.labels = labels or Labels()
-        self.descriptions = descriptions or Descriptions()
+        self.labels: LanguageValues = labels or Labels()
+        self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
     def new(self, **kwargs) -> MediaInfo:
@@ -47,14 +48,17 @@ class MediaInfo(BaseEntity):
             raise ValueError("MediaInfo ID must be greater than 0")
 
         entity_id = f'M{entity_id}'
-        json_data = super().get(entity_id=entity_id, **kwargs)
+        json_data = super()._get(entity_id=entity_id, **kwargs)
         return MediaInfo(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_by_title(self, title, sites='commonswiki', **kwargs) -> MediaInfo:
+    def get_by_title(self, titles: Union[List[str], str], sites: str = 'commonswiki', **kwargs) -> MediaInfo:
+        if isinstance(titles, list):
+            titles = '|'.join(titles)
+
         params = {
             'action': 'wbgetentities',
             'sites': sites,
-            'titles': title,
+            'titles': titles,
             'format': 'json'
         }
 

@@ -33,7 +33,7 @@ class LanguageValues:
 
         return None
 
-    def set(self, language: str = None, value: str = None, action_if_exists=ActionIfExists.REPLACE):
+    def set(self, language: str = None, value: str = None, action_if_exists=ActionIfExists.REPLACE) -> Optional[LanguageValue]:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in [ActionIfExists.REPLACE, ActionIfExists.KEEP]
 
@@ -49,7 +49,7 @@ class LanguageValues:
 
         return self.get(language=language)
 
-    def from_json(self, json_data: Dict[str, Dict]):
+    def from_json(self, json_data: Dict[str, Dict]) -> LanguageValues:
         for language_value in json_data:
             self.add(language_value=LanguageValue(language=json_data[language_value]['language']).from_json(json_data=json_data[language_value]))
 

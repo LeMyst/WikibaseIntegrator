@@ -76,7 +76,7 @@ class BaseDataType(Claim):
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
 
-    def get_sparql_value(self) -> str:
+    def _get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']
 
     def equals(self, that, include_ref: bool = False, fref=None) -> bool:
@@ -102,7 +102,7 @@ class BaseDataType(Claim):
         return fref(self, that)
 
     @staticmethod
-    def refs_equal(olditem: BaseDataType, newitem: BaseDataType):
+    def refs_equal(olditem: BaseDataType, newitem: BaseDataType) -> bool:
         """
         tests for exactly identical references
         """
@@ -110,7 +110,7 @@ class BaseDataType(Claim):
         oldrefs = olditem.references
         newrefs = newitem.references
 
-        def ref_equal(oldref, newref):
+        def ref_equal(oldref: References, newref: References) -> bool:
             return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
 
         return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)

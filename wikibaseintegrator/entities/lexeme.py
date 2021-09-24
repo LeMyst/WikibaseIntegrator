@@ -4,6 +4,7 @@ import re
 from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
+from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
 from wikibaseintegrator.models.senses import Senses
@@ -16,7 +17,7 @@ class Lexeme(BaseEntity):
     def __init__(self, lemmas: Lemmas = None, lexical_category: str = None, language: str = None, forms: Forms = None, senses: Senses = None, **kwargs):
         super().__init__(**kwargs)
 
-        self.lemmas = lemmas or Lemmas()
+        self.lemmas: LanguageValues = lemmas or Lemmas()
         self.lexical_category = lexical_category
         self.language = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
         self.forms = forms or Forms()
@@ -39,7 +40,7 @@ class Lexeme(BaseEntity):
             raise ValueError("Lexeme ID must be greater than 0")
 
         entity_id = f'L{entity_id}'
-        json_data = super().get(entity_id=entity_id, **kwargs)
+        json_data = super()._get(entity_id=entity_id, **kwargs)
         return Lexeme(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> Dict[str, Union[str, dict]]:

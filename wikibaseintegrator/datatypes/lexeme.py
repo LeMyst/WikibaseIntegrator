@@ -46,5 +46,5 @@ class Lexeme(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['id']

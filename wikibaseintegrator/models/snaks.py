@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict
+from typing import Any, Dict
 
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
@@ -119,7 +119,7 @@ class Snak:
     def datatype(self, value):
         self.__datatype = value
 
-    def from_json(self, json_data) -> Snak:
+    def from_json(self, json_data: Dict[str, Any]) -> Snak:
         self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
         self.property_number = json_data['property']
         if 'hash' in json_data:

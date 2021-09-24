@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -21,14 +21,14 @@ class References:
     def references(self, value):
         self.__references = value
 
-    def get(self, hash=None):
+    def get(self, hash=None) -> Optional[Reference]:
         for reference in self.references:
             if reference.hash == hash:
                 return reference
         return None
 
     # TODO: implement action_if_exists
-    def add(self, reference: Union[Reference, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE):
+    def add(self, reference: Union[Reference, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> References:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
@@ -53,7 +53,7 @@ class References:
             json_data.append(reference.get_json())
         return json_data
 
-    def remove(self, reference_to_remove):
+    def remove(self, reference_to_remove) -> bool:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference_to_remove, Claim):
             reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(reference_to_remove.get_json()['mainsnak'])))
@@ -117,7 +117,7 @@ class Reference:
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
-    def add(self, snak: Union[Snak, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE):
+    def add(self, snak: Union[Snak, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Reference:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])

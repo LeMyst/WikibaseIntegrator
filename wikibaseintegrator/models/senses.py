@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
@@ -11,7 +11,7 @@ class Senses:
     def __init__(self):
         self.senses = []
 
-    def get(self, id: str):
+    def get(self, id: str) -> Optional[Sense]:
         for sense in self.senses:
             if sense.id == id:
                 return sense
@@ -23,7 +23,7 @@ class Senses:
 
         return self
 
-    def from_json(self, json_data: List[Dict]):
+    def from_json(self, json_data: List[Dict]) -> Senses:
         for sense in json_data:
             self.add(sense=Sense().from_json(sense))
 
@@ -48,11 +48,11 @@ class Senses:
 class Sense:
     def __init__(self, sense_id: str = None, glosses: Glosses = None, claims: Claims = None):
         self.id = sense_id
-        self.glosses = glosses or Glosses()
+        self.glosses: LanguageValues = glosses or Glosses()
         self.claims = claims or Claims()
         self.removed = False
 
-    def from_json(self, json_data):
+    def from_json(self, json_data: Dict[str, Any]) -> Sense:
         self.id = json_data['id']
         self.glosses = Glosses().from_json(json_data['glosses'])
         self.claims = Claims().from_json(json_data['claims'])

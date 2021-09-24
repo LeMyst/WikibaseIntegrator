@@ -4,6 +4,7 @@ import re
 from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
+from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
@@ -26,8 +27,8 @@ class Item(BaseEntity):
         super().__init__(**kwargs)
 
         # Item and property specific
-        self.labels = labels or Labels()
-        self.descriptions = descriptions or Descriptions()
+        self.labels: LanguageValues = labels or Labels()
+        self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
         # Item specific
@@ -50,7 +51,7 @@ class Item(BaseEntity):
             raise ValueError("Item ID must be greater than 0")
 
         entity_id = f'Q{entity_id}'
-        json_data = super().get(entity_id=entity_id, **kwargs)
+        json_data = super()._get(entity_id=entity_id, **kwargs)
         return Item(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:

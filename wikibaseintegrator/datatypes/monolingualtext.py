@@ -38,5 +38,5 @@ class MonolingualText(BaseDataType):
                 'type': 'monolingualtext'
             }
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return '"' + self.mainsnak.datavalue['value']['text'].replace('"', r'\"') + '"@' + self.mainsnak.datavalue['value']['language']

@@ -18,10 +18,10 @@ class Forms:
     def forms(self, value):
         self.__forms = value
 
-    def get(self, id):
+    def get(self, id) -> Form:
         return self.forms[id]
 
-    def add(self, form):
+    def add(self, form: Form) -> Forms:
         self.forms[form.id] = form
 
         return self
@@ -49,9 +49,9 @@ class Forms:
 
 
 class Form:
-    def __init__(self, form_id: str = None, representations: LanguageValues = None, grammatical_features: Union[str, int, List[str]] = None, claims: Claims = None):
+    def __init__(self, form_id: str = None, representations: Representations = None, grammatical_features: Union[str, int, List[str]] = None, claims: Claims = None):
         self.id = form_id
-        self.representations = representations or LanguageValues()
+        self.representations: Representations = representations or LanguageValues()
         self.grammatical_features = grammatical_features or []
         self.claims = claims or Claims()
 
@@ -99,7 +99,7 @@ class Form:
 
     def from_json(self, json_data: Dict[str, Any]) -> Form:
         self.id = json_data['id']
-        self.representations = LanguageValues().from_json(json_data['representations'])
+        self.representations = Representations().from_json(json_data['representations'])
         self.grammatical_features = json_data['grammaticalFeatures']
         self.claims = Claims().from_json(json_data['claims'])
 
@@ -126,3 +126,7 @@ class Form:
             id=id(self) & 0xFFFFFF,
             attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
+
+
+class Representations(LanguageValues):
+    pass

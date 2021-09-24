@@ -54,5 +54,5 @@ class GlobeCoordinate(BaseDataType):
                 'type': 'globecoordinate'
             }
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return 'Point(' + str(self.mainsnak.datavalue['value']['latitude']) + ', ' + str(self.mainsnak.datavalue['value']['longitude']) + ')'

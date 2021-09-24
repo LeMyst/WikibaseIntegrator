@@ -21,7 +21,8 @@ fastrun_store: List[FastRunContainer] = []
 
 
 class FastRunContainer:
-    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None, base_filter: Dict = None,
+    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
+                 base_filter: Dict[str, str] = None,
                  use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
         self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, set] = defaultdict(set)
@@ -126,7 +127,8 @@ class FastRunContainer:
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
 
-            current_value = claim.get_sparql_value()
+            # noinspection PyProtectedMember
+            current_value = claim._get_sparql_value()
 
             if self.prop_dt_map[prop_nr] == 'wikibase-item':
                 if not str(current_value).startswith('Q'):
@@ -643,7 +645,7 @@ def freezeargs(func):
     return wrapped
 
 
-def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=False) -> FastRunContainer:
+def get_fastrun_container(base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     if base_filter is None:
         base_filter = {}
 
@@ -656,7 +658,7 @@ def get_fastrun_container(base_filter=None, use_refs=False, case_insensitive=Fal
 
 @freezeargs
 @lru_cache()
-def search_fastrun_store(base_filter=None, use_refs=False, case_insensitive=False) -> FastRunContainer:
+def search_fastrun_store(base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     for c in fastrun_store:
         if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
                 c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
