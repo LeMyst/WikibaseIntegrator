@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.models.claims import Claim
 
 
 class References:
@@ -25,7 +28,7 @@ class References:
         return None
 
     # TODO: implement action_if_exists
-    def add(self, reference=None, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, reference: Union[Reference, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
@@ -38,7 +41,7 @@ class References:
 
         return self
 
-    def from_json(self, json_data) -> References:
+    def from_json(self, json_data: List[Dict]) -> References:
         for reference in json_data:
             self.add(reference=Reference().from_json(reference))
 
@@ -64,7 +67,7 @@ class References:
 
         return False
 
-    def clear(self):
+    def clear(self) -> References:
         self.references = []
         return self
 
@@ -84,7 +87,7 @@ class References:
 
 
 class Reference:
-    def __init__(self, snaks=None, snaks_order=None):
+    def __init__(self, snaks: Snaks = None, snaks_order: List = None):
         self.hash = None
         self.snaks = snaks or Snaks()
         self.snaks_order = snaks_order or []
@@ -114,7 +117,7 @@ class Reference:
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
-    def add(self, snak=None, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, snak: Union[Snak, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])
@@ -126,7 +129,7 @@ class Reference:
 
         return self
 
-    def from_json(self, json_data) -> Reference:
+    def from_json(self, json_data: Dict[str, Any]) -> Reference:
         self.hash = json_data['hash']
         self.snaks = Snaks().from_json(json_data['snaks'])
         self.snaks_order = json_data['snaks-order']

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import References
@@ -201,7 +201,7 @@ class Claim:
     def remove(self, remove=True):
         self.removed = remove
 
-    def from_json(self, json_data: Dict[str, Union[str, dict, list]]) -> Claim:
+    def from_json(self, json_data: Dict[str, Any]) -> Claim:
         self.mainsnak = Snak().from_json(json_data['mainsnak'])
         self.type = str(json_data['type'])
         if 'qualifiers' in json_data:

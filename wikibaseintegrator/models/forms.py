@@ -1,4 +1,6 @@
-from typing import Dict, List, Union
+from __future__ import annotations
+
+from typing import Any, Dict, List, Union
 
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
@@ -24,18 +26,18 @@ class Forms:
 
         return self
 
+    def from_json(self, json_data: List[Dict]) -> Forms:
+        for form in json_data:
+            self.add(form=Form().from_json(form))
+
+        return self
+
     def get_json(self) -> List[Dict]:
         json_data: List[Dict] = []
         for form in self.forms:
             json_data.append(self.forms[form].get_json())
+
         return json_data
-
-    def from_json(self, json_data):
-        for form in json_data:
-            self.add(Form(form_id=form['id'], representations=LanguageValues().from_json(form['representations']), grammatical_features=form['grammaticalFeatures'],
-                          claims=Claims().from_json(form['claims'])))
-
-        return self
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
@@ -47,7 +49,7 @@ class Forms:
 
 
 class Form:
-    def __init__(self, form_id=None, representations=None, grammatical_features=None, claims=None):
+    def __init__(self, form_id: str = None, representations: LanguageValues = None, grammatical_features: Union[str, int, List[str]] = None, claims: Claims = None):
         self.id = form_id
         self.representations = representations or LanguageValues()
         self.grammatical_features = grammatical_features or []
@@ -74,16 +76,18 @@ class Form:
         return self.__grammatical_features
 
     @grammatical_features.setter
-    def grammatical_features(self, value):
-        # TODO: Access to member before its definition
+    def grammatical_features(self, value: Union[str, int, List[str]]):
+        if not hasattr(self, '__grammatical_features') or value is None:
+            self.__grammatical_features = []
+
         if isinstance(value, int):
             self.__grammatical_features.append('Q' + str(value))
         elif isinstance(value, str):
             self.__grammatical_features.append(value)
-        elif isinstance(value, list) or value is None:
+        elif isinstance(value, list):
             self.__grammatical_features = value
         else:
-            raise TypeError(f"value must be an int, a str or a list of strings, got '{type(value)}'")
+            raise TypeError(f"value must be a str, an int or a list of strings, got '{type(value)}'")
 
     @property
     def claims(self):
@@ -93,7 +97,15 @@ class Form:
     def claims(self, value):
         self.__claims = value
 
-    def get_json(self) -> Dict[str, Union[str, Dict, list]]:
+    def from_json(self, json_data: Dict[str, Any]) -> Form:
+        self.id = json_data['id']
+        self.representations = LanguageValues().from_json(json_data['representations'])
+        self.grammatical_features = json_data['grammaticalFeatures']
+        self.claims = Claims().from_json(json_data['claims'])
+
+        return self
+
+    def get_json(self) -> Dict[str, Union[str, Dict, List]]:
         json_data: Dict[str, Union[str, Dict, list]] = {
             'id': self.id,
             'representations': self.representations.get_json(),

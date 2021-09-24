@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import TYPE_CHECKING, Dict, Union
 
 from wikibaseintegrator.models.snaks import Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.models.claims import Claim
 
 
 class Qualifiers:
@@ -34,7 +37,7 @@ class Qualifiers:
         return self.qualifiers[property]
 
     # TODO: implement action_if_exists
-    def add(self, qualifier=None, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, qualifier: Union[Snak, Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE):
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])

@@ -10,10 +10,10 @@ class Snaks:
     def __init__(self):
         self.snaks = {}
 
-    def get(self, property=None):
+    def get(self, property: str = None) -> Snak:
         return self.snaks[property]
 
-    def add(self, snak: Snak):
+    def add(self, snak: Snak) -> Snaks:
         property = snak.property_number
 
         if property not in self.snaks:
@@ -23,7 +23,7 @@ class Snaks:
 
         return self
 
-    def from_json(self, json_data) -> Snaks:
+    def from_json(self, json_data: Dict[str, list]) -> Snaks:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(snak=Snak().from_json(snak))
@@ -58,7 +58,7 @@ class Snaks:
 
 
 class Snak:
-    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number=None, hash=None, datavalue=None, datatype=None):
+    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str = None, hash: str = None, datavalue: Dict = None, datatype: str = None):
         self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash

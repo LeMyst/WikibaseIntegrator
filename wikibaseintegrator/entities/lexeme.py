@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.forms import Forms
@@ -56,7 +56,7 @@ class Lexeme(BaseEntity):
 
         return json_data
 
-    def from_json(self, json_data: Dict[str, Union[str, dict]]) -> Lexeme:
+    def from_json(self, json_data: Dict[str, Any]) -> Lexeme:
         super().from_json(json_data=json_data)
 
         self.lemmas = Lemmas().from_json(json_data['lemmas'])

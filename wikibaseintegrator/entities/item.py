@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -36,7 +36,7 @@ class Item(BaseEntity):
     def new(self, **kwargs) -> Item:
         return Item(api=self.api, **kwargs)
 
-    def get(self, entity_id, **kwargs) -> Item:
+    def get(self, entity_id: Union[str, int], **kwargs) -> Item:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^Q?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -61,7 +61,7 @@ class Item(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data) -> Item:
+    def from_json(self, json_data: Dict[str, Any]) -> Item:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
