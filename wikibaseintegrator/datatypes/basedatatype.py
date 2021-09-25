@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Type, Union, Callable
+from typing import Any, Callable, List, Type, Union
 
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
