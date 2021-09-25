@@ -128,26 +128,26 @@ class Claim:
         self.rank = rank or WikibaseRank.NORMAL
         self.removed = False
 
-        if isinstance(references, list):
-            references = References()
+        self.references = References()
+
+        if isinstance(references, References):
+            self.references = references
+        elif isinstance(references, list):
             for ref_list in references:
-                reference = Reference()
+                ref = Reference()
                 if isinstance(ref_list, list):
                     snaks = Snaks()
                     for ref_claim in ref_list:
                         if isinstance(ref_claim, Claim):
                             snaks.add(Snak().from_json(ref_claim.get_json()['mainsnak']))
-                            references.add(reference=reference)
                         else:
                             raise ValueError
-                    reference.snaks = snaks
+                    ref.snaks = snaks
                 elif isinstance(ref_list, Claim):
-                    reference.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
+                    ref.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
                 elif isinstance(ref_list, Reference):
-                    reference = ref_list
-                references.add(reference=reference)
-
-        self.references = references or References()
+                    ref = ref_list
+                self.references.add(reference=ref)
 
     @property
     def mainsnak(self) -> Snak:

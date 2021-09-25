@@ -15,7 +15,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.models import Claim, Claims
+    from wikibaseintegrator.models import Claims
 
 fastrun_store: List[FastRunContainer] = []
 
@@ -171,7 +171,7 @@ class FastRunContainer:
         self.current_qid = qid
         return False
 
-    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+    def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
         data_props = set()
         append_props = []
@@ -232,10 +232,7 @@ class FastRunContainer:
             for x in tmp_rs:
                 if (x.mainsnak.datavalue == date.mainsnak.datavalue or (
                         self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.mainsnak.property_number not in del_props:
-                    if x.equals(date, include_ref=self.use_refs):
-                        bool_vec.append(True)
-                    else:
-                        bool_vec.append(False)
+                    bool_vec.append(x.equals(date, include_ref=self.use_refs))
                 else:
                     bool_vec.append(False)
             """
