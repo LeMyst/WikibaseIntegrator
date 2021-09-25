@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Type, Union
+from typing import Any, List, Type, Union, Callable
 
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -79,7 +79,7 @@ class BaseDataType(Claim):
     def _get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']
 
-    def equals(self, that, include_ref: bool = False, fref=None) -> bool:
+    def equals(self, that: BaseDataType, include_ref: bool = False, fref: Callable = None) -> bool:
         """
         Tests for equality of two statements.
         If comparing references, the order of the arguments matters!!!

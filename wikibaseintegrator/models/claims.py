@@ -21,10 +21,10 @@ class Claims:
     def claims(self, claims):
         self.__claims = claims
 
-    def get(self, property=None) -> List:
+    def get(self, property: str = None) -> List:
         return self.claims[property]
 
-    def add(self, claims: Union[list, Claim, None] = None, action_if_exists=ActionIfExists.REPLACE) -> Claims:
+    def add(self, claims: Union[list, Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
         :param claims:
@@ -74,7 +74,7 @@ class Claims:
 
         return self
 
-    def from_json(self, json_data) -> Claims:
+    def from_json(self, json_data: Dict[str, Any]) -> Claims:
         for property in json_data:
             for claim in json_data[property]:
                 from wikibaseintegrator.datatypes import BaseDataType
@@ -150,7 +150,7 @@ class Claim:
         return self.__qualifiers
 
     @qualifiers.setter
-    def qualifiers(self, value: Qualifiers):
+    def qualifiers(self, value: Qualifiers) -> None:
         assert isinstance(value, (Qualifiers, list))
         if isinstance(value, list):
             self.__qualifiers = Qualifiers().set(value)

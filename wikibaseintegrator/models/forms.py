@@ -18,7 +18,7 @@ class Forms:
     def forms(self, value):
         self.__forms = value
 
-    def get(self, id) -> Form:
+    def get(self, id: str) -> Form:
         return self.forms[id]
 
     def add(self, form: Form) -> Forms:

@@ -33,7 +33,7 @@ class LanguageValues:
 
         return None
 
-    def set(self, language: str = None, value: str = None, action_if_exists=ActionIfExists.REPLACE) -> Optional[LanguageValue]:
+    def set(self, language: str = None, value: str = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Optional[LanguageValue]:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in [ActionIfExists.REPLACE, ActionIfExists.KEEP]
 

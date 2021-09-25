@@ -21,7 +21,7 @@ class References:
     def references(self, value):
         self.__references = value
 
-    def get(self, hash=None) -> Optional[Reference]:
+    def get(self, hash: str = None) -> Optional[Reference]:
         for reference in self.references:
             if reference.hash == hash:
                 return reference
@@ -53,7 +53,7 @@ class References:
             json_data.append(reference.get_json())
         return json_data
 
-    def remove(self, reference_to_remove) -> bool:
+    def remove(self, reference_to_remove: Union[Claim, Reference]) -> bool:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference_to_remove, Claim):
             reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(reference_to_remove.get_json()['mainsnak'])))

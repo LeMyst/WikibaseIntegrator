@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 class Sitelinks:
     def __init__(self):
-        self.sitelinks = {}
+        self.sitelinks: Dict[str, Sitelink] = {}
 
     def get(self, site: str = None) -> Optional[Sitelink]:
         if site in self.sitelinks:
@@ -13,7 +13,7 @@ class Sitelinks:
 
         return None
 
-    def set(self, site: str = None, title: str = None, badges: List[str] = None) -> Sitelink:
+    def set(self, site: str, title: str = None, badges: List[str] = None) -> Sitelink:
         sitelink = Sitelink(site, title, badges)
         self.sitelinks[site] = sitelink
         return sitelink

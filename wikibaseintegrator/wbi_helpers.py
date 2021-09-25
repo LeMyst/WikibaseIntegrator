@@ -234,7 +234,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     return None
 
 
-def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any):
+def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
 

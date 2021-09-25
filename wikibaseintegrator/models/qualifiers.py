@@ -33,7 +33,7 @@ class Qualifiers:
 
         return self
 
-    def get(self, property=None) -> Snak:
+    def get(self, property: str = None) -> Snak:
         return self.qualifiers[property]
 
     # TODO: implement action_if_exists

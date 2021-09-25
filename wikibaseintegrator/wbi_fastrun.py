@@ -15,7 +15,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.models import Claim, Claims
+    from wikibaseintegrator.models import Claims
 
 fastrun_store: List[FastRunContainer] = []
 
@@ -171,7 +171,7 @@ class FastRunContainer:
         self.current_qid = qid
         return False
 
-    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+    def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
         data_props = set()
         append_props = []
@@ -447,7 +447,7 @@ class FastRunContainer:
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data(self, prop_nr: str, use_units=False) -> None:
+    def _query_data(self, prop_nr: str, use_units: bool = False) -> None:
         page_size = 10000
         page_count = 0
         num_pages = None
@@ -637,7 +637,7 @@ def freezeargs(func):
     """
 
     @wraps(func)
-    def wrapped(*args, **kwargs: Any):
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
         args = tuple(frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
         kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
         return func(*args, **kwargs)
