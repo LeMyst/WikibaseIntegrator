@@ -1,5 +1,4 @@
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class BaseDataType(Claim):
@@ -18,24 +17,7 @@ class BaseDataType(Claim):
         """
         Constructor, will be called by all data types.
 
-        :param value: Data value of the Wikibase data snak
-        :type value: str or int or tuple
         :param prop_nr: The property number a Wikibase snak belongs to
-        :type prop_nr: A string with a prefixed 'P' and several digits e.g. 'P715' (Drugbank ID) or an int
-        :param datatype: The Wikibase data type declaration of this snak
-        :type datatype: str
-        :param snaktype: One of the values in the enum WikibaseSnakValueType denoting the state of the value:
-            KNOWN_VALUE, NO_VALUE or UNKNOWN_VALUE
-        :type snaktype: WikibaseSnakType
-        :param references: A one level nested list with reference Wikibase snaks of base type BaseDataType,
-            e.g. references=[[<BaseDataType>, <BaseDataType>], [<BaseDataType>]]
-            This will create two references, the first one with two statements, the second with one
-        :type references: A one level nested list with instances of BaseDataType or children of it.
-        :param qualifiers: A list of qualifiers for the Wikibase mainsnak
-        :type qualifiers: A list with instances of BaseDataType or children of it.
-        :param rank: The rank of a Wikibase mainsnak, should determine the status of a value
-        :type rank: A string of one of three allowed values: 'normal', 'deprecated', 'preferred'
-        :return:
         """
 
         super().__init__(**kwargs)
