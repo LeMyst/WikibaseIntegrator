@@ -19,9 +19,10 @@ class TestMediawikiApiCall(unittest.TestCase):
         with self.assertRaises(requests.HTTPError):
             wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
-        test = wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
-                                                       allow_anonymous=True)
-        print(test)
+        wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
+
+        with self.assertRaises(MWApiError):
+            wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/502", max_retries=3, retry_after=1, allow_anonymous=True)
 
 
 class TestDataType(unittest.TestCase):
