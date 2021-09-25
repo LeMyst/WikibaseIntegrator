@@ -7,13 +7,27 @@ from wikibaseintegrator.wbi_helpers import execute_sparql_query, get_user_agent,
 
 
 def test_connection():
-    with unittest.TestCase().assertRaises(MWApiError):
-        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=3,
-                                  retry_after=1, allow_anonymous=True)
-    with unittest.TestCase().assertRaises(requests.HTTPError):
-        mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
+    data = {'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}
 
-    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
+    mediawiki_api_call_helper(data=data, max_retries=2, retry_after=1, allow_anonymous=True)
+
+    with unittest.TestCase().assertRaises(MWApiError):
+        mediawiki_api_call_helper(data=data, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=2, retry_after=1, allow_anonymous=True)
+
+    with unittest.TestCase().assertRaises(MWApiError):
+        mediawiki_api_call_helper(data=data, mediawiki_api_url="https://httpbin.org/status/500", max_retries=2, retry_after=1, allow_anonymous=True)
+
+    with unittest.TestCase().assertRaises(MWApiError):
+        mediawiki_api_call_helper(data=data, mediawiki_api_url="https://httpbin.org/status/502", max_retries=2, retry_after=1, allow_anonymous=True)
+
+    with unittest.TestCase().assertRaises(MWApiError):
+        mediawiki_api_call_helper(data=data, mediawiki_api_url="https://httpbin.org/status/503", max_retries=2, retry_after=1, allow_anonymous=True)
+
+    with unittest.TestCase().assertRaises(MWApiError):
+        mediawiki_api_call_helper(data=data, mediawiki_api_url="https://httpbin.org/status/504", max_retries=2, retry_after=1, allow_anonymous=True)
+
+    with unittest.TestCase().assertRaises(requests.HTTPError):
+        mediawiki_api_call_helper(data=data, mediawiki_api_url="https://httpbin.org/status/400", max_retries=2, retry_after=1, allow_anonymous=True)
 
 
 def test_user_agent(capfd):

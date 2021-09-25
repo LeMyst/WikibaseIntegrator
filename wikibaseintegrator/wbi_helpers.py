@@ -29,7 +29,7 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 1000, retry_after: int = 60, **kwargs: Any) -> Dict:
+def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
     """
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
@@ -61,8 +61,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
             print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:  # pragma: no cover
-            print(f"service unavailable. sleeping for {retry_after} seconds")
+        if response.status_code in (500, 502, 503, 504):
+            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
 
@@ -216,8 +216,8 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
             print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:
-            print(f"Service unavailable (503). Sleeping for {retry_after} seconds")
+        if response.status_code in (500, 502, 503, 504):
+            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
         if response.status_code == 429:
