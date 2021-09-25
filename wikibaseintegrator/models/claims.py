@@ -130,7 +130,7 @@ class Claim:
 
         if isinstance(references, list):
             references = References()
-            for ref_list in self.references:
+            for ref_list in references:
                 reference = Reference()
                 if isinstance(ref_list, list):
                     snaks = Snaks()
