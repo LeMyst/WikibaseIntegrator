@@ -146,9 +146,8 @@ class Claim:
                 elif isinstance(ref_list, Reference):
                     reference = ref_list
                 references.add(reference=reference)
-            self.references = references
-        else:
-            self.references = references or References()
+
+        self.references = references or References()
 
     @property
     def mainsnak(self) -> Snak:
