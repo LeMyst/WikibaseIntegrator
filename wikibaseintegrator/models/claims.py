@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.qualifiers import Qualifiers
-from wikibaseintegrator.models.references import References
-from wikibaseintegrator.models.snaks import Snak
+from wikibaseintegrator.models.references import Reference, References
+from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 
@@ -119,15 +119,36 @@ class Claims:
 class Claim:
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: References = None) -> None:
+    def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: Union[References, List[Union[Claim, List[Claim]]]] = None) -> None:
         self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
         self.rank = rank or WikibaseRank.NORMAL
-        self.references = references or References()
         self.removed = False
+
+        if isinstance(references, list):
+            references = References()
+            for ref_list in self.references:
+                reference = Reference()
+                if isinstance(ref_list, list):
+                    snaks = Snaks()
+                    for ref_claim in ref_list:
+                        if isinstance(ref_claim, Claim):
+                            snaks.add(Snak().from_json(ref_claim.get_json()['mainsnak']))
+                            references.add(reference=reference)
+                        else:
+                            raise ValueError
+                    reference.snaks = snaks
+                elif isinstance(ref_list, Claim):
+                    reference.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
+                elif isinstance(ref_list, Reference):
+                    reference = ref_list
+                references.add(reference=reference)
+            self.references = references
+        else:
+            self.references = references or References()
 
     @property
     def mainsnak(self) -> Snak:
@@ -274,3 +295,39 @@ class Claim:
             id=id(self) & 0xFFFFFF,
             attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
+
+    def equals(self, that: Claim, include_ref: bool = False, fref: Callable = None) -> bool:
+        """
+        Tests for equality of two statements.
+        If comparing references, the order of the arguments matters!!!
+        self is the current statement, the next argument is the new statement.
+        Allows passing in a function to use to compare the references 'fref'. Default is equality.
+        fref accepts two arguments 'oldrefs' and 'newrefs', each of which are a list of references,
+        where each reference is a list of statements
+        """
+
+        if not include_ref:
+            # return the result of BaseDataType.__eq__, which is testing for equality of value and qualifiers
+            return self == that
+
+        if self != that:
+            return False
+
+        if fref is None:
+            return Claim.refs_equal(self, that)
+
+        return fref(self, that)
+
+    @staticmethod
+    def refs_equal(olditem: Claim, newitem: Claim) -> bool:
+        """
+        tests for exactly identical references
+        """
+
+        oldrefs = olditem.references
+        newrefs = newitem.references
+
+        def ref_equal(oldref: References, newref: References) -> bool:
+            return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
+
+        return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)

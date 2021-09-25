@@ -185,7 +185,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     """
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
-    user_agent = str(user_agent or config['USER_AGENT'])
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     hostname = urlparse(sparql_endpoint_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:

@@ -15,7 +15,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.models import Claims
+    from wikibaseintegrator.models import Claim, Claims
 
 fastrun_store: List[FastRunContainer] = []
 
@@ -171,7 +171,7 @@ class FastRunContainer:
         self.current_qid = qid
         return False
 
-    def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
         data_props = set()
         append_props = []

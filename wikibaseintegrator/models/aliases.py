@@ -49,7 +49,7 @@ class Aliases:
 
         if isinstance(values, str):
             values = [values]
-        elif not isinstance(values, list) and values is not None:
+        elif values is not None and not isinstance(values, list):
             raise TypeError(f"value must be a str or list of strings, got '{type(values)}'")
 
         if action_if_exists == ActionIfExists.REPLACE:
