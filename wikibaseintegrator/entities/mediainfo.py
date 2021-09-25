@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 class MediaInfo(BaseEntity):
     ETYPE = 'mediainfo'
 
-    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs) -> None:
+    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -31,10 +31,10 @@ class MediaInfo(BaseEntity):
         self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
-    def new(self, **kwargs) -> MediaInfo:
+    def new(self, **kwargs: Any) -> MediaInfo:
         return MediaInfo(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs) -> MediaInfo:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> MediaInfo:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^M?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -51,7 +51,7 @@ class MediaInfo(BaseEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return MediaInfo(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_by_title(self, titles: Union[List[str], str], sites: str = 'commonswiki', **kwargs) -> MediaInfo:
+    def get_by_title(self, titles: Union[List[str], str], sites: str = 'commonswiki', **kwargs: Any) -> MediaInfo:
         if isinstance(titles, list):
             titles = '|'.join(titles)
 
@@ -87,6 +87,6 @@ class MediaInfo(BaseEntity):
 
         return self
 
-    def write(self, **kwargs) -> MediaInfo:
+    def write(self, **kwargs: Any) -> MediaInfo:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

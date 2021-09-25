@@ -1,3 +1,5 @@
+from typing import Any
+
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
 
@@ -14,7 +16,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text: str = None, language: str = None, **kwargs):
+    def __init__(self, text: str = None, language: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 

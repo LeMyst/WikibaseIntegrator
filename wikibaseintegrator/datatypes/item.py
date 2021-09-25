@@ -1,5 +1,5 @@
 import re
-from typing import Union
+from typing import Any, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -16,7 +16,7 @@ class Item(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: Union[str, int] = None, **kwargs):
+    def __init__(self, value: Union[str, int] = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 

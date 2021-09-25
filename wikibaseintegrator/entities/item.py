@@ -14,7 +14,7 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class Item(BaseEntity):
     ETYPE = 'item'
 
-    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, sitelinks: Sitelinks = None, **kwargs) -> None:
+    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, sitelinks: Sitelinks = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -34,10 +34,10 @@ class Item(BaseEntity):
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
-    def new(self, **kwargs) -> Item:
+    def new(self, **kwargs: Any) -> Item:
         return Item(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs) -> Item:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Item:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^Q?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -72,6 +72,6 @@ class Item(BaseEntity):
 
         return self
 
-    def write(self, **kwargs) -> Item:
+    def write(self, **kwargs: Any) -> Item:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

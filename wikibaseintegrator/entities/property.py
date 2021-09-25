@@ -13,7 +13,7 @@ from wikibaseintegrator.models.labels import Labels
 class Property(BaseEntity):
     ETYPE = 'property'
 
-    def __init__(self, datatype: str = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs):
+    def __init__(self, datatype: str = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any):
         super().__init__(**kwargs)
 
         # Property specific
@@ -24,10 +24,10 @@ class Property(BaseEntity):
         self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
-    def new(self, **kwargs) -> Property:
+    def new(self, **kwargs: Any) -> Property:
         return Property(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs) -> Property:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Property:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -63,6 +63,6 @@ class Property(BaseEntity):
 
         return self
 
-    def write(self, **kwargs) -> Property:
+    def write(self, **kwargs: Any) -> Property:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

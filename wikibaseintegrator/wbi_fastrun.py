@@ -5,7 +5,7 @@ import copy
 from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
-from typing import TYPE_CHECKING, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 from frozendict import frozendict
 
@@ -25,8 +25,8 @@ class FastRunContainer:
                  base_filter: Dict[str, str] = None,
                  use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
         self.reconstructed_statements: List[BaseDataType] = []
-        self.rev_lookup: defaultdict[str, set] = defaultdict(set)
-        self.rev_lookup_ci: defaultdict[str, set] = defaultdict(set)
+        self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
+        self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
         self.prop_data: Dict[str, dict] = {}
         self.loaded_langs: Dict[str, dict] = {}
         self.base_filter = {}
@@ -637,7 +637,7 @@ def freezeargs(func):
     """
 
     @wraps(func)
-    def wrapped(*args, **kwargs):
+    def wrapped(*args, **kwargs: Any):
         args = tuple(frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
         kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
         return func(*args, **kwargs)

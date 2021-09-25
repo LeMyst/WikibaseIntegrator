@@ -1,3 +1,6 @@
+from collections import defaultdict
+from typing import Any
+
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
 from wikibaseintegrator.wbi_config import config
@@ -92,7 +95,7 @@ def test_query_data_ref():
 
 
 class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
         self.prop_data['Q14911732'] = {'P594': {
@@ -102,11 +105,12 @@ class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
                     ('P248', 'Q29458763'),  # stated in ensembl Release 88
                     ('P594', 'ENSG00000123374')}},
                 'v': 'ENSG00000123374'}}}
-        self.rev_lookup = {'ENSG00000123374': {'Q14911732'}}
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['ENSG00000123374'].add('Q14911732')
 
 
 class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
         self.prop_data['Q14911732'] = {'P594': {
@@ -114,7 +118,8 @@ class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
                 'qual': set(),
                 'ref': dict(),
                 'v': 'ENSG00000123374'}}}
-        self.rev_lookup = {'ENSG00000123374': {'Q14911732'}}
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['ENSG00000123374'].add('Q14911732')
 
 
 def test_fastrun_ref_ensembl():
@@ -149,15 +154,16 @@ def test_fastrun_ref_ensembl():
 
 class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
     # an item with three values for the same property
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.debug = True
         self.prop_dt_map = {'P527': 'wikibase-item', 'P248': 'wikibase-item', 'P594': 'external-id'}
-        self.rev_lookup = {
-            'Q24784025': {'Q3402672'},
-            'Q24743729': {'Q3402672'},
-            'Q24782625': {'Q3402672'},
-        }
+
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['Q24784025'].add('Q3402672')
+        self.rev_lookup['Q24743729'].add('Q3402672')
+        self.rev_lookup['Q24782625'].add('Q3402672')
+
         self.prop_data['Q3402672'] = {'P527': {
             'Q3402672-11BA231B-857B-498B-AC4F-91D71EE007FD': {'qual': set(),
                                                               'ref': {

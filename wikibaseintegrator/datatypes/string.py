@@ -1,3 +1,5 @@
+from typing import Any
+
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
 
@@ -8,7 +10,7 @@ class String(BaseDataType):
 
     DTYPE = 'string'
 
-    def __init__(self, value: str = None, **kwargs):
+    def __init__(self, value: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 

@@ -1,5 +1,6 @@
 import datetime
 import re
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -17,7 +18,8 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: int = 11, timezone: int = 0, calendarmodel: str = None, wikibase_url: str = None, **kwargs):
+    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: int = 11, timezone: int = 0, calendarmodel: str = None, wikibase_url: str = None,
+                 **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 

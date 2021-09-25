@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -18,7 +18,7 @@ class Quantity(BaseDataType):
     '''
 
     def __init__(self, amount: Union[str, int, float] = None, upper_bound: Union[str, int, float] = None, lower_bound: Union[str, int, float] = None, unit: Union[str, int] = '1',
-                 wikibase_url: str = None, **kwargs):
+                 wikibase_url: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 

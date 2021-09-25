@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Type, Union
+from typing import Any, List, Type, Union
 
 from wikibaseintegrator.models import Claim, Reference, References, Snak, Snaks
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -20,7 +20,7 @@ class BaseDataType(Claim):
     '''
     references: References
 
-    def __init__(self, prop_nr: Union[int, str] = None, **kwargs):
+    def __init__(self, prop_nr: Union[int, str] = None, **kwargs: Any):
         """
         Constructor, will be called by all data types.
 
