@@ -39,16 +39,13 @@ class TestDataType(unittest.TestCase):
 
         dt_json = dt.get_json()
 
-        if not dt_json['mainsnak']['datatype'] == 'geo-shape':
-            raise
+        assert dt_json['mainsnak']['datatype'] == 'geo-shape'
 
         value = dt_json['mainsnak']['datavalue']
 
-        if not value['value'] == 'Data:Inner_West_Light_Rail_stops.map':
-            raise
+        assert value['value'] == 'Data:Inner_West_Light_Rail_stops.map'
 
-        if not value['type'] == 'string':
-            raise
+        assert value['type'] == 'string'
 
 
 class TestFastRun(unittest.TestCase):
@@ -172,7 +169,7 @@ def test_ref_equals():
 
 
 def test_mediainfo():
-    mediainfo_item_by_title = wbi.mediainfo.get_by_title(title='File:2018-07-05-budapest-buda-hill.jpg', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
+    mediainfo_item_by_title = wbi.mediainfo.get_by_title(titles='File:2018-07-05-budapest-buda-hill.jpg', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
     assert mediainfo_item_by_title.id == 'M75908279'
 
     mediainfo_item_by_id = wbi.mediainfo.get(entity_id='M75908279', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')

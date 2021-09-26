@@ -4,3 +4,13 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.isort]
+line_length = 179
+
+[tool.mypy]
+ignore_missing_imports = true
+files = "wikibaseintegrator/**/*.py,test/*.py"
+
+[tool.pylint.format]
+max-line-length = 179

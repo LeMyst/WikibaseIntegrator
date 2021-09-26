@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Union
+
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -7,29 +11,30 @@ class Senses:
     def __init__(self):
         self.senses = []
 
-    def get(self, id):
+    def get(self, id: str) -> Optional[Sense]:
         for sense in self.senses:
             if sense.id == id:
                 return sense
         return None
 
     # TODO: implement action_if_exists
-    def add(self, sense, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Senses:
         self.senses.append(sense)
 
         return self
 
-    def get_json(self) -> []:
-        json_data = []
-        for sense in self.senses:
-            json_data.append(sense.get_json())
-        return json_data
-
-    def from_json(self, json_data):
+    def from_json(self, json_data: List[Dict]) -> Senses:
         for sense in json_data:
-            self.add(Sense(sense_id=sense['id'], glosses=Glosses().from_json(sense['glosses']), claims=Claims().from_json(sense['claims'])))
+            self.add(sense=Sense().from_json(sense))
 
         return self
+
+    def get_json(self) -> List[Dict]:
+        json_data: List[Dict] = []
+        for sense in self.senses:
+            json_data.append(sense.get_json())
+
+        return json_data
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
@@ -41,15 +46,22 @@ class Senses:
 
 
 class Sense:
-    def __init__(self, sense_id=None, glosses=None, claims=None):
+    def __init__(self, sense_id: str = None, glosses: Glosses = None, claims: Claims = None):
         self.id = sense_id
-        self.glosses = glosses or Glosses()
+        self.glosses: LanguageValues = glosses or Glosses()
         self.claims = claims or Claims()
         self.removed = False
 
-    def get_json(self) -> {}:
-        json_data = {
-            'id': self.id,
+    def from_json(self, json_data: Dict[str, Any]) -> Sense:
+        self.id = json_data['id']
+        self.glosses = Glosses().from_json(json_data['glosses'])
+        self.claims = Claims().from_json(json_data['claims'])
+
+        return self
+
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
+        json_data: Dict[str, Union[str, Dict]] = {
+            'id': str(self.id),
             'glosses': self.glosses.get_json(),
             'claims': self.claims.get_json()
         }
@@ -63,7 +75,7 @@ class Sense:
 
         return json_data
 
-    def remove(self):
+    def remove(self) -> Sense:
         self.removed = True
         return self
 

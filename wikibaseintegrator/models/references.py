@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
 from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.models.claims import Claim
 
 
 class References:
@@ -16,14 +21,14 @@ class References:
     def references(self, value):
         self.__references = value
 
-    def get(self, hash=None):
+    def get(self, hash: str = None) -> Optional[Reference]:
         for reference in self.references:
             if reference.hash == hash:
                 return reference
         return None
 
     # TODO: implement action_if_exists
-    def add(self, reference=None, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, reference: Union[Reference, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> References:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
@@ -36,19 +41,19 @@ class References:
 
         return self
 
-    def from_json(self, json_data) -> References:
+    def from_json(self, json_data: List[Dict]) -> References:
         for reference in json_data:
             self.add(reference=Reference().from_json(reference))
 
         return self
 
-    def get_json(self) -> []:
-        json_data = []
+    def get_json(self) -> List[Dict]:
+        json_data: List[Dict] = []
         for reference in self.references:
             json_data.append(reference.get_json())
         return json_data
 
-    def remove(self, reference_to_remove):
+    def remove(self, reference_to_remove: Union[Claim, Reference]) -> bool:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference_to_remove, Claim):
             reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(reference_to_remove.get_json()['mainsnak'])))
@@ -62,7 +67,7 @@ class References:
 
         return False
 
-    def clear(self):
+    def clear(self) -> References:
         self.references = []
         return self
 
@@ -82,7 +87,7 @@ class References:
 
 
 class Reference:
-    def __init__(self, snaks=None, snaks_order=None):
+    def __init__(self, snaks: Snaks = None, snaks_order: List = None):
         self.hash = None
         self.snaks = snaks or Snaks()
         self.snaks_order = snaks_order or []
@@ -112,7 +117,7 @@ class Reference:
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
-    def add(self, snak=None, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, snak: Union[Snak, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Reference:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])
@@ -124,15 +129,15 @@ class Reference:
 
         return self
 
-    def from_json(self, json_data) -> Reference:
+    def from_json(self, json_data: Dict[str, Any]) -> Reference:
         self.hash = json_data['hash']
         self.snaks = Snaks().from_json(json_data['snaks'])
         self.snaks_order = json_data['snaks-order']
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {
+    def get_json(self) -> Dict[str, Union[Dict, list]]:
+        json_data: Dict[str, Union[Dict, list]] = {
             'snaks': self.snaks.get_json(),
             'snaks-order': self.snaks_order
         }

@@ -11,6 +11,7 @@
       <excludeFolder url="file://$MODULE_DIR$/wikibaseintegrator.egg-info" />
       <excludeFolder url="file://$MODULE_DIR$/.ipynb_checkpoints" />
       <excludeFolder url="file://$MODULE_DIR$/docs/build" />
+      <excludeFolder url="file://$MODULE_DIR$/.mypy_cache" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.9 (WikibaseIntegrator)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

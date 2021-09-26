@@ -3,7 +3,7 @@ import unittest
 import requests
 
 from wikibaseintegrator.wbi_exceptions import MWApiError
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent, execute_sparql_query
+from wikibaseintegrator.wbi_helpers import execute_sparql_query, get_user_agent, mediawiki_api_call_helper
 
 
 def test_connection():

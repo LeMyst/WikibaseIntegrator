@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import re
+from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
+from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
@@ -12,7 +14,7 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class Item(BaseEntity):
     ETYPE = 'item'
 
-    def __init__(self, labels=None, descriptions=None, aliases=None, sitelinks=None, **kwargs) -> None:
+    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, sitelinks: Sitelinks = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -22,21 +24,20 @@ class Item(BaseEntity):
         :param sitelinks:
         :param kwargs:
         """
-
         super().__init__(**kwargs)
 
         # Item and property specific
-        self.labels = labels or Labels()
-        self.descriptions = descriptions or Descriptions()
+        self.labels: LanguageValues = labels or Labels()
+        self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
-    def new(self, **kwargs) -> Item:
+    def new(self, **kwargs: Any) -> Item:
         return Item(api=self.api, **kwargs)
 
-    def get(self, entity_id, **kwargs) -> Item:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Item:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^Q?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -50,10 +51,10 @@ class Item(BaseEntity):
             raise ValueError("Item ID must be greater than 0")
 
         entity_id = f'Q{entity_id}'
-        json_data = super().get(entity_id=entity_id, **kwargs)
+        json_data = super()._get(entity_id=entity_id, **kwargs)
         return Item(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
         return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
@@ -61,7 +62,7 @@ class Item(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data) -> Item:
+    def from_json(self, json_data: Dict[str, Any]) -> Item:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
@@ -71,6 +72,6 @@ class Item(BaseEntity):
 
         return self
 
-    def write(self, **kwargs):
+    def write(self, **kwargs: Any) -> Item:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

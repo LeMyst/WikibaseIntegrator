@@ -1,3 +1,5 @@
+from typing import Dict, Union
+
 """
 Config global options
 Options can be changed at run time. See tests/test_backoff.py for usage example
@@ -12,11 +14,10 @@ USER_AGENT:        Complementary user agent string used for http requests. Both 
                    See: https://meta.wikimedia.org/wiki/User-Agent_policy
 """
 
-config = {
+config: Dict[str, Union[str, int, None, bool]] = {
     'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
     'USER_AGENT': None,
-    'MAXLAG': 5,
     'PROPERTY_CONSTRAINT_PID': 'P2302',
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',
     'COORDINATE_GLOBE_QID': 'http://www.wikidata.org/entity/Q2',
