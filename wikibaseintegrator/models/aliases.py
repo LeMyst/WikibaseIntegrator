@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class Aliases:
     def __init__(self, language: str = None, value: str = None):
-        self.__aliases: Dict = {}
+        self.aliases: Dict[str, str] = {}
 
         if language is not None:
             self.set(language=language, values=value)
