@@ -22,8 +22,7 @@ fastrun_store: List[FastRunContainer] = []
 
 class FastRunContainer:
     def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
-                 base_filter: Dict[str, str] = None,
-                 use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
+                 base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
         self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
         self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
