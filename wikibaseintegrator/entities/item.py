@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import re
+from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
+from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
@@ -12,7 +14,7 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class Item(BaseEntity):
     ETYPE = 'item'
 
-    def __init__(self, api, labels=None, descriptions=None, aliases=None, sitelinks=None, **kwargs) -> None:
+    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, sitelinks: Sitelinks = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -22,48 +24,46 @@ class Item(BaseEntity):
         :param sitelinks:
         :param kwargs:
         """
-        self.api = api
-
-        super(Item, self).__init__(api=self.api, **kwargs)
+        super().__init__(**kwargs)
 
         # Item and property specific
-        self.labels = labels or Labels()
-        self.descriptions = descriptions or Descriptions()
+        self.labels: LanguageValues = labels or Labels()
+        self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
-    def new(self, **kwargs) -> Item:
-        return Item(self.api, **kwargs)
+    def new(self, **kwargs: Any) -> Item:
+        return Item(api=self.api, **kwargs)
 
-    def get(self, entity_id, **kwargs) -> Item:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Item:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^Q?([0-9]+)$')
             matches = pattern.match(entity_id)
 
             if not matches:
-                raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(entity_id))
-            else:
-                entity_id = int(matches.group(1))
+                raise ValueError(f"Invalid item ID ({entity_id}), format must be 'Q[0-9]+'")
+
+            entity_id = int(matches.group(1))
 
         if entity_id < 1:
             raise ValueError("Item ID must be greater than 0")
 
-        entity_id = 'Q{}'.format(entity_id)
-        json_data = super(Item, self).get(entity_id=entity_id, **kwargs)
-        return Item(self.api).from_json(json_data=json_data['entities'][entity_id])
+        entity_id = f'Q{entity_id}'
+        json_data = super()._get(entity_id=entity_id, **kwargs)
+        return Item(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, Union[str, Dict]]:
         return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),
-            **super(Item, self).get_json()
+            **super().get_json()
         }
 
-    def from_json(self, json_data) -> Item:
-        super(Item, self).from_json(json_data=json_data)
+    def from_json(self, json_data: Dict[str, Any]) -> Item:
+        super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
         self.descriptions = Descriptions().from_json(json_data['descriptions'])
@@ -72,6 +72,6 @@ class Item(BaseEntity):
 
         return self
 
-    def write(self, **kwargs):
-        json_data = super(Item, self)._write(data=self.get_json(), **kwargs)
+    def write(self, **kwargs: Any) -> Item:
+        json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Dict, List, Union
+
 from wikibaseintegrator.models.snaks import Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.models.claims import Claim
 
 
 class Qualifiers:
@@ -17,7 +22,7 @@ class Qualifiers:
         assert isinstance(value, dict)
         self.__qualifiers = value
 
-    def set(self, qualifiers):
+    def set(self, qualifiers: Union[Qualifiers, List, None]) -> Qualifiers:
         if isinstance(qualifiers, list):
             for qualifier in qualifiers:
                 self.add(qualifier)
@@ -28,11 +33,11 @@ class Qualifiers:
 
         return self
 
-    def get(self, property=None):
+    def get(self, property: str = None) -> Snak:
         return self.qualifiers[property]
 
     # TODO: implement action_if_exists
-    def add(self, qualifier=None, action_if_exists=ActionIfExists.REPLACE):
+    def add(self, qualifier: Union[Snak, Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Qualifiers:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -49,14 +54,14 @@ class Qualifiers:
 
         return self
 
-    def from_json(self, json_data) -> Qualifiers:
+    def from_json(self, json_data: Dict[str, List]) -> Qualifiers:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(qualifier=Snak().from_json(snak))
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
+    def get_json(self) -> Dict[str, List]:
+        json_data: Dict[str, list] = {}
         for property in self.qualifiers:
             if property not in json_data:
                 json_data[property] = []
@@ -79,5 +84,5 @@ class Qualifiers:
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

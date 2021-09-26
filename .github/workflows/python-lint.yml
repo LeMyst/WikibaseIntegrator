@@ -1,0 +1,38 @@
+name: Python Code Quality and Lint
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Upgrade setup tools
+        run: python -m pip install --upgrade pip setuptools
+      - name: Install dependencies
+        run: |
+          pip install . .[dev]
+          mypy --install-types --non-interactive
+      - name: isort imports check
+        run: isort --check --diff wikibaseintegrator test
+      - name: mypy typing check
+        run: mypy
+      - name: pylint code linting
+        run: pylint wikibaseintegrator test || pylint-exit $?

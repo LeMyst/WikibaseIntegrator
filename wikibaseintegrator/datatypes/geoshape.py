@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -15,9 +16,10 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
         :type value: str or None
         :param prop_nr: The item ID for this claim
@@ -30,11 +32,17 @@ class GeoShape(BaseDataType):
         :type qualifiers: A data type with subclass of BaseDataType
         :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
         :type rank: str
+
+        :Keyword Arguments:
+        * *extra* (``list``) --
+          Extra stuff
+        * *supplement* (``dict``) --
+          Additional content
         """
 
-        super(GeoShape, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
             # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map

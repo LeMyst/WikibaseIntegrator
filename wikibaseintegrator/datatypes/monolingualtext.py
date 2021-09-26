@@ -1,3 +1,5 @@
+from typing import Any
+
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
 
@@ -14,31 +16,20 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text=None, language=None, **kwargs):
+    def __init__(self, text: str = None, language: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
-        :param text: The language specific string to be used as the value
-        :type text: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param language: Specifies the language the value belongs to
-        :type language: str
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
+
+        :param text: The language specific string to be used as the value.
+        :param language: Specifies the language the value belongs to.
         """
 
-        super(MonolingualText, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
-        language = language or config['DEFAULT_LANGUAGE']
+        language = language or str(config['DEFAULT_LANGUAGE'])
 
-        assert isinstance(text, str) or text is None, "Expected str, found {} ({})".format(type(text), text)
-        assert isinstance(language, str), "Expected str, found {} ({})".format(type(language), language)
+        assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
+        assert isinstance(language, str), f"Expected str, found {type(language)} ({language})"
 
         if text and language:
             self.mainsnak.datavalue = {
@@ -49,5 +40,5 @@ class MonolingualText(BaseDataType):
                 'type': 'monolingualtext'
             }
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return '"' + self.mainsnak.datavalue['value']['text'].replace('"', r'\"') + '"@' + self.mainsnak.datavalue['value']['language']

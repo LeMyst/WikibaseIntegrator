@@ -1,5 +1,4 @@
 import unittest
-from pprint import pprint
 
 from simplejson import JSONDecodeError
 
