@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from wikibaseintegrator.entities.item import Item
 from wikibaseintegrator.entities.lexeme import Lexeme
 from wikibaseintegrator.entities.mediainfo import MediaInfo
 from wikibaseintegrator.entities.property import Property
-from wikibaseintegrator.wbi_login import Login
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.wbi_login import Login
 
 
 class WikibaseIntegrator:
