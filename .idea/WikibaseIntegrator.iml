@@ -13,7 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/docs/build" />
       <excludeFolder url="file://$MODULE_DIR$/.mypy_cache" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (WikibaseIntegrator)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (WikibaseIntegrator)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">
