@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/htmlcov" />
       <excludeFolder url="file://$MODULE_DIR$/docs/build" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (WikibaseIntegrator)" jdkType="Python SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">
