@@ -5,7 +5,7 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
-# Future new major version #
+# Breaking changes in future major version #
 
 A complete rewrite of the core of WikibaseIntegrator is in progress. You can track the evolution and ask questions in
 the related Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152). The changes will break
@@ -20,7 +20,7 @@ use this command in your project to get the latest pre-release:
 python -m pip install --pre wikibaseintegrator
 ```
 
-If you want to avoid an unwanted upgrade to the v0.12, you can put in your requirements.txt this line:
+If you want to avoid an unwanted upgrade to the v0.12, you can put this line in your requirements.txt:
 
 ```
 wikibaseintegrator~=0.11.0
