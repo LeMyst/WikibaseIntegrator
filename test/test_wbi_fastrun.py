@@ -122,22 +122,24 @@ def test_fastrun_ref_ensembl():
     assert frc.write_required(data=statements)
 
     # statement has the same ref
-    statements = [wbi_datatype.ExternalID(value='ENSG00000123374', prop_nr='P594',
-                                      references=[[wbi_datatype.ItemID("Q29458763", "P248", is_reference=True), wbi_datatype.ExternalID("ENSG00000123374", "P594", is_reference=True)]])]
+    statements = [wbi_datatype.ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[wbi_datatype.ItemID("Q29458763", "P248", is_reference=True),
+                                                                                                wbi_datatype.ExternalID("ENSG00000123374", "P594", is_reference=True)]])]
     assert not frc.write_required(data=statements)
 
     # new statement has an different stated in
-    statements = [wbi_datatype.ExternalID(value='ENSG00000123374', prop_nr='P594',
-                                      references=[[wbi_datatype.ItemID("Q99999999999", "P248", is_reference=True), wbi_datatype.ExternalID("ENSG00000123374", "P594", is_reference=True)]])]
+    statements = [wbi_datatype.ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[wbi_datatype.ItemID("Q99999999999", "P248", is_reference=True),
+                                                                                                wbi_datatype.ExternalID("ENSG00000123374", "P594", is_reference=True)]])]
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,
-    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=wbi_datatype.BaseDataType, engine=wbi_core.ItemEngine, use_refs=False)
+    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=wbi_datatype.BaseDataType, engine=wbi_core.ItemEngine,
+                                                    use_refs=False)
     statements = [wbi_datatype.ExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert not frc.write_required(data=statements)
 
     # fastrun don't check references, statement has reference,
-    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=wbi_datatype.BaseDataType, engine=wbi_core.ItemEngine, use_refs=False)
+    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=wbi_datatype.BaseDataType, engine=wbi_core.ItemEngine,
+                                                    use_refs=False)
     statements = [wbi_datatype.ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[wbi_datatype.ItemID("Q123", "P31", is_reference=True)]])]
     assert not frc.write_required(data=statements)
 
