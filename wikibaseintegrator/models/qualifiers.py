@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, List, Union
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -9,7 +10,7 @@ if TYPE_CHECKING:
     from wikibaseintegrator.models.claims import Claim
 
 
-class Qualifiers:
+class Qualifiers(BaseModel):
     def __init__(self):
         self.qualifiers = {}
 
@@ -78,11 +79,3 @@ class Qualifiers:
 
     def __len__(self):
         return len(self.qualifiers)
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )

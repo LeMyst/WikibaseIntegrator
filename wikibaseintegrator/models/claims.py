@@ -3,13 +3,14 @@ from __future__ import annotations
 import copy
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import Reference, References
 from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 
-class Claims:
+class Claims(BaseModel):
     def __init__(self):
         self.claims = {}
 
@@ -107,16 +108,8 @@ class Claims:
             iterate.extend(claim)
         return iter(iterate)
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class Claim:
+class Claim(BaseModel):
     DTYPE = 'claim'
 
     def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: Union[References, List[Union[Claim, List[Claim]]]] = None) -> None:
@@ -286,14 +279,6 @@ class Claim:
         if isinstance(other, Claim):
             return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
         raise TypeError
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
     def equals(self, that: Claim, include_ref: bool = False, fref: Callable = None) -> bool:
         """

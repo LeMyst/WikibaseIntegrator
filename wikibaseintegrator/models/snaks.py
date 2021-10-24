@@ -3,10 +3,11 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
-class Snaks:
+class Snaks(BaseModel):
     def __init__(self):
         self.snaks = {}
 
@@ -48,16 +49,8 @@ class Snaks:
     def __len__(self):
         return len(self.snaks)
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class Snak:
+class Snak(BaseModel):
     def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str = None, hash: str = None, datavalue: Dict = None, datatype: str = None):
         self.snaktype = snaktype
         self.property_number = property_number
@@ -145,11 +138,3 @@ class Snak:
 
     def __eq__(self, other):
         return self.snaktype == other.snaktype and self.property_number == other.property_number and self.datatype == other.datatype and self.datavalue == other.datavalue
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )

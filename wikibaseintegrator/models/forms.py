@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Union
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 
 
-class Forms:
+class Forms(BaseModel):
     def __init__(self):
         self.forms = {}
 
@@ -39,16 +40,8 @@ class Forms:
 
         return json_data
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class Form:
+class Form(BaseModel):
     def __init__(self, form_id: str = None, representations: Representations = None, grammatical_features: Union[str, int, List[str]] = None, claims: Claims = None):
         self.id = form_id
         self.representations: Representations = representations or LanguageValues()
@@ -118,14 +111,6 @@ class Form:
             del json_data['id']
 
         return json_data
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
 
 class Representations(LanguageValues):

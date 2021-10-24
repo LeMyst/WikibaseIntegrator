@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
-class Senses:
+class Senses(BaseModel):
     def __init__(self):
         self.senses = []
 
@@ -36,16 +37,8 @@ class Senses:
 
         return json_data
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class Sense:
+class Sense(BaseModel):
     def __init__(self, sense_id: str = None, glosses: Glosses = None, claims: Claims = None):
         self.id = sense_id
         self.glosses: LanguageValues = glosses or Glosses()
@@ -78,14 +71,6 @@ class Sense:
     def remove(self) -> Sense:
         self.removed = True
         return self
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
 
 class Glosses(LanguageValues):

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Union
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
-class Aliases:
+class Aliases(BaseModel):
     def __init__(self, language: str = None, value: str = None):
         self.aliases: Dict[str, str] = {}
 
@@ -90,14 +91,6 @@ class Aliases:
     # def __contains__(self, item):
     #     all_aliases = [item for sublist in list(self.aliases.values()) for item in sublist]
     #     return item in list(map(lambda x: x.value, all_aliases))
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
 
 class Alias(LanguageValue):

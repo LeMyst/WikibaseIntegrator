@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
+from wikibaseintegrator.models.basemodel import BaseModel
 
-class Sitelinks:
+
+class Sitelinks(BaseModel):
     def __init__(self):
         self.sitelinks: Dict[str, Sitelink] = {}
 
@@ -24,16 +26,8 @@ class Sitelinks:
 
         return self
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class Sitelink:
+class Sitelink(BaseModel):
     def __init__(self, site: str = None, title: str = None, badges: List[str] = None):
         self.site = site
         self.title = title
@@ -41,11 +35,3 @@ class Sitelink:
 
     def __str__(self):
         return self.title
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )

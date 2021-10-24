@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Dict, Optional
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
-class LanguageValues:
+class LanguageValues(BaseModel):
     def __init__(self):
         self.values = {}
 
@@ -65,16 +66,8 @@ class LanguageValues:
     def __iter__(self):
         return iter(self.values.values())
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class LanguageValue:
+class LanguageValue(BaseModel):
     def __init__(self, language: str, value: str = None):
         self.language = language
         self.value = value
@@ -147,11 +140,3 @@ class LanguageValue:
 
     def __str__(self):
         return self.value
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
