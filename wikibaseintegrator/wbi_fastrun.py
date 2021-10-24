@@ -319,7 +319,7 @@ class FastRunContainer:
         all_lang_strings = {x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type)}
 
         if action_if_exists == ActionIfExists.REPLACE:
-            return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(), lang_data))
+            return collections.Counter(all_lang_strings) != collections.Counter(map(lambda x: x.casefold(), lang_data))
 
         for s in lang_data:
             if s.strip().casefold() not in all_lang_strings:
