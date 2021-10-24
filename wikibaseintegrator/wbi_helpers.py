@@ -68,11 +68,9 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 
         response.raise_for_status()
         json_data = response.json()
-        """
-        Mediawiki api response has code = 200 even if there are errors.
-        rate limit doesn't return HTTP 429 either. may in the future
-        https://phabricator.wikimedia.org/T172293
-        """
+        # Mediawiki api response has code = 200 even if there are errors.
+        # Rate limit doesn't return HTTP 429 either, may in the future.
+        # https://phabricator.wikimedia.org/T172293
         if 'error' in json_data:
             # rate limiting
             error_msg_names = set()
@@ -391,7 +389,7 @@ def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: 
     if isinstance(entities, str):
         entities = [entities]
 
-    assert type(entities) == list
+    assert isinstance(entities, list)
 
     params = {
         'action': 'wbgetentities',

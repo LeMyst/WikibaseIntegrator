@@ -1,5 +1,3 @@
-from typing import Dict, Union
-
 """
 Config global options
 Options can be changed at run time. See tests/test_backoff.py for usage example
@@ -13,6 +11,8 @@ BACKOFF_MAX_VALUE: maximum number of seconds to wait before retrying. wait time 
 USER_AGENT:        Complementary user agent string used for http requests. Both to Wikibase api, query service and others.
                    See: https://meta.wikimedia.org/wiki/User-Agent_policy
 """
+
+from typing import Dict, Union
 
 config: Dict[str, Union[str, int, None, bool]] = {
     'BACKOFF_MAX_TRIES': 5,

@@ -234,10 +234,8 @@ class FastRunContainer:
                     bool_vec.append(x.equals(date, include_ref=self.use_refs))
                 else:
                     bool_vec.append(False)
-            """
-            bool_vec = [x.equals(date, include_ref=self.use_refs, fref=self.ref_comparison_f) and
-            x.mainsnak.property_number not in del_props for x in tmp_rs]
-            """
+            # bool_vec = [x.equals(date, include_ref=self.use_refs, fref=self.ref_comparison_f) and
+            # x.mainsnak.property_number not in del_props for x in tmp_rs]
 
             if self.debug:
                 print(f"bool_vec: {bool_vec}")
@@ -319,7 +317,7 @@ class FastRunContainer:
         all_lang_strings = {x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type)}
 
         if action_if_exists == ActionIfExists.REPLACE:
-            return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(), lang_data))
+            return collections.Counter(all_lang_strings) != collections.Counter(map(lambda x: x.casefold(), lang_data))
 
         for s in lang_data:
             if s.strip().casefold() not in all_lang_strings:
@@ -383,7 +381,7 @@ class FastRunContainer:
 
                 # Note: no-value and some-value don't actually show up in the results here
                 # see for example: select * where { wd:Q7207 p:P40 ?c . ?c ?d ?e }
-                if type(i['v']) is not dict:
+                if not isinstance(i['v'], dict):
                     self.rev_lookup[i['v']].add(i['item'])
                     if self.case_insensitive:
                         self.rev_lookup_ci[i['v'].casefold()].add(i['item'])
@@ -449,11 +447,11 @@ class FastRunContainer:
         num_pages = None
         if self.debug:
             # get the number of pages/queries so we can show a progress bar
-            query = """
+            query = f"""
             SELECT (COUNT(?item) as ?c) where {{
-                  {base_filter}
-                  ?item <{wb_url}/prop/{prop_nr}> ?sid .
-            }}""".format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
+                  {self.base_filter_string}
+                  ?item <{self.wikibase_url}/prop/{prop_nr}> ?sid .
+            }}"""
 
             if self.debug:
                 print(query)
@@ -576,16 +574,16 @@ class FastRunContainer:
             'aliases': 'skos:altLabel'
         }
 
-        query = '''
+        query = f'''
         #Tool: WikibaseIntegrator wbi_fastrun._query_lang
         SELECT ?item ?label WHERE {{
-            {base_filter}
+            {self.base_filter_string}
 
             OPTIONAL {{
-                ?item {lang_data_type} ?label FILTER (lang(?label) = "{lang}") .
+                ?item {lang_data_type_dict[lang_data_type]} ?label FILTER (lang(?label) = "{lang}") .
             }}
         }}
-        '''.format(base_filter=self.base_filter_string, lang_data_type=lang_data_type_dict[lang_data_type], lang=lang)
+        '''
 
         if self.debug:
             print(query)
@@ -602,7 +600,7 @@ class FastRunContainer:
         return data
 
     @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr: str) -> Optional[str]:
+    def get_prop_datatype(self, prop_nr: str) -> Optional[str]:  # pylint: disable=no-self-use
         from wikibaseintegrator import WikibaseIntegrator
         wbi = WikibaseIntegrator()
         property = wbi.property.get(prop_nr)
@@ -619,7 +617,7 @@ class FastRunContainer:
 
     def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
+        return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),

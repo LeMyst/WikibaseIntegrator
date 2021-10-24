@@ -66,7 +66,7 @@ class TestWbiCore(unittest.TestCase):
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31') if not x.removed]
         removed_claims = [True for x in item.claims.get('P31') if x.removed]
         # Append claims to item, replace already existing claims with new ones, only one if it's the same property number
-        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims and claims.count('Q1234') == 1
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == len_claims_original and True in removed_claims and claims.count('Q1234') == 1
 
     def test_description(self):
         item = wbi.item.get('Q2')

@@ -12,7 +12,7 @@ def wbi_backoff_backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
     if exc_type == JSONDecodeError:
         print(exc_value.doc)  # pragma: no cover
-    print("Backing off {wait:0.1f} seconds afters {tries} tries calling function with args {args} and kwargs {kwargs}".format(**details))
+    print("Backing off {wait:0.1f} seconds afters {tries} tries calling function with args {args} and kwargs {kwargs}".format(**details))  # pylint: disable=consider-using-f-string
 
 
 def wbi_backoff_check_json_decode_error(e):
@@ -22,7 +22,7 @@ def wbi_backoff_check_json_decode_error(e):
     :param e:
     :return:
     """
-    return type(e) == JSONDecodeError and str(e) != "Expecting value: line 1 column 1 (char 0)"
+    return isinstance(e, JSONDecodeError) and str(e) != "Expecting value: line 1 column 1 (char 0)"
 
 
 wbi_backoff_exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError)

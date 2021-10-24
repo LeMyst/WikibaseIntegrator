@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -9,7 +10,7 @@ if TYPE_CHECKING:
     from wikibaseintegrator.models.claims import Claim
 
 
-class References:
+class References(BaseModel):
     def __init__(self):
         self.references = []
 
@@ -77,16 +78,8 @@ class References:
     def __len__(self):
         return len(self.references)
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
 
-
-class Reference:
+class Reference(BaseModel):
     def __init__(self, snaks: Snaks = None, snaks_order: List = None):
         self.hash = None
         self.snaks = snaks or Snaks()
@@ -148,11 +141,3 @@ class Reference:
 
     def __len__(self):
         return len(self.snaks)
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
-        )
