@@ -116,7 +116,7 @@ class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
         self.prop_data['Q14911732'] = {'P594': {
             'fake statement id': {
                 'qual': set(),
-                'ref': dict(),
+                'ref': {},
                 'v': 'ENSG00000123374'}}}
         self.rev_lookup = defaultdict(set)
         self.rev_lookup['ENSG00000123374'].add('Q14911732')
