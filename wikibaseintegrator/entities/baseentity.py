@@ -79,7 +79,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, **kwargs: Any) -> Dict:
+    def _get(self, entity_id: str, **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
         """
         retrieve an item in json representation from the Wikibase instance
 
@@ -224,7 +224,7 @@ class BaseEntity:
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
+        return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),

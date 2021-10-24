@@ -1,3 +1,7 @@
+"""
+Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
+"""
+
 import time
 import webbrowser
 from typing import Optional
@@ -12,10 +16,6 @@ from requests_oauthlib import OAuth1, OAuth2, OAuth2Session
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import get_user_agent
-
-"""
-Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
-"""
 
 
 class Login:
@@ -119,7 +119,7 @@ class Login:
                 if 'login' in login_result and login_result['login']['result'] == 'Success':
                     print("Successfully logged in as", login_result['login']['lgusername'])
                 else:
-                    raise LoginError("Login failed. Reason: '{}'".format(login_result['login']['reason']))
+                    raise LoginError(f"Login failed. Reason: '{login_result['login']['reason']}'")
             else:
                 params = {
                     'action': 'clientlogin',
@@ -138,17 +138,17 @@ class Login:
                 if 'clientlogin' in login_result:
                     clientlogin = login_result['clientlogin']
                     if clientlogin['status'] != 'PASS':
-                        raise LoginError("Login failed ({}). Message: '{}'".format(clientlogin['messagecode'], clientlogin['message']))
+                        raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
 
                     if debug:
                         print("Successfully logged in as", clientlogin['username'])
                 else:
-                    raise LoginError("Login failed ({}). Message: '{}'".format(login_result['error']['code'], login_result['error']['info']))
+                    raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
 
             if 'warnings' in login_result:
                 print("MediaWiki login warnings messages:")
                 for message in login_result['warnings']:
-                    print("* {}: {}".format(message, login_result['warnings'][message]['*']))
+                    print(f"* {message}: {login_result['warnings'][message]['*']}")
 
             self.generate_edit_credentials()
 
@@ -165,7 +165,7 @@ class Login:
         }
         response = self.session.get(self.mediawiki_api_url, params=params).json()
         if 'error' in response:
-            raise LoginError("Login failed ({}). Message: '{}'".format(response['error']['code'], response['error']['info']))
+            raise LoginError(f"Login failed ({response['error']['code']}). Message: '{response['error']['info']}'")
         self.edit_token = response['query']['tokens']['csrftoken']
 
         return self.session.cookies

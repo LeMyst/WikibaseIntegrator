@@ -35,7 +35,7 @@ class Forms(BaseModel):
 
     def get_json(self) -> List[Dict]:
         json_data: List[Dict] = []
-        for key, form in self.forms.items():
+        for _, form in self.forms.items():
             json_data.append(form.get_json())
 
         return json_data
