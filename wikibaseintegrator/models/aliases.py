@@ -74,10 +74,10 @@ class Aliases(BaseModel):
 
     def get_json(self) -> Dict[str, list]:
         json_data: Dict[str, list] = {}
-        for language in self.aliases:
+        for language, aliases in self.aliases.items():
             if language not in json_data:
                 json_data[language] = []
-            for alias in self.aliases[language]:
+            for alias in aliases:
                 json_data[language].append(alias.get_json())
         return json_data
 

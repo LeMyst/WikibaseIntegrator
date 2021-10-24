@@ -12,7 +12,7 @@ class Forms(BaseModel):
         self.forms = {}
 
     @property
-    def forms(self):
+    def forms(self) -> Dict:
         return self.__forms
 
     @forms.setter
@@ -35,8 +35,8 @@ class Forms(BaseModel):
 
     def get_json(self) -> List[Dict]:
         json_data: List[Dict] = []
-        for form in self.forms:
-            json_data.append(self.forms[form].get_json())
+        for key, form in self.forms.items():
+            json_data.append(form.get_json())
 
         return json_data
 

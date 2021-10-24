@@ -58,8 +58,8 @@ class LanguageValues(BaseModel):
 
     def get_json(self) -> Dict[str, Dict]:
         json_data: Dict[str, Dict] = {}
-        for value in self.values:
-            json_data[value] = self.values[value].get_json()
+        for language, language_value in self.values.items():
+            json_data[language] = language_value.get_json()
 
         return json_data
 

@@ -89,10 +89,10 @@ class Claims(BaseModel):
 
     def get_json(self) -> Dict[str, list]:
         json_data: Dict[str, list] = {}
-        for property in self.claims:
+        for property, claims in self.claims.items():
             if property not in json_data:
                 json_data[property] = []
-            for claim in self.claims[property]:
+            for claim in claims:
                 json_data[property].append(claim.get_json())
         return json_data
 

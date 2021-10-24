@@ -33,10 +33,10 @@ class Snaks(BaseModel):
 
     def get_json(self) -> Dict[str, list]:
         json_data: Dict[str, list] = {}
-        for property in self.snaks:
+        for property, snaks in self.snaks.items():
             if property not in json_data:
                 json_data[property] = []
-            for snak in self.snaks[property]:
+            for snak in snaks:
                 json_data[property].append(snak.get_json())
         return json_data
 
