@@ -16,7 +16,6 @@ files = "wikibaseintegrator/**/*.py,test/*.py"
 max-line-length = 179
 disable = [
     "fixme",
-    "missing-docstring",
     "redefined-builtin",
     "invalid-name", # To remove later
     "too-few-public-methods",
