@@ -19,8 +19,8 @@ Changelog
 =========
 
 .. toctree::
+   :maxdepth: 5
    :caption: Miscellaneous
-   :hidden:
 
    changelog
 

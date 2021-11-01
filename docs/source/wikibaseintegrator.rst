@@ -1,5 +1,5 @@
-wikibaseintegrator package
-==========================
+wikibaseintegrator
+==================
 
 Subpackages
 -----------
@@ -25,11 +25,3 @@ Submodules
    wikibaseintegrator.wbi_helpers
    wikibaseintegrator.wbi_login
    wikibaseintegrator.wikibaseintegrator
-
-Module contents
----------------
-
-.. automodule:: wikibaseintegrator
-   :members:
-   :undoc-members:
-   :show-inheritance:

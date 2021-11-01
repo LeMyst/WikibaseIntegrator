@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes package
-====================================
+wikibaseintegrator.datatypes
+============================
 
 Subpackages
 -----------
@@ -33,11 +33,3 @@ Submodules
    wikibaseintegrator.datatypes.tabulardata
    wikibaseintegrator.datatypes.time
    wikibaseintegrator.datatypes.url
-
-Module contents
----------------
-
-.. automodule:: wikibaseintegrator.datatypes
-   :members:
-   :undoc-members:
-   :show-inheritance:

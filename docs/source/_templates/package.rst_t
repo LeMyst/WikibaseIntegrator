@@ -16,15 +16,11 @@
 {%- if is_namespace %}
 {{- [pkgname, "namespace"] | join(" ") | e | heading }}
 {% else %}
-{{- [pkgname, "package"] | join(" ") | e | heading }}
+{{- [pkgname] | join(" ") | e | heading }}
 {% endif %}
 
 {%- if is_namespace %}
 .. py:module:: {{ pkgname }}
-{% endif %}
-
-{%- if modulefirst and not is_namespace %}
-{{ automodule(pkgname, automodule_options) }}
 {% endif %}
 
 {%- if subpackages %}
@@ -35,8 +31,10 @@ Subpackages
 {% endif %}
 
 {%- if submodules %}
+{%- if subpackages %}
 Submodules
 ----------
+{%- endif %}
 {% if separatemodules %}
 {{ toctree(submodules) }}
 {% else %}
@@ -48,10 +46,3 @@ Submodules
 {% endfor %}
 {%- endif %}
 {%- endif %}
-
-{%- if not modulefirst and not is_namespace %}
-Module contents
----------------
-
-{{ automodule(pkgname, automodule_options) }}
-{% endif %}
