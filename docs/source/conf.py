@@ -34,7 +34,7 @@ extensions = ['sphinx.ext.autodoc',
 # sphinx_github_changelog_token = ""
 
 # Add any paths that contain templates here, relative to this directory.
-# templates_path = ['_templates']
+templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -75,6 +75,16 @@ pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
+
+autodoc_typehints = 'both'
+autodoc_default_options = {
+    'special-members': '__init__',
+    'members': True,
+    'undoc-members': True,
+    'inherited-members': True,
+    'show-inheritance': True,
+    'exclude-members': 'subclasses'
+}
 
 # -- Options for HTML output ----------------------------------------------
 

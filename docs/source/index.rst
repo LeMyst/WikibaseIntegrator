@@ -4,21 +4,23 @@ WikibaseIntegrator
 ==================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
 
    wikibaseintegrator
 
+..
+   README
+   ======
 
-README
-======
-
-.. mdinclude:: ../../README.md
+   .. mdinclude:: ../../README.md
 
 
 Changelog
 =========
 
 .. toctree::
+   :caption: Miscellaneous
+   :hidden:
 
    changelog
 
