@@ -20,4 +20,7 @@ exclude_lines =
     if 0:
     if __name__ == .__main__.:
 
+# Don't complain about TYPE_CHECKING specific imports:
+    if TYPE_CHECKING:
+
 ignore_errors = True

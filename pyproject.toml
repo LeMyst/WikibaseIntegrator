@@ -4,3 +4,27 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.isort]
+line_length = 179
+
+[tool.mypy]
+ignore_missing_imports = true
+files = "wikibaseintegrator/**/*.py,test/*.py"
+
+[tool.pylint.messages_control]
+max-line-length = 179
+disable = [
+    "fixme",
+    "missing-docstring",
+    "redefined-builtin",
+    "invalid-name", # To remove later
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-statements",
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "import-outside-toplevel"  # To remove later
+]
+

@@ -1,5 +1,8 @@
-from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator
-from wikibaseintegrator.datatypes import BaseDataType, Item, ExternalID
+from collections import defaultdict
+from typing import Any
+
+from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
+from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -38,7 +41,7 @@ def test_query_data():
     assert list(frc.prop_data['Q10874']['P828'].values())[0]['v'] == "Q18228398"
 
     # uri
-    v = set([x['v'] for x in frc.prop_data['Q10874']['P2888'].values()])
+    v = {x['v'] for x in frc.prop_data['Q10874']['P2888'].values()}
     assert all(y.startswith("http") for y in v)
 
 
@@ -92,8 +95,8 @@ def test_query_data_ref():
 
 
 class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
-    def __init__(self, *args, **kwargs):
-        super(FastRunContainerFakeQueryDataEnsembl, self).__init__(*args, **kwargs)
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
         self.prop_data['Q14911732'] = {'P594': {
             'fake statement id': {
@@ -102,38 +105,38 @@ class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
                     ('P248', 'Q29458763'),  # stated in ensembl Release 88
                     ('P594', 'ENSG00000123374')}},
                 'v': 'ENSG00000123374'}}}
-        self.rev_lookup = {'ENSG00000123374': {'Q14911732'}}
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['ENSG00000123374'].add('Q14911732')
 
 
 class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
-    def __init__(self, *args, **kwargs):
-        super(FastRunContainerFakeQueryDataEnsemblNoRef, self).__init__(*args, **kwargs)
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
         self.prop_dt_map = {'P248': 'wikibase-item', 'P594': 'external-id'}
         self.prop_data['Q14911732'] = {'P594': {
             'fake statement id': {
                 'qual': set(),
-                'ref': dict(),
+                'ref': {},
                 'v': 'ENSG00000123374'}}}
-        self.rev_lookup = {'ENSG00000123374': {'Q14911732'}}
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['ENSG00000123374'].add('Q14911732')
 
 
 def test_fastrun_ref_ensembl():
     # fastrun checks refs
     frc = FastRunContainerFakeQueryDataEnsembl(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
+    frc.debug = True
 
     # statement has no ref
-    frc.debug = True
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert frc.write_required(data=statements)
 
     # statement has the same ref
-    statements = [
-        ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q29458763", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594")]])]
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q29458763", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594")]])]
     assert not frc.write_required(data=statements)
 
     # new statement has an different stated in
-    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594',
-                             references=[[Item("Q99999999999", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594", )]])]
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q99999999999", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594", )]])]
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,
@@ -149,15 +152,16 @@ def test_fastrun_ref_ensembl():
 
 class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
     # an item with three values for the same property
-    def __init__(self, *args, **kwargs):
-        super(FakeQueryDataAppendProps, self).__init__(*args, **kwargs)
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
         self.debug = True
         self.prop_dt_map = {'P527': 'wikibase-item', 'P248': 'wikibase-item', 'P594': 'external-id'}
-        self.rev_lookup = {
-            'Q24784025': {'Q3402672'},
-            'Q24743729': {'Q3402672'},
-            'Q24782625': {'Q3402672'},
-        }
+
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['Q24784025'].add('Q3402672')
+        self.rev_lookup['Q24743729'].add('Q3402672')
+        self.rev_lookup['Q24782625'].add('Q3402672')
+
         self.prop_data['Q3402672'] = {'P527': {
             'Q3402672-11BA231B-857B-498B-AC4F-91D71EE007FD': {'qual': set(),
                                                               'ref': {

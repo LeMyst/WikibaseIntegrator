@@ -1,12 +1,20 @@
+from __future__ import annotations
+
 import datetime
 from time import sleep
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import requests
+from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.entities.baseentity import BaseEntity
+    from wikibaseintegrator.wbi_login import Login
 
 
 class BColors:
@@ -21,7 +29,7 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries=1000, retry_after=60, **kwargs):
+def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
     """
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
@@ -34,7 +42,7 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
     :return:
     """
 
-    mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
+    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
 
     # TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
 
@@ -48,31 +56,29 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
     session = session if session else requests.Session()
     for n in range(max_retries):
         try:
-            response = session.request(method, mediawiki_api_url, **kwargs)
+            response = session.request(method=method, url=mediawiki_api_url, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
+            print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:
-            print("service unavailable. sleeping for {} seconds".format(retry_after))
+        if response.status_code in (500, 502, 503, 504):
+            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
 
         response.raise_for_status()
         json_data = response.json()
-        """
-        Mediawiki api response has code = 200 even if there are errors.
-        rate limit doesn't return HTTP 429 either. may in the future
-        https://phabricator.wikimedia.org/T172293
-        """
+        # Mediawiki api response has code = 200 even if there are errors.
+        # Rate limit doesn't return HTTP 429 either, may in the future.
+        # https://phabricator.wikimedia.org/T172293
         if 'error' in json_data:
             # rate limiting
             error_msg_names = set()
             if 'messages' in json_data['error']:
-                error_msg_names = set(x.get('name') for x in json_data['error']['messages'])
-            if 'actionthrottledtext' in error_msg_names:
+                error_msg_names = {x.get('name') for x in json_data['error']['messages']}
+            if 'actionthrottledtext' in error_msg_names:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
-                print("{}: rate limited. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
+                print(f"{datetime.datetime.utcnow()}: rate limited. sleeping for {sleep_sec} seconds")
                 sleep(sleep_sec)
                 continue
 
@@ -85,13 +91,13 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                print("{}: maxlag. sleeping for {} seconds".format(datetime.datetime.utcnow(), sleep_sec))
+                print(f"{datetime.datetime.utcnow()}: maxlag. sleeping for {sleep_sec} seconds")
                 sleep(sleep_sec)
                 continue
 
             # readonly
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
-                print('The Wikibase instance is currently in readonly mode, waiting for {} seconds'.format(retry_after))
+            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
+                print(f'The Wikibase instance is currently in readonly mode, waiting for {retry_after} seconds')
                 sleep(retry_after)
                 continue
 
@@ -109,11 +115,13 @@ def mediawiki_api_call(method, mediawiki_api_url=None, session=None, max_retries
     return json_data
 
 
-def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, user_agent=None, allow_anonymous=False, max_retries=1000, retry_after=60, is_bot=False, **kwargs):
-    mediawiki_api_url = config['MEDIAWIKI_API_URL'] if mediawiki_api_url is None else mediawiki_api_url
-    user_agent = config['USER_AGENT'] if user_agent is None else user_agent
+def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
+                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
+    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
-    if urlparse(mediawiki_api_url).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+    hostname = urlparse(mediawiki_api_url).hostname
+    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
         print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
         print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
@@ -149,8 +157,8 @@ def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, use
             # Always assert anon if allow_anonymous is True
             data.update({'assert': 'anon'})
 
-        if config['MAXLAG'] > 0:
-            data.update({'maxlag': config['MAXLAG']})
+        if maxlag > 0:
+            data.update({'maxlag': maxlag})
 
     login_session = login.get_session() if login is not None else None
 
@@ -159,14 +167,14 @@ def mediawiki_api_call_helper(data=None, login=None, mediawiki_api_url=None, use
 
 
 @wbi_backoff()
-def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max_retries=1000, retry_after=60, debug=False):
+def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60,
+                         debug: bool = False) -> Optional[Dict[str, dict]]:
     """
     Static method which can be used to execute any SPARQL query
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-    :type user_agent: str
     :param max_retries: The number time this function should retry in case of header reports.
     :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
     :param debug: Enable debug output.
@@ -174,10 +182,11 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
     :return: The results of the query are returned in JSON format
     """
 
-    sparql_endpoint_url = config['SPARQL_ENDPOINT_URL'] if endpoint is None else endpoint
-    user_agent = (config['USER_AGENT'] if user_agent is None else user_agent)
+    sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
-    if urlparse(sparql_endpoint_url).hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+    hostname = urlparse(sparql_endpoint_url).hostname
+    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
         print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
         print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
@@ -202,17 +211,17 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
         try:
             response = requests.post(sparql_endpoint_url, params=params, headers=headers)
         except requests.exceptions.ConnectionError as e:
-            print("Connection error: {}. Sleeping for {} seconds.".format(e, retry_after))
+            print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
-        if response.status_code == 503:
-            print("Service unavailable (503). Sleeping for {} seconds".format(retry_after))
+        if response.status_code in (500, 502, 503, 504):
+            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
         if response.status_code == 429:
             if 'retry-after' in response.headers.keys():
-                retry_after = response.headers['retry-after']
-            print("Too Many Requests (429). Sleeping for {} seconds".format(retry_after))
+                retry_after = int(response.headers['retry-after'])
+            print(f"Too Many Requests (429). Sleeping for {retry_after} seconds")
             sleep(retry_after)
             continue
         response.raise_for_status()
@@ -220,121 +229,104 @@ def execute_sparql_query(query, prefix=None, endpoint=None, user_agent=None, max
 
         return results
 
+    return None
 
-def merge_items(from_id, to_id, ignore_conflicts='', **kwargs):
+
+def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
-    :param from_id: The QID which should be merged into another item
-    :type from_id: string with 'Q' prefix
-    :param to_id: The QID into which another item should be merged
-    :type to_id: string with 'Q' prefix
-    :param mediawiki_api_url: The MediaWiki url which should be used
-    :type mediawiki_api_url: str
-    :param ignore_conflicts: A string with the values 'description', 'statement' or 'sitelink', separated by a pipe ('|') if using more than one of those.
-    :type ignore_conflicts: str
-    :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
-    :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
-    :type allow_anonymous: bool
-    :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-    :type user_agent: str
+
+    :param from_id: The ID to merge from. This parameter is required.
+    :param to_id: The ID to merge to. This parameter is required.
+    :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
+    :param is_bot: Mark this edit as bot.
     """
 
     params = {
         'action': 'wbmergeitems',
         'fromid': from_id,
         'toid': to_id,
-        'format': 'json',
-        'bot': '',
-        'ignoreconflicts': ignore_conflicts
+        'format': 'json'
     }
+
+    if ignore_conflicts is not None:
+        params.update({'ignoreconflicts': '|'.join(ignore_conflicts)})
+
+    if is_bot:
+        params.update({'bot': ''})
 
     return mediawiki_api_call_helper(data=params, **kwargs)
 
 
-def merge_lexemes(source, target, summary=None, **kwargs):
+def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
 
-    :param source: The QID which should be merged into another item
-    :type source: string with 'Q' prefix
-    :param target: The QID into which another item should be merged
-    :type target: string with 'Q' prefix
+    :param source: The ID to merge from. This parameter is required.
+    :param target: The ID to merge to. This parameter is required.
+    :param summary: Summary for the edit.
+    :param is_bot: Mark this edit as bot.
     """
 
     params = {
         'action': 'wblmergelexemes',
         'fromid': source,
         'toid': target,
-        'format': 'json',
-        'bot': ''
-    }
-
-    if summary:
-        params.update({'summary': summary})
-
-    return mediawiki_api_call_helper(data=params, **kwargs)
-
-
-def remove_claims(claim_id, summary=None, revision=None, **kwargs):
-    """
-    Delete an item
-    :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
-    :type claim_id: string
-    :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
-    :type summary: str
-    :param revision: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
-    :type revision: str
-    :param mediawiki_api_url: The MediaWiki url which should be used
-    :type mediawiki_api_url: str
-    :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
-    :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
-    :type allow_anonymous: bool
-    :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-    :type user_agent: str
-    """
-
-    params = {
-        'action': 'wbremoveclaims',
-        'claim': claim_id,
-        'bot': '',
         'format': 'json'
     }
 
     if summary:
         params.update({'summary': summary})
 
-    if revision:
-        params.update({'revision': revision})
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Delete an item
+
+    :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
+    :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
+    :param baserevid: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
+    :param is_bot: Mark this edit as bot.
+    """
+
+    params: Dict[str, Union[str, int]] = {
+        'action': 'wbremoveclaims',
+        'claim': claim_id,
+        'format': 'json'
+    }
+
+    if summary:
+        params.update({'summary': summary})
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if is_bot:
+        params.update({'bot': ''})
 
     return mediawiki_api_call_helper(data=params, **kwargs)
 
 
-def search_entities(search_string, language=None, strict_language=True, search_type='item', max_results=500, dict_result=False, allow_anonymous=True, **kwargs):
+def search_entities(search_string: str, language: str = None, strict_language: bool = True, search_type: str = 'item', max_results: int = 500, dict_result: bool = False,
+                    allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
+
     :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
-    :type search_string: str
     :param language: The language in which to perform the search.
-    :type language: str
     :param strict_language: Whether to disable language fallback
-    :type strict_language: bool
     :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
-    :type search_type: str
-    :param mediawiki_api_url: Specify the mediawiki_api_url.
-    :type mediawiki_api_url: str
     :param max_results: The maximum number of search results returned. Default 500
-    :type max_results: int
     :param dict_result:
-    :type dict_result: boolean
-    :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
     :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
-    :type allow_anonymous: bool
-    :param user_agent: The user agent string transmitted in the http header
-    :type user_agent: str
-    :return: list
     """
 
-    language = config['DEFAULT_LANGUAGE'] if language is None else language
+    language = str(language or config['DEFAULT_LANGUAGE'])
 
     params = {
         'action': 'wbsearchentities',
@@ -382,20 +374,14 @@ def search_entities(search_string, language=None, strict_language=True, search_t
     return results
 
 
-def generate_entity_instances(entities, allow_anonymous=True, **kwargs):
+def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: bool = True, **kwargs: Any) -> List[Tuple[str, BaseEntity]]:
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
     second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
-    :param user_agent: A custom user agent
-    :type user_agent: str
+
     :param entities: A list of IDs. Item, Property or Lexeme.
-    :type entities: list, str
-    :param mediawiki_api_url: The MediaWiki url which should be used
-    :type mediawiki_api_url: str
-    :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
-    :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
     :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
-    :type allow_anonymous: bool
+    :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
     """
 
     from wikibaseintegrator.entities.baseentity import BaseEntity
@@ -403,7 +389,7 @@ def generate_entity_instances(entities, allow_anonymous=True, **kwargs):
     if isinstance(entities, str):
         entities = [entities]
 
-    assert type(entities) == list
+    assert isinstance(entities, list)
 
     params = {
         'action': 'wbgetentities',
@@ -424,22 +410,22 @@ def generate_entity_instances(entities, allow_anonymous=True, **kwargs):
     return entity_instances
 
 
-def format_amount(amount) -> str:
+def format_amount(amount: Union[int, str, float]) -> str:
     # Remove .0 by casting to int
     if float(amount) % 1 == 0:
         amount = int(float(amount))
 
     # Adding prefix + for positive number and 0
     if not str(amount).startswith('+') and float(amount) >= 0:
-        amount = str('+{}'.format(amount))
+        amount = str(f'+{amount}')
 
     # return as string
     return str(amount)
 
 
-def get_user_agent(user_agent):
+def get_user_agent(user_agent: Optional[str]) -> str:
     from wikibaseintegrator import __version__
-    wbi_user_agent = "WikibaseIntegrator/{}".format(__version__)
+    wbi_user_agent = f"WikibaseIntegrator/{__version__}"
 
     if user_agent is None:
         return_user_agent = wbi_user_agent
@@ -448,10 +434,9 @@ def get_user_agent(user_agent):
 
     return return_user_agent
 
-
-def __deepcopy__(memo):
-    # Don't return a copy of the module
-    # Deepcopy don't allow copy of modules (https://bugs.python.org/issue43093)
-    # It's really the good way to solve this?
-    from wikibaseintegrator import wikibaseintegrator
-    return wikibaseintegrator.wbi_helpers
+# def __deepcopy__(memo):
+#     # Don't return a copy of the module
+#     # Deepcopy don't allow copy of modules (https://bugs.python.org/issue43093)
+#     # It's really the good way to solve this?
+#     from wikibaseintegrator import wikibaseintegrator
+#     return wikibaseintegrator.wbi_helpers

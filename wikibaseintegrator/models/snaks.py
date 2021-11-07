@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import Any, Dict
 
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
-class Snaks:
+class Snaks(BaseModel):
     def __init__(self):
         self.snaks = {}
 
-    def get(self, property=None):
+    def get(self, property: str = None) -> Snak:
         return self.snaks[property]
 
-    def add(self, snak: Optional[Snak] = None):
+    def add(self, snak: Snak) -> Snaks:
         property = snak.property_number
 
         if property not in self.snaks:
@@ -23,19 +24,19 @@ class Snaks:
 
         return self
 
-    def from_json(self, json_data) -> Snaks:
+    def from_json(self, json_data: Dict[str, list]) -> Snaks:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(snak=Snak().from_json(snak))
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
-        for property in self.snaks:
+    def get_json(self) -> Dict[str, list]:
+        json_data: Dict[str, list] = {}
+        for property, snaks in self.snaks.items():
             if property not in json_data:
                 json_data[property] = []
-            for snak in self.snaks[property]:
+            for snak in snaks:
                 json_data[property].append(snak.get_json())
         return json_data
 
@@ -48,17 +49,9 @@ class Snaks:
     def __len__(self):
         return len(self.snaks)
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
 
-
-class Snak:
-    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number=None, hash=None, datavalue=None, datatype=None):
+class Snak(BaseModel):
+    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str = None, hash: str = None, datavalue: Dict = None, datatype: str = None):
         self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash
@@ -119,7 +112,7 @@ class Snak:
     def datatype(self, value):
         self.__datatype = value
 
-    def from_json(self, json_data) -> Snak:
+    def from_json(self, json_data: Dict[str, Any]) -> Snak:
         self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
         self.property_number = json_data['property']
         if 'hash' in json_data:
@@ -130,7 +123,7 @@ class Snak:
             self.datatype = json_data['datatype']
         return self
 
-    def get_json(self) -> {}:
+    def get_json(self) -> Dict[str, str]:
         json_data = {
             'snaktype': self.snaktype.value,
             'property': self.property_number,
@@ -145,11 +138,3 @@ class Snak:
 
     def __eq__(self, other):
         return self.snaktype == other.snaktype and self.property_number == other.property_number and self.datatype == other.datatype and self.datavalue == other.datavalue
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )

@@ -1,8 +1,13 @@
+from __future__ import annotations
+
+from typing import Dict, Optional
+
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
-class LanguageValues:
+class LanguageValues(BaseModel):
     def __init__(self):
         self.values = {}
 
@@ -14,7 +19,7 @@ class LanguageValues:
     def values(self, value):
         self.__values = value
 
-    def add(self, language_value):
+    def add(self, language_value: LanguageValue) -> LanguageValues:
         assert isinstance(language_value, LanguageValue)
 
         if language_value.value:
@@ -22,15 +27,15 @@ class LanguageValues:
 
         return self
 
-    def get(self, language=None):
-        language = language or config['DEFAULT_LANGUAGE']
+    def get(self, language: str = None) -> Optional[LanguageValue]:
+        language = str(language or config['DEFAULT_LANGUAGE'])
         if language in self.values:
             return self.values[language]
 
         return None
 
-    def set(self, language=None, value=None, action_if_exists=ActionIfExists.REPLACE):
-        language = language or config['DEFAULT_LANGUAGE']
+    def set(self, language: str = None, value: str = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Optional[LanguageValue]:
+        language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in [ActionIfExists.REPLACE, ActionIfExists.KEEP]
 
         # Remove value if None
@@ -45,32 +50,25 @@ class LanguageValues:
 
         return self.get(language=language)
 
-    def get_json(self) -> {}:
-        json_data = {}
-        for value in self.values:
-            json_data[value] = self.values[value].get_json()
-        return json_data
-
-    def from_json(self, json_data):
+    def from_json(self, json_data: Dict[str, Dict]) -> LanguageValues:
         for language_value in json_data:
-            self.set(language=json_data[language_value]['language'], value=json_data[language_value]['value'])
+            self.add(language_value=LanguageValue(language=json_data[language_value]['language']).from_json(json_data=json_data[language_value]))
 
         return self
+
+    def get_json(self) -> Dict[str, Dict]:
+        json_data: Dict[str, Dict] = {}
+        for language, language_value in self.values.items():
+            json_data[language] = language_value.get_json()
+
+        return json_data
 
     def __iter__(self):
         return iter(self.values.values())
 
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
 
-
-class LanguageValue:
-    def __init__(self, language, value=None):
+class LanguageValue(BaseModel):
+    def __init__(self, language: str, value: str = None):
         self.language = language
         self.value = value
         self.removed = False
@@ -108,11 +106,18 @@ class LanguageValue:
     def removed(self, value):
         self.__removed = value
 
-    def remove(self):
+    def remove(self) -> LanguageValue:
         self.removed = True
+
         return self
 
-    def get_json(self) -> {}:
+    def from_json(self, json_data: Dict[str, str]) -> LanguageValue:
+        self.language = json_data['language']
+        self.value = json_data['value']
+
+        return self
+
+    def get_json(self) -> Dict[str, str]:
         json_data = {
             'language': self.language,
             'value': self.value
@@ -135,11 +140,3 @@ class LanguageValue:
 
     def __str__(self):
         return self.value
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )

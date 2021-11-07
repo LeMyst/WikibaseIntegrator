@@ -1,5 +1,5 @@
-from wikibaseintegrator.wbi_exceptions import NonUniqueLabelDescriptionPairError, IDMissingError, SearchError, ManualInterventionReqException, CorePropIntegrityException, \
-    MergeError, MWApiError
+from wikibaseintegrator.wbi_exceptions import (CorePropIntegrityException, IDMissingError, ManualInterventionReqException, MergeError, MWApiError,
+                                               NonUniqueLabelDescriptionPairError, SearchError)
 
 
 def test_mwapierror():
