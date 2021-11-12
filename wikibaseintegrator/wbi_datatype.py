@@ -675,7 +675,7 @@ class GlobeCoordinate(BaseDataType):
         super().set_value(value=self.value)
 
     def get_sparql_value(self):
-        return 'Point(' + str(self.longitude) + ', ' + str(self.latitude) + ')'
+        return 'Point(' + str(self.longitude) + ' ' + str(self.latitude) + ')'
 
     @classmethod
     @JsonParser
