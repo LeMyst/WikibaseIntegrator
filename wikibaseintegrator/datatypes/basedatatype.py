@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, List, Type, Union
 
 from wikibaseintegrator.models import Claim
@@ -35,5 +36,28 @@ class BaseDataType(Claim):
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
 
+    def set_value(self, value: Any = None):
+        pass
+
     def _get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']
+        return '"' + self.mainsnak.datavalue['value'] + '"'
+
+    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+        if type == 'uri':
+            pattern = re.compile(r'^<?(.*?)>?$')
+            matches = pattern.match(value)
+            if not matches:
+                return False
+
+            self.set_value(value=matches.group(1))
+        elif type == 'literal':
+            pattern = re.compile(r'^"?(.*?)"?$')
+            matches = pattern.match(value)
+            if not matches:
+                return False
+
+            self.set_value(value=matches.group(1))
+        else:
+            raise ValueError
+
+        return True

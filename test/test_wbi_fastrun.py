@@ -19,7 +19,7 @@ def test_query_data():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     without getting references
     """
-    frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=BaseDataType)
+    frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P699')], base_data_type=BaseDataType)
     # get a string value
     frc._query_data('P699')
     # wikidata-item value
@@ -35,14 +35,14 @@ def test_query_data():
     d = frc.prop_data['Q10874']['P699'][statement_id]
     # d looks like: {'qual': set(), 'ref': {}, 'v': 'DOID:1432'}
     assert all(x in d for x in {'qual', 'ref', 'v'})
-    assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('DOID:')
+    assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('"DOID:')
 
     # item
     assert list(frc.prop_data['Q10874']['P828'].values())[0]['v'] == "Q18228398"
 
     # uri
     v = {x['v'] for x in frc.prop_data['Q10874']['P2888'].values()}
-    assert all(y.startswith("http") for y in v)
+    assert all(y.startswith("<http") for y in v)
 
 
 # # Fail too often
@@ -69,7 +69,7 @@ def test_query_data_ref():
     This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
     WITH getting references
     """
-    frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=BaseDataType, use_refs=True)
+    frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P699')], base_data_type=BaseDataType, use_refs=True)
     frc._query_data('P699')
 
     # https://www.wikidata.org/wiki/Q10874
@@ -87,7 +87,7 @@ def test_query_data_ref():
       'v': 'DOID:1432'}
     """
     assert all(x in d for x in {'qual', 'ref', 'v'})
-    assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('DOID:')
+    assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('"DOID:')
     assert len(d['ref']) > 0
     ref_id = list(d['ref'].keys())[0]
     ref = d['ref'][ref_id]
@@ -102,11 +102,14 @@ class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
             'fake statement id': {
                 'qual': set(),
                 'ref': {'fake ref id': {
-                    ('P248', 'Q29458763'),  # stated in ensembl Release 88
-                    ('P594', 'ENSG00000123374')}},
-                'v': 'ENSG00000123374'}}}
+                    ('P248',
+                     'Q106833387'),
+                    ('P594',
+                     'ENSG00000123374')}},
+                'unit': '1',
+                'v': '"ENSG00000123374"'}}}
         self.rev_lookup = defaultdict(set)
-        self.rev_lookup['ENSG00000123374'].add('Q14911732')
+        self.rev_lookup['"ENSG00000123374"'].add('Q14911732')
 
 
 class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
@@ -119,12 +122,12 @@ class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
                 'ref': {},
                 'v': 'ENSG00000123374'}}}
         self.rev_lookup = defaultdict(set)
-        self.rev_lookup['ENSG00000123374'].add('Q14911732')
+        self.rev_lookup['"ENSG00000123374"'].add('Q14911732')
 
 
 def test_fastrun_ref_ensembl():
     # fastrun checks refs
-    frc = FastRunContainerFakeQueryDataEnsembl(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
+    frc = FastRunContainerFakeQueryDataEnsembl(base_filter=[BaseDataType(prop_nr='P594'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType, use_refs=True)
     frc.debug = True
 
     # statement has no ref
@@ -132,7 +135,7 @@ def test_fastrun_ref_ensembl():
     assert frc.write_required(data=statements)
 
     # statement has the same ref
-    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q29458763", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594")]])]
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q106833387", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594")]])]
     assert not frc.write_required(data=statements)
 
     # new statement has an different stated in
@@ -140,12 +143,14 @@ def test_fastrun_ref_ensembl():
     assert frc.write_required(data=statements)
 
     # fastrun don't check references, statement has no reference,
-    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
+    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter=[BaseDataType(prop_nr='P594'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType,
+                                                    use_refs=False)
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert not frc.write_required(data=statements)
 
     # fastrun don't check references, statement has reference,
-    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter={'P594': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=False)
+    frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter=[BaseDataType(prop_nr='P594'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType,
+                                                    use_refs=False)
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q123", prop_nr="P31")]])]
     assert not frc.write_required(data=statements)
 
@@ -187,7 +192,7 @@ def test_append_props():
     # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
-    frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType)
+    frc = FakeQueryDataAppendProps(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, action_if_exists=ActionIfExists.APPEND, cqid=qid) is False
@@ -199,7 +204,7 @@ def test_append_props():
     assert frc.write_required(data=statements, cqid=qid) is True
 
     # if we are in append mode, and the refs are different, we should write
-    frc = FakeQueryDataAppendProps(base_filter={'P352': '', 'P703': 'Q15978631'}, base_data_type=BaseDataType, use_refs=True)
+    frc = FakeQueryDataAppendProps(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType, use_refs=True)
     # with append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid, action_if_exists=ActionIfExists.APPEND) is True

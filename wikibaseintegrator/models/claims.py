@@ -266,6 +266,7 @@ class Claim(BaseModel):
 
         return equal_qualifiers
 
+    # TODO: rewrite this?
     def __contains__(self, item):
         if isinstance(item, Claim):
             return self == item
@@ -273,12 +274,16 @@ class Claim(BaseModel):
         if isinstance(item, str):
             return self.mainsnak.datavalue == item
 
-        raise TypeError
+        return super().__contains__(item)
 
     def __eq__(self, other):
         if isinstance(other, Claim):
             return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
-        raise TypeError
+
+        if isinstance(other, str):
+            return self.mainsnak.property_number == other
+
+        raise super().__eq__(other)
 
     def equals(self, that: Claim, include_ref: bool = False, fref: Callable = None) -> bool:
         """

@@ -174,9 +174,9 @@ class BaseEntity:
             self.lastrevid = json_data['entity']['lastrevid']
         return json_data['entity']
 
-    def init_fastrun(self, base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False) -> None:
+    def init_fastrun(self, base_filter: List[BaseDataType] = None, use_refs: bool = False, case_insensitive: bool = False) -> None:
         if base_filter is None:
-            base_filter = {}
+            base_filter = []
 
         if self.debug:
             print('Initialize Fast Run init_fastrun')
@@ -196,24 +196,24 @@ class BaseEntity:
             self.fast_run_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
             BaseEntity.fast_run_store.append(self.fast_run_container)
 
-    def fr_search(self, **kwargs: Any) -> str:
-        self.init_fastrun(**kwargs)
+    # def fr_search(self, **kwargs: Any) -> str:
+    #     self.init_fastrun(**kwargs)
+    #
+    #     if self.fast_run_container is None:
+    #         raise ValueError("FastRunContainer is not initialized.")
+    #
+    #     self.fast_run_container.load_item(self.claims)
+    #
+    #     return self.fast_run_container.current_qid
 
-        if self.fast_run_container is None:
-            raise ValueError("FastRunContainer is not initialized.")
-
-        self.fast_run_container.load_item(self.claims)
-
-        return self.fast_run_container.current_qid
-
-    def write_required(self, base_filter: Dict[str, str] = None, **kwargs: Any) -> bool:
+    def write_required(self, base_filter: List[BaseDataType] = None, **kwargs: Any) -> bool:
         self.init_fastrun(base_filter=base_filter, **kwargs)
 
         if self.fast_run_container is None:
             raise ValueError("FastRunContainer is not initialized.")
 
         if base_filter is None:
-            base_filter = {}
+            base_filter = []
 
         claims_to_check = []
         for claim in self.claims:

@@ -25,7 +25,9 @@ class Property(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
+    def set_value(self, value: Union[str, int] = None):
         assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
 
         if value:

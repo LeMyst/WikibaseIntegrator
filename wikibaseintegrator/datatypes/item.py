@@ -24,7 +24,9 @@ class Item(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
+    def set_value(self, value: Union[str, int] = None):
         assert isinstance(value, (str, int)) or value is None, f'Expected str or int, found {type(value)} ({value})'
 
         if value:
@@ -47,4 +49,4 @@ class Item(BaseDataType):
             }
 
     def _get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']['id']
+        return '<{wb_url}/entity/' + self.mainsnak.datavalue['value']['id'] + '>'
