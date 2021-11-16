@@ -20,13 +20,13 @@ fastrun_store: List[FastRunContainer] = []
 
 class FastRunContainer:
     def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
-                 base_filter: List[BaseDataType] = None, use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
+                 base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
         self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
         self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
         self.prop_data: Dict[str, dict] = {}
         self.loaded_langs: Dict[str, dict] = {}
-        self.base_filter: List[BaseDataType] = []
+        self.base_filter: List[BaseDataType | List[BaseDataType]] = []
         self.base_filter_string = ''
         self.prop_dt_map: Dict[str, str] = {}
         self.current_qid = ''
@@ -45,19 +45,24 @@ class FastRunContainer:
             for k in self.base_filter:
                 # TODO: Reimplement "subclasses of" support
                 # ks = False
-                if k.mainsnak.datavalue:
-                    # if ks:
-                    #     self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(
-                    #         wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
-                    # else:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number,
-                                                                                                            entity=k._get_sparql_value().format(wb_url=self.wikibase_url))
+                if isinstance(k, BaseDataType):
+                    if k.mainsnak.datavalue:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number, entity=k._get_sparql_value().format(wb_url=self.wikibase_url))
+                    else:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number)
+                elif isinstance(k, list) and len(k) == 2 and isinstance(k[0], BaseDataType) and isinstance(k[1], BaseDataType):
+                    if k[0].mainsnak.datavalue:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}>/<{wb_url}/prop/direct/{prop_nr2}>* {entity} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number,
+                            entity=k[0]._get_sparql_value().format(wb_url=self.wikibase_url))
+                    else:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr1=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number)
+
                 else:
-                    # if ks:
-                    #     self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
-                    #         wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1])
-                    # else:
-                    self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number)
+                    raise ValueError
 
         self.__initialized = True
 
@@ -666,7 +671,7 @@ class FastRunContainer:
 #     return wrapped
 
 
-def get_fastrun_container(base_filter: List[BaseDataType] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     if base_filter is None:
         base_filter = []
 
@@ -679,7 +684,7 @@ def get_fastrun_container(base_filter: List[BaseDataType] = None, use_refs: bool
 
 # @freezeargs
 # @lru_cache()
-def search_fastrun_store(base_filter: List[BaseDataType] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     for c in fastrun_store:
         if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
                 c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):

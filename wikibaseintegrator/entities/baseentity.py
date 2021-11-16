@@ -174,7 +174,7 @@ class BaseEntity:
             self.lastrevid = json_data['entity']['lastrevid']
         return json_data['entity']
 
-    def init_fastrun(self, base_filter: List[BaseDataType] = None, use_refs: bool = False, case_insensitive: bool = False) -> None:
+    def init_fastrun(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> None:
         if base_filter is None:
             base_filter = []
 
@@ -206,7 +206,7 @@ class BaseEntity:
     #
     #     return self.fast_run_container.current_qid
 
-    def write_required(self, base_filter: List[BaseDataType] = None, **kwargs: Any) -> bool:
+    def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, **kwargs: Any) -> bool:
         self.init_fastrun(base_filter=base_filter, **kwargs)
 
         if self.fast_run_container is None:
