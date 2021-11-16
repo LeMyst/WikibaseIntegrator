@@ -44,7 +44,7 @@ class FastRunContainer:
             self.base_filter = base_filter
             for k in self.base_filter:
                 # TODO: Reimplement "subclasses of" support
-                ks = False
+                # ks = False
                 if k.mainsnak.datavalue:
                     # if ks:
                     #     self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* <{wb_url}/entity/{entity}> .\n'.format(
@@ -125,8 +125,12 @@ class FastRunContainer:
             if prop_nr not in self.prop_dt_map:
                 if self.debug:
                     print(f"{prop_nr} not found in fastrun")
-                self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
+
+                if isinstance(claim, BaseDataType) and type(claim) != BaseDataType:
+                    self.prop_dt_map.update({prop_nr: claim.DTYPE})
+                else:
+                    self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
+                self._query_data(prop_nr=prop_nr, use_units=self.prop_dt_map[prop_nr] == 'quantity')
 
             # noinspection PyProtectedMember
             current_value = claim._get_sparql_value()
