@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 import simplejson
 
+from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
-from wikibaseintegrator.wbi_fastrun import FastRunContainer
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import Login
 
@@ -19,8 +19,6 @@ if TYPE_CHECKING:
 
 
 class BaseEntity:
-    fast_run_store: List[FastRunContainer] = []
-
     ETYPE = 'base-entity'
 
     def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None, is_bot: bool = None, login: Login = None):
@@ -37,8 +35,6 @@ class BaseEntity:
         self.type = str(type or self.ETYPE)
         self.id = id
         self.claims = claims or Claims()
-
-        self.fast_run_container: Optional[FastRunContainer] = None
 
         self.debug = config['DEBUG']
 
@@ -174,43 +170,8 @@ class BaseEntity:
             self.lastrevid = json_data['entity']['lastrevid']
         return json_data['entity']
 
-    def init_fastrun(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> None:
-        if base_filter is None:
-            base_filter = []
-
-        if self.debug:
-            print('Initialize Fast Run init_fastrun')
-        # We search if we already have a FastRunContainer with the same parameters to re-use it
-        for fast_run in BaseEntity.fast_run_store:
-            if (fast_run.base_filter == base_filter) and (fast_run.use_refs == use_refs) and (fast_run.case_insensitive == case_insensitive) and (
-                    fast_run.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
-                self.fast_run_container = fast_run
-                self.fast_run_container.current_qid = ''
-                self.fast_run_container.base_data_type = BaseDataType
-                if self.debug:
-                    print("Found an already existing FastRunContainer")
-
-        if not self.fast_run_container:
-            if self.debug:
-                print("Create a new FastRunContainer")
-            self.fast_run_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
-            BaseEntity.fast_run_store.append(self.fast_run_container)
-
-    # def fr_search(self, **kwargs: Any) -> str:
-    #     self.init_fastrun(**kwargs)
-    #
-    #     if self.fast_run_container is None:
-    #         raise ValueError("FastRunContainer is not initialized.")
-    #
-    #     self.fast_run_container.load_item(self.claims)
-    #
-    #     return self.fast_run_container.current_qid
-
     def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, **kwargs: Any) -> bool:
-        self.init_fastrun(base_filter=base_filter, **kwargs)
-
-        if self.fast_run_container is None:
-            raise ValueError("FastRunContainer is not initialized.")
+        fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
         if base_filter is None:
             base_filter = []
@@ -220,7 +181,7 @@ class BaseEntity:
             if claim.mainsnak.property_number in base_filter:
                 claims_to_check.append(claim)
 
-        return self.fast_run_container.write_required(data=claims_to_check, cqid=self.id)
+        return fastrun_container.write_required(data=claims_to_check, cqid=self.id)
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
