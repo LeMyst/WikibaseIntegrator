@@ -3,4 +3,4 @@ frozendict~=2.0.6
 mwoauth~=0.3.7
 oauthlib~=3.1.1
 requests~=2.26.0
-simplejson~=3.17.5
+simplejson~=3.17.6
