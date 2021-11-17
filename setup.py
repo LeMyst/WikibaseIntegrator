@@ -12,7 +12,12 @@ setup(
         "simplejson ~= 3.17.5"
     ],
     extras_require={
-        "dev": ["pytest"],
+        "dev": [
+            "pytest",
+            "pylint",
+            "pylint-exit",
+            "mypy"
+        ],
         "coverage": ["pytest-cov"],
     },
 )
