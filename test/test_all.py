@@ -6,6 +6,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_fastrun import get_fastrun_container
 
 config['DEBUG'] = True
 
@@ -53,7 +54,7 @@ class TestFastRun(unittest.TestCase):
     some basic tests for fastrun mode
     """
 
-    def test_fast_run(self):
+    def test_fastrun(self):
         statements = [
             datatypes.ExternalID(value='P40095', prop_nr='P352'),
             datatypes.ExternalID(value='YER158C', prop_nr='P705')
@@ -61,35 +62,30 @@ class TestFastRun(unittest.TestCase):
 
         frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352'), datatypes.Item(prop_nr='P703', value='Q27510868')], base_data_type=datatypes.BaseDataType)
 
-        fast_run_result = frc.write_required(data=statements)
+        fastrun_result = frc.write_required(data=statements)
 
-        if fast_run_result:
+        if fastrun_result:
             message = 'fastrun failed'
         else:
             message = 'successful fastrun'
-        print(fast_run_result, message)
+        print(fastrun_result, message)
 
         # here, fastrun should succeed, if not, test failed
-        if fast_run_result:
+        if fastrun_result:
             raise ValueError
 
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
-        fast_run_base_filter = [datatypes.Item(prop_nr='P361', value='Q18589965')]
+        frc = get_fastrun_container(base_filter=[datatypes.ExternalID(value='/m/02j71', prop_nr='P646')])
         item = WikibaseIntegrator().item.get('Q2')
-        item.init_fastrun(base_filter=fast_run_base_filter)
-        item.init_fastrun(base_filter=fast_run_base_filter)  # Test if we found the same FastRunContainer
-        item.claims.add(datatypes.ExternalID(value='/m/02j71', prop_nr='P646'))
-
-        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P699')], base_data_type=datatypes.BaseDataType)
 
         assert item.labels.get(language='en') == "Earth"
         descr = item.descriptions.get(language='en')
         assert len(descr) > 3
         assert "Terra" in item.aliases.get()
 
-        assert list(item.fast_run_container.get_language_data("Q2", 'en', 'label'))[0] == "Earth"
-        assert item.fast_run_container.check_language_data("Q2", ['not the Earth'], 'en', 'label')
+        assert list(frc.get_language_data("Q2", 'en', 'label'))[0] == item.labels.get(language='en')
+        assert frc.check_language_data("Q2", ['not the Earth'], 'en', 'label')
         assert "Terra" in item.aliases.get()
         assert "planet" in item.descriptions.get()
 

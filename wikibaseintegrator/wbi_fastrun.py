@@ -29,7 +29,6 @@ class FastRunContainer:
         self.base_filter: List[BaseDataType | List[BaseDataType]] = []
         self.base_filter_string = ''
         self.prop_dt_map: Dict[str, str] = {}
-        self.current_qid = ''
 
         self.base_data_type = base_data_type
         self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
@@ -114,11 +113,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: List, cqid: str = None) -> str:
-        self.load_item(claims=claims, cqid=cqid)
-        return self.current_qid
-
-    def load_item(self, claims: Union[list, Claims], cqid: str = None) -> bool:
+    def get_item(self, claims: Union[list, Claims], cqid: str = None) -> Optional[str]:
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -162,7 +157,7 @@ class FastRunContainer:
                 # return True
 
         if not match_sets:
-            return True
+            return None
 
         if cqid:
             matching_qids = {cqid}
@@ -174,11 +169,9 @@ class FastRunContainer:
         if not len(matching_qids) == 1:
             if self.debug:
                 print(f"no matches ({len(matching_qids)})")
-            return True
+            return None
 
-        qid = matching_qids.pop()
-        self.current_qid = qid
-        return False
+        return matching_qids.pop()
 
     def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
@@ -190,12 +183,12 @@ class FastRunContainer:
         for x in data:
             if x.mainsnak.datavalue and x.mainsnak.datatype:
                 data_props.add(x.mainsnak.property_number)
-        self.load_item(data, cqid)
+        qid = self.get_item(data, cqid)
 
-        if not self.current_qid:
+        if not qid:
             return True
 
-        reconstructed_statements = self.reconstruct_statements(self.current_qid)
+        reconstructed_statements = self.reconstruct_statements(qid)
         tmp_rs = copy.deepcopy(reconstructed_statements)
 
         # handle append properties
@@ -645,54 +638,29 @@ class FastRunContainer:
         )
 
 
-# def fr_search(**kwargs: Any) -> str:
-#     FastRunContainer.init_fastrun(**kwargs)
-#
-#     if self.fast_run_container is None:
-#         raise ValueError("FastRunContainer is not initialized.")
-#
-#     self.fast_run_container.load_item(self.claims)
-#
-#     return self.fast_run_container.current_qid
-
-
-# def freezeargs(func):
-#     """Transform mutable dictionnary
-#     Into immutable
-#     Useful to be compatible with cache
-#     """
-#
-#     @wraps(func)
-#     def wrapped(*args: Any, **kwargs: Any) -> Any:
-#         args = tuple(frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
-#         kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
-#         return func(*args, **kwargs)
-#
-#     return wrapped
-
-
 def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     if base_filter is None:
         base_filter = []
 
+    if config['DEBUG']:
+        print('Initialize Fast Run get_fastrun_container')
+
+    # We search if we already have a FastRunContainer with the same parameters to re-use it
     fastrun_container = search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
-    fastrun_container.current_qid = ''
-    fastrun_container.base_data_type = BaseDataType
 
     return fastrun_container
 
 
-# @freezeargs
-# @lru_cache()
 def search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
-    for c in fastrun_store:
-        if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
-                c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
-            return c
+    for fastrun in fastrun_store:
+        if (fastrun.base_filter == base_filter) and (fastrun.use_refs == use_refs) and (fastrun.case_insensitive == case_insensitive) and (
+                fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
+            return fastrun
 
     # In case nothing was found in the fastrun_store
     if config['DEBUG']:
         print("Create a new FastRunContainer")
-    fastrun_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
+
+    fastrun_container = FastRunContainer(base_data_type=BaseDataType, base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
     fastrun_store.append(fastrun_container)
     return fastrun_container
