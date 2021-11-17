@@ -35,7 +35,9 @@ class Form(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
+    def set_value(self, value: str = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:

@@ -31,7 +31,10 @@ class Quantity(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(amount=amount, upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
 
+    def set_value(self, amount: Union[str, int, float] = None, upper_bound: Union[str, int, float] = None, lower_bound: Union[str, int, float] = None, unit: Union[str, int] = '1',
+                  wikibase_url: str = None):
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
         unit = str(unit or '1')
@@ -79,4 +82,8 @@ class Quantity(BaseDataType):
                 del self.mainsnak.datavalue['value']['lowerBound']
 
     def _get_sparql_value(self) -> str:
-        return format_amount(self.mainsnak.datavalue['value']['amount'])
+        return '"' + format_amount(self.mainsnak.datavalue['value']['amount']) + '"^^xsd:decimal'
+
+    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+        self.set_value(amount=value, unit=unit)
+        return True

@@ -6,7 +6,6 @@ setup(
     name="wikibaseintegrator",
     install_requires=[
         "backoff ~= 1.11.1",
-        "frozendict ~= 2.0.7",
         "mwoauth ~= 0.3.7",
         "oauthlib ~= 3.1.1",
         "requests ~= 2.26.0",
