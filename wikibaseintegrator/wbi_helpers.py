@@ -29,6 +29,10 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
+# Session used for anonymous requests
+default_session = requests.Session()
+
+
 def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
     """
     :param method: 'GET' or 'POST'
@@ -53,7 +57,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
             raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
 
     response = None
-    session = session if session else requests.Session()
+    session = session if session else default_session
     for n in range(max_retries):
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
@@ -138,7 +142,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, 
     }
 
     if data is not None:
-        if login is not None and 'token' not in data:
+        if not allow_anonymous and login is not None and 'token' not in data:
             data.update({'token': login.get_edit_token()})
         elif 'token' not in data:
             data.update({'token': '+\\'})
