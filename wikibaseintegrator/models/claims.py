@@ -235,7 +235,7 @@ class Claim(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, Any]:
+    def get_json(self) -> Optional[Dict[str, Any]]:
         json_data: Dict[str, Union[str, list, dict, None]] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
@@ -251,7 +251,10 @@ class Claim(BaseModel):
         if len(self.references) > 0:
             json_data['references'] = self.references.get_json()
         if self.removed:
-            json_data['remove'] = ''
+            if self.id:
+                json_data['remove'] = ''
+            else:
+                return
         return json_data
 
     def has_equal_qualifiers(self, other: Claim) -> bool:
