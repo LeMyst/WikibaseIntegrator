@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Union
 
@@ -8,7 +9,6 @@ import simplejson
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
-from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
@@ -16,6 +16,8 @@ from wikibaseintegrator.wbi_login import Login
 
 if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
+
+log = logging.getLogger(__name__)
 
 
 class BaseEntity:
@@ -35,8 +37,6 @@ class BaseEntity:
         self.type = str(type or self.ETYPE)
         self.id = id
         self.claims = claims or Claims()
-
-        self.debug = config['DEBUG']
 
     def add_claims(self, claims: Union[Claim, list], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
         if isinstance(claims, Claim):
@@ -145,8 +145,7 @@ class BaseEntity:
         if self.lastrevid:
             payload.update({'baserevid': self.lastrevid})
 
-        if self.debug:
-            print(payload)
+        log.debug(payload)
 
         try:
             json_data = mediawiki_api_call_helper(data=payload, login=self.api.login, allow_anonymous=allow_anonymous, is_bot=self.api.is_bot, **kwargs)
