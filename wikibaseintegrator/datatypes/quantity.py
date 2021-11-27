@@ -42,7 +42,7 @@ class Quantity(BaseDataType):
         if unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
-        if amount:
+        if amount is not None:
             amount = format_amount(amount)
             unit = str(unit)
             if upper_bound:
