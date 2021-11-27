@@ -25,6 +25,10 @@ class Claims(BaseModel):
     def get(self, property: str = None) -> List:
         return self.claims[property]
 
+    def remove(self, property: str = None) -> None:
+        if property in self.claims:
+            del self.claims[property]
+
     def add(self, claims: Union[list, Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
@@ -93,7 +97,10 @@ class Claims(BaseModel):
             if property not in json_data:
                 json_data[property] = []
             for claim in claims:
-                json_data[property].append(claim.get_json())
+                if not claim.removed or claim.id:
+                    json_data[property].append(claim.get_json())
+            if len(json_data[property]) == 0:
+                del json_data[property]
         return json_data
 
     def clear(self) -> None:
