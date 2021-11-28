@@ -464,7 +464,7 @@ class EDTF(BaseDataType):
 
         self.json_representation['datavalue'] = {
             'value': self.value,
-            'type': self.DTYPE
+            'type': 'string'
         }
 
         super(EDTF, self).set_value(value=self.value)
