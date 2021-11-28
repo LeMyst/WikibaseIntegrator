@@ -4,11 +4,8 @@ import unittest
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities import Item
-from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
-
-config['DEBUG'] = True
 
 wbi = WikibaseIntegrator()
 
@@ -82,11 +79,11 @@ class TestFastRun(unittest.TestCase):
         assert item.labels.get(language='en') == "Earth"
         descr = item.descriptions.get(language='en')
         assert len(descr) > 3
-        assert "Terra" in item.aliases.get()
+        assert "globe" in item.aliases.get()
 
         assert list(frc.get_language_data("Q2", 'en', 'label'))[0] == item.labels.get(language='en')
         assert frc.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "Terra" in item.aliases.get()
+        assert "globe" in item.aliases.get()
         assert "planet" in item.descriptions.get()
 
         assert item.labels.get('es') == "Tierra"

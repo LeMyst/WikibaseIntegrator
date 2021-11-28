@@ -3,10 +3,7 @@ from typing import Any
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
-from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-
-config['DEBUG'] = True
 
 wbi = WikibaseIntegrator()
 
@@ -128,7 +125,6 @@ class FastRunContainerFakeQueryDataEnsemblNoRef(wbi_fastrun.FastRunContainer):
 def test_fastrun_ref_ensembl():
     # fastrun checks refs
     frc = FastRunContainerFakeQueryDataEnsembl(base_filter=[BaseDataType(prop_nr='P594'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType, use_refs=True)
-    frc.debug = True
 
     # statement has no ref
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594')]
@@ -159,7 +155,6 @@ class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
     # an item with three values for the same property
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self.debug = True
         self.prop_dt_map = {'P527': 'wikibase-item', 'P248': 'wikibase-item', 'P594': 'external-id'}
 
         self.rev_lookup = defaultdict(set)

@@ -1,3 +1,4 @@
+import logging
 import unittest
 
 import requests
@@ -30,16 +31,16 @@ def test_connection():
         mediawiki_api_call_helper(data=data, mediawiki_api_url="https://httpbin.org/status/400", max_retries=2, retry_after=1, allow_anonymous=True)
 
 
-def test_user_agent(capfd):
-    # Test there is a warning
-    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
-    out, err = capfd.readouterr()
-    assert out
-
+def test_user_agent(caplog):
     # Test there is no warning because of the user agent
-    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
-    out, err = capfd.readouterr()
-    assert not out
+    with caplog.at_level(logging.WARNING):
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
+    assert 'WARNING' not in caplog.text
+
+    # Test there is a warning
+    with caplog.at_level(logging.WARNING):
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
+    assert 'Please set an user agent' in caplog.text
 
     # Test if the user agent is correctly added
     new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5')
