@@ -140,7 +140,7 @@ class Login:
                     if clientlogin['status'] != 'PASS':
                         raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
 
-                    log.debug("Successfully logged in as", clientlogin['username'])
+                    log.debug(f"Successfully logged in as {clientlogin['username']}")
                 else:
                     raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
 

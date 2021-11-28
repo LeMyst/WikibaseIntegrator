@@ -240,15 +240,15 @@ class FastRunContainer:
             log.debug("-----------------------------------")
             for x in tmp_rs:
                 if x == date and x.mainsnak.property_number not in del_props:
-                    log.debug(x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers])
-                    log.debug(date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers])
+                    log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
+                    log.debug([date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers]])
                 elif x.mainsnak.property_number == date.mainsnak.property_number:
-                    log.debug(x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers])
-                    log.debug(date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers])
+                    log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
+                    log.debug([date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers]])
 
             if not any(bool_vec):
                 log.debug(len(bool_vec))
-                log.debug("fast run failed at", date.mainsnak.property_number)
+                log.debug(f"fast run failed at {date.mainsnak.property_number}")
                 return True
             else:
                 log.debug("fast run success")
@@ -257,7 +257,7 @@ class FastRunContainer:
         if len(tmp_rs) > 0:
             log.debug("failed because not zero")
             for x in tmp_rs:
-                log.debug("xxx", x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
+                log.debug(["xxx", x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers]])
             log.debug("failed because not zero--END")
             return True
 
