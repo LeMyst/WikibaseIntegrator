@@ -4,11 +4,8 @@ import unittest
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.entities import Item
-from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
-
-config['DEBUG'] = True
 
 wbi = WikibaseIntegrator()
 
