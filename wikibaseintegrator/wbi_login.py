@@ -118,7 +118,7 @@ class Login:
                 log.debug(login_result)
 
                 if 'login' in login_result and login_result['login']['result'] == 'Success':
-                    print("Successfully logged in as", login_result['login']['lgusername'])
+                    log.info(f"Successfully logged in as {login_result['login']['lgusername']}")
                 else:
                     raise LoginError(f"Login failed. Reason: '{login_result['login']['reason']}'")
             else:
@@ -140,7 +140,7 @@ class Login:
                     if clientlogin['status'] != 'PASS':
                         raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
 
-                    log.debug(f"Successfully logged in as {clientlogin['username']}")
+                    log.info(f"Successfully logged in as {clientlogin['username']}")
                 else:
                     raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
 
