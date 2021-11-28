@@ -109,9 +109,6 @@ class Claims(BaseModel):
                 del json_data[property]
         return json_data
 
-    def clear(self) -> None:
-        self.claims = {}
-
     def __len__(self):
         return len(self.claims)
 
