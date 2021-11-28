@@ -253,6 +253,7 @@ Coordinates).
 The data types currently implemented:
 
 * wbi_datatype.CommonsMedia
+* wbi_datatype.EDTF
 * wbi_datatype.ExternalID
 * wbi_datatype.Form
 * wbi_datatype.GeoShape

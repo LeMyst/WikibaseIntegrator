@@ -420,6 +420,63 @@ class CommonsMedia(BaseDataType):
         return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
 
 
+class EDTF(BaseDataType):
+    """
+    Implements the data type for Extended Date/Time Format (EDTF) extension.
+    More info: https://github.com/ProfessionalWiki/WikibaseEdtf
+    """
+    DTYPE = 'edtf'
+    sparql_query = '''
+        SELECT * WHERE {{
+          ?item_id <{wb_url}/prop/{pid}> ?s .
+          ?s <{wb_url}/prop/statement/{pid}> '{value}'^^xsd:edtf .
+        }}
+    '''
+
+    def __init__(self, value, prop_nr, **kwargs):
+        """
+        Constructor, calls the superclass BaseDataType
+        :param value: Value using the Extended Date/Time Format (EDTF)
+        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
+        :param prop_nr: The property number for this claim
+        :type prop_nr: str with a 'P' prefix followed by digits
+        :param is_reference: Whether this snak is a reference
+        :type is_reference: boolean
+        :param is_qualifier: Whether this snak is a qualifier
+        :type is_qualifier: boolean
+        :param snak_type: The snak type, either 'value', 'somevalue' or 'novalue'
+        :type snak_type: str
+        :param references: List with reference objects
+        :type references: A data type with subclass of BaseDataType
+        :param qualifiers: List with qualifier objects
+        :type qualifiers: A data type with subclass of BaseDataType
+        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
+        :type rank: str
+        """
+
+        super(EDTF, self).__init__(value=value, prop_nr=prop_nr, **kwargs)
+
+        self.set_value(value)
+
+    def set_value(self, value):
+        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+        self.value = value
+
+        self.json_representation['datavalue'] = {
+            'value': self.value,
+            'type': 'string'
+        }
+
+        super(EDTF, self).set_value(value=self.value)
+
+    @classmethod
+    @JsonParser
+    def from_json(cls, jsn):
+        if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
+            return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
+        return cls(value=jsn['datavalue']['value'], prop_nr=jsn['property'])
+
+
 class ExternalID(BaseDataType):
     """
     Implements the Wikibase data type 'external-id'
