@@ -27,7 +27,13 @@ class Claims(BaseModel):
 
     def remove(self, property: str = None) -> None:
         if property in self.claims:
-            del self.claims[property]
+            for prop in self.claims[property]:
+                if prop.id:
+                    prop.remove()
+                else:
+                    self.claims[property].remove(prop)
+            if len(self.claims[property]) == 0:
+                del self.claims[property]
 
     def add(self, claims: Union[list, Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
