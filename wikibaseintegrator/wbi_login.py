@@ -14,7 +14,7 @@ Login class for Wikidata. Takes username and password and stores the session coo
 """
 
 
-class Login(object):
+class Login:
     """
     A class which handles the login to Wikidata and the generation of edit-tokens
     """
@@ -76,7 +76,7 @@ class Login(object):
         else:
             # if a user is given append " (User:USER)" to the UA string and update that value in CONFIG
             if user and user.casefold() not in config['USER_AGENT_DEFAULT'].casefold():
-                config['USER_AGENT_DEFAULT'] += " (User:{})".format(user)
+                config['USER_AGENT_DEFAULT'] += f" (User:{user})"
             self.user_agent = config['USER_AGENT_DEFAULT']
         self.session.headers.update({
             'User-Agent': self.user_agent

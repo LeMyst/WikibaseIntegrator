@@ -1,7 +1,7 @@
 import copy
 
 
-class JsonParser(object):
+class JsonParser:
     references = []
     qualifiers = []
     final = False

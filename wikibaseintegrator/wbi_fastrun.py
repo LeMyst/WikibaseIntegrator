@@ -8,7 +8,7 @@ from wikibaseintegrator import wbi_functions
 from wikibaseintegrator.wbi_config import config
 
 
-class FastRunContainer(object):
+class FastRunContainer:
     def __init__(self, base_data_type, engine, mediawiki_api_url=None, sparql_endpoint_url=None, wikibase_url=None, base_filter=None, use_refs=False, ref_handler=None,
                  case_insensitive=False, debug=False):
         self.reconstructed_statements = []
@@ -61,8 +61,8 @@ class FastRunContainer(object):
 
         for prop_nr, dt in self.prop_data[qid].items():
             # get datatypes for qualifier props
-            q_props = set(chain(*[[x[0] for x in d['qual']] for d in dt.values()]))
-            r_props = set(chain(*[set(chain(*[[y[0] for y in x] for x in d['ref'].values()])) for d in dt.values()]))
+            q_props = set(chain(*([x[0] for x in d['qual']] for d in dt.values())))
+            r_props = set(chain(*(set(chain(*([y[0] for y in x] for x in d['ref'].values()))) for d in dt.values())))
             props = q_props | r_props
             for prop in props:
                 if prop not in self.prop_dt_map:
@@ -109,7 +109,7 @@ class FastRunContainer(object):
 
             if prop_nr not in self.prop_dt_map:
                 if self.debug:
-                    print("{} not found in fastrun".format(prop_nr))
+                    print(f"{prop_nr} not found in fastrun")
                 self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=date.data_type == 'quantity')
 
@@ -118,7 +118,7 @@ class FastRunContainer(object):
                 current_value = current_value[0]
             elif self.prop_dt_map[prop_nr] == 'wikibase-item':
                 if not str(current_value).startswith('Q'):
-                    current_value = 'Q{}'.format(current_value)
+                    current_value = f'Q{current_value}'
             elif self.prop_dt_map[prop_nr] == 'quantity':
                 current_value = self.format_amount(current_value[0])
 
@@ -150,7 +150,7 @@ class FastRunContainer(object):
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
             if self.debug:
-                print("no matches ({})".format(len(matching_qids)))
+                print(f"no matches ({len(matching_qids)})")
             return True
 
         qid = matching_qids.pop()
@@ -189,14 +189,14 @@ class FastRunContainer(object):
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
             if len(comp) != len(app_data):
                 if self.debug:
-                    print("failed append: {}".format(p))
+                    print(f"failed append: {p}")
                 return True
 
         tmp_rs = [x for x in tmp_rs if x.get_prop_nr() not in append_props and x.get_prop_nr() in data_props]
 
         for date in data:
             # ensure that statements meant for deletion get handled properly
-            reconst_props = set([x.get_prop_nr() for x in tmp_rs])
+            reconst_props = {x.get_prop_nr() for x in tmp_rs}
             if (not date.value or not date.data_type) and date.get_prop_nr() in reconst_props:
                 if self.debug:
                     print("returned from delete prop handling")
@@ -236,7 +236,7 @@ class FastRunContainer(object):
             """
 
             if self.debug:
-                print("bool_vec: {}".format(bool_vec))
+                print(f"bool_vec: {bool_vec}")
                 print("-----------------------------------")
                 for x in tmp_rs:
                     if date == x and x.get_prop_nr() not in del_props:
@@ -310,7 +310,7 @@ class FastRunContainer(object):
         :param if_exists: If aliases already exist, APPEND or REPLACE
         :return: boolean
         """
-        all_lang_strings = set(x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type))
+        all_lang_strings = {x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type)}
 
         if if_exists == 'REPLACE':
             return not collections.Counter(all_lang_strings) == collections.Counter(map(lambda x: x.casefold(), lang_data))
@@ -318,7 +318,7 @@ class FastRunContainer(object):
             for s in lang_data:
                 if s.strip().casefold() not in all_lang_strings:
                     if self.debug:
-                        print("fastrun failed at: {}, string: {}".format(lang_data_type, s))
+                        print(f"fastrun failed at: {lang_data_type}, string: {s}")
                     return True
 
         return False
@@ -408,7 +408,7 @@ class FastRunContainer(object):
 
         # Adding prefix + for positive number and 0
         if not str(amount).startswith('+') and float(amount) >= 0:
-            amount = str('+{}'.format(amount))
+            amount = str(f'+{amount}')
 
         # return as string
         return str(amount)
@@ -465,9 +465,9 @@ class FastRunContainer(object):
 
             r = wbi_functions.execute_sparql_query(query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             count = int(r[0]['c']['value'])
-            print("Count: {}".format(count))
+            print(f"Count: {count}")
             num_pages = (int(count) // page_size) + 1
-            print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
+            print(f"Query {prop_nr}: {page_count}/{num_pages}")
         while True:
             # Query header
             query = '''
@@ -551,7 +551,7 @@ class FastRunContainer(object):
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
             if num_pages:
-                print("Query {}: {}/{}".format(prop_nr, page_count, num_pages))
+                print(f"Query {prop_nr}: {page_count}/{num_pages}")
             if len(results) == 0 or len(results) < page_size:
                 break
 
@@ -613,5 +613,5 @@ class FastRunContainer(object):
         return "<{klass} @{id:x} {attrs}>".format(
             klass=self.__class__.__name__,
             id=id(self) & 0xFFFFFF,
-            attrs="\r\n\t ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
+            attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )

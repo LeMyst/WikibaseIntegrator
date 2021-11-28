@@ -50,11 +50,11 @@ class TestWbiCore(unittest.TestCase):
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' not in x]
         removed_claims = [True for x in item.get_json_representation()['claims']['P31'] if 'remove' in x]
-        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 3 and True in removed_claims
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_keep], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
-        assert len(claims) == 2 and 'Q1234' not in claims
+        assert len(claims) == 3 and 'Q1234' not in claims
 
     def test_description(self):
         item = wbi_core.ItemEngine(item_id="Q2")
@@ -163,7 +163,7 @@ class TestWbiCore(unittest.TestCase):
             wbi_datatype.Sense("L123-S123", prop_nr="P17"),
             wbi_datatype.EDTF("2004-06-~01/2004-06-~20", prop_nr="P18")
         ]
-        core_props = set(["P{}".format(x) for x in range(20)])
+        core_props = {f"P{x}" for x in range(20)}
 
         for d in data:
             item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=core_props)
