@@ -128,11 +128,11 @@ class TestFastRun(unittest.TestCase):
         descr = item.get_description('en')
         assert len(descr) > 3
         aliases = item.get_aliases()
-        assert "Terra" in aliases
+        assert "globe" in aliases
 
         assert list(item.fast_run_container.get_language_data("Q2", 'en', 'label'))[0] == "Earth"
         assert item.fast_run_container.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "Terra" in item.get_aliases()
+        assert "globe" in item.get_aliases()
         assert "planet" in item.get_description()
 
         assert item.get_label("es") == "Tierra"
