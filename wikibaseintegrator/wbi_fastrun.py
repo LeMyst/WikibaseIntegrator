@@ -43,8 +43,6 @@ class FastRunContainer:
         if base_filter and any(base_filter):
             self.base_filter = base_filter
             for k in self.base_filter:
-                # TODO: Reimplement "subclasses of" support
-                # ks = False
                 if isinstance(k, BaseDataType):
                     if k.mainsnak.datavalue:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(
@@ -60,7 +58,6 @@ class FastRunContainer:
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr1=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number)
-
                 else:
                     raise ValueError
 
@@ -257,7 +254,7 @@ class FastRunContainer:
         if len(tmp_rs) > 0:
             log.debug("failed because not zero")
             for x in tmp_rs:
-                log.debug(["xxx", x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers]])
+                log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers]])
             log.debug("failed because not zero--END")
             return True
 
@@ -610,8 +607,6 @@ def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] =
     if base_filter is None:
         base_filter = []
 
-    log.debug('Initialize Fast Run get_fastrun_container')
-
     # We search if we already have a FastRunContainer with the same parameters to re-use it
     fastrun_container = search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
 
@@ -625,7 +620,7 @@ def search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = 
             return fastrun
 
     # In case nothing was found in the fastrun_store
-    log.debug("Create a new FastRunContainer")
+    log.info("Create a new FastRunContainer")
 
     fastrun_container = FastRunContainer(base_data_type=BaseDataType, base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
     fastrun_store.append(fastrun_container)
