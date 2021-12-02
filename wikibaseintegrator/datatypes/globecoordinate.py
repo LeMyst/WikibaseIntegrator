@@ -43,9 +43,6 @@ class GlobeCoordinate(BaseDataType):
         if globe.startswith('Q'):
             globe = wikibase_url + '/entity/' + globe
 
-        # TODO: Introduce validity checks for coordinates, etc.
-        # TODO: Add check if latitude/longitude/precision is None
-
         if latitude is not None and longitude is not None:
             if latitude < -90 or latitude > 90:
                 raise ValueError(f"latitude must be between -90 and 90, got '{latitude}'")
@@ -62,6 +59,8 @@ class GlobeCoordinate(BaseDataType):
                 },
                 'type': 'globecoordinate'
             }
+        else:
+            raise ValueError(f"latitude or longitude can't be None")
 
     def __eq__(self, other):
         if isinstance(other, Claim) and other.mainsnak.datavalue['type'] == 'globecoordinate':
