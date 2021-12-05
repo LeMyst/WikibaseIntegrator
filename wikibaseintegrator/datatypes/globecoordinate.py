@@ -59,8 +59,6 @@ class GlobeCoordinate(BaseDataType):
                 },
                 'type': 'globecoordinate'
             }
-        else:
-            raise ValueError(f"latitude or longitude can't be None")
 
     def __eq__(self, other):
         if isinstance(other, Claim) and other.mainsnak.datavalue['type'] == 'globecoordinate':
