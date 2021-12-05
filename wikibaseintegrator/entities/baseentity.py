@@ -180,6 +180,8 @@ class BaseEntity:
             if claim.mainsnak.property_number in base_filter:
                 claims_to_check.append(claim)
 
+        # TODO: Add check_language_data
+
         return fastrun_container.write_required(data=claims_to_check, cqid=self.id)
 
     def __repr__(self):
