@@ -24,7 +24,9 @@ class URL(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
+    def set_value(self, value: str = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
@@ -38,3 +40,16 @@ class URL(BaseDataType):
                 'value': value,
                 'type': 'string'
             }
+
+    def _get_sparql_value(self) -> str:
+        return '<' + self.mainsnak.datavalue['value'] + '>'
+
+    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+        pattern = re.compile(r'^<?(.*?)>?$')
+        matches = pattern.match(value)
+        if not matches:
+            return False
+
+        self.set_value(value=matches.group(1))
+
+        return True

@@ -27,3 +27,5 @@ disable = [
     "import-outside-toplevel"  # To remove later
 ]
 
+[tool.pytest.ini_options]
+log_cli = true

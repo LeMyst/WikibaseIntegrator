@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import collections
 import copy
+import logging
 from collections import defaultdict
-from functools import lru_cache, wraps
+from functools import lru_cache
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
-
-from frozendict import frozendict
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type, Union
 
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -17,21 +16,22 @@ from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 if TYPE_CHECKING:
     from wikibaseintegrator.models import Claims
 
+log = logging.getLogger(__name__)
+
 fastrun_store: List[FastRunContainer] = []
 
 
 class FastRunContainer:
     def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
-                 base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False, debug: bool = None):
+                 base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False):
         self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
         self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
         self.prop_data: Dict[str, dict] = {}
         self.loaded_langs: Dict[str, dict] = {}
-        self.base_filter = {}
+        self.base_filter: List[BaseDataType | List[BaseDataType]] = []
         self.base_filter_string = ''
         self.prop_dt_map: Dict[str, str] = {}
-        self.current_qid = ''
 
         self.base_data_type = base_data_type
         self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
@@ -40,27 +40,28 @@ class FastRunContainer:
         self.use_refs = use_refs
         self.case_insensitive = case_insensitive
 
-        self.debug = debug or config['DEBUG']
-
         if base_filter and any(base_filter):
             self.base_filter = base_filter
-            for k, v in self.base_filter.items():
-                ks = []
-                if k.count('/') == 1:
-                    ks = k.split('/')
-                if v:
-                    if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
-                                                   '<{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1], entity=v)
+            for k in self.base_filter:
+                if isinstance(k, BaseDataType):
+                    if k.mainsnak.datavalue:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number, entity=k._get_sparql_value().format(wb_url=self.wikibase_url))
                     else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> <{wb_url}/entity/{entity}> .\n'.format(wb_url=self.wikibase_url,
-                                                                                                                                  prop_nr=k, entity=v)
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number)
+                elif isinstance(k, list) and len(k) == 2 and isinstance(k[0], BaseDataType) and isinstance(k[1], BaseDataType):
+                    if k[0].mainsnak.datavalue:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}>/<{wb_url}/prop/direct/{prop_nr2}>* {entity} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number,
+                            entity=k[0]._get_sparql_value().format(wb_url=self.wikibase_url))
+                    else:
+                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
+                            wb_url=self.wikibase_url, prop_nr1=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number)
                 else:
-                    if ks:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ' \
-                                                   '?zz{prop_nr1}{prop_nr2} .\n'.format(wb_url=self.wikibase_url, prop_nr1=ks[0], prop_nr2=ks[1])
-                    else:
-                        self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(wb_url=self.wikibase_url, prop_nr=k)
+                    raise ValueError
+
+        self.__initialized = True
 
     def reconstruct_statements(self, qid: str) -> List[BaseDataType]:
         reconstructed_statements: List[BaseDataType] = []
@@ -84,9 +85,9 @@ class FastRunContainer:
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[q[0]]][0]
                     # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
                     if self.prop_dt_map[q[0]] == 'quantity':
-                        qualifiers.append(f(value=q[1], prop_nr=q[0], is_qualifier=True, unit=q[2]))
+                        qualifiers.append(f(value=q[1], prop_nr=q[0], unit=q[2]))
                     else:
-                        qualifiers.append(f(value=q[1], prop_nr=q[0], is_qualifier=True))
+                        qualifiers.append(f(value=q[1], prop_nr=q[0]))
 
                 references = []
                 for ref_id, refs in d['ref'].items():
@@ -99,19 +100,18 @@ class FastRunContainer:
                 f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[prop_nr]][0]
                 # TODO: Add support for more data type
                 if self.prop_dt_map[prop_nr] == 'quantity':
-                    reconstructed_statements.append(f(value=d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit']))
+                    datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit'])
+                    datatype._parse_sparql_value(value=d['v'], unit=d['unit'])
                 else:
-                    reconstructed_statements.append(f(value=d['v'], prop_nr=prop_nr, qualifiers=qualifiers, references=references))
+                    datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references)
+                    datatype._parse_sparql_value(value=d['v'])
+                reconstructed_statements.append(datatype)
 
         # this isn't used. done for debugging purposes
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: List, cqid: str = None) -> str:
-        self.load_item(claims=claims, cqid=cqid)
-        return self.current_qid
-
-    def load_item(self, claims: Union[list, Claims], cqid: str = None) -> bool:
+    def get_item(self, claims: Union[list, Claims], cqid: str = None) -> Optional[str]:
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -121,25 +121,26 @@ class FastRunContainer:
             prop_nr = claim.mainsnak.property_number
 
             if prop_nr not in self.prop_dt_map:
-                if self.debug:
-                    print(f"{prop_nr} not found in fastrun")
-                self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
-                self._query_data(prop_nr=prop_nr, use_units=claim.mainsnak.datatype == 'quantity')
+                log.debug(f"{prop_nr} not found in fastrun")
+
+                if isinstance(claim, BaseDataType) and type(claim) != BaseDataType:
+                    self.prop_dt_map.update({prop_nr: claim.DTYPE})
+                else:
+                    self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
+                self._query_data(prop_nr=prop_nr, use_units=self.prop_dt_map[prop_nr] == 'quantity')
 
             # noinspection PyProtectedMember
             current_value = claim._get_sparql_value()
 
             if self.prop_dt_map[prop_nr] == 'wikibase-item':
-                if not str(current_value).startswith('Q'):
-                    current_value = f'Q{current_value}'
+                current_value = claim.mainsnak.datavalue['value']['id']
 
-            if self.debug:
-                print(current_value)
-                if self.case_insensitive:
-                    print("case insensitive enabled")
-                    print(self.rev_lookup_ci)
-                else:
-                    print(self.rev_lookup)
+            log.debug(current_value)
+            if self.case_insensitive:
+                log.debug("case insensitive enabled")
+                log.debug(self.rev_lookup_ci)
+            else:
+                log.debug(self.rev_lookup)
 
             if current_value in self.rev_lookup:
                 # quick check for if the value has ever been seen before, if not, write required
@@ -147,12 +148,11 @@ class FastRunContainer:
             elif self.case_insensitive and current_value.casefold() in self.rev_lookup_ci:
                 match_sets.append(set(self.rev_lookup_ci[current_value.casefold()]))
             else:
-                if self.debug:
-                    print("no matches for rev lookup")
+                log.debug(f"no matches for rev lookup for {current_value}")
                 # return True
 
         if not match_sets:
-            return True
+            return None
 
         if cqid:
             matching_qids = {cqid}
@@ -162,13 +162,10 @@ class FastRunContainer:
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
-            if self.debug:
-                print(f"no matches ({len(matching_qids)})")
-            return True
+            log.debug(f"no matches ({len(matching_qids)})")
+            return None
 
-        qid = matching_qids.pop()
-        self.current_qid = qid
-        return False
+        return matching_qids.pop()
 
     def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         del_props = set()
@@ -180,10 +177,12 @@ class FastRunContainer:
         for x in data:
             if x.mainsnak.datavalue and x.mainsnak.datatype:
                 data_props.add(x.mainsnak.property_number)
-        write_required = False
-        self.load_item(data, cqid)
+        qid = self.get_item(data, cqid)
 
-        reconstructed_statements = self.reconstruct_statements(self.current_qid)
+        if not qid:
+            return True
+
+        reconstructed_statements = self.reconstruct_statements(qid)
         tmp_rs = copy.deepcopy(reconstructed_statements)
 
         # handle append properties
@@ -199,8 +198,7 @@ class FastRunContainer:
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
             if len(comp) != len(app_data):
-                if self.debug:
-                    print(f"failed append: {p}")
+                log.debug(f"failed append: {p}")
                 return True
 
         tmp_rs = [x for x in tmp_rs if x.mainsnak.property_number not in append_props and x.mainsnak.property_number in data_props]
@@ -209,8 +207,7 @@ class FastRunContainer:
             # ensure that statements meant for deletion get handled properly
             reconst_props = {x.mainsnak.property_number for x in tmp_rs}
             if not date.mainsnak.datatype and date.mainsnak.property_number in reconst_props:
-                if self.debug:
-                    print("returned from delete prop handling")
+                log.debug("returned from delete prop handling")
                 return True
 
             if not date.mainsnak.datavalue or not date.mainsnak.datatype:
@@ -229,43 +226,39 @@ class FastRunContainer:
             # tmp_rs are the reconstructed statements == current state of the item
             bool_vec = []
             for x in tmp_rs:
-                if (x.mainsnak.datavalue == date.mainsnak.datavalue or (
-                        self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.mainsnak.property_number not in del_props:
+                if (x == date or (self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.mainsnak.property_number not in del_props:
                     bool_vec.append(x.equals(date, include_ref=self.use_refs))
                 else:
                     bool_vec.append(False)
             # bool_vec = [x.equals(date, include_ref=self.use_refs, fref=self.ref_comparison_f) and
             # x.mainsnak.property_number not in del_props for x in tmp_rs]
 
-            if self.debug:
-                print(f"bool_vec: {bool_vec}")
-                print("-----------------------------------")
-                for x in tmp_rs:
-                    if date == x and x.mainsnak.property_number not in del_props:
-                        print(x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
-                        print(date.mainsnak.property_number, date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
-                    elif x.mainsnak.property_number == date.mainsnak.property_number:
-                        print(x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
-                        print(date.mainsnak.property_number, date.mainsnak.datavalue, [z.mainsnak.datavalue for z in date.qualifiers])
+            log.debug(f"bool_vec: {bool_vec}")
+            log.debug("-----------------------------------")
+            for x in tmp_rs:
+                if x == date and x.mainsnak.property_number not in del_props:
+                    log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
+                    log.debug([date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers]])
+                elif x.mainsnak.property_number == date.mainsnak.property_number:
+                    log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
+                    log.debug([date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers]])
 
             if not any(bool_vec):
-                if self.debug:
-                    print(len(bool_vec))
-                    print("fast run failed at", date.mainsnak.property_number)
-                write_required = True
+                log.debug(len(bool_vec))
+                log.debug(f"fast run failed at {date.mainsnak.property_number}")
+                return True
             else:
-                if self.debug:
-                    print("fast run success")
+                log.debug("fast run success")
                 tmp_rs.pop(bool_vec.index(True))
 
         if len(tmp_rs) > 0:
-            if self.debug:
-                print("failed because not zero")
-                for x in tmp_rs:
-                    print("xxx", x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers])
-                print("failed because not zero--END")
-            write_required = True
-        return write_required
+            log.debug("failed because not zero")
+            for x in tmp_rs:
+                log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.mainsnak.datavalue for z in x.qualifiers]])
+            log.debug("failed because not zero--END")
+            return True
+
+        return False
 
     def init_language_data(self, lang: str, lang_data_type: str) -> None:
         """
@@ -321,8 +314,7 @@ class FastRunContainer:
 
         for s in lang_data:
             if s.strip().casefold() not in all_lang_strings:
-                if self.debug:
-                    print(f"fastrun failed at: {lang_data_type}, string: {s}")
+                log.debug(f"fastrun failed at: {lang_data_type}, string: {s}")
                 return True
 
         return False
@@ -376,8 +368,17 @@ class FastRunContainer:
                     i['v'] = i['v']['value'].split('/')[-1]
                 elif i['v']['type'] == 'literal' and prop_dt == 'quantity':
                     i['v'] = format_amount(i['v']['value'])
+                elif i['v']['type'] == 'literal' and prop_dt == 'monolingualtext':
+                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr, text=i['v']['value'], language=i['v']['xml:lang'])
+                    # noinspection PyProtectedMember
+                    i['v'] = f._get_sparql_value()
                 else:
-                    i['v'] = i['v']['value']
+                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr)
+                    # noinspection PyProtectedMember
+                    if not f._parse_sparql_value(value=i['v']['value'], type=i['v']['type']):
+                        raise ValueError
+                    # noinspection PyProtectedMember
+                    i['v'] = f._get_sparql_value()
 
                 # Note: no-value and some-value don't actually show up in the results here
                 # see for example: select * where { wd:Q7207 p:P40 ?c . ?c ?d ?e }
@@ -441,26 +442,9 @@ class FastRunContainer:
             if 'unit' in i:
                 self.prop_data[qid][prop_nr][i['sid']]['unit'] = i['unit']
 
-    def _query_data(self, prop_nr: str, use_units: bool = False) -> None:
-        page_size = 10000
+    def _query_data(self, prop_nr: str, use_units: bool = False, page_size: int = 10000) -> None:
         page_count = 0
-        num_pages = None
-        if self.debug:
-            # get the number of pages/queries so we can show a progress bar
-            query = f"""
-            SELECT (COUNT(?item) as ?c) where {{
-                  {self.base_filter_string}
-                  ?item <{self.wikibase_url}/prop/{prop_nr}> ?sid .
-            }}"""
 
-            if self.debug:
-                print(query)
-
-            r = execute_sparql_query(query, endpoint=self.sparql_endpoint_url, debug=self.debug)['results']['bindings']
-            count = int(r[0]['c']['value'])
-            print(f"Count: {count}")
-            num_pages = (int(count) // page_size) + 1
-            print(f"Query {prop_nr}: {page_count}/{num_pages}")
         while True:
             # Query header
             query = '''
@@ -549,15 +533,11 @@ class FastRunContainer:
             # Format the query
             query = query.format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr, offset=str(page_count * page_size), page_size=str(page_size))
 
-            if self.debug:
-                print(query)
-
             results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
             self.format_query_results(results, prop_nr)
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
-            if num_pages:
-                print(f"Query {prop_nr}: {page_count}/{num_pages}")
+
             if len(results) == 0 or len(results) < page_size:
                 break
 
@@ -585,8 +565,7 @@ class FastRunContainer:
         }}
         '''
 
-        if self.debug:
-            print(query)
+        log.debug(query)
 
         return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
@@ -624,43 +603,25 @@ class FastRunContainer:
         )
 
 
-def freezeargs(func):
-    """Transform mutable dictionnary
-    Into immutable
-    Useful to be compatible with cache
-    """
-
-    @wraps(func)
-    def wrapped(*args: Any, **kwargs: Any) -> Any:
-        args = tuple(frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
-        kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
-        return func(*args, **kwargs)
-
-    return wrapped
-
-
-def get_fastrun_container(base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     if base_filter is None:
-        base_filter = {}
+        base_filter = []
 
+    # We search if we already have a FastRunContainer with the same parameters to re-use it
     fastrun_container = search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
-    fastrun_container.current_qid = ''
-    fastrun_container.base_data_type = BaseDataType
 
     return fastrun_container
 
 
-@freezeargs
-@lru_cache()
-def search_fastrun_store(base_filter: Dict[str, str] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
-    for c in fastrun_store:
-        if (c.base_filter == base_filter) and (c.use_refs == use_refs) and (c.case_insensitive == case_insensitive) and (
-                c.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
-            return c
+def search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+    for fastrun in fastrun_store:
+        if (fastrun.base_filter == base_filter) and (fastrun.use_refs == use_refs) and (fastrun.case_insensitive == case_insensitive) and (
+                fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
+            return fastrun
 
     # In case nothing was found in the fastrun_store
-    if config['DEBUG']:
-        print("Create a new FastRunContainer")
-    fastrun_container = FastRunContainer(base_filter=base_filter, use_refs=use_refs, base_data_type=BaseDataType, case_insensitive=case_insensitive)
+    log.info("Create a new FastRunContainer")
+
+    fastrun_container = FastRunContainer(base_data_type=BaseDataType, base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
     fastrun_store.append(fastrun_container)
     return fastrun_container
