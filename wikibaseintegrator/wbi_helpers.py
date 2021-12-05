@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 from time import sleep
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
     from wikibaseintegrator.entities.baseentity import BaseEntity
     from wikibaseintegrator.wbi_login import Login
 
+log = logging.getLogger(__name__)
+
 
 class BColors:
     HEADER = '\033[95m'
@@ -27,6 +30,10 @@ class BColors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+# Session used for anonymous requests
+default_session = requests.Session()
 
 
 def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
@@ -53,7 +60,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
             raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
 
     response = None
-    session = session if session else requests.Session()
+    session = session if session else default_session
     for n in range(max_retries):
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
@@ -122,8 +129,8 @@ def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, 
 
     hostname = urlparse(mediawiki_api_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
-        print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+        log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
+        log.warning('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
     if not allow_anonymous:
         if login is None:
@@ -138,7 +145,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, 
     }
 
     if data is not None:
-        if login is not None and 'token' not in data:
+        if not allow_anonymous and login is not None and 'token' not in data:
             data.update({'token': login.get_edit_token()})
         elif 'token' not in data:
             data.update({'token': '+\\'})
@@ -167,8 +174,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, 
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60,
-                         debug: bool = False) -> Optional[Dict[str, dict]]:
+def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Optional[Dict[str, dict]]:
     """
     Static method which can be used to execute any SPARQL query
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -177,8 +183,6 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
     :param max_retries: The number time this function should retry in case of header reports.
     :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
-    :param debug: Enable debug output.
-    :type debug: boolean
     :return: The results of the query are returned in JSON format
     """
 
@@ -187,8 +191,8 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
 
     hostname = urlparse(sparql_endpoint_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
-        print('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        print('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+        log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
+        log.warning('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
 
     if prefix:
         query = prefix + '\n' + query
@@ -204,8 +208,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
         'Content-Type': 'multipart/form-data'
     }
 
-    if debug or config['DEBUG']:
-        print(BColors.WARNING + params['query'] + BColors.ENDC)
+    log.debug(BColors.WARNING + params['query'] + BColors.ENDC)
 
     for n in range(max_retries):
         try:

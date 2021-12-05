@@ -1,7 +1,7 @@
 """
 Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
 """
-
+import logging
 import time
 import webbrowser
 from typing import Optional
@@ -17,6 +17,8 @@ from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import get_user_agent
 
+log = logging.getLogger(__name__)
+
 
 class Login:
     """
@@ -25,8 +27,8 @@ class Login:
 
     @wbi_backoff()
     def __init__(self, auth_method: str = 'oauth2', user: str = None, password: str = None, mediawiki_api_url: str = None, mediawiki_index_url: str = None,
-                 mediawiki_rest_url: str = None, token_renew_period: int = 1800, consumer_token: str = None, consumer_secret: str = None,
-                 access_token: str = None, access_secret: str = None, callback_url: str = 'oob', user_agent: str = None, debug: bool = False):
+                 mediawiki_rest_url: str = None, token_renew_period: int = 1800, consumer_token: str = None, consumer_secret: str = None, access_token: str = None,
+                 access_secret: str = None, callback_url: str = 'oob', user_agent: str = None):
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
@@ -113,11 +115,10 @@ class Login:
 
                 login_result = self.session.post(self.mediawiki_api_url, data=params).json()
 
-                if debug:
-                    print(login_result)
+                log.debug(login_result)
 
                 if 'login' in login_result and login_result['login']['result'] == 'Success':
-                    print("Successfully logged in as", login_result['login']['lgusername'])
+                    log.info(f"Successfully logged in as {login_result['login']['lgusername']}")
                 else:
                     raise LoginError(f"Login failed. Reason: '{login_result['login']['reason']}'")
             else:
@@ -132,16 +133,14 @@ class Login:
 
                 login_result = self.session.post(self.mediawiki_api_url, data=params).json()
 
-                if debug:
-                    print(login_result)
+                log.debug(login_result)
 
                 if 'clientlogin' in login_result:
                     clientlogin = login_result['clientlogin']
                     if clientlogin['status'] != 'PASS':
                         raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
 
-                    if debug:
-                        print("Successfully logged in as", clientlogin['username'])
+                    log.info(f"Successfully logged in as {clientlogin['username']}")
                 else:
                     raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
 

@@ -25,6 +25,16 @@ class Claims(BaseModel):
     def get(self, property: str = None) -> List:
         return self.claims[property]
 
+    def remove(self, property: str = None) -> None:
+        if property in self.claims:
+            for prop in self.claims[property]:
+                if prop.id:
+                    prop.remove()
+                else:
+                    self.claims[property].remove(prop)
+            if len(self.claims[property]) == 0:
+                del self.claims[property]
+
     def add(self, claims: Union[list, Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
@@ -93,11 +103,11 @@ class Claims(BaseModel):
             if property not in json_data:
                 json_data[property] = []
             for claim in claims:
-                json_data[property].append(claim.get_json())
+                if not claim.removed or claim.id:
+                    json_data[property].append(claim.get_json())
+            if len(json_data[property]) == 0:
+                del json_data[property]
         return json_data
-
-    def clear(self) -> None:
-        self.claims = {}
 
     def __len__(self):
         return len(self.claims)
@@ -244,7 +254,8 @@ class Claim(BaseModel):
         if len(self.references) > 0:
             json_data['references'] = self.references.get_json()
         if self.removed:
-            json_data['remove'] = ''
+            if self.id:
+                json_data['remove'] = ''
         return json_data
 
     def has_equal_qualifiers(self, other: Claim) -> bool:
@@ -266,6 +277,7 @@ class Claim(BaseModel):
 
         return equal_qualifiers
 
+    # TODO: rewrite this?
     def __contains__(self, item):
         if isinstance(item, Claim):
             return self == item
@@ -273,12 +285,16 @@ class Claim(BaseModel):
         if isinstance(item, str):
             return self.mainsnak.datavalue == item
 
-        raise TypeError
+        return super().__contains__(item)
 
     def __eq__(self, other):
         if isinstance(other, Claim):
             return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
-        raise TypeError
+
+        if isinstance(other, str):
+            return self.mainsnak.property_number == other
+
+        raise super().__eq__(other)
 
     def equals(self, that: Claim, include_ref: bool = False, fref: Callable = None) -> bool:
         """
