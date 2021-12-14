@@ -1,6 +1,7 @@
 import unittest
+from json import JSONDecodeError
 
-from simplejson import JSONDecodeError
+import simplejson
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import BaseDataType, Item
@@ -34,7 +35,7 @@ class TestEntityItem(unittest.TestCase):
         assert wbi.item.get('Q582').get_json()['labels']['fr']['value'] == 'Villeurbanne'
 
     def test_write(self):
-        with self.assertRaises(JSONDecodeError):
+        with self.assertRaises(simplejson.errors.JSONDecodeError):
             wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url='https://httpstat.us/200')
 
     def test_write_not_required(self):

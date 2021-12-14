@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Union
-
-import simplejson
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -119,7 +118,7 @@ class BaseEntity:
         #                 new_json_repr['claims'].pop(claim)
         #     data = json.JSONEncoder().encode(new_json_repr)
 
-        data = simplejson.JSONEncoder().encode(data)
+        data = json.dumps(data)
 
         payload: Dict[str, Any] = {
             'action': 'wbeditentity',

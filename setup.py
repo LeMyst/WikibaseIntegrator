@@ -8,8 +8,7 @@ setup(
         "backoff ~= 1.11.1",
         "mwoauth ~= 0.3.7",
         "oauthlib ~= 3.1.1",
-        "requests ~= 2.26.0",
-        "simplejson ~= 3.17.6"
+        "requests ~= 2.26.0"
     ],
     extras_require={
         "dev": [
