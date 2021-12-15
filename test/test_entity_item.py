@@ -1,5 +1,4 @@
 import unittest
-from json import JSONDecodeError
 
 import simplejson
 
