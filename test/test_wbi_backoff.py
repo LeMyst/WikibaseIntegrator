@@ -2,6 +2,7 @@ import json
 import unittest
 
 import requests
+import ujson
 
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
@@ -43,7 +44,7 @@ def good_http_code():
 
 @wbi_backoff()
 def bad_json():
-    json.loads("<xml>I failed :(</xml>")
+    ujson.loads("<xml>I failed :(</xml>")
 
 
 @wbi_backoff()
