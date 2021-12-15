@@ -1,4 +1,3 @@
-import json
 import unittest
 
 import requests
@@ -22,7 +21,7 @@ class TestMethods(unittest.TestCase):
 
         assert good_http_code() == 200
 
-        with self.assertRaises(json.JSONDecodeError):
+        with self.assertRaises(ValueError):
             bad_json()
 
 
