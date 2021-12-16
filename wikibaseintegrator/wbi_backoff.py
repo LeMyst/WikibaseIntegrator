@@ -1,9 +1,9 @@
 import sys
 from functools import partial
+from json import JSONDecodeError
 
 import backoff
 import requests
-from simplejson import JSONDecodeError
 
 from wikibaseintegrator.wbi_config import config
 
