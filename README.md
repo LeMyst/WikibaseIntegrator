@@ -6,6 +6,7 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
+Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance.
 
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
@@ -26,8 +27,9 @@
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
-    - [A Minimal Bot](#a-minimal-bot)
-    - [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+    - [Create a new Item](#create-a-new-item)
+    - [Modify an existing item](#modify-an-existing-item)
+    - [A bot for Mass Import](#a-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
 
 # WikibaseIntegrator / WikidataIntegrator #
@@ -39,8 +41,8 @@ changed.
 
 # Installation #
 
-The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.7 and higher. If
-Python 2 is installed `pip` will lead to an error indicating missing dependencies.
+The easiest way to install WikibaseIntegrator is using the package manager `pip`. WikibaseIntegrator supports Python 3.7
+and higher. If Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash
 python -m pip install wikibaseintegrator
@@ -58,8 +60,8 @@ python -m pip install pip setuptools
 python -m pip install .
 ```
 
-To test for correct installation, start a Python console and execute the following (Will retrieve the Wikidata item
-for ['Human'](https://www.wikidata.org/entity/Q5)):
+To test for correct installation, start a Python console and execute the following (will retrieve the Wikidata item
+for [Human](https://www.wikidata.org/entity/Q5)):
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator
@@ -125,21 +127,9 @@ WikibaseIntegrator supports Item, Property, Lexeme and MediaInfo manipulation th
 
 Features:
 
-* [ ] Load a Wikibase entity based on data to be written (e.g. a unique central identifier)
-* [x] Load a Wikibase entity based on its Wikibase entity id
-* [ ] Checks for conflicts automatically (e.g. multiple items carrying a unique central identifier will trigger an
-  exception)
-* [ ] Checks automatically if the correct item has been loaded by comparing it to the data provided
-* [x] All Wikibase data types implemented
-* [ ] A dedicated write() method allows loading and consistency checks of data before any write to Wikibase is performed
-* [x] Full access to the whole Wikibase item as a JSON document
-
-There are two ways of working with Wikibase entities:
-
-* A user can provide data, and ItemEngine will search for and load/modify an existing item or create a new one, solely
-  based on the data provided (preferred). This also performs consistency checks based on a set of SPARQL queries.
-* A user can work with a selected QID to specifically modify the data on the item. This requires that the user knows
-  what he/she is doing and should only be used with great care, as this does not perform consistency checks.
+* Load a Wikibase entity based on its Wikibase entity id
+* All Wikibase data types implemented
+* Full access to the whole Wikibase entity as a JSON document
 
 ## wbi_login.Login ##
 
