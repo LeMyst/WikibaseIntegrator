@@ -1,7 +1,7 @@
-import json
 import unittest
 
 import requests
+import ujson
 
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_backoff import wbi_backoff
@@ -21,7 +21,7 @@ class TestMethods(unittest.TestCase):
 
         assert good_http_code() == 200
 
-        with self.assertRaises(json.JSONDecodeError):
+        with self.assertRaises(ValueError):
             bad_json()
 
 
@@ -43,7 +43,7 @@ def good_http_code():
 
 @wbi_backoff()
 def bad_json():
-    json.loads("<xml>I failed :(</xml>")
+    ujson.loads("<xml>I failed :(</xml>")
 
 
 @wbi_backoff()

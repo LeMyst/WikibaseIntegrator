@@ -4,7 +4,7 @@ import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Union
 
-import simplejson
+import ujson
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -119,11 +119,11 @@ class BaseEntity:
         #                 new_json_repr['claims'].pop(claim)
         #     data = json.JSONEncoder().encode(new_json_repr)
 
-        data = simplejson.JSONEncoder().encode(data)
+        json_data: str = ujson.dumps(data)
 
         payload: Dict[str, Any] = {
             'action': 'wbeditentity',
-            'data': data,
+            'data': json_data,
             'format': 'json',
             'summary': summary
         }
@@ -148,26 +148,26 @@ class BaseEntity:
         log.debug(payload)
 
         try:
-            json_data = mediawiki_api_call_helper(data=payload, login=self.api.login, allow_anonymous=allow_anonymous, is_bot=self.api.is_bot, **kwargs)
+            json_result: dict = mediawiki_api_call_helper(data=payload, login=self.api.login, allow_anonymous=allow_anonymous, is_bot=self.api.is_bot, **kwargs)
 
-            if 'error' in json_data and 'messages' in json_data['error']:
-                error_msg_names = {x.get('name') for x in json_data['error']['messages']}
+            if 'error' in json_result and 'messages' in json_result['error']:
+                error_msg_names = {x.get('name') for x in json_result['error']['messages']}
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
-                    raise NonUniqueLabelDescriptionPairError(json_data)
+                    raise NonUniqueLabelDescriptionPairError(json_result)
 
-                raise MWApiError(json_data)
+                raise MWApiError(json_result)
 
-            if 'error' in json_data.keys():
-                raise MWApiError(json_data)
+            if 'error' in json_result.keys():
+                raise MWApiError(json_result)
         except Exception:
             print('Error while writing to the Wikibase instance')
             raise
 
         # after successful write, update this object with latest json, QID and parsed data types.
-        self.id = json_data['entity']['id']
-        if 'success' in json_data and 'entity' in json_data and 'lastrevid' in json_data['entity']:
-            self.lastrevid = json_data['entity']['lastrevid']
-        return json_data['entity']
+        self.id = json_result['entity']['id']
+        if 'success' in json_result and 'entity' in json_result and 'lastrevid' in json_result['entity']:
+            self.lastrevid = json_result['entity']['lastrevid']
+        return json_result['entity']
 
     def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
