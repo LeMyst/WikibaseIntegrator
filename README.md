@@ -8,6 +8,15 @@
 
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance.
 
+# Breaking changes in v0.12 #
+
+A complete rewrite of the core of WikibaseIntegrator has been done in v0.12 who led to breaking changes.
+
+It offers a new object-oriented approach, a better readibility of the code and a support of Property, Lexeme and
+MediaInfo entities (in additions to Item).
+
+---
+
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
