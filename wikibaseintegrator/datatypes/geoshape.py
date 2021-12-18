@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -15,7 +16,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -40,8 +41,10 @@ class GeoShape(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+    def set_value(self, value: str = None):
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
             # TODO: Need to check if the value is a full URl like http://commons.wikimedia.org/data/main/Data:Paris.map

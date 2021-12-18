@@ -1,18 +1,23 @@
+"""
+Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
+"""
+import logging
 import time
 import webbrowser
+from typing import Optional
 
 import requests
 from mwoauth import ConsumerToken, Handshaker, OAuthException
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
-from requests_oauthlib import OAuth1, OAuth2Session, OAuth2
+from requests import Session
+from requests.cookies import RequestsCookieJar
+from requests_oauthlib import OAuth1, OAuth2, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import get_user_agent
 
-"""
-Login class for Wikidata. Takes username and password and stores the session cookies and edit tokens.
-"""
+log = logging.getLogger(__name__)
 
 
 class Login:
@@ -21,48 +26,39 @@ class Login:
     """
 
     @wbi_backoff()
-    def __init__(self, auth_method='oauth2', user=None, password=None, mediawiki_api_url=None, mediawiki_index_url=None, mediawiki_rest_url=None, token_renew_period=1800,
-                 consumer_token=None, consumer_secret=None, access_token=None, access_secret=None, callback_url='oob', user_agent=None, debug=False):
+    def __init__(self, auth_method: str = 'oauth2', user: str = None, password: str = None, mediawiki_api_url: str = None, mediawiki_index_url: str = None,
+                 mediawiki_rest_url: str = None, token_renew_period: int = 1800, consumer_token: str = None, consumer_secret: str = None, access_token: str = None,
+                 access_secret: str = None, callback_url: str = 'oob', user_agent: str = None):
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
         :param user: the username which should be used for the login
-        :type user: str
         :param password: the password which should be used for the login
-        :type password: str
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
-        :type token_renew_period: int
         :param consumer_token: The consumer key for OAuth
-        :type consumer_token: str
         :param consumer_secret: The consumer secret for OAuth
-        :type consumer_secret: str
         :param access_token: The access token for OAuth
-        :type access_token: str
         :param access_secret: The access secret for OAuth
-        :type access_secret: str
         :param callback_url: URL which should be used as the callback URL
-        :type callback_url: str
         :param user_agent: UA string to use for API requests.
-        :type user_agent: str
-        :return: None
         """
 
         self.auth_method = auth_method
         self.consumer_token = consumer_token
-        self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
-        self.mediawiki_index_url = mediawiki_index_url or config['MEDIAWIKI_INDEX_URL']
-        self.mediawiki_rest_url = mediawiki_rest_url or config['MEDIAWIKI_REST_URL']
+        self.mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+        self.mediawiki_index_url = str(mediawiki_index_url or config['MEDIAWIKI_INDEX_URL'])
+        self.mediawiki_rest_url = str(mediawiki_rest_url or config['MEDIAWIKI_REST_URL'])
         self.token_renew_period = token_renew_period
         self.callback_url = callback_url
-        self.user_agent = get_user_agent(user_agent if user_agent else config['USER_AGENT'])
+        self.user_agent = get_user_agent(user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None))
 
         if self.auth_method not in ['login', 'clientlogin', 'oauth1', 'oauth2']:
             raise ValueError("The auth_method must be 'login', 'clientlogin', 'oauth1' or 'oauth2'")
 
         self.session = requests.Session()
-        self.edit_token = None
+        self.edit_token: Optional[str] = None
         self.instantiation_time = time.time()
-        self.response_qs = None
+        self.response_qs: Optional[str] = None
 
         self.session.headers.update({
             'User-Agent': self.user_agent
@@ -86,10 +82,10 @@ class Login:
             else:
                 # Oauth procedure, based on https://www.mediawiki.org/wiki/OAuth/For_Developers
                 # Consruct a "consumer" from the key/secret provided by MediaWiki
-                self.consumer_token = ConsumerToken(self.consumer_token, consumer_secret)
+                self.oauth1_consumer_token = ConsumerToken(self.consumer_token, consumer_secret)
 
                 # Construct handshaker with wiki URI and consumer
-                self.handshaker = Handshaker(mw_uri=self.mediawiki_index_url, consumer_token=self.consumer_token, callback=self.callback_url, user_agent=self.user_agent)
+                self.handshaker = Handshaker(mw_uri=self.mediawiki_index_url, consumer_token=self.oauth1_consumer_token, callback=self.callback_url, user_agent=self.user_agent)
 
                 # Step 1: Initialize -- ask MediaWiki for a temp key/secret for user
                 # redirect -> authorization -> callback url
@@ -119,13 +115,12 @@ class Login:
 
                 login_result = self.session.post(self.mediawiki_api_url, data=params).json()
 
-                if debug:
-                    print(login_result)
+                log.debug(login_result)
 
                 if 'login' in login_result and login_result['login']['result'] == 'Success':
-                    print("Successfully logged in as", login_result['login']['lgusername'])
+                    log.info(f"Successfully logged in as {login_result['login']['lgusername']}")
                 else:
-                    raise LoginError("Login failed. Reason: '{}'".format(login_result['login']['reason']))
+                    raise LoginError(f"Login failed. Reason: '{login_result['login']['reason']}'")
             else:
                 params = {
                     'action': 'clientlogin',
@@ -138,27 +133,25 @@ class Login:
 
                 login_result = self.session.post(self.mediawiki_api_url, data=params).json()
 
-                if debug:
-                    print(login_result)
+                log.debug(login_result)
 
                 if 'clientlogin' in login_result:
                     clientlogin = login_result['clientlogin']
                     if clientlogin['status'] != 'PASS':
-                        raise LoginError("Login failed ({}). Message: '{}'".format(clientlogin['messagecode'], clientlogin['message']))
+                        raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
 
-                    if debug:
-                        print("Successfully logged in as", clientlogin['username'])
+                    log.info(f"Successfully logged in as {clientlogin['username']}")
                 else:
-                    raise LoginError("Login failed ({}). Message: '{}'".format(login_result['error']['code'], login_result['error']['info']))
+                    raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
 
             if 'warnings' in login_result:
                 print("MediaWiki login warnings messages:")
                 for message in login_result['warnings']:
-                    print("* {}: {}".format(message, login_result['warnings'][message]['*']))
+                    print(f"* {message}: {login_result['warnings'][message]['*']}")
 
             self.generate_edit_credentials()
 
-    def generate_edit_credentials(self):
+    def generate_edit_credentials(self) -> RequestsCookieJar:
         """
         request an edit token and update the cookie_jar in order to add the session cookie
         :return: Returns a json with all relevant cookies, aka cookie jar
@@ -171,12 +164,12 @@ class Login:
         }
         response = self.session.get(self.mediawiki_api_url, params=params).json()
         if 'error' in response:
-            raise LoginError("Login failed ({}). Message: '{}'".format(response['error']['code'], response['error']['info']))
+            raise LoginError(f"Login failed ({response['error']['code']}). Message: '{response['error']['info']}'")
         self.edit_token = response['query']['tokens']['csrftoken']
 
         return self.session.cookies
 
-    def get_edit_cookie(self):
+    def get_edit_cookie(self) -> RequestsCookieJar:
         """
         Can be called in order to retrieve the cookies from an instance of wbi_login.Login
         :return: Returns a json with all relevant cookies, aka cookie jar
@@ -187,7 +180,7 @@ class Login:
 
         return self.session.cookies
 
-    def get_edit_token(self):
+    def get_edit_token(self) -> Optional[str]:
         """
         Can be called in order to retrieve the edit token from an instance of wbi_login.Login
         :return: returns the edit token
@@ -198,14 +191,14 @@ class Login:
 
         return self.edit_token
 
-    def get_session(self):
+    def get_session(self) -> Session:
         """
         returns the requests session object used for the login.
         :return: Object of type requests.Session()
         """
         return self.session
 
-    def continue_oauth(self, oauth_callback_data=None):
+    def continue_oauth(self, oauth_callback_data: str = None) -> None:
         """
         Continuation of OAuth procedure. Method must be explicitly called in order to complete OAuth. This allows
         external entities, e.g. websites, to provide tokens through callback URLs directly.
@@ -220,13 +213,17 @@ class Login:
             self.response_qs = input("Callback URL: ")
 
         # input the url from redirect after authorization
-        response_qs = self.response_qs.split(b'?')[-1]
+        response_qs = self.response_qs.split('?')[-1]
 
         # Step 3: Complete -- obtain authorized key/secret for "resource owner"
         access_token = self.handshaker.complete(self.request_token, response_qs)
 
+        if self.oauth1_consumer_token is None:
+            raise ValueError("consumer_token can't be None")
+
         # input the access token to return a csrf (edit) token
-        auth = OAuth1(self.consumer_token.key, client_secret=self.consumer_token.secret, resource_owner_key=access_token.key, resource_owner_secret=access_token.secret)
+        auth = OAuth1(client_key=self.oauth1_consumer_token.key, client_secret=self.oauth1_consumer_token.secret, resource_owner_key=access_token.key,
+                      resource_owner_secret=access_token.secret)
         self.session.auth = auth
         self.generate_edit_credentials()
 

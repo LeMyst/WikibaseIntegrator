@@ -1,4 +1,5 @@
 import re
+from typing import Any, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -15,27 +16,18 @@ class Item(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: Union[str, int] = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
         :param value: The item ID to serve as the value
-        :type value: str with a 'Q' prefix, followed by several digits or only the digits without the 'Q' prefix
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
-        assert isinstance(value, (str, int)) or value is None, 'Expected str or int, found {} ({})'.format(type(value), value)
+    def set_value(self, value: Union[str, int] = None):
+        assert isinstance(value, (str, int)) or value is None, f'Expected str or int, found {type(value)} ({value})'
 
         if value:
             if isinstance(value, str):
@@ -43,7 +35,7 @@ class Item(BaseDataType):
                 matches = pattern.match(value)
 
                 if not matches:
-                    raise ValueError("Invalid item ID ({}), format must be 'Q[0-9]+'".format(value))
+                    raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
 
                 value = int(matches.group(1))
 
@@ -51,10 +43,10 @@ class Item(BaseDataType):
                 'value': {
                     'entity-type': 'item',
                     'numeric-id': value,
-                    'id': 'Q{}'.format(value)
+                    'id': f'Q{value}'
                 },
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self):
-        return self.mainsnak.datavalue['value']['id']
+    def _get_sparql_value(self) -> str:
+        return '<{wb_url}/entity/' + self.mainsnak.datavalue['value']['id'] + '>'

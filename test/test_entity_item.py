@@ -1,10 +1,8 @@
+import json
 import unittest
-from pprint import pprint
-
-from simplejson import JSONDecodeError
 
 from wikibaseintegrator import WikibaseIntegrator
-from wikibaseintegrator.datatypes import Item
+from wikibaseintegrator.datatypes import BaseDataType, Item
 
 wbi = WikibaseIntegrator()
 
@@ -35,21 +33,21 @@ class TestEntityItem(unittest.TestCase):
         assert wbi.item.get('Q582').get_json()['labels']['fr']['value'] == 'Villeurbanne'
 
     def test_write(self):
-        with self.assertRaises(JSONDecodeError):
+        with self.assertRaises(json.JSONDecodeError):
             wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url='https://httpstat.us/200')
 
     def test_write_not_required(self):
-        assert not wbi.item.get('Q582').write_required(base_filter={'P1791': ''})
+        assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P1791')])
 
     def test_write_required(self):
         item = wbi.item.get('Q582')
         item.claims.add(Item(prop_nr='P1791', value='Q42'))
-        assert item.write_required(base_filter={'P1791': ''})
+        assert item.write_required([BaseDataType(prop_nr='P1791')])
 
     def test_write_not_required_ref(self):
-        assert not wbi.item.get('Q582').write_required(base_filter={'P2581': ''}, use_refs=True)
+        assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)
 
     def test_write_required_ref(self):
         item = wbi.item.get('Q582')
         item.claims.get('P2581')[0].references.references.pop()
-        assert item.write_required(base_filter={'P2581': ''}, use_refs=True)
+        assert item.write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)

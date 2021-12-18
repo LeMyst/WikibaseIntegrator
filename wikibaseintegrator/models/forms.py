@@ -1,56 +1,52 @@
-from dataclasses import dataclass, field
+from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Union
+
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.language_values import LanguageValues
 
 
 @dataclass
-class Forms:
+class Forms(BaseModel):
     forms: dict = field(default_factory=dict)
 
     def __init__(self):
         self.forms = {}
 
-    @property
-    def forms(self):
-        return self.__forms
-
-    @forms.setter
-    def forms(self, value):
-        self.__forms = value
-
-    def get(self, id):
+    def get(self, id: str) -> Form:
         return self.forms[id]
 
-    def add(self, form):
+    def add(self, form: Form) -> Forms:
         self.forms[form.id] = form
 
         return self
 
-    def get_json(self) -> []:
-        json_data = []
-        for form in self.forms:
-            json_data.append(self.forms[form].get_json())
-        return json_data
-
-    def from_json(self, json_data):
+    def from_json(self, json_data: List[Dict]) -> Forms:
         for form in json_data:
-            self.add(Form(form_id=form['id'], representations=LanguageValues().from_json(form['representations']), grammatical_features=form['grammaticalFeatures'],
-                          claims=Claims().from_json(form['claims'])))
+            self.add(form=Form().from_json(form))
 
         return self
 
+    def get_json(self) -> List[Dict]:
+        json_data: List[Dict] = []
+        for _, form in self.forms.items():
+            json_data.append(form.get_json())
+
+        return json_data
+
 
 @dataclass
-class Form:
+class Form(BaseModel):
     id: str
     representations: LanguageValues
     grammatical_features: list[str]
     claims: Claims
 
-    def __init__(self, form_id=None, representations=None, grammatical_features=None, claims=None):
+    def __init__(self, form_id: str = None, representations: Representations = None, grammatical_features: Union[str, int, List[str]] = None, claims: Claims = None):
         self.id = form_id
-        self.representations = representations or LanguageValues()
+        self.representations: Representations = representations or LanguageValues()
         self.grammatical_features = grammatical_features or []
         self.claims = claims or Claims()
 
@@ -75,14 +71,18 @@ class Form:
         return self.__grammatical_features
 
     @grammatical_features.setter
-    def grammatical_features(self, value):
-        # TODO: Access to member before its definition
+    def grammatical_features(self, value: Union[str, int, List[str]]):
+        if not hasattr(self, '__grammatical_features') or value is None:
+            self.__grammatical_features = []
+
         if isinstance(value, int):
             self.__grammatical_features.append('Q' + str(value))
         elif isinstance(value, str):
             self.__grammatical_features.append(value)
-        else:
+        elif isinstance(value, list):
             self.__grammatical_features = value
+        else:
+            raise TypeError(f"value must be a str, an int or a list of strings, got '{type(value)}'")
 
     @property
     def claims(self):
@@ -92,8 +92,16 @@ class Form:
     def claims(self, value):
         self.__claims = value
 
-    def get_json(self) -> {}:
-        json_data = {
+    def from_json(self, json_data: Dict[str, Any]) -> Form:
+        self.id = json_data['id']
+        self.representations = Representations().from_json(json_data['representations'])
+        self.grammatical_features = json_data['grammaticalFeatures']
+        self.claims = Claims().from_json(json_data['claims'])
+
+        return self
+
+    def get_json(self) -> Dict[str, Union[str, Dict, List]]:
+        json_data: Dict[str, Union[str, Dict, list]] = {
             'id': self.id,
             'representations': self.representations.get_json(),
             'grammaticalFeatures': self.grammatical_features,
@@ -105,3 +113,7 @@ class Form:
             del json_data['id']
 
         return json_data
+
+
+class Representations(LanguageValues):
+    pass

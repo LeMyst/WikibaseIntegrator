@@ -1,24 +1,29 @@
+from __future__ import annotations
+
+from typing import Dict, List, Optional, Union
+
+from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
-class Aliases:
-    def __init__(self, language=None, value=None):
-        self.__aliases = {}
+class Aliases(BaseModel):
+    def __init__(self, language: str = None, value: str = None):
+        self.aliases: Dict[str, str] = {}
 
         if language is not None:
             self.set(language=language, values=value)
 
     @property
-    def aliases(self):
+    def aliases(self) -> Dict[str, List[Alias]]:
         return self.__aliases
 
     @aliases.setter
-    def aliases(self, value):
+    def aliases(self, value: Dict[str, List[Alias]]):
         self.__aliases = value
 
-    def get(self, language=None):
+    def get(self, language: str = None) -> Optional[List[Alias]]:
         if language is None:
             # TODO: Don't return a list of list, just a list
             return [item for sublist in self.aliases.values() for item in sublist]
@@ -28,8 +33,8 @@ class Aliases:
 
         return None
 
-    def set(self, language=None, values=None, action_if_exists=ActionIfExists.APPEND):
-        language = language or config['DEFAULT_LANGUAGE']
+    def set(self, language: str = None, values: Union[str, list] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> Aliases:
+        language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
 
         assert language is not None
@@ -41,12 +46,12 @@ class Aliases:
             if action_if_exists != ActionIfExists.KEEP:
                 for alias in self.aliases[language]:
                     alias.remove()
-            return self.aliases[language]
+            return self
 
         if isinstance(values, str):
             values = [values]
-        elif not isinstance(values, list) and values is not None:
-            raise TypeError("value must be a str or list")
+        elif values is not None and not isinstance(values, list):
+            raise TypeError(f"value must be a str or list of strings, got '{type(values)}'")
 
         if action_if_exists == ActionIfExists.REPLACE:
             aliases = []
@@ -67,16 +72,16 @@ class Aliases:
 
         return self
 
-    def get_json(self) -> {}:
-        json_data = {}
-        for language in self.aliases:
+    def get_json(self) -> Dict[str, list]:
+        json_data: Dict[str, list] = {}
+        for language, aliases in self.aliases.items():
             if language not in json_data:
                 json_data[language] = []
-            for alias in self.aliases[language]:
+            for alias in aliases:
                 json_data[language].append(alias.get_json())
         return json_data
 
-    def from_json(self, json_data):
+    def from_json(self, json_data: Dict[str, list]) -> Aliases:
         for language in json_data:
             for alias in json_data[language]:
                 self.set(alias['language'], alias['value'])
@@ -86,14 +91,6 @@ class Aliases:
     # def __contains__(self, item):
     #     all_aliases = [item for sublist in list(self.aliases.values()) for item in sublist]
     #     return item in list(map(lambda x: x.value, all_aliases))
-
-    def __repr__(self):
-        """A mixin implementing a simple __repr__."""
-        return "<{klass} @{id:x} {attrs}>".format(
-            klass=self.__class__.__name__,
-            id=id(self) & 0xFFFFFF,
-            attrs=" ".join("{}={!r}".format(k, v) for k, v in self.__dict__.items()),
-        )
 
 
 class Alias(LanguageValue):

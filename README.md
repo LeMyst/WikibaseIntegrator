@@ -1,6 +1,7 @@
 # Wikibase Integrator #
 
-[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
+<!-- TODO: Change branch name when merging -->
+[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg?branch=rewrite-wbi)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
 [![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
@@ -42,7 +43,7 @@ The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator
 Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash
-pip install wikibaseintegrator
+python -m pip install wikibaseintegrator
 ```
 
 You can also clone the repo and execute with administrator rights or install into a virtualenv.
@@ -54,7 +55,7 @@ cd WikibaseIntegrator
 
 python -m pip install pip setuptools
 
-python setup.py install
+python -m pip install .
 ```
 
 To test for correct installation, start a Python console and execute the following (Will retrieve the Wikidata item

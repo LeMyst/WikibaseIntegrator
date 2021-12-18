@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -15,35 +16,40 @@ class URL(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
+
         :param value: The URL to be used as the value
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+    def set_value(self, value: str = None):
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
             pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid URL {}".format(value))
+                raise ValueError(f"Invalid URL {value}")
 
             self.mainsnak.datavalue = {
                 'value': value,
                 'type': 'string'
             }
+
+    def _get_sparql_value(self) -> str:
+        return '<' + self.mainsnak.datavalue['value'] + '>'
+
+    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+        pattern = re.compile(r'^<?(.*?)>?$')
+        matches = pattern.match(value)
+        if not matches:
+            return False
+
+        self.set_value(value=matches.group(1))
+
+        return True

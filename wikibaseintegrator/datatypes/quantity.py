@@ -1,3 +1,5 @@
+from typing import Any, Union
+
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import format_amount
@@ -15,41 +17,32 @@ class Quantity(BaseDataType):
         }}
     '''
 
-    def __init__(self, amount=None, upper_bound=None, lower_bound=None, unit='1', wikibase_url=None, **kwargs):
+    def __init__(self, amount: Union[str, int, float] = None, upper_bound: Union[str, int, float] = None, lower_bound: Union[str, int, float] = None, unit: Union[str, int] = '1',
+                 wikibase_url: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
         :param amount: The amount value
-        :type amount: float, str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
         :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
-        :type upper_bound: float, str
         :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
-        :type lower_bound: float, str
         :param unit: The unit item URL or the QID a certain amount has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
             The default is dimensionless, represented by a '1'
-        :type unit: str
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
+        :param wikibase_url: The default wikibase URL, used when the unit is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.
         """
 
         super().__init__(**kwargs)
+        self.set_value(amount=amount, upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
 
-        wikibase_url = config['WIKIBASE_URL'] if wikibase_url is None else wikibase_url
+    def set_value(self, amount: Union[str, int, float] = None, upper_bound: Union[str, int, float] = None, lower_bound: Union[str, int, float] = None, unit: Union[str, int] = '1',
+                  wikibase_url: str = None):
+        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
-        unit = unit or '1'
+        unit = str(unit or '1')
 
         if unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
-        if amount:
+        if amount is not None:
             amount = format_amount(amount)
             unit = str(unit)
             if upper_bound:
@@ -88,5 +81,9 @@ class Quantity(BaseDataType):
             if not lower_bound:
                 del self.mainsnak.datavalue['value']['lowerBound']
 
-    def get_sparql_value(self):
-        return format_amount(self.mainsnak.datavalue['value']['amount'])
+    def _get_sparql_value(self) -> str:
+        return '"' + format_amount(self.mainsnak.datavalue['value']['amount']) + '"^^xsd:decimal'
+
+    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+        self.set_value(amount=value, unit=unit)
+        return True

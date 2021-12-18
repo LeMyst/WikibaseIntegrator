@@ -1,5 +1,6 @@
 import datetime
 import re
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -17,46 +18,34 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time=None, before=0, after=0, precision=11, timezone=0, calendarmodel=None, wikibase_url=None, **kwargs):
+    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: int = 11, timezone: int = 0, calendarmodel: str = None, wikibase_url: str = None,
+                 **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
         :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
-        :type time: str in the format '+%Y-%m-%dT%H:%M:%SZ', e.g. '+2001-12-31T12:01:13Z' or now
         :param prop_nr: The property number for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
         :param before: explicit integer value for how many units after the given time it could be.
                        The unit is given by the precision.
-        :type before: int
         :param after: explicit integer value for how many units before the given time it could be.
                       The unit is given by the precision.
-        :type after: int
         :param precision: Precision value for dates and time as specified in the Wikibase data model
                           (https://www.wikidata.org/wiki/Special:ListDatatypes#time)
-        :type precision: int
         :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
-        :type timezone: int
         :param calendarmodel: The calendar model used for the date. URL to the Wikibase calendar model item or the QID.
-        :type calendarmodel: str
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
         """
 
         super().__init__(**kwargs)
+        self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
-        calendarmodel = calendarmodel or config['CALENDAR_MODEL_QID']
-        wikibase_url = wikibase_url or config['WIKIBASE_URL']
+    def set_value(self, time: str = None, before: int = 0, after: int = 0, precision: int = 11, timezone: int = 0, calendarmodel: str = None, wikibase_url: str = None):
+        calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
+        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        assert isinstance(time, str) or time is None, "Expected str, found {} ({})".format(type(time), time)
+        assert isinstance(time, str) or time is None, f"Expected str, found {type(time)} ({time})"
 
         if time:
             if time == "now":
@@ -84,5 +73,5 @@ class Time(BaseDataType):
                 'type': 'time'
             }
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['time']

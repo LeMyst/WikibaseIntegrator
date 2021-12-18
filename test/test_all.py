@@ -1,29 +1,13 @@
 import copy
 import unittest
 
-import requests
-
-from wikibaseintegrator import wbi_fastrun, WikibaseIntegrator, datatypes
+from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
-from wikibaseintegrator.entities.baseentity import MWApiError
-from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.entities import Item
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, get_user_agent, execute_sparql_query
-
-config['DEBUG'] = True
+from wikibaseintegrator.wbi_fastrun import get_fastrun_container
 
 wbi = WikibaseIntegrator()
-
-
-class TestMediawikiApiCall(unittest.TestCase):
-    def test_all(self):
-        with self.assertRaises(MWApiError):
-            mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=3,
-                                      retry_after=1, allow_anonymous=True)
-        with self.assertRaises(requests.HTTPError):
-            mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
-
-        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
 
 
 class TestDataType(unittest.TestCase):
@@ -53,16 +37,13 @@ class TestDataType(unittest.TestCase):
 
         dt_json = dt.get_json()
 
-        if not dt_json['mainsnak']['datatype'] == 'geo-shape':
-            raise
+        assert dt_json['mainsnak']['datatype'] == 'geo-shape'
 
         value = dt_json['mainsnak']['datavalue']
 
-        if not value['value'] == 'Data:Inner_West_Light_Rail_stops.map':
-            raise
+        assert value['value'] == 'Data:Inner_West_Light_Rail_stops.map'
 
-        if not value['type'] == 'string':
-            raise
+        assert value['type'] == 'string'
 
 
 class TestFastRun(unittest.TestCase):
@@ -70,44 +51,39 @@ class TestFastRun(unittest.TestCase):
     some basic tests for fastrun mode
     """
 
-    def test_fast_run(self):
+    def test_fastrun(self):
         statements = [
             datatypes.ExternalID(value='P40095', prop_nr='P352'),
             datatypes.ExternalID(value='YER158C', prop_nr='P705')
         ]
 
-        frc = wbi_fastrun.FastRunContainer(base_filter={'P352': '', 'P703': 'Q27510868'}, base_data_type=datatypes.BaseDataType)
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352'), datatypes.Item(prop_nr='P703', value='Q27510868')], base_data_type=datatypes.BaseDataType)
 
-        fast_run_result = frc.write_required(data=statements)
+        fastrun_result = frc.write_required(data=statements)
 
-        if fast_run_result:
+        if fastrun_result:
             message = 'fastrun failed'
         else:
             message = 'successful fastrun'
-        print(fast_run_result, message)
+        print(fastrun_result, message)
 
         # here, fastrun should succeed, if not, test failed
-        if fast_run_result:
+        if fastrun_result:
             raise ValueError
 
     def test_fastrun_label(self):
         # tests fastrun label, description and aliases, and label in another language
-        fast_run_base_filter = {'P361': 'Q18589965'}
+        frc = get_fastrun_container(base_filter=[datatypes.ExternalID(value='/m/02j71', prop_nr='P646')])
         item = WikibaseIntegrator().item.get('Q2')
-        item.init_fastrun(base_filter=fast_run_base_filter)
-        item.init_fastrun(base_filter=fast_run_base_filter)  # Test if we found the same FastRunContainer
-        item.claims.add(datatypes.ExternalID(value='/m/02j71', prop_nr='P646'))
-
-        frc = wbi_fastrun.FastRunContainer(base_filter={'P699': ''}, base_data_type=BaseDataType)
 
         assert item.labels.get(language='en') == "Earth"
         descr = item.descriptions.get(language='en')
         assert len(descr) > 3
-        assert "Terra" in item.aliases.get()
+        assert "globe" in item.aliases.get()
 
-        assert list(item.fast_run_container.get_language_data("Q2", 'en', 'label'))[0] == "Earth"
-        assert item.fast_run_container.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "Terra" in item.aliases.get()
+        assert list(frc.get_language_data("Q2", 'en', 'label'))[0] == item.labels.get(language='en')
+        assert frc.check_language_data("Q2", ['not the Earth'], 'en', 'label')
+        assert "globe" in item.aliases.get()
         assert "planet" in item.descriptions.get()
 
         assert item.labels.get('es') == "Tierra"
@@ -186,36 +162,18 @@ def test_ref_equals():
 
 
 def test_mediainfo():
-    mediainfo_item_by_title = wbi.mediainfo.get_by_title(title='File:2018-07-05-budapest-buda-hill.jpg', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
+    mediainfo_item_by_title = wbi.mediainfo.get_by_title(titles='File:2018-07-05-budapest-buda-hill.jpg', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
     assert mediainfo_item_by_title.id == 'M75908279'
 
     mediainfo_item_by_id = wbi.mediainfo.get(entity_id='M75908279', mediawiki_api_url='https://commons.wikimedia.org/w/api.php')
     assert mediainfo_item_by_id.id == 'M75908279'
 
 
-def test_user_agent(capfd):
-    # Test there is a warning
-    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
-    out, err = capfd.readouterr()
-    assert out
-
-    # Test there is no warning because of the user agent
-    mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
-    out, err = capfd.readouterr()
-    assert not out
-
-    # Test if the user agent is correctly added
-    new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5')
-    assert new_user_agent.startswith('MyWikibaseBot/0.5')
-    assert 'WikibaseIntegrator' in new_user_agent
-
-
-def test_sparql():
-    results = execute_sparql_query('''SELECT ?child ?childLabel
-WHERE
-{
-# ?child  father   Bach
-  ?child wdt:P22 wd:Q1339.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
-}''')
-    assert len(results['results']['bindings']) > 1
+def test_wikibaseintegrator():
+    nwbi = WikibaseIntegrator(is_bot=False)
+    assert nwbi.item.api.is_bot is False
+    assert Item(api=nwbi, is_bot=True).api.is_bot is True
+    assert Item(api=nwbi).api.is_bot is False
+    assert Item().api.is_bot is False
+    assert nwbi.item.get('Q582').api.is_bot is False
+    assert Item(api=nwbi, is_bot=True).get('Q582').api.is_bot is True

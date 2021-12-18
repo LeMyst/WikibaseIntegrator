@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -15,12 +16,12 @@ class Form(BaseDataType):
         }}
     '''
 
-    def __init__(self, value=None, **kwargs):
+    def __init__(self, value: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
         :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
-        :type value: str with a 'P' prefix, followed by several digits or only the digits without the 'P' prefix
+        :type value: str with the format "L<Lexeme ID>-F<Form>"
         :param prop_nr: The property number for this claim
         :type prop_nr: str with a 'P' prefix followed by digits
         :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
@@ -34,15 +35,17 @@ class Form(BaseDataType):
         """
 
         super().__init__(**kwargs)
+        self.set_value(value=value)
 
-        assert isinstance(value, str) or value is None, "Expected str, found {} ({})".format(type(value), value)
+    def set_value(self, value: str = None):
+        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
             pattern = re.compile(r'^L[0-9]+-F[0-9]+$')
             matches = pattern.match(value)
 
             if not matches:
-                raise ValueError("Invalid form ID ({}), format must be 'L[0-9]+-F[0-9]+'".format(value))
+                raise ValueError(f"Invalid form ID ({value}), format must be 'L[0-9]+-F[0-9]+'")
 
             self.mainsnak.datavalue = {
                 'value': {
@@ -52,5 +55,5 @@ class Form(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self):
+    def _get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['id']
