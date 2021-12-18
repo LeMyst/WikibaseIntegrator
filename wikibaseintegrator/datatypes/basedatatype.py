@@ -42,7 +42,7 @@ class BaseDataType(Claim):
     def get_sparql_value(self) -> str:
         return '"' + self.mainsnak.datavalue['value'] + '"'
 
-    def parse_sparql_value(self, value, type='literal') -> bool:
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         if type == 'uri':
             pattern = re.compile(r'^<?(.*?)>?$')
             matches = pattern.match(value)
