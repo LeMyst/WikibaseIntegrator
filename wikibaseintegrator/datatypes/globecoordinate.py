@@ -77,10 +77,10 @@ class GlobeCoordinate(BaseDataType):
 
         return super().__eq__(other)
 
-    def _get_sparql_value(self) -> str:
+    def get_sparql_value(self) -> str:
         return '"Point(' + str(self.mainsnak.datavalue['value']['longitude']) + ' ' + str(self.mainsnak.datavalue['value']['latitude']) + ')"'
 
-    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         pattern = re.compile(r'^"?Point\((.*) (.*)\)"?(?:\^\^geo:wktLiteral)?$')
         matches = pattern.match(value)
         if not matches:

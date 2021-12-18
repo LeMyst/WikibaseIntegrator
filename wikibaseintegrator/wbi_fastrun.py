@@ -46,7 +46,7 @@ class FastRunContainer:
                 if isinstance(k, BaseDataType):
                     if k.mainsnak.datavalue:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(
-                            wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number, entity=k._get_sparql_value().format(wb_url=self.wikibase_url))
+                            wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number, entity=k.get_sparql_value().format(wb_url=self.wikibase_url))
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr=k.mainsnak.property_number)
@@ -54,14 +54,12 @@ class FastRunContainer:
                     if k[0].mainsnak.datavalue:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr}>/<{wb_url}/prop/direct/{prop_nr2}>* {entity} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number,
-                            entity=k[0]._get_sparql_value().format(wb_url=self.wikibase_url))
+                            entity=k[0].get_sparql_value().format(wb_url=self.wikibase_url))
                     else:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr1=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number)
                 else:
                     raise ValueError
-
-        self.__initialized = True
 
     def reconstruct_statements(self, qid: str) -> List[BaseDataType]:
         reconstructed_statements: List[BaseDataType] = []
@@ -79,7 +77,7 @@ class FastRunContainer:
                 if prop not in self.prop_dt_map:
                     self.prop_dt_map.update({prop: self.get_prop_datatype(prop)})
             # reconstruct statements from frc (including unit, qualifiers, and refs)
-            for uid, d in dt.items():
+            for _, d in dt.items():
                 qualifiers = []
                 for q in d['qual']:
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[q[0]]][0]
@@ -90,7 +88,7 @@ class FastRunContainer:
                         qualifiers.append(f(value=q[1], prop_nr=q[0]))
 
                 references = []
-                for ref_id, refs in d['ref'].items():
+                for _, refs in d['ref'].items():
                     this_ref = []
                     for ref in refs:
                         f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[ref[0]]][0]
@@ -101,10 +99,10 @@ class FastRunContainer:
                 # TODO: Add support for more data type
                 if self.prop_dt_map[prop_nr] == 'quantity':
                     datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit'])
-                    datatype._parse_sparql_value(value=d['v'], unit=d['unit'])
+                    datatype.parse_sparql_value(value=d['v'], unit=d['unit'])
                 else:
                     datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references)
-                    datatype._parse_sparql_value(value=d['v'])
+                    datatype.parse_sparql_value(value=d['v'])
                 reconstructed_statements.append(datatype)
 
         # this isn't used. done for debugging purposes
@@ -121,16 +119,16 @@ class FastRunContainer:
             prop_nr = claim.mainsnak.property_number
 
             if prop_nr not in self.prop_dt_map:
-                log.debug(f"{prop_nr} not found in fastrun")
+                log.debug("%s not found in fastrun", prop_nr)
 
-                if isinstance(claim, BaseDataType) and type(claim) != BaseDataType:
+                if isinstance(claim, BaseDataType) and type(claim) != BaseDataType:  # pylint: disable=unidiomatic-typecheck
                     self.prop_dt_map.update({prop_nr: claim.DTYPE})
                 else:
                     self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=self.prop_dt_map[prop_nr] == 'quantity')
 
             # noinspection PyProtectedMember
-            current_value = claim._get_sparql_value()
+            current_value = claim.get_sparql_value()
 
             if self.prop_dt_map[prop_nr] == 'wikibase-item':
                 current_value = claim.mainsnak.datavalue['value']['id']
@@ -148,8 +146,7 @@ class FastRunContainer:
             elif self.case_insensitive and current_value.casefold() in self.rev_lookup_ci:
                 match_sets.append(set(self.rev_lookup_ci[current_value.casefold()]))
             else:
-                log.debug(f"no matches for rev lookup for {current_value}")
-                # return True
+                log.debug("no matches for rev lookup for %s", current_value)
 
         if not match_sets:
             return None
@@ -162,7 +159,7 @@ class FastRunContainer:
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
-            log.debug(f"no matches ({len(matching_qids)})")
+            log.debug("no matches (%s)", len(matching_qids))
             return None
 
         return matching_qids.pop()
@@ -198,7 +195,7 @@ class FastRunContainer:
 
             # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
             if len(comp) != len(app_data):
-                log.debug(f"failed append: {p}")
+                log.debug("failed append: %s", p)
                 return True
 
         tmp_rs = [x for x in tmp_rs if x.mainsnak.property_number not in append_props and x.mainsnak.property_number in data_props]
@@ -233,7 +230,7 @@ class FastRunContainer:
             # bool_vec = [x.equals(date, include_ref=self.use_refs, fref=self.ref_comparison_f) and
             # x.mainsnak.property_number not in del_props for x in tmp_rs]
 
-            log.debug(f"bool_vec: {bool_vec}")
+            log.debug("bool_vec: %s", bool_vec)
             log.debug("-----------------------------------")
             for x in tmp_rs:
                 if x == date and x.mainsnak.property_number not in del_props:
@@ -245,11 +242,11 @@ class FastRunContainer:
 
             if not any(bool_vec):
                 log.debug(len(bool_vec))
-                log.debug(f"fast run failed at {date.mainsnak.property_number}")
+                log.debug("fast run failed at %s", date.mainsnak.property_number)
                 return True
-            else:
-                log.debug("fast run success")
-                tmp_rs.pop(bool_vec.index(True))
+
+            log.debug("fast run success")
+            tmp_rs.pop(bool_vec.index(True))
 
         if len(tmp_rs) > 0:
             log.debug("failed because not zero")
@@ -314,7 +311,7 @@ class FastRunContainer:
 
         for s in lang_data:
             if s.strip().casefold() not in all_lang_strings:
-                log.debug(f"fastrun failed at: {lang_data_type}, string: {s}")
+                log.debug("fastrun failed at: %s, string: %s", lang_data_type, s)
                 return True
 
         return False
@@ -341,7 +338,7 @@ class FastRunContainer:
         """
         prop_dt = self.get_prop_datatype(prop_nr)
         for i in r:
-            for value in {'item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit'}:
+            for value in ['item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit']:
                 if value in i:
                     if i[value]['value'].startswith(self.wikibase_url):
                         i[value] = i[value]['value'].split('/')[-1]
@@ -355,7 +352,7 @@ class FastRunContainer:
             # make sure datetimes are formatted correctly.
             # the correct format is '+%Y-%m-%dT%H:%M:%SZ', but is sometimes missing the plus??
             # some difference between RDF and xsd:dateTime that I don't understand
-            for value in {'v', 'qval', 'rval'}:
+            for value in ['v', 'qval', 'rval']:
                 if value in i:
                     if i[value].get("datatype") == 'http://www.w3.org/2001/XMLSchema#dateTime' and not i[value]['value'][0] in '+-':
                         # if it is a dateTime and doesn't start with plus or minus, add a plus
@@ -371,14 +368,14 @@ class FastRunContainer:
                 elif i['v']['type'] == 'literal' and prop_dt == 'monolingualtext':
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr, text=i['v']['value'], language=i['v']['xml:lang'])
                     # noinspection PyProtectedMember
-                    i['v'] = f._get_sparql_value()
+                    i['v'] = f.get_sparql_value()
                 else:
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr)
                     # noinspection PyProtectedMember
-                    if not f._parse_sparql_value(value=i['v']['value'], type=i['v']['type']):
+                    if not f.parse_sparql_value(value=i['v']['value'], type=i['v']['type']):
                         raise ValueError
                     # noinspection PyProtectedMember
-                    i['v'] = f._get_sparql_value()
+                    i['v'] = f.get_sparql_value()
 
                 # Note: no-value and some-value don't actually show up in the results here
                 # see for example: select * where { wd:Q7207 p:P40 ?c . ?c ?d ?e }

@@ -10,10 +10,10 @@ class CommonsMedia(String):
     """
     DTYPE = 'commonsMedia'
 
-    def _get_sparql_value(self) -> str:
+    def get_sparql_value(self) -> str:
         return '<' + self.mainsnak.datavalue['value'] + '>'
 
-    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         pattern = re.compile(r'^<?.*?/?([^/]*?)>?$')
         matches = pattern.match(value)
         if not matches:

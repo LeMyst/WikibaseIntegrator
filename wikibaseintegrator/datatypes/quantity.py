@@ -81,9 +81,9 @@ class Quantity(BaseDataType):
             if not lower_bound:
                 del self.mainsnak.datavalue['value']['lowerBound']
 
-    def _get_sparql_value(self) -> str:
+    def get_sparql_value(self) -> str:
         return '"' + format_amount(self.mainsnak.datavalue['value']['amount']) + '"^^xsd:decimal'
 
-    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         self.set_value(amount=value, unit=unit)
         return True

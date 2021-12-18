@@ -73,5 +73,5 @@ class Time(BaseDataType):
                 'type': 'time'
             }
 
-    def _get_sparql_value(self) -> str:
+    def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['time']

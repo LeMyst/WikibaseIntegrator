@@ -39,10 +39,10 @@ class BaseDataType(Claim):
     def set_value(self, value: Any = None):
         pass
 
-    def _get_sparql_value(self) -> str:
+    def get_sparql_value(self) -> str:
         return '"' + self.mainsnak.datavalue['value'] + '"'
 
-    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value, type='literal') -> bool:
         if type == 'uri':
             pattern = re.compile(r'^<?(.*?)>?$')
             matches = pattern.match(value)
