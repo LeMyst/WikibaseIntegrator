@@ -208,9 +208,9 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
         'Content-Type': 'multipart/form-data'
     }
 
-    log.debug(BColors.WARNING + params['query'] + BColors.ENDC)
+    log.debug("%s%s%s", BColors.WARNING, params['query'], BColors.ENDC)
 
-    for n in range(max_retries):
+    for _ in range(max_retries):
         try:
             response = requests.post(sparql_endpoint_url, params=params, headers=headers)
         except requests.exceptions.ConnectionError as e:
