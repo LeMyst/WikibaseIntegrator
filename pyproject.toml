@@ -18,7 +18,7 @@ extension-pkg-allow-list = [
 ]
 
 [tool.pylint.messages_control]
-max-line-length = 179
+max-line-length = 180
 disable = [
     "fixme",
     "missing-docstring",
