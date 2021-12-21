@@ -110,6 +110,14 @@ class FastRunContainer:
         return reconstructed_statements
 
     def get_item(self, claims: Union[list, Claims], cqid: str = None) -> Optional[str]:
+        """
+        Load an item from the SPARQL endpoint.
+
+        :param claims:
+        :param cqid:
+        :return: the claim id
+        :exception: if there is more than one claim
+        """
         match_sets = []
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -165,6 +173,14 @@ class FastRunContainer:
         return matching_qids.pop()
 
     def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+        """
+        Check if a write is required
+
+        :param data:
+        :param action_if_exists:
+        :param cqid:
+        :return: Return True if the write is required
+        """
         del_props = set()
         data_props = set()
         append_props = []
@@ -260,6 +276,7 @@ class FastRunContainer:
     def init_language_data(self, lang: str, lang_data_type: str) -> None:
         """
         Initialize language data store
+
         :param lang: language code
         :param lang_data_type: 'label', 'description' or 'aliases'
         :return: None
