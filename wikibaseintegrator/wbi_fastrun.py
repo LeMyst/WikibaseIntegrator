@@ -454,7 +454,7 @@ class FastRunContainer:
             # Base filter
             query += '''
             {base_filter}
-            
+
             ?item <{wb_url}/prop/{prop_nr}> ?sid .
             '''
 

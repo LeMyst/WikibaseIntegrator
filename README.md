@@ -221,7 +221,7 @@ If you want to log in with your main account, you can use the "clientlogin" auth
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(auth_method='clientlogin', user='<user name>', password='<password>')     
+login_instance = wbi_login.Login(auth_method='clientlogin', user='<user name>', password='<password>')
 ```
 
 ## Wikibase Data Types ##
