@@ -16,7 +16,8 @@ setup(
             "pytest",
             "pylint",
             "pylint-exit",
-            "mypy"
+            "mypy",
+            "pre-commit"
         ],
         "coverage": ["pytest-cov"],
     },
