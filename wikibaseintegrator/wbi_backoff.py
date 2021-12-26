@@ -11,7 +11,7 @@ import requests
 from wikibaseintegrator.wbi_config import config
 
 
-def wbi_backoff_backoff_hdlr(details) -> None:
+def wbi_backoff_backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
     if exc_type == JSONDecodeError:
         print(exc_value.doc)  # pragma: no cover
