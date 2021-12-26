@@ -127,11 +127,15 @@ class LanguageValue(BaseModel):
         self.__language = value
 
     @property
-    def value(self):
+    def value(self) -> str:
+        """
+        The value of the LanguageValue instance.
+        :return: A string with the value of the LanguageValue instance.
+        """
         return self.__value
 
     @value.setter
-    def value(self, value):
+    def value(self, value: str):
         self.__value = value
 
     @property
