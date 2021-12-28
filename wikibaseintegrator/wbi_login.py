@@ -32,8 +32,12 @@ class Login:
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
+        :param auth_method:
         :param user: the username which should be used for the login
         :param password: the password which should be used for the login
+        :param mediawiki_api_url:
+        :param mediawiki_index_url:
+        :param mediawiki_rest_url:
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :param consumer_token: The consumer key for OAuth
         :param consumer_secret: The consumer secret for OAuth

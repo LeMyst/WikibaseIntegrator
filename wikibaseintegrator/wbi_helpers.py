@@ -235,12 +235,13 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     return None
 
 
-def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_items(from_id: str, to_id: str, login: Login = None, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
 
     :param from_id: The ID to merge from. This parameter is required.
     :param to_id: The ID to merge to. This parameter is required.
+    :param login: A wbi_login.Login instance
     :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
     :param is_bot: Mark this edit as bot.
     """
@@ -258,7 +259,7 @@ def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is
     if is_bot:
         params.update({'bot': ''})
 
-    return mediawiki_api_call_helper(data=params, **kwargs)
+    return mediawiki_api_call_helper(data=params, login=login, **kwargs)
 
 
 def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs: Any) -> Dict:
