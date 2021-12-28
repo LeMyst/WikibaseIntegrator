@@ -6,7 +6,8 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
-Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance.
+Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
+Wikidata).
 
 # Breaking changes in v0.12 #
 
@@ -120,8 +121,8 @@ wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/Use
 # The Core Parts #
 
 WikibaseIntegrator supports two modes it can be operated in, a normal mode, updating each item at a time and, a fast run
-mode, which is pre-loading data locally and then just updating items if the new data provided is differing from what is
-in Wikidata. The latter mode allows for great speedups when tens of thousand of Wikidata items need to be checked if
+mode, which is preloading some data locally and then just updating items if the new data provided is differing from what
+is in Wikidata. The latter mode allows for great speedups when tens of thousand of Wikidata items need to be checked if
 they require updates but only a small number will finally be updated, a situation usually encountered when keeping
 Wikidata in sync with an external resource.
 
@@ -138,13 +139,14 @@ Features:
 
 * Load a Wikibase entity based on its Wikibase entity id
 * All Wikibase data types implemented
-* Full access to the whole Wikibase entity as a JSON document
+* Full access to the whole Wikibase entity as a dict representation of the JSON
 
 ## wbi_login.Login ##
 
 `wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
-reasons, every Mediawiki edit requires an edit token). The constructor takes multiple parameters like the server (
-default wikidata.org), and the token renewal periods can be specified.
+reasons, every Mediawiki edit requires an edit token). The constructor takes multiple parameters like the server
+(default wikidata.org), and the token renewal periods can be specified. The default and recommended login method is
+OAuth2.
 
 ### Login using OAuth1 or OAuth2 ###
 
@@ -158,8 +160,10 @@ an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consume
 authentication without the "continue oauth" step.
 
 The first step is to request a new OAuth consumer on your Mediawiki instance on the page
-"Special:OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked. You
-will get a consumer token, consumer secret, access token and access secret.
+"Special:OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked and
+the correct version of the OAuth protocol must be set (OAuth 2.0). You will get a consumer token and consumer secret
+(and an access token and access secret if you chose OAuth 1.0a). For a Wikimedia instance (like Wikidata), you need to
+use the [Meta-Wiki website](https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration).
 
 Example if you use OAuth 2.0:
 
@@ -255,9 +259,8 @@ There is also two extra data types implemented but need Mediawiki extension inst
 * extra.LocalMedia ([Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media))
 
 For details of how to create values (=instances) with these data types, please (for now) consult the docstrings in the
-source code. Of note, these data type instances hold the values and, if specified, data type instances for references
-and qualifiers. Furthermore, calling the `value()` method of an instance returns either an integer, a string or a tuple,
-depending on the complexity of the data type.
+source code or the documentation website. Of note, these data type instances hold the values and, if specified, data
+type instances for references and qualifiers.
 
 # Helper Methods #
 
@@ -306,12 +309,14 @@ dict_id_label to return a dict of item id and label as a result.
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
 `wbi_helpers.merge_items()` takes five arguments:
-the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
-merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
-information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
-conflicts (ignore_conflicts). The last parameter will do a partial merge for all statements which do not conflict. This
-should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts
-should be resolved first.
+
+* the QID of the item which should be merged into another item (from_id)
+* the QID of the item the first item should be merged into (to_id)
+* a login object of type wbi_login.Login to provide the API call with the required authentication information
+* a boolean if the changes need to be marked as made by a bot (is_bot)
+* a flag for ignoring merge conflicts (ignore_conflicts), will do a partial merge for all statements which do not
+  conflict. This should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any
+  potential conflicts should be resolved first.
 
 # Examples (in "normal" mode) #
 
@@ -320,7 +325,7 @@ In order to create a minimal bot based on wbi_core, two things are required:
 * A datatype object containing a value.
 * An entity object (Item/Property/Lexeme/...) which takes the data, does the checks and performs write.
 
-A Login object can be used to be authenticated on the Wikibase instance.
+An optional Login object can be used to be authenticated on the Wikibase instance.
 
 ## Create a new Item ##
 
@@ -439,7 +444,7 @@ for entrez_id, ensembl in raw_data.items():
 
 In order to use the fast run mode, you need to know the property/value combination which determines the data corpus you
 would like to operate on. E.g. for operating on human genes, you need to know
-that [P351](https://www.wikidata.org/entity/P351) is the NCBI entrez gene ID and you also need to know that you are
+that [P351](https://www.wikidata.org/entity/P351) is the NCBI Entrez Gene ID and you also need to know that you are
 dealing with humans, best represented by the [found in taxon property (P703)](https://www.wikidata.org/entity/P703) with
 the value [Q15978631](https://www.wikidata.org/entity/Q15978631) for Homo sapiens.
 
@@ -466,7 +471,7 @@ from wikibaseintegrator.datatypes import Item, Time, ExternalID, String
 # login object
 login = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
 
-fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
+fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 fast_run = True
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
