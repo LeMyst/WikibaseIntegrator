@@ -141,12 +141,18 @@ Features:
 * All Wikibase data types implemented
 * Full access to the whole Wikibase entity as a dict representation of the JSON
 
-## wbi_login.Login ##
+## wbi_login ##
 
-`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
-reasons, every Mediawiki edit requires an edit token). The constructor takes multiple parameters like the server
-(default wikidata.org), and the token renewal periods can be specified. The default and recommended login method is
-OAuth2.
+`wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
+every Mediawiki edit requires an edit token). There is multiple methods to login :
+
+* `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
+* `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
+* `wbi_login.Clientlogin(user, password)`
+* `wbi_login.Login(user, password)`
+
+There is more parameters available. If you want to authenticate on another instance than Wikidata, you can set the
+mediawiki_api_url, mediawiki_rest_url or mediawiki_index_url. Read the documentation for more information.
 
 ### Login using OAuth1 or OAuth2 ###
 
@@ -170,8 +176,7 @@ Example if you use OAuth 2.0:
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(auth_method='oauth2', consumer_token='<your_client_app_key>',
-                                 consumer_secret='<your_client_app_secret>')
+login_instance = wbi_login.OAuth2(consumer_token='<your_client_app_key>', consumer_secret='<your_client_app_secret>')
 ```
 
 Example if you use OAuth 1.0a:
@@ -179,9 +184,8 @@ Example if you use OAuth 1.0a:
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(auth_method='oauth1', consumer_token='<your_consumer_key>',
-                                 consumer_secret='<your_consumer_secret>', access_token='<your_access_token>',
-                                 access_secret='<your_access_secret>')
+login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer_secret='<your_consumer_secret>',
+                                  access_token='<your_access_token>', access_secret='<your_access_secret>')
 ```
 
 #### To impersonate a user (OAuth 1.0a) ####
@@ -189,7 +193,7 @@ login_instance = wbi_login.Login(auth_method='oauth1', consumer_token='<your_con
 If WBI should be used as a backend for a web application, the script should use OAuth for authentication, WBI supports
 this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. In contrast to
 username and password login, OAuth is a 2 steps process as manual user confirmation for OAuth login is required. This
-means that the method `wbi_login.Login.continue_oauth()` needs to be called after creating the `wbi_login.Login`
+means that the method `wbi_login.OAuth1.continue_oauth()` needs to be called after creating the `wbi_login.Login`
 instance.
 
 Example:
@@ -197,12 +201,11 @@ Example:
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(auth_method='oauth1', consumer_token='<your_consumer_key>',
-                                 consumer_secret='<your_consumer_secret>')
+login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer_secret='<your_consumer_secret>')
 login_instance.continue_oauth()
 ```
 
-The method `wbi_login.Login.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
+The method `wbi_login.OAuth1.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
 will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
 the authentication information directly to the backend and so no copy and paste of the callback URL is required.
 
@@ -214,17 +217,17 @@ username and password, this allows limiting the permissions given to the bot.
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(auth_method='login', user='<bot user name>', password='<bot password>')
+login_instance = wbi_login.Login(user='<bot user name>', password='<bot password>')
 ```
 
 ### Login with a username and a password ###
 
-If you want to log in with your main account, you can use the "clientlogin" authentication method.
+If you want to log in with your user account, you can use the "clientlogin" authentication method.
 
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(auth_method='clientlogin', user='<user name>', password='<password>')     
+login_instance = wbi_login.Clientlogin(user='<user name>', password='<password>')
 ```
 
 ## Wikibase Data Types ##
@@ -337,7 +340,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(auth_method='login', user='<bot user name>', password='<bot password>')
+login_instance = wbi_login.Login(user='<bot user name>', password='<bot password>')
 
 wbi = WikibaseIntegrator(login=login_instance)
 
@@ -407,7 +410,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
+login_instance = wbi_login.Login(user='<bot user name>', password='<bot password>')
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
 raw_data = {
@@ -469,7 +472,7 @@ from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.datatypes import Item, Time, ExternalID, String
 
 # login object
-login = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
+login = wbi_login.Login(user='<bot user name>', password='<bot password>')
 
 fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 fast_run = True

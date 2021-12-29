@@ -43,10 +43,10 @@ class MonolingualText(BaseDataType):
                 'type': 'monolingualtext'
             }
 
-    def _get_sparql_value(self) -> str:
+    def get_sparql_value(self) -> str:
         return '"' + self.mainsnak.datavalue['value']['text'].replace('"', r'\"') + '"@' + self.mainsnak.datavalue['value']['language']
 
-    def _parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         pattern = re.compile(r'^"(.*?)"@([a-z\-]*)$')
         matches = pattern.match(value)
         if not matches:

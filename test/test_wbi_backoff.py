@@ -52,4 +52,4 @@ def bad_request():
 
 
 def bad_login():
-    wbi_login.Login(auth_method='clientlogin', user='name', password='pass', mediawiki_api_url="www.wikidataaaaaaaaa.org")
+    wbi_login.Clientlogin(user='name', password='pass', mediawiki_api_url="www.wikidataaaaaaaaa.org")
