@@ -110,11 +110,11 @@ class LanguageValue(BaseModel):
         self.removed = False
 
     @property
-    def language(self):
+    def language(self) -> str:
         return self.__language
 
     @language.setter
-    def language(self, value):
+    def language(self, value: Optional[str]):
         if value is None:
             raise ValueError("language can't be None")
 
@@ -127,7 +127,7 @@ class LanguageValue(BaseModel):
         self.__language = value
 
     @property
-    def value(self) -> str:
+    def value(self) -> Optional[str]:
         """
         The value of the LanguageValue instance.
         :return: A string with the value of the LanguageValue instance.
@@ -135,15 +135,15 @@ class LanguageValue(BaseModel):
         return self.__value
 
     @value.setter
-    def value(self, value: str):
+    def value(self, value: Optional[str]):
         self.__value = value
 
     @property
-    def removed(self):
+    def removed(self) -> bool:
         return self.__removed
 
     @removed.setter
-    def removed(self, value):
+    def removed(self, value: bool):
         self.__removed = value
 
     def remove(self) -> LanguageValue:
@@ -157,7 +157,7 @@ class LanguageValue(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, str]:
+    def get_json(self) -> Dict[str, Optional[str]]:
         json_data = {
             'language': self.language,
             'value': self.value
