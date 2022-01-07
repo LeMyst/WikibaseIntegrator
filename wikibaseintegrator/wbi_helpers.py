@@ -315,18 +315,19 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_
     return mediawiki_api_call_helper(data=params, **kwargs)
 
 
-def search_entities(search_string: str, language: str = None, strict_language: bool = True, search_type: str = 'item', max_results: int = 500, dict_result: bool = False,
+def search_entities(search_string: str, language: str = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
                     allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
+    You can have more information on the parameters in the MediaWiki API help (https://www.wikidata.org/w/api.php?action=help&modules=wbsearchentities)
 
-    :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
-    :param language: The language in which to perform the search.
-    :param strict_language: Whether to disable language fallback
+    :param search_string: A string which should be searched for in the Wikibase instance (labels and aliases)
+    :param language: The language in which to perform the search. This only affects how entities are selected. Default is 'en' from wbi_config. Use the ISO 639 language code.
+    :param strict_language: Whether to disable language fallback. Default is 'False'.
     :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
-    :param max_results: The maximum number of search results returned. Default 500
-    :param dict_result:
-    :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+    :param max_results: The maximum number of search results returned. The value must be between 0 and 50. Default is 50
+    :param dict_result: Return the results as a detailed dictionary instead of a list of IDs.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
     """
 
     language = str(language or config['DEFAULT_LANGUAGE'])
@@ -335,11 +336,13 @@ def search_entities(search_string: str, language: str = None, strict_language: b
         'action': 'wbsearchentities',
         'search': search_string,
         'language': language,
-        'strict_language': strict_language,
         'type': search_type,
         'limit': 50,
         'format': 'json'
     }
+
+    if strict_language:
+        params.update({'strict_language': ''})
 
     cont_count = 0
     results = []
