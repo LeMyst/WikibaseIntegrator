@@ -119,11 +119,9 @@ class BaseEntity:
         #                 new_json_repr['claims'].pop(claim)
         #     data = json.JSONEncoder().encode(new_json_repr)
 
-        json_data: str = ujson.dumps(data)
-
         payload: Dict[str, Any] = {
             'action': 'wbeditentity',
-            'data': json_data,
+            'data': ujson.dumps(data),
             'format': 'json',
             'summary': summary
         }
