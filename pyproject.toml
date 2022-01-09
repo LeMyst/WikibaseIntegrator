@@ -21,7 +21,6 @@ extension-pkg-allow-list = [
 max-line-length = 180
 disable = [
     "fixme",
-    "missing-docstring",
     "redefined-builtin",
     "invalid-name", # To remove later
     "too-few-public-methods",
