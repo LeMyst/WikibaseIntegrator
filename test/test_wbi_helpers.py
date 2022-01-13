@@ -34,7 +34,8 @@ def test_connection():
 def test_user_agent(caplog):
     # Test there is no warning because of the user agent
     with caplog.at_level(logging.WARNING):
-        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True,
+                                  user_agent='MyWikibaseBot/0.5')
     assert 'WARNING' not in caplog.text
 
     # Test there is a warning

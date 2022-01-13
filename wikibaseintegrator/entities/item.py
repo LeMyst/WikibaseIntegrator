@@ -38,6 +38,13 @@ class Item(BaseEntity):
         return Item(api=self.api, **kwargs)
 
     def get(self, entity_id: Union[str, int], **kwargs: Any) -> Item:
+        """
+        Request the Mediawiki API to get data for the entity specified in argument.
+
+        :param entity_id: The entity_id of the Item entity you want. Must start with a 'Q'.
+        :param kwargs:
+        :return: an Item instance
+        """
         if isinstance(entity_id, str):
             pattern = re.compile(r'^Q?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -55,6 +62,11 @@ class Item(BaseEntity):
         return Item(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
+        """
+        To get the dict equivalent of the JSON representation of the Item.
+
+        :return: A dict representation of the Item.
+        """
         return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),

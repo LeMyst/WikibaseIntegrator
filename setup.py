@@ -8,7 +8,7 @@ setup(
         "backoff ~= 1.11.1",
         "mwoauth ~= 0.3.7",
         "oauthlib ~= 3.1.1",
-        "requests ~= 2.26.0",
+        "requests ~= 2.27.1",
         "ujson ~= 5.1.0"
     ],
     extras_require={
@@ -17,6 +17,14 @@ setup(
             "pylint",
             "pylint-exit",
             "mypy"
+        ],
+        "docs": [
+            "Sphinx ~= 4.3.2",
+            "readthedocs-sphinx-ext ~= 2.1.4",
+            "sphinx-rtd-theme ~= 1.0.0",
+            "sphinx_github_changelog ~= 1.1.0",
+            "m2r2 ~= 0.3.2",
+            "sphinx-autodoc-typehints ~= 1.15.2"
         ],
         "coverage": ["pytest-cov"],
     },

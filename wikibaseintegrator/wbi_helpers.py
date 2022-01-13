@@ -32,21 +32,21 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-# Session used for anonymous requests
+# Session used for all anonymous requests
 default_session = requests.Session()
 
 
 def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
     """
+    A function to call the Mediawiki API.
+
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
     :param session: If a session is passed, it will be used. Otherwise a new requests session is created
     :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
-    :type max_retries: int
     :param retry_after: Number of seconds to wait before retrying request (see max_retries)
-    :type retry_after: int
-    :param kwargs: Passed to requests.request
-    :return:
+    :param kwargs: Any additional keyword arguments to pass to requests.request
+    :return: The data returned by the API as a dictionary
     """
 
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
@@ -124,6 +124,21 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 
 def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    A simplified function to call the Mediawiki API
+
+    :param data: A dictionary containing the JSON data to send to the API
+    :param login: A wbi_login instance
+    :param mediawiki_api_url: The URL to the Mediawiki API (default Wikidata)
+    :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
+    :param allow_anonymous: Allow an unidentified edit to the Mediawiki API (default False)
+    :param max_retries: The maximum number of retries
+    :param retry_after: The tiemout between each retry
+    :param maxlag: If appliable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)
+    :param is_bot: Flag the edit as a bot
+    :param kwargs: Any additional keyword arguments to pass to requests.request
+    :return: The data returned by the API as a dictionary
+    """
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
@@ -177,6 +192,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, 
 def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Optional[Dict[str, dict]]:
     """
     Static method which can be used to execute any SPARQL query
+
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
@@ -235,12 +251,13 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     return None
 
 
-def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_items(from_id: str, to_id: str, login: Login = None, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
 
     :param from_id: The ID to merge from. This parameter is required.
     :param to_id: The ID to merge to. This parameter is required.
+    :param login: A wbi_login.Login instance
     :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
     :param is_bot: Mark this edit as bot.
     """
@@ -258,12 +275,12 @@ def merge_items(from_id: str, to_id: str, ignore_conflicts: List[str] = None, is
     if is_bot:
         params.update({'bot': ''})
 
-    return mediawiki_api_call_helper(data=params, **kwargs)
+    return mediawiki_api_call_helper(data=params, login=login, **kwargs)
 
 
 def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
-    A static method to merge two items
+    A static method to merge two lexemes
 
     :param source: The ID to merge from. This parameter is required.
     :param target: The ID to merge to. This parameter is required.
@@ -289,7 +306,7 @@ def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = 
 
 def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
-    Delete an item
+    Delete a claim from an entity
 
     :param claim_id: One GUID or several (pipe-separated) GUIDs identifying the claims to be removed. All claims must belong to the same entity.
     :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
@@ -315,18 +332,20 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_
     return mediawiki_api_call_helper(data=params, **kwargs)
 
 
-def search_entities(search_string: str, language: str = None, strict_language: bool = True, search_type: str = 'item', max_results: int = 500, dict_result: bool = False,
+def search_entities(search_string: str, language: str = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
                     allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
+    You can have more information on the parameters in the MediaWiki API help (https://www.wikidata.org/w/api.php?action=help&modules=wbsearchentities)
 
-    :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
-    :param language: The language in which to perform the search.
-    :param strict_language: Whether to disable language fallback
+    :param search_string: A string which should be searched for in the Wikibase instance (labels and aliases)
+    :param language: The language in which to perform the search. This only affects how entities are selected. Default is 'en' from wbi_config.
+                     You can see the list of languages for Wikidata at https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all (Use the WMF code)
+    :param strict_language: Whether to disable language fallback. Default is 'False'.
     :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
-    :param max_results: The maximum number of search results returned. Default 500
-    :param dict_result:
-    :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+    :param max_results: The maximum number of search results returned. The value must be between 0 and 50. Default is 50
+    :param dict_result: Return the results as a detailed dictionary instead of a list of IDs.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
     """
 
     language = str(language or config['DEFAULT_LANGUAGE'])
@@ -335,11 +354,13 @@ def search_entities(search_string: str, language: str = None, strict_language: b
         'action': 'wbsearchentities',
         'search': search_string,
         'language': language,
-        'strict_language': strict_language,
         'type': search_type,
         'limit': 50,
         'format': 'json'
     }
+
+    if strict_language:
+        params.update({'strict_language': ''})
 
     cont_count = 0
     results = []

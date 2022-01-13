@@ -49,6 +49,11 @@ class BaseEntity:
         return self
 
     def get_json(self) -> Dict[str, Union[str, Dict[str, list]]]:
+        """
+        To get the dict equivalent of the JSON representation of the entity.
+
+        :return:
+        """
         json_data: Dict = {
             'type': self.type,
             'claims': self.claims.get_json()
@@ -77,7 +82,7 @@ class BaseEntity:
     # noinspection PyMethodMayBeStatic
     def _get(self, entity_id: str, **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
         """
-        retrieve an item in json representation from the Wikibase instance
+        Retrieve an entity in json representation from the Wikibase instance
 
         :return: python complex dictionary representation of a json
         """
@@ -119,11 +124,9 @@ class BaseEntity:
         #                 new_json_repr['claims'].pop(claim)
         #     data = json.JSONEncoder().encode(new_json_repr)
 
-        json_data: str = ujson.dumps(data)
-
         payload: Dict[str, Any] = {
             'action': 'wbeditentity',
-            'data': json_data,
+            'data': ujson.dumps(data),
             'format': 'json',
             'summary': summary
         }

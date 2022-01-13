@@ -21,23 +21,19 @@ class GeoShape(BaseDataType):
         Constructor, calls the superclass BaseDataType
 
         :param value: The GeoShape map file name in Wikimedia Commons to be linked
-        :type value: str or None
-        :param prop_nr: The item ID for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
+        :param kwargs:
 
         :Keyword Arguments:
-        * *extra* (``list``) --
-          Extra stuff
-        * *supplement* (``dict``) --
-          Additional content
+            * *prop_nr* (``str``) --
+              The item ID for this claim
+            * *snaktype* (``str``) --
+              The snak type, either 'value', 'somevalue' or 'novalue'
+            * *references* (``References`` or list of ``Claim``) --
+              List with reference objects
+            * *qualifiers* (``Qualifiers``) --
+              List with qualifier objects
+            * *rank* (``WikibaseRank``) --
+              The snak type, either 'value', 'somevalue' or 'novalue'
         """
 
         super().__init__(**kwargs)

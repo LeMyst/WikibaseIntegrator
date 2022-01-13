@@ -123,6 +123,12 @@ class Claim(BaseModel):
     DTYPE = 'claim'
 
     def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: Union[References, List[Union[Claim, List[Claim]]]] = None) -> None:
+        """
+
+        :param qualifiers:
+        :param rank:
+        :param references: A References object, a list of Claim object or a list of list of Claim object
+        """
         self.mainsnak = Snak(datatype=self.DTYPE)
         self.type = 'statement'
         self.qualifiers = qualifiers or Qualifiers()
@@ -225,6 +231,10 @@ class Claim(BaseModel):
         self.removed = remove
 
     def from_json(self, json_data: Dict[str, Any]) -> Claim:
+        """
+
+        :param json_data: a JSON representation of a Claim
+        """
         self.mainsnak = Snak().from_json(json_data['mainsnak'])
         self.type = str(json_data['type'])
         if 'qualifiers' in json_data:
