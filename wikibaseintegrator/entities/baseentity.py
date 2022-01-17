@@ -172,7 +172,7 @@ class BaseEntity:
             self.lastrevid = json_result['entity']['lastrevid']
         return json_result['entity']
 
-    def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, **kwargs: Any) -> bool:
+    def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
         if base_filter is None:
@@ -185,7 +185,7 @@ class BaseEntity:
 
         # TODO: Add check_language_data
 
-        return fastrun_container.write_required(data=claims_to_check, cqid=self.id)
+        return fastrun_container.write_required(data=claims_to_check, cqid=self.id, action_if_exists=action_if_exists)
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
