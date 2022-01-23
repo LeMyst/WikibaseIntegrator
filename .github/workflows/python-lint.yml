@@ -38,4 +38,4 @@ jobs:
           python -m mypy --install-types --non-interactive
       - name: pylint code linting
         run: |
-          python -m pylint wikibaseintegrator test || python -m pylint-exit $?
+          python -m pylint wikibaseintegrator test || pylint-exit $?
