@@ -202,7 +202,7 @@ Example:
 from wikibaseintegrator import wbi_login
 
 login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer_secret='<your_consumer_secret>')
-login_instance.continue_oauth()
+login_instance.continue_oauth(oauth_callback_data='<the_callback_url_returned>')
 ```
 
 The method `wbi_login.OAuth1.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
@@ -222,7 +222,8 @@ login_instance = wbi_login.Login(user='<bot user name>', password='<bot password
 
 ### Login with a username and a password ###
 
-If you want to log in with your user account, you can use the "clientlogin" authentication method.
+If you want to log in with your user account, you can use the "clientlogin" authentication method. This method is not
+recommended.
 
 ```python
 from wikibaseintegrator import wbi_login
@@ -404,8 +405,9 @@ or modification of items.
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
-from wikibaseintegrator.datatypes import ExternalID, Item, Time, String
+from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
 from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
@@ -425,7 +427,7 @@ for entrez_id, ensembl in raw_data.items():
     references = [
         [
             Item(value='Q20641742', prop_nr='P248'),
-            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813'),
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseDatePrecision.DAY),
             ExternalID(value='1017', prop_nr='P351')
         ]
     ]
@@ -469,7 +471,8 @@ The full example:
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
-from wikibaseintegrator.datatypes import Item, Time, ExternalID, String
+from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
+from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 
 # login object
 login = wbi_login.Login(user='<bot user name>', password='<bot password>')
@@ -491,7 +494,7 @@ for entrez_id, ensembl in raw_data.items():
             Item(value='Q20641742', prop_nr='P248')
         ],
         [
-            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813'),
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseDatePrecision.DAY),
             ExternalID(value='1017', prop_nr='P351')
         ]
     ]
