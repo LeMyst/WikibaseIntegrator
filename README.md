@@ -343,7 +343,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', password='<bot password>')
+login_instance = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
 wbi = WikibaseIntegrator(login=login_instance)
 
@@ -377,7 +377,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(auth_method='login', user='<bot user name>', password='<bot password>')
+login_instance = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
 wbi = WikibaseIntegrator(login=login_instance)
 
@@ -414,7 +414,7 @@ from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', password='<bot password>')
+login_instance = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
 raw_data = {
@@ -477,7 +477,7 @@ from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
 from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 
 # login object
-login = wbi_login.Login(user='<bot user name>', password='<bot password>')
+login = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
 fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 fast_run = True
