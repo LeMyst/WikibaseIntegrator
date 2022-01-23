@@ -180,7 +180,6 @@ class OAuth1(_Login):
         external entities, e.g. websites, to provide tokens through callback URLs directly.
 
         :param oauth_callback_data: The callback URL received to a Web app
-        :type oauth_callback_data: bytes
         :return:
         """
         response_qs: Optional[str] = oauth_callback_data
