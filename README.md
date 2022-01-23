@@ -466,7 +466,7 @@ holding the properties to filter for as keys, and the item QIDs as dict values. 
 just provide an empty string. For the above example, the dictionary looks like this:
 
 ```python
-fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
+fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 ```
 
 The full example:
