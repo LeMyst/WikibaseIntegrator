@@ -11,10 +11,10 @@ Wikidata).
 
 # Breaking changes in v0.12 #
 
-A complete rewrite of the core of WikibaseIntegrator has been done in v0.12 who led to breaking changes.
+A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which has led to some important changes.
 
-It offers a new object-oriented approach, a better readibility of the code and a support of Property, Lexeme and
-MediaInfo entities (in additions to Item).
+It offers a new object-oriented approach, better code readibility and support for Property, Lexeme and MediaInfo
+entities (in addition to Item).
 
 ---
 
@@ -46,21 +46,21 @@ MediaInfo entities (in additions to Item).
 
 # WikibaseIntegrator / WikidataIntegrator #
 
-WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
-purpose is to be focused on Wikibase compatibility. There have been many improvements that have led to breaking changes
-in the code. Refer to the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
+WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
+purpose is to focus on compatibility with Wikibase. There have been many improvements which have led to radical changes
+in the code. See the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
 changed.
 
 # Installation #
 
-The easiest way to install WikibaseIntegrator is using the package manager `pip`. WikibaseIntegrator supports Python 3.7
-and higher. If Python 2 is installed `pip` will lead to an error indicating missing dependencies.
+The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
+3.7 and above. If Python 2 is installed, `pip` will lead to an error indicating missing dependencies.
 
 ```bash
 python -m pip install wikibaseintegrator
 ```
 
-You can also clone the repo and execute with administrator rights or install into a virtualenv.
+You can also clone the repo and run it with administrator rights or install it in a virtualenv.
 
 ```bash
 git clone https://github.com/LeMyst/WikibaseIntegrator.git
@@ -72,8 +72,8 @@ python -m pip install --upgrade pip setuptools
 python -m pip install .
 ```
 
-To test for correct installation, start a Python console and execute the following (will retrieve the Wikidata item
-for [Human](https://www.wikidata.org/entity/Q5)):
+To check that the installation is correct, launch a Python console and run the following code (which will retrieve the
+Wikidata element for [Human](https://www.wikidata.org/entity/Q5)):
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator
@@ -87,8 +87,8 @@ print(my_first_wikidata_item.get_json())
 
 # Using a Wikibase instance #
 
-WikibaseIntegrator use Wikidata as default endpoint. To use another Wikibase instance instead, you can overload the
-wbi_config.
+WikibaseIntegrator uses Wikidata as default endpoint. To use another instance of Wikibase instead, you can override the
+wbi_config module.
 
 An example for a Wikibase instance installed with [Wikibase Docker](https://www.mediawiki.org/wiki/Wikibase/Docker), add
 this to the top of your script:
@@ -101,7 +101,7 @@ wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
-You can find more default parameters in the file wbi_config.py
+You can find more default settings in the file wbi_config.py
 
 ## Wikimedia Foundation User-Agent policy ##
 
@@ -122,15 +122,15 @@ wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/Use
 
 # The Core Parts #
 
-WikibaseIntegrator supports two modes it can be operated in, a normal mode, updating each item at a time and, a fast run
-mode, which is preloading some data locally and then just updating items if the new data provided is differing from what
-is in Wikidata. The latter mode allows for great speedups when tens of thousand of Wikidata items need to be checked if
-they require updates but only a small number will finally be updated, a situation usually encountered when keeping
-Wikidata in sync with an external resource.
+WikibaseIntegrator supports two modes in which it can be used, a normal mode, updating each item at a time, and a fast
+run mode, which preloads some data locally and then just updates items if the new data provided differs from Wikidata.
+The latter mode allows for great speedups when tens of thousands of Wikidata elements need to be checked for updates,
+but only a small number will eventually be updated, a situation typically encountered when synchronising Wikidata with
+an external resource.
 
 ## Entity manipulation ##
 
-WikibaseIntegrator supports Item, Property, Lexeme and MediaInfo manipulation through these classes :
+WikibaseIntegrator supports Item, Property, Lexeme and MediaInfo manipulation through these classes:
 
 * wikibaseintegrator.entities.item.Item
 * wikibaseintegrator.entities.property.Property
@@ -146,7 +146,7 @@ Features:
 ## wbi_login ##
 
 `wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
-every Mediawiki edit requires an edit token). There is multiple methods to login :
+every Mediawiki edit requires an edit token). There is multiple methods to login:
 
 * `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
 * `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
@@ -158,8 +158,8 @@ mediawiki_api_url, mediawiki_rest_url or mediawiki_index_url. Read the documenta
 
 ### Login using OAuth1 or OAuth2 ###
 
-OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating a bot or
-to use WBI as a backend for an application.
+OAuth is the authentication method recommended by the Mediawiki developers. It can be used to authenticate a bot or to
+use WBI as a backend for an application.
 
 #### As a bot ####
 
@@ -192,10 +192,10 @@ login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer
 
 #### To impersonate a user (OAuth 1.0a) ####
 
-If WBI should be used as a backend for a web application, the script should use OAuth for authentication, WBI supports
-this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. In contrast to
-username and password login, OAuth is a 2 steps process as manual user confirmation for OAuth login is required. This
-means that the method `wbi_login.OAuth1.continue_oauth()` needs to be called after creating the `wbi_login.Login`
+If WBI is to be used as a backend for a web application, the script must use OAuth for authentication, WBI supports
+this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. Unlike login by
+username and password, OAuth is a 2-step process, as manual confirmation of the user for the OAuth login is required.
+This means that the `wbi_login.OAuth1.continue_oauth()` method must be called after creating the `wbi_login.Login`
 instance.
 
 Example:
@@ -207,9 +207,9 @@ login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer
 login_instance.continue_oauth(oauth_callback_data='<the_callback_url_returned>')
 ```
 
-The method `wbi_login.OAuth1.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
-will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
-the authentication information directly to the backend and so no copy and paste of the callback URL is required.
+The `wbi_login.OAuth1.continue_oauth()` method will either ask the user for a callback URL (normal bot execution) or
+take a parameter. Thus, in the case where WBI is used as a backend for a web application for example, the callback will
+provide the authentication information directly to the backend and thus no copy and paste of the callback URL is needed.
 
 ### Login with a bot password ###
 
@@ -236,7 +236,7 @@ login_instance = wbi_login.Clientlogin(user='<user name>', password='<password>'
 ## Wikibase Data Types ##
 
 Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in
-wikibaseintegrator.datatypes. Each data types has its specialities, which means that some of them require special
+wikibaseintegrator.datatypes. Each datatype has its own peculiarities, which means that some of them require special
 parameters (e.g. Globe Coordinates). They are available under the namespace `wikibase.datatypes`.
 
 The data types currently implemented:
@@ -259,7 +259,7 @@ The data types currently implemented:
 * Time
 * URL
 
-There is also two extra data types implemented but need Mediawiki extension installed to work properly:
+Two additional data types are also implemented but require the installation of the Mediawiki extension to work properly:
 
 * extra.EDTF ([Wikibase EDTF](https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF))
 * extra.LocalMedia ([Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media))
@@ -456,8 +456,8 @@ dealing with humans, best represented by the [found in taxon property (P703)](ht
 the value [Q15978631](https://www.wikidata.org/entity/Q15978631) for Homo sapiens.
 
 IMPORTANT: In order for the fast run mode to work, the data you provide in the constructor must contain at least one
-unique value/id only present on one Wikidata item, e.g. an NCBI entrez gene ID, Uniprot ID, etc. Usually, these would be
-the same unique core properties used for defining domains in wbi_core, e.g. for genes, proteins, drugs or your custom
+unique value/id only present on one Wikidata element, e.g. an NCBI entrez gene ID, Uniprot ID, etc. Usually, these would
+be the same unique core properties used for defining domains in wbi_core, e.g. for genes, proteins, drugs or your custom
 domains.
 
 Below, the normal mode run example from above, slightly modified, to meet the requirements for the fast run mode. To
