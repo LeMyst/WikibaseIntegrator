@@ -56,7 +56,7 @@ class Time(BaseDataType):
             pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
             matches = pattern.match(time)
             if not matches:
-                raise ValueError("Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
+                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
 
             if precision < 0 or precision > 15:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
