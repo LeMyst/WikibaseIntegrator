@@ -67,7 +67,7 @@ git clone https://github.com/LeMyst/WikibaseIntegrator.git
 
 cd WikibaseIntegrator
 
-python -m pip install pip setuptools
+python -m pip install --upgrade pip setuptools
 
 python -m pip install .
 ```
