@@ -7,7 +7,7 @@ from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, G
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import Item
 from wikibaseintegrator.models import LanguageValues
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatePrecision, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities
 
 wbi = WikibaseIntegrator()
@@ -216,10 +216,10 @@ class TestWbiCore(unittest.TestCase):
             datatypes.Item(value="Q123", prop_nr="P4"),
             datatypes.Item(value="123", prop_nr="P4"),
             datatypes.Item(value=123, prop_nr="P4"),
-            Time(time='-0458-00-00T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr="P5"),
-            Time(time='458-00-00T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr="P5"),
-            Time(time='+2021-01-01T15:15:15Z', before=1, after=2, precision=3, timezone=4, prop_nr="P5"),
-            Time(time='now', before=1, after=2, precision=3, timezone=4, prop_nr="P5"),
+            Time(time='-0458-00-00T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
+            Time(time='458-00-00T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
+            Time(time='+2021-01-01T15:15:15Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
+            Time(time='now', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
             URL(value="http://www.wikidata.org", prop_nr="P6"),
             URL(value="https://www.wikidata.org", prop_nr="P6"),
             URL(value="ftp://example.com", prop_nr="P6"),
