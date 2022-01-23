@@ -4,6 +4,7 @@ from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 
 
 class Time(BaseDataType):
@@ -18,8 +19,8 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: int = 11, timezone: int = 0, calendarmodel: str = None, wikibase_url: str = None,
-                 **kwargs: Any):
+    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: WikibaseDatePrecision = WikibaseDatePrecision.DAY, timezone: int = 0,
+                 calendarmodel: str = None, wikibase_url: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -38,7 +39,8 @@ class Time(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
-    def set_value(self, time: str = None, before: int = 0, after: int = 0, precision: int = 11, timezone: int = 0, calendarmodel: str = None, wikibase_url: str = None):
+    def set_value(self, time: str = None, before: int = 0, after: int = 0, precision: WikibaseDatePrecision = WikibaseDatePrecision.DAY, timezone: int = 0,
+                  calendarmodel: str = None, wikibase_url: str = None):
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
@@ -56,9 +58,9 @@ class Time(BaseDataType):
             pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
             matches = pattern.match(time)
             if not matches:
-                raise ValueError("Time time must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
+                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
 
-            if precision < 0 or precision > 15:
+            if precision not in WikibaseDatePrecision:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
 
             self.mainsnak.datavalue = {
@@ -66,7 +68,7 @@ class Time(BaseDataType):
                     'time': time,
                     'before': before,
                     'after': after,
-                    'precision': precision,
+                    'precision': precision.value,
                     'timezone': timezone,
                     'calendarmodel': calendarmodel
                 },
