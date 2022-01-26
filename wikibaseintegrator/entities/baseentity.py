@@ -12,7 +12,7 @@ from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
-from wikibaseintegrator.wbi_login import Login
+from wikibaseintegrator.wbi_login import _Login
 
 if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 class BaseEntity:
     ETYPE = 'base-entity'
 
-    def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None, is_bot: bool = None, login: Login = None):
+    def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None, is_bot: bool = None, login: _Login = None):
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()

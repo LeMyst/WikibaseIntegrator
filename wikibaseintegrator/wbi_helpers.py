@@ -15,7 +15,7 @@ from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.entities.baseentity import BaseEntity
-    from wikibaseintegrator.wbi_login import Login
+    from wikibaseintegrator.wbi_login import _Login
 
 log = logging.getLogger(__name__)
 
@@ -122,13 +122,13 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
     return json_data
 
 
-def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
+def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: _Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A simplified function to call the Mediawiki API
 
     :param data: A dictionary containing the JSON data to send to the API
-    :param login: A wbi_login instance
+    :param login: A wbi_login._Login instance
     :param mediawiki_api_url: The URL to the Mediawiki API (default Wikidata)
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
     :param allow_anonymous: Allow an unidentified edit to the Mediawiki API (default False)
@@ -251,7 +251,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     return None
 
 
-def merge_items(from_id: str, to_id: str, login: Login = None, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_items(from_id: str, to_id: str, login: _Login = None, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
 
