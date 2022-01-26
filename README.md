@@ -359,7 +359,7 @@ item = wbi.item.new()
 # Set an english label
 item.labels.set(language='en', value='Newly created item')
 
-# Set an french description
+# Set a French description
 item.descriptions.set(language='fr', value='Une description un peu longue')
 
 item.claims.add(data)
@@ -393,7 +393,7 @@ item = wbi.item.get(entity_id='Q141806')
 # Set an english label but don't modify it if there is already an entry
 item.labels.set(language='en', value='An updated item', action_if_exists=ActionIfExists.KEEP)
 
-# Set an french description and replace the existing one
+# Set a French description and replace the existing one
 item.descriptions.set(language='fr', value='Une description un peu longue', action_if_exists=ActionIfExists.REPLACE)
 
 item.claims.add(data)
@@ -466,6 +466,8 @@ holding the properties to filter for as keys, and the item QIDs as dict values. 
 just provide an empty string. For the above example, the dictionary looks like this:
 
 ```python
+from wikibaseintegrator.datatypes import ExternalID, Item
+
 fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 ```
 
