@@ -1,10 +1,9 @@
 # Wikibase Integrator #
 
-<!-- TODO: Change branch name when merging -->
-[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg?branch=rewrite-wbi)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
-[![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
-[![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
+[![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
+[![Pyversions](https://img.shields.io/pypi/implementation/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
 Wikidata).
@@ -15,6 +14,12 @@ A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which h
 
 It offers a new object-oriented approach, better code readibility and support for Property, Lexeme and MediaInfo
 entities (in addition to Item).
+
+If you want to stay on v0.11.x, you can put this line in your requirements.txt:
+
+```
+wikibaseintegrator~=0.11.0
+```
 
 ---
 
