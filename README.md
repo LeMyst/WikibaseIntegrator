@@ -135,7 +135,7 @@ an external resource.
 
 ## Entity manipulation ##
 
-WikibaseIntegrator supports Item, Property, Lexeme and MediaInfo manipulation through these classes:
+WikibaseIntegrator supports the manipulation of Item, Property, Lexeme and MediaInfo entities through these classes:
 
 * wikibaseintegrator.entities.item.Item
 * wikibaseintegrator.entities.property.Property
@@ -144,9 +144,9 @@ WikibaseIntegrator supports Item, Property, Lexeme and MediaInfo manipulation th
 
 Features:
 
-* Load a Wikibase entity based on its Wikibase entity id
-* All Wikibase data types implemented
-* Full access to the whole Wikibase entity as a dict representation of the JSON
+* Loading a Wikibase entity based on its Wikibase entity ID.
+* All Wikibase data types are implemented (and some data types implemented by extensions).
+* Full access to the entire Wikibase entity in the form of a JSON dict representation.
 
 ## wbi_login ##
 
