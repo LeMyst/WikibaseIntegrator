@@ -9,6 +9,7 @@ setup(
         "mwoauth ~= 0.3.7",
         "oauthlib ~= 3.2.0",
         "requests ~= 2.27.1",
+        "requests-oauthlib ~= 1.3.1",
         "ujson ~= 5.1.0"
     ],
     extras_require={
