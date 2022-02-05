@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+helpers_session = requests.Session()
+
 
 class BColors:
     HEADER = '\033[95m'
@@ -228,7 +230,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
 
     for _ in range(max_retries):
         try:
-            response = requests.post(sparql_endpoint_url, params=params, headers=headers)
+            response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
         except requests.exceptions.ConnectionError as e:
             print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
