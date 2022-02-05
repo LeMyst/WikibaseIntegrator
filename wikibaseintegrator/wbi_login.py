@@ -6,11 +6,11 @@ import time
 import webbrowser
 from typing import Optional
 
-import requests_oauthlib
 from mwoauth import ConsumerToken, Handshaker, OAuthException
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
 from requests import Session
 from requests.cookies import RequestsCookieJar
+from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
@@ -64,6 +64,8 @@ class _Login:
         response = self.session.get(self.mediawiki_api_url, params=params).json()
         if 'error' in response:
             raise LoginError(f"Login failed ({response['error']['code']}). Message: '{response['error']['info']}'")
+        if response['query']['tokens']['csrftoken'] == '+\\':
+            raise LoginError("Login failed. An anonymous token was returned.")
         self.edit_token = response['query']['tokens']['csrftoken']
 
         return self.session.cookies
@@ -118,14 +120,11 @@ class OAuth2(_Login):
 
         mediawiki_rest_url = str(mediawiki_rest_url or config['MEDIAWIKI_REST_URL'])
 
-        session = Session()
-
-        oauth = requests_oauthlib.OAuth2Session(client=BackendApplicationClient(client_id=consumer_token))
+        session = OAuth2Session(client=BackendApplicationClient(client_id=consumer_token))
         try:
-            token = oauth.fetch_token(token_url=mediawiki_rest_url + '/oauth2/access_token', client_id=consumer_token, client_secret=consumer_secret)
+            session.fetch_token(token_url=mediawiki_rest_url + '/oauth2/access_token', client_id=consumer_token, client_secret=consumer_secret)
         except InvalidClientError as err:
             raise LoginError(err) from err
-        session.auth = requests_oauthlib.OAuth2(token=token)
         super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
 
 
@@ -139,8 +138,8 @@ class OAuth1(_Login):
 
         :param consumer_token: The consumer token
         :param consumer_secret: The consumer secret
-        :param access_token: The access token
-        :param access_secret: The access secret
+        :param access_token: The access token (optional )
+        :param access_secret: The access secret (optional)
         :param callback_url: The callback URL used to finalize the handshake
         :param mediawiki_api_url: The URL to the Mediawiki API (default Wikidata)
         :param mediawiki_index_url: The URL to the Mediawiki index (default Wikidata)
@@ -150,12 +149,10 @@ class OAuth1(_Login):
 
         mediawiki_index_url = str(mediawiki_index_url or config['MEDIAWIKI_INDEX_URL'])
 
-        session = Session()
-
         if access_token and access_secret:
             # OAuth procedure, based on https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers#Python
-            session.auth = requests_oauthlib.OAuth1(client_key=consumer_token, client_secret=consumer_secret, resource_owner_key=access_token,
-                                                    resource_owner_secret=access_secret)
+            session = OAuth1Session(client_key=consumer_token, client_secret=consumer_secret, resource_owner_key=access_token, resource_owner_secret=access_secret)
+            super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
         else:
             # Oauth procedure, based on https://www.mediawiki.org/wiki/OAuth/For_Developers
             # Consruct a "consumer" from the key/secret provided by MediaWiki
@@ -172,8 +169,6 @@ class OAuth1(_Login):
             except OAuthException as err:
                 raise LoginError(err) from err
 
-        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
-
     def continue_oauth(self, oauth_callback_data: str = None) -> None:
         """
         Continuation of OAuth procedure. Method must be explicitly called in order to complete OAuth. This allows
@@ -182,25 +177,23 @@ class OAuth1(_Login):
         :param oauth_callback_data: The callback URL received to a Web app
         :return:
         """
-        response_qs: Optional[str] = oauth_callback_data
 
-        if not response_qs:
+        if not oauth_callback_data:
             webbrowser.open(self.redirect)
-            response_qs = input("Callback URL: ")
+            oauth_callback_data = input("Callback URL: ")
 
         # input the url from redirect after authorization
-        response_qs = response_qs.split('?')[-1]
+        response_qs = oauth_callback_data.split('?')[-1]
 
         # Step 3: Complete -- obtain authorized key/secret for "resource owner"
         access_token = self.handshaker.complete(self.request_token, response_qs)
 
         if self.oauth1_consumer_token is None:
-            raise ValueError("consumer_token can't be None")
+            raise ValueError("oauth1_consumer_token can't be None")
 
         # input the access token to return a csrf (edit) token
-        auth = requests_oauthlib.OAuth1(client_key=self.oauth1_consumer_token.key, client_secret=self.oauth1_consumer_token.secret, resource_owner_key=access_token.key,
-                                        resource_owner_secret=access_token.secret)
-        self.session.auth = auth
+        self.session = OAuth1Session(client_key=self.oauth1_consumer_token.key, client_secret=self.oauth1_consumer_token.secret, resource_owner_key=access_token.key,
+                                     resource_owner_secret=access_token.secret)
         self.generate_edit_credentials()
 
 
