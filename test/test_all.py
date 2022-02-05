@@ -138,7 +138,7 @@ def test_ref_equals():
     # statements are identical
     oldref = [datatypes.ExternalID(value='P58742', prop_nr='P352'),
               datatypes.Item(value='Q24784025', prop_nr='P527'),
-              datatypes.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813')]
+              datatypes.Time(time='+2001-12-31T00:00:00Z', prop_nr='P813')]
     olditem = datatypes.Item(value='Q123', prop_nr='P123', references=[oldref])
     newitem = copy.deepcopy(olditem)
 
@@ -147,8 +147,8 @@ def test_ref_equals():
 
     # dates are a month apart
     newitem = copy.deepcopy(olditem)
-    newitem.references.remove(datatypes.Time(time='+2001-12-31T12:01:13Z', prop_nr='P813'))
-    newitem.references.add(datatypes.Time(time='+2002-01-31T12:01:13Z', prop_nr='P813'))
+    newitem.references.remove(datatypes.Time(time='+2001-12-31T00:00:00Z', prop_nr='P813'))
+    newitem.references.add(datatypes.Time(time='+2002-01-31T00:00:00Z', prop_nr='P813'))
     assert olditem.equals(newitem, include_ref=False)
     assert not olditem.equals(newitem, include_ref=True)
 

@@ -51,7 +51,7 @@ class Time(BaseDataType):
 
         if time:
             if time == "now":
-                time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                time = datetime.datetime.utcnow().strftime("+%Y-%m-%dT00:00:00Z")
 
             if not (time.startswith("+") or time.startswith("-")):
                 time = "+" + time
@@ -60,7 +60,7 @@ class Time(BaseDataType):
             pattern = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[1-9])-(?:3[01]|0[1-9]|[12][0-9])T00:00:00Z$')
             matches = pattern.match(time)
             if not matches:
-                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%-y-%m-%dT00:00:00Z'")
+                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'")
 
             if isinstance(precision, int):
                 precision = WikibaseDatePrecision(precision)
