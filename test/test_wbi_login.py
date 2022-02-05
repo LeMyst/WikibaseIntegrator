@@ -23,10 +23,12 @@ OAUTH2_CONSUMER_SECRET = os.getenv("OAUTH2_CONSUMER_SECRET")
 
 def test_login():
     with unittest.TestCase().assertRaises(LoginError):
-        wbi_login.Clientlogin(user='wrong', password='wrong')
+        login = wbi_login.Clientlogin(user='wrong', password='wrong')
+        login.generate_edit_credentials()
 
     with unittest.TestCase().assertRaises(LoginError):
-        wbi_login.Login(user='wrong', password='wrong')
+        login = wbi_login.Login(user='wrong', password='wrong')
+        login.generate_edit_credentials()
 
     if WDUSER and WDPASS:
         assert wbi_login.Clientlogin(user=WDUSER, password=WDPASS)
@@ -37,7 +39,8 @@ def test_login():
 
 def test_oauth1():
     with unittest.TestCase().assertRaises(LoginError):
-        wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong')
+        login = wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong')
+        login.generate_edit_credentials()
 
     if OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY and OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY:
         wbi_login.OAuth1(consumer_token=OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY, consumer_secret=OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY)
@@ -47,20 +50,24 @@ def test_oauth1():
 
 def test_oauth1_access():
     with unittest.TestCase().assertRaises(LoginError):
-        wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong', access_token='wrong', access_secret='wrong')
+        login = wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong', access_token='wrong', access_secret='wrong')
+        login.generate_edit_credentials()
 
     if OAUTH1_CONSUMER_TOKEN and OAUTH1_CONSUMER_SECRET and OAUTH1_ACCESS_TOKEN and OAUTH1_ACCESS_SECRET:
-        wbi_login.OAuth1(consumer_token=OAUTH1_CONSUMER_TOKEN, consumer_secret=OAUTH1_CONSUMER_SECRET, access_token=OAUTH1_ACCESS_TOKEN, access_secret=OAUTH1_ACCESS_SECRET)
+        login = wbi_login.OAuth1(consumer_token=OAUTH1_CONSUMER_TOKEN, consumer_secret=OAUTH1_CONSUMER_SECRET, access_token=OAUTH1_ACCESS_TOKEN, access_secret=OAUTH1_ACCESS_SECRET)
+        login.generate_edit_credentials()
     else:
         print("no OAUTH1_CONSUMER_TOKEN or OAUTH1_CONSUMER_SECRET or OAUTH1_ACCESS_TOKEN or OAUTH1_ACCESS_SECRET found in environment variables", file=sys.stderr)
 
 
 def test_oauth2():
     with unittest.TestCase().assertRaises(LoginError):
-        wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
+        login = wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
+        login.generate_edit_credentials()
 
     if OAUTH2_CONSUMER_TOKEN and OAUTH2_CONSUMER_SECRET:
-        wbi_login.OAuth2(consumer_token=OAUTH2_CONSUMER_TOKEN, consumer_secret=OAUTH2_CONSUMER_SECRET)
+        login = wbi_login.OAuth2(consumer_token=OAUTH2_CONSUMER_TOKEN, consumer_secret=OAUTH2_CONSUMER_SECRET)
+        login.generate_edit_credentials()
     else:
         print("no OAUTH2_CONSUMER_TOKEN or CLIENT_SECRET found in environment variables", file=sys.stderr)
 
@@ -68,5 +75,6 @@ def test_oauth2():
 def test_mismatch_api_url():
     if WDUSER and WDPASS:
         login = wbi_login.Login(user=WDUSER, password=WDPASS)
+        login.generate_edit_credentials()
         with pytest.raises(ValueError):
             mediawiki_api_call_helper(login=login, mediawiki_api_url='https://unsdfdskfjljzkerezr.org/w/api.php')
