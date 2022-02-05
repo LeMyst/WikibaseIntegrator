@@ -29,9 +29,9 @@ class WikibaseSnakType(Enum):
 
 
 class WikibaseDatePrecision(Enum):
-    SECOND = 14  # UNSUPPORTED TO DATE (REL1_37)
-    MINUTE = 13  # UNSUPPORTED TO DATE (REL1_37)
-    HOUR = 12  # UNSUPPORTED TO DATE (REL1_37)
+    # SECOND = 14  # UNSUPPORTED TO DATE (REL1_37)
+    # MINUTE = 13  # UNSUPPORTED TO DATE (REL1_37)
+    # HOUR = 12  # UNSUPPORTED TO DATE (REL1_37)
     DAY = 11
     MONTH = 10
     YEAR = 9

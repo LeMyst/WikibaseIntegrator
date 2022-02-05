@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Any
+from typing import Any, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -19,7 +19,7 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: WikibaseDatePrecision = WikibaseDatePrecision.DAY, timezone: int = 0,
+    def __init__(self, time: str = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseDatePrecision] = WikibaseDatePrecision.DAY, timezone: int = 0,
                  calendarmodel: str = None, wikibase_url: str = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
@@ -55,10 +55,15 @@ class Time(BaseDataType):
 
             if not (time.startswith("+") or time.startswith("-")):
                 time = "+" + time
-            pattern = re.compile(r'^[+-][0-9]*-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
+            # Pattern with precision lower than day supported
+            # pattern = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[1-9])-(?:3[01]|0[1-9]|[12][0-9])T(?:2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]Z$')
+            pattern = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[1-9])-(?:3[01]|0[1-9]|[12][0-9])T00:00:00Z$')
             matches = pattern.match(time)
             if not matches:
-                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT%H:%M:%SZ'")
+                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%-y-%m-%dT00:00:00Z'")
+
+            if isinstance(precision, int):
+                precision = WikibaseDatePrecision(precision)
 
             if precision not in WikibaseDatePrecision:
                 raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
