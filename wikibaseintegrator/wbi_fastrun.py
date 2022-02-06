@@ -622,12 +622,12 @@ def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] =
         base_filter = []
 
     # We search if we already have a FastRunContainer with the same parameters to re-use it
-    fastrun_container = search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
+    fastrun_container = _search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
 
     return fastrun_container
 
 
-def search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def _search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_refs == use_refs) and (fastrun.case_insensitive == case_insensitive) and (
                 fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
