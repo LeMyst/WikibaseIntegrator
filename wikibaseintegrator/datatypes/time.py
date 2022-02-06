@@ -39,7 +39,7 @@ class Time(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
-    def set_value(self, time: str = None, before: int = 0, after: int = 0, precision: WikibaseDatePrecision = WikibaseDatePrecision.DAY, timezone: int = 0,
+    def set_value(self, time: str = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseDatePrecision] = WikibaseDatePrecision.DAY, timezone: int = 0,
                   calendarmodel: str = None, wikibase_url: str = None):
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
