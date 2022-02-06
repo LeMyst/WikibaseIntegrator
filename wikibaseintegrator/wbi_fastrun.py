@@ -9,6 +9,7 @@ from itertools import chain
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type, Union
 
 from wikibaseintegrator.datatypes import BaseDataType
+from wikibaseintegrator.models import Claim
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
