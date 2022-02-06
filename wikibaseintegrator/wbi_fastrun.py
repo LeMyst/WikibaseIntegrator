@@ -142,11 +142,11 @@ class FastRunContainer:
                 current_value = claim.mainsnak.datavalue['value']['id']
 
             log.debug(current_value)
-            if self.case_insensitive:
-                log.debug("case insensitive enabled")
-                log.debug(self.rev_lookup_ci)
-            else:
-                log.debug(self.rev_lookup)
+            # if self.case_insensitive:
+            #     log.debug("case insensitive enabled")
+            #     log.debug(self.rev_lookup_ci)
+            # else:
+            #     log.debug(self.rev_lookup)
 
             if current_value in self.rev_lookup:
                 # quick check for if the value has ever been seen before, if not, write required
