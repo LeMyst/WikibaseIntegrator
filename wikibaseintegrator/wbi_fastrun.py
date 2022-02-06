@@ -109,7 +109,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: Union[list, Claims], cqid: str = None) -> Optional[str]:
+    def get_item(self, claims: Union[list, Claims, Claim], cqid: str = None) -> Optional[str]:
         """
         Load an item from the SPARQL endpoint.
 
@@ -119,6 +119,10 @@ class FastRunContainer:
         :exception: if there is more than one claim
         """
         match_sets = []
+
+        if isinstance(claims, Claim):
+            claims = [claims]
+
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
             if not claim.mainsnak.datavalue and not claim.datatype:
