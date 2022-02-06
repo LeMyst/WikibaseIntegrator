@@ -61,7 +61,7 @@ class _Login:
             'type': 'csrf',
             'format': 'json'
         }
-        response = self.session.get(self.mediawiki_api_url, params=params).json()
+        response = self.session.get(url=self.mediawiki_api_url, params=params).json()
         if 'error' in response:
             raise LoginError(f"Login failed ({response['error']['code']}). Message: '{response['error']['info']}'")
         if response['query']['tokens']['csrftoken'] == '+\\':
