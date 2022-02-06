@@ -125,7 +125,7 @@ class FastRunContainer:
 
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
-            if not claim.mainsnak.datavalue and not claim.datatype:
+            if not claim.mainsnak.datavalue and not claim.mainsnak.datatype:
                 continue
 
             prop_nr = claim.mainsnak.property_number
