@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -24,15 +24,15 @@ class Snaks(BaseModel):
 
         return self
 
-    def from_json(self, json_data: Dict[str, list]) -> Snaks:
+    def from_json(self, json_data: Dict[str, List]) -> Snaks:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(snak=Snak().from_json(snak))
 
         return self
 
-    def get_json(self) -> Dict[str, list]:
-        json_data: Dict[str, list] = {}
+    def get_json(self) -> Dict[str, List]:
+        json_data: Dict[str, List] = {}
         for property, snaks in self.snaks.items():
             if property not in json_data:
                 json_data[property] = []

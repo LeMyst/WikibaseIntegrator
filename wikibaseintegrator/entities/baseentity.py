@@ -38,7 +38,7 @@ class BaseEntity:
         self.id = id
         self.claims = claims or Claims()
 
-    def add_claims(self, claims: Union[Claim, list], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
+    def add_claims(self, claims: Union[Claim, List], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
         if isinstance(claims, Claim):
             claims = [claims]
         elif not isinstance(claims, list):
@@ -48,7 +48,7 @@ class BaseEntity:
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, Dict[str, list]]]:
+    def get_json(self) -> Dict[str, Union[str, Dict[str, List]]]:
         """
         To get the dict equivalent of the JSON representation of the entity.
 

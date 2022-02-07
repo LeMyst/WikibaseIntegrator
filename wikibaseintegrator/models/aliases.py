@@ -33,7 +33,7 @@ class Aliases(BaseModel):
 
         return None
 
-    def set(self, language: str = None, values: Union[str, list] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> Aliases:
+    def set(self, language: str = None, values: Union[str, List] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> Aliases:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
 
@@ -72,8 +72,8 @@ class Aliases(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, list]:
-        json_data: Dict[str, list] = {}
+    def get_json(self) -> Dict[str, List]:
+        json_data: Dict[str, List] = {}
         for language, aliases in self.aliases.items():
             if language not in json_data:
                 json_data[language] = []
@@ -81,7 +81,7 @@ class Aliases(BaseModel):
                 json_data[language].append(alias.get_json())
         return json_data
 
-    def from_json(self, json_data: Dict[str, list]) -> Aliases:
+    def from_json(self, json_data: Dict[str, List]) -> Aliases:
         for language in json_data:
             for alias in json_data[language]:
                 self.set(alias['language'], alias['value'])

@@ -191,7 +191,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: _Login = None,
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Optional[Dict[str, dict]]:
+def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Optional[Dict[str, Dict]]:
     """
     Static method which can be used to execute any SPARQL query
 

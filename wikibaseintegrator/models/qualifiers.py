@@ -62,7 +62,7 @@ class Qualifiers(BaseModel):
         return self
 
     def get_json(self) -> Dict[str, List]:
-        json_data: Dict[str, list] = {}
+        json_data: Dict[str, List] = {}
         for property in self.qualifiers:
             if property not in json_data:
                 json_data[property] = []

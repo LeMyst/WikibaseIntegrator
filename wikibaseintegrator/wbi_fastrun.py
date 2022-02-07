@@ -28,8 +28,8 @@ class FastRunContainer:
         self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
         self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
-        self.prop_data: Dict[str, dict] = {}
-        self.loaded_langs: Dict[str, dict] = {}
+        self.prop_data: Dict[str, Dict] = {}
+        self.loaded_langs: Dict[str, Dict] = {}
         self.base_filter: List[BaseDataType | List[BaseDataType]] = []
         self.base_filter_string = ''
         self.prop_dt_map: Dict[str, str] = {}
@@ -110,7 +110,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: Union[list[Claim], Claims, Claim], cqid: str = None) -> Optional[str]:
+    def get_item(self, claims: Union[List[Claim], Claims, Claim], cqid: str = None) -> Optional[str]:
         """
         Load an item from the SPARQL endpoint.
 
@@ -179,7 +179,7 @@ class FastRunContainer:
 
         return matching_qids.pop()
 
-    def write_required(self, data: List[BaseDataType], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
         """
         Check if a write is required
 
@@ -340,7 +340,7 @@ class FastRunContainer:
 
         return False
 
-    def get_all_data(self) -> Dict[str, dict]:
+    def get_all_data(self) -> Dict[str, Dict]:
         return self.prop_data
 
     def format_query_results(self, r: List, prop_nr: str) -> None:
@@ -562,7 +562,7 @@ class FastRunContainer:
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang: str, lang_data_type: str) -> Optional[List[Dict[str, dict]]]:
+    def _query_lang(self, lang: str, lang_data_type: str) -> Optional[List[Dict[str, Dict]]]:
         """
 
         :param lang:

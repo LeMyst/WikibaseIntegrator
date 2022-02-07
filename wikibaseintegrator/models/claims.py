@@ -35,7 +35,7 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Union[Claims, list[Claim], Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
+    def add(self, claims: Union[Claims, list[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
         :param claims:
@@ -57,31 +57,32 @@ class Claims(BaseModel):
             for claim in claims:
                 if claim is not None:
                     assert isinstance(claim, Claim)
-                property = claim.mainsnak.property_number
-                if property in self.claims:
-                    for claim_to_remove in self.claims[property]:
-                        if claim_to_remove not in claims:
-                            claim_to_remove.remove()
+
+                    property = claim.mainsnak.property_number
+                    if property in self.claims:
+                        for claim_to_remove in self.claims[property]:
+                            if claim_to_remove not in claims:
+                                claim_to_remove.remove()
 
         for claim in claims:
             if claim is not None:
                 assert isinstance(claim, Claim)
             property = claim.mainsnak.property_number
 
-            if property not in self.claims:
-                self.claims[property] = []
+                if property not in self.claims:
+                    self.claims[property] = []
 
-            if action_if_exists == ActionIfExists.KEEP:
-                if len(self.claims[property]) == 0:
+                if action_if_exists == ActionIfExists.KEEP:
+                    if len(self.claims[property]) == 0:
+                        self.claims[property].append(claim)
+                elif action_if_exists == ActionIfExists.FORCE_APPEND:
                     self.claims[property].append(claim)
-            elif action_if_exists == ActionIfExists.FORCE_APPEND:
-                self.claims[property].append(claim)
-            elif action_if_exists == ActionIfExists.APPEND:
-                if claim not in self.claims[property]:
-                    self.claims[property].append(claim)
-            elif action_if_exists == ActionIfExists.REPLACE:
-                if claim not in self.claims[property]:
-                    self.claims[property].append(claim)
+                elif action_if_exists == ActionIfExists.APPEND:
+                    if claim not in self.claims[property]:
+                        self.claims[property].append(claim)
+                elif action_if_exists == ActionIfExists.REPLACE:
+                    if claim not in self.claims[property]:
+                        self.claims[property].append(claim)
 
         return self
 
@@ -97,8 +98,8 @@ class Claims(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, list]:
-        json_data: Dict[str, list] = {}
+    def get_json(self) -> Dict[str, List]:
+        json_data: Dict[str, List] = {}
         for property, claims in self.claims.items():
             if property not in json_data:
                 json_data[property] = []
@@ -249,7 +250,7 @@ class Claim(BaseModel):
         return self
 
     def get_json(self) -> Dict[str, Any]:
-        json_data: Dict[str, Union[str, list[dict | str], dict[str, str | list], None]] = {
+        json_data: Dict[str, Union[str, List[Dict], List[str], Dict[str, str], Dict[str, List], None]] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,
@@ -341,3 +342,6 @@ class Claim(BaseModel):
             return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
 
         return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
+
+    def get_sparql_value(self) -> str:
+        pass

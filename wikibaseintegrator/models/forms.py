@@ -99,7 +99,7 @@ class Form(BaseModel):
         return self
 
     def get_json(self) -> Dict[str, Union[str, Dict, List]]:
-        json_data: Dict[str, Union[str, Dict, list]] = {
+        json_data: Dict[str, Union[str, Dict, List]] = {
             'id': self.id,
             'representations': self.representations.get_json(),
             'grammaticalFeatures': self.grammatical_features,

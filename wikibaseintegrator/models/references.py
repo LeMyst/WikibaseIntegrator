@@ -129,8 +129,8 @@ class Reference(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, Union[Dict, list]]:
-        json_data: Dict[str, Union[Dict, list]] = {
+    def get_json(self) -> Dict[str, Union[Dict, List]]:
+        json_data: Dict[str, Union[Dict, List]] = {
             'snaks': self.snaks.get_json(),
             'snaks-order': self.snaks_order
         }
