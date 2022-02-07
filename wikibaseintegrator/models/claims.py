@@ -49,7 +49,7 @@ class Claims(BaseModel):
 
         if isinstance(claims, Claim):
             claims = [claims]
-        elif (not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims):
+        elif claims is None or ((not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims)):
             raise ValueError
 
         # TODO: Don't replace if claim is the same
@@ -67,7 +67,7 @@ class Claims(BaseModel):
         for claim in claims:
             if claim is not None:
                 assert isinstance(claim, Claim)
-            property = claim.mainsnak.property_number
+                property = claim.mainsnak.property_number
 
                 if property not in self.claims:
                     self.claims[property] = []
