@@ -35,7 +35,7 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Union[list, Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
+    def add(self, claims: Union[Claims, list[Claim], Claim, None] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
         :param claims:
@@ -49,7 +49,7 @@ class Claims(BaseModel):
 
         if isinstance(claims, Claim):
             claims = [claims]
-        elif not isinstance(claims, list):
+        elif (not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims):
             raise ValueError
 
         # TODO: Don't replace if claim is the same
@@ -249,7 +249,7 @@ class Claim(BaseModel):
         return self
 
     def get_json(self) -> Dict[str, Any]:
-        json_data: Dict[str, Union[str, list, dict, None]] = {
+        json_data: Dict[str, Union[str, list[dict | str], dict[str, str | list], None]] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,

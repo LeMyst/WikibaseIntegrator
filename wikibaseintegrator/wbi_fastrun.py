@@ -110,7 +110,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: Union[list, Claims, Claim], cqid: str = None) -> Optional[str]:
+    def get_item(self, claims: Union[list[Claim], Claims, Claim], cqid: str = None) -> Optional[str]:
         """
         Load an item from the SPARQL endpoint.
 
@@ -123,6 +123,8 @@ class FastRunContainer:
 
         if isinstance(claims, Claim):
             claims = [claims]
+        elif (not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims):
+            raise ValueError
 
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
