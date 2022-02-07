@@ -98,6 +98,9 @@ class LanguageValues(BaseModel):
 
         return json_data
 
+    def __contains__(self, language: str) -> bool:
+        return language in self.values
+
     def __iter__(self):
         return iter(self.values.values())
 
