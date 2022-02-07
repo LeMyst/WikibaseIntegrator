@@ -27,6 +27,7 @@ setup(
             "m2r2 ~= 0.3.2",
             "sphinx-autodoc-typehints ~= 1.16.0"
         ],
+        "notebooks": ["jupyter"],
         "coverage": ["pytest-cov"],
     },
 )
