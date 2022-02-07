@@ -80,6 +80,9 @@ class Claims(BaseModel):
                 elif action_if_exists == ActionIfExists.APPEND:
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
+                    else:
+                        # Force update the claim if already present
+                        self.claims[property][self.claims[property].index(claim)].update(claim)
                 elif action_if_exists == ActionIfExists.REPLACE:
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
@@ -230,6 +233,13 @@ class Claim(BaseModel):
 
     def remove(self, remove=True) -> None:
         self.removed = remove
+
+    def update(self, claim: Claim) -> None:
+        self.mainsnak = claim.mainsnak
+        self.qualifiers = claim.qualifiers
+        self.qualifiers_order = claim.qualifiers_order
+        self.rank = claim.rank
+        self.references = claim.references
 
     def from_json(self, json_data: Dict[str, Any]) -> Claim:
         """
