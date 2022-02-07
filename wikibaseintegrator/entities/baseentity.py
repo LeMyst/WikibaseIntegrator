@@ -158,9 +158,7 @@ class BaseEntity:
                 if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
                     raise NonUniqueLabelDescriptionPairError(json_result)
 
-                raise MWApiError(json_result)
-
-            if 'error' in json_result.keys():
+            if 'error' in json_result:
                 raise MWApiError(json_result)
         except Exception:
             print('Error while writing to the Wikibase instance')
