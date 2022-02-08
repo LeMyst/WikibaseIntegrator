@@ -134,6 +134,10 @@ class Snak(BaseModel):
         if self.snaktype in [WikibaseSnakType.NO_VALUE, WikibaseSnakType.UNKNOWN_VALUE]:
             del json_data['datavalue']
 
+        # datatype can be null with MediaInfo
+        if not self.datatype:
+            del json_data['datatype']
+
         return json_data
 
     def __eq__(self, other):
