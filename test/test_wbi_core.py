@@ -128,7 +128,7 @@ class TestWbiCore(unittest.TestCase):
         item.aliases.set(values=['a'], language='ak', action_if_exists=ActionIfExists.APPEND)
         assert 'a' in item.aliases.get('ak')
         item.aliases.set(values='b', language='ak')
-        assert all(i in item.aliases.get('ak') for i in ['a', 'b'])
+        assert all(i in item.aliases.get('ak') for i in ['a', 'b']) and len(item.aliases.get('ak')) >= 2
         item.aliases.set(values='b', language='ak', action_if_exists=ActionIfExists.REPLACE)
         assert item.aliases.get('ak') == ['b']
         item.aliases.set(values=['c'], language='ak', action_if_exists=ActionIfExists.REPLACE)
