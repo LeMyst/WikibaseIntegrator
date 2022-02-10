@@ -106,9 +106,9 @@ class TestWbiCore(unittest.TestCase):
         item.set_label("label", lang='ak')
         item.set_description("d", lang='ak')
         item.set_aliases(["a"], lang='ak', if_exists='APPEND')
-        assert item.get_aliases('ak') == ['a']
+        assert 'a' in item.get_aliases('ak')
         item.set_aliases("b", lang='ak')
-        assert item.get_aliases('ak') == ['a', 'b']
+        assert 'a' in item.get_aliases('ak') and 'b' in item.get_aliases('ak') and len(item.get_aliases('ak')) > 2
         item.set_aliases("b", lang='ak', if_exists='REPLACE')
         assert item.get_aliases('ak') == ['b']
         item.set_aliases(["c"], lang='ak', if_exists='REPLACE')
