@@ -110,13 +110,13 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_item(self, claims: Union[List[Claim], Claims, Claim], cqid: str = None) -> Optional[str]:
+    def get_items(self, claims: Union[List[Claim], Claims, Claim], cqid: str = None) -> Optional[Set[str]]:
         """
-        Load an item from the SPARQL endpoint.
+        Get items ID from a SPARQL endpoint
 
-        :param claims:
+        :param claims: A list of claims the entities should have
         :param cqid:
-        :return: the claim id
+        :return: a list of entity ID or None
         :exception: if there is more than one claim
         """
         match_sets = []
@@ -170,6 +170,18 @@ class FastRunContainer:
             matching_qids = {cqid}
         else:
             matching_qids = match_sets[0].intersection(*match_sets[1:])
+
+        return matching_qids
+
+    def get_item(self, claims: Union[List[Claim], Claims, Claim], cqid: str = None) -> Optional[str]:
+        """
+
+        :param claims: A list of claims the entity should have
+        :param cqid:
+        :return: An entity ID, None if there is more than one.
+        """
+
+        matching_qids: Optional[Set[str]] = self.get_items(claims=claims, cqid=cqid)
 
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
