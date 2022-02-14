@@ -77,4 +77,4 @@ def test_mismatch_api_url():
         login = wbi_login.Login(user=WDUSER, password=WDPASS)
         login.generate_edit_credentials()
         with pytest.raises(ValueError):
-            mediawiki_api_call_helper(login=login, mediawiki_api_url='https://unsdfdskfjljzkerezr.org/w/api.php')
+            mediawiki_api_call_helper(data={}, login=login, mediawiki_api_url='https://unsdfdskfjljzkerezr.org/w/api.php')
