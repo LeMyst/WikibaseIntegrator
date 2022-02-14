@@ -183,6 +183,9 @@ class FastRunContainer:
 
         matching_qids: Optional[Set[str]] = self.get_items(claims=claims, cqid=cqid)
 
+        if matching_qids is None:
+            return None
+
         # check if there are any items that have all of these values
         # if not, a write is required no matter what
         if not len(matching_qids) == 1:
