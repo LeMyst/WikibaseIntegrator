@@ -185,10 +185,7 @@ class Claim(BaseModel):
     @qualifiers.setter
     def qualifiers(self, value: Qualifiers) -> None:
         assert isinstance(value, (Qualifiers, list))
-        if isinstance(value, list):
-            self.__qualifiers = Qualifiers().set(value)
-        else:
-            self.__qualifiers = value
+        self.__qualifiers: Qualifiers = Qualifiers().set(value) if isinstance(value, list) else value
 
     @property
     def qualifiers_order(self) -> List[str]:
