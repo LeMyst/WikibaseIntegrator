@@ -79,7 +79,8 @@ class BaseEntity:
 
         return self
 
-    def _get(self, entity_id: str, login: _Login = None, allow_anonymous: bool = True, is_bot: bool = None, props: List = None, **kwargs: Any) -> Dict:
+    # noinspection PyMethodMayBeStatic
+    def _get(self, entity_id: str, login: _Login = None, allow_anonymous: bool = True, is_bot: bool = None, **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
         """
         Retrieve an entity in json representation from the Wikibase instance
 
@@ -96,9 +97,6 @@ class BaseEntity:
             'ids': entity_id,
             'format': 'json'
         }
-
-        if props:
-            params.update({'props': '|'.join(props)})
 
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot

@@ -618,7 +618,7 @@ class FastRunContainer:
     def get_prop_datatype(self, prop_nr: str) -> Optional[str]:  # pylint: disable=no-self-use
         from wikibaseintegrator import WikibaseIntegrator
         wbi = WikibaseIntegrator()
-        property = wbi.property.get(prop_nr, props=['datatype'])
+        property = wbi.property.get(prop_nr)
         return property.datatype
 
     def clear(self) -> None:
