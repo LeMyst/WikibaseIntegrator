@@ -124,7 +124,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
     return json_data
 
 
-def mediawiki_api_call_helper(data: Dict[str, Any] = None, login: _Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
+def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A simplified function to call the Mediawiki API
