@@ -60,7 +60,7 @@ class FastRunContainer:
                         self.base_filter_string += '?item <{wb_url}/prop/direct/{prop_nr1}>/<{wb_url}/prop/direct/{prop_nr2}>* ?zz{prop_nr1}{prop_nr2} .\n'.format(
                             wb_url=self.wikibase_url, prop_nr1=k[0].mainsnak.property_number, prop_nr2=k[1].mainsnak.property_number)
                 else:
-                    raise ValueError
+                    raise ValueError("base_filter must be an instance of BaseDataType or a list of instances of BaseDataType")
 
     def reconstruct_statements(self, qid: str) -> List[BaseDataType]:
         reconstructed_statements: List[BaseDataType] = []
@@ -124,7 +124,7 @@ class FastRunContainer:
         if isinstance(claims, Claim):
             claims = [claims]
         elif (not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims):
-            raise ValueError
+            raise ValueError("claims must be an instance of Claim or Claims or a list of Claim")
 
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
@@ -406,14 +406,11 @@ class FastRunContainer:
                     i['v'] = format_amount(i['v']['value'])
                 elif i['v']['type'] == 'literal' and prop_dt == 'monolingualtext':
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr, text=i['v']['value'], language=i['v']['xml:lang'])
-                    # noinspection PyProtectedMember
                     i['v'] = f.get_sparql_value()
                 else:
                     f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr)
-                    # noinspection PyProtectedMember
                     if not f.parse_sparql_value(value=i['v']['value'], type=i['v']['type']):
-                        raise ValueError
-                    # noinspection PyProtectedMember
+                        raise ValueError("Can't parse the value with parse_sparql_value()")
                     i['v'] = f.get_sparql_value()
 
                 # Note: no-value and some-value don't actually show up in the results here

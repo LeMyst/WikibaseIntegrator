@@ -35,7 +35,7 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Union[Claims, list[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
+    def add(self, claims: Union[Claims, List[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
         :param claims:
@@ -50,7 +50,7 @@ class Claims(BaseModel):
         if isinstance(claims, Claim):
             claims = [claims]
         elif claims is None or ((not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims)):
-            raise ValueError
+            raise ValueError("claims must be an instance of Claim or Claims or a list of Claim")
 
         # TODO: Don't replace if claim is the same
         if action_if_exists == ActionIfExists.REPLACE:
@@ -154,13 +154,15 @@ class Claim(BaseModel):
                         if isinstance(ref_claim, Claim):
                             snaks.add(Snak().from_json(ref_claim.get_json()['mainsnak']))
                         else:
-                            raise ValueError
+                            raise ValueError("The references must be a References object or a list of Claim object")
                     ref.snaks = snaks
                 elif isinstance(ref_list, Claim):
                     ref.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
                 elif isinstance(ref_list, Reference):
                     ref = ref_list
                 self.references.add(reference=ref)
+        elif references is not None:
+            raise ValueError("The references must be a References object or a list of Claim object")
 
     @property
     def mainsnak(self) -> Snak:
