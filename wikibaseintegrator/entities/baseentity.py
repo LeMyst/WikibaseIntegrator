@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from copy import copy
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import ujson
 
@@ -37,6 +37,46 @@ class BaseEntity:
         self.type = str(type or self.ETYPE)
         self.id = id
         self.claims = claims or Claims()
+
+    @property
+    def api(self) -> WikibaseIntegrator:
+        return self.__api
+
+    @api.setter
+    def api(self, value: WikibaseIntegrator):
+        self.__api = value
+
+    @property
+    def lastrevid(self) -> Optional[int]:
+        return self.__lastrevid
+
+    @lastrevid.setter
+    def lastrevid(self, value: Optional[int]):
+        self.__lastrevid = value
+
+    @property
+    def type(self) -> str:
+        return self.__type
+
+    @type.setter
+    def type(self, value: str):
+        self.__type = value
+
+    @property
+    def id(self) -> Optional[str]:
+        return self.__id
+
+    @id.setter
+    def id(self, value: Optional[str]):
+        self.__id = value
+
+    @property
+    def claims(self) -> Claims:
+        return self.__claims
+
+    @claims.setter
+    def claims(self, value: Claims):
+        self.__claims = value
 
     def add_claims(self, claims: Union[Claim, List], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
         if isinstance(claims, Claim):
