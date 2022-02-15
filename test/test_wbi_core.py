@@ -5,7 +5,7 @@ from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
                                           Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
-from wikibaseintegrator.entities import Item
+from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatePrecision, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities
@@ -17,13 +17,13 @@ class TestWbiCore(unittest.TestCase):
     common_item = wbi.item.new().get('Q2')
 
     def test_item_engine(self):
-        Item(api=wbi)
+        ItemEntity(api=wbi)
         wbi.item.new()
-        Item(api=wbi).add_claims(String(value='test', prop_nr='P1'))
-        Item(api=wbi).add_claims([String(value='test', prop_nr='P1')])
-        Item(api=wbi, id='Q2')
+        ItemEntity(api=wbi).add_claims(String(value='test', prop_nr='P1'))
+        ItemEntity(api=wbi).add_claims([String(value='test', prop_nr='P1')])
+        ItemEntity(api=wbi, id='Q2')
         with self.assertRaises(TypeError):
-            Item(api=wbi).add_claims('test')
+            ItemEntity(api=wbi).add_claims('test')
 
     def test_get(self):
         item = wbi.item.new().get(entity_id='Q2')
@@ -149,16 +149,16 @@ class TestWbiCore(unittest.TestCase):
         entities = {
             'Q408883': {
                 'etype': 'item',
-                'ctype': 'Item'
+                'ctype': 'ItemEntity'
             }, 'P715': {
                 'etype': 'property',
-                'ctype': 'Property'
+                'ctype': 'PropertyEntity'
             }, 'Q18046452': {
                 'etype': 'item',
-                'ctype': 'Item'
+                'ctype': 'ItemEntity'
             }, 'L5': {
                 'etype': 'lexeme',
-                'ctype': 'Lexeme'
+                'ctype': 'LexemeEntity'
             }
         }
 
@@ -174,7 +174,7 @@ class TestWbiCore(unittest.TestCase):
         for qid, entity in entity_instances:
             assert qid == 'Q408883'
             assert entity.ETYPE == 'item'
-            assert type(entity).__name__ == 'Item'
+            assert type(entity).__name__ == 'ItemEntity'
 
     def test_rank(self):
         t1 = String(value='test1', prop_nr='P1', rank='preferred')

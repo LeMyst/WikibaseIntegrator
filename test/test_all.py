@@ -3,7 +3,7 @@ import unittest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
-from wikibaseintegrator.entities import Item
+from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
 
@@ -172,8 +172,8 @@ def test_mediainfo():
 def test_wikibaseintegrator():
     nwbi = WikibaseIntegrator(is_bot=False)
     assert nwbi.item.api.is_bot is False
-    assert Item(api=nwbi, is_bot=True).api.is_bot is True
-    assert Item(api=nwbi).api.is_bot is False
-    assert Item().api.is_bot is False
+    assert ItemEntity(api=nwbi, is_bot=True).api.is_bot is True
+    assert ItemEntity(api=nwbi).api.is_bot is False
+    assert ItemEntity().api.is_bot is False
     assert nwbi.item.get('Q582').api.is_bot is False
-    assert Item(api=nwbi, is_bot=True).get('Q582').api.is_bot is True
+    assert ItemEntity(api=nwbi, is_bot=True).get('Q582').api.is_bot is True

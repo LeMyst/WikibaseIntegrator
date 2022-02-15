@@ -5,10 +5,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wikibaseintegrator.entities.item import Item
-from wikibaseintegrator.entities.lexeme import Lexeme
-from wikibaseintegrator.entities.mediainfo import MediaInfo
-from wikibaseintegrator.entities.property import Property
+from wikibaseintegrator.entities.item import ItemEntity
+from wikibaseintegrator.entities.lexeme import LexemeEntity
+from wikibaseintegrator.entities.mediainfo import MediaInfoEntity
+from wikibaseintegrator.entities.property import PropertyEntity
 
 if TYPE_CHECKING:
     from wikibaseintegrator.wbi_login import _Login
@@ -28,7 +28,7 @@ class WikibaseIntegrator:
         self.login = login
 
         # Quick access to entities
-        self.item = Item(api=self)
-        self.property = Property(api=self)
-        self.lexeme = Lexeme(api=self)
-        self.mediainfo = MediaInfo(api=self)
+        self.item = ItemEntity(api=self)
+        self.property = PropertyEntity(api=self)
+        self.lexeme = LexemeEntity(api=self)
+        self.mediainfo = MediaInfoEntity(api=self)

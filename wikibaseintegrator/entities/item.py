@@ -11,7 +11,7 @@ from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.models.sitelinks import Sitelinks
 
 
-class Item(BaseEntity):
+class ItemEntity(BaseEntity):
     ETYPE = 'item'
 
     def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, sitelinks: Sitelinks = None, **kwargs: Any) -> None:
@@ -26,7 +26,7 @@ class Item(BaseEntity):
         """
         super().__init__(**kwargs)
 
-        # Item and property specific
+        # Item, Property and MediaInfo specific
         self.labels: LanguageValues = labels or Labels()
         self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
@@ -34,17 +34,23 @@ class Item(BaseEntity):
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
-    def new(self, **kwargs: Any) -> Item:
-        return Item(api=self.api, **kwargs)
+    def new(self, **kwargs: Any) -> ItemEntity:
+        return ItemEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Item:
+    def get(self, entity_id: Union[str, int] = None, **kwargs: Any) -> ItemEntity:
         """
         Request the Mediawiki API to get data for the entity specified in argument.
 
         :param entity_id: The entity_id of the Item entity you want. Must start with a 'Q'.
         :param kwargs:
-        :return: an Item instance
+        :return: an ItemEntity instance
         """
+
+        if entity_id is None and self.id is not None:
+            entity_id = self.id
+        elif entity_id is None:
+            raise ValueError("You must provide an entity_id")
+
         if isinstance(entity_id, str):
             pattern = re.compile(r'^Q?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -59,7 +65,7 @@ class Item(BaseEntity):
 
         entity_id = f'Q{entity_id}'
         json_data = super()._get(entity_id=entity_id, **kwargs)
-        return Item(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        return ItemEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
         """
@@ -74,7 +80,7 @@ class Item(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data: Dict[str, Any]) -> Item:
+    def from_json(self, json_data: Dict[str, Any]) -> ItemEntity:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
@@ -84,6 +90,6 @@ class Item(BaseEntity):
 
         return self
 
-    def write(self, **kwargs: Any) -> Item:
+    def write(self, **kwargs: Any) -> ItemEntity:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

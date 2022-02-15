@@ -10,7 +10,7 @@ from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 
 
-class Property(BaseEntity):
+class PropertyEntity(BaseEntity):
     ETYPE = 'property'
 
     def __init__(self, datatype: str = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any):
@@ -19,15 +19,15 @@ class Property(BaseEntity):
         # Property specific
         self.datatype = datatype
 
-        # Items and property specific
+        # Item, Property and MediaInfo specific
         self.labels: LanguageValues = labels or Labels()
         self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
-    def new(self, **kwargs: Any) -> Property:
-        return Property(api=self.api, **kwargs)
+    def new(self, **kwargs: Any) -> PropertyEntity:
+        return PropertyEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Property:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> PropertyEntity:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -42,7 +42,7 @@ class Property(BaseEntity):
 
         entity_id = f'P{entity_id}'
         json_data = super()._get(entity_id=entity_id, **kwargs)
-        return Property(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        return PropertyEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
         return {
@@ -53,7 +53,7 @@ class Property(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data: Dict[str, Any]) -> Property:
+    def from_json(self, json_data: Dict[str, Any]) -> PropertyEntity:
         super().from_json(json_data=json_data)
 
         self.datatype = json_data['datatype']
@@ -63,6 +63,6 @@ class Property(BaseEntity):
 
         return self
 
-    def write(self, **kwargs: Any) -> Property:
+    def write(self, **kwargs: Any) -> PropertyEntity:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)

@@ -11,7 +11,7 @@ from wikibaseintegrator.models.senses import Senses
 from wikibaseintegrator.wbi_config import config
 
 
-class Lexeme(BaseEntity):
+class LexemeEntity(BaseEntity):
     ETYPE = 'lexeme'
 
     def __init__(self, lemmas: Lemmas = None, lexical_category: str = None, language: str = None, forms: Forms = None, senses: Senses = None, **kwargs: Any):
@@ -23,10 +23,10 @@ class Lexeme(BaseEntity):
         self.forms = forms or Forms()
         self.senses = senses or Senses()
 
-    def new(self, **kwargs: Any) -> Lexeme:
-        return Lexeme(api=self.api, **kwargs)
+    def new(self, **kwargs: Any) -> LexemeEntity:
+        return LexemeEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs: Any) -> Lexeme:
+    def get(self, entity_id: Union[str, int], **kwargs: Any) -> LexemeEntity:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^L?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -41,7 +41,7 @@ class Lexeme(BaseEntity):
 
         entity_id = f'L{entity_id}'
         json_data = super()._get(entity_id=entity_id, **kwargs)
-        return Lexeme(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        return LexemeEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
         json_data: Dict = {
@@ -57,7 +57,7 @@ class Lexeme(BaseEntity):
 
         return json_data
 
-    def from_json(self, json_data: Dict[str, Any]) -> Lexeme:
+    def from_json(self, json_data: Dict[str, Any]) -> LexemeEntity:
         super().from_json(json_data=json_data)
 
         self.lemmas = Lemmas().from_json(json_data['lemmas'])
@@ -68,6 +68,6 @@ class Lexeme(BaseEntity):
 
         return self
 
-    def write(self, **kwargs: Any) -> Lexeme:
+    def write(self, **kwargs: Any) -> LexemeEntity:
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)
