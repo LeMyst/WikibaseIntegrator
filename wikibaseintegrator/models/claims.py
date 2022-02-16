@@ -280,22 +280,28 @@ class Claim(BaseModel):
 
     def has_equal_qualifiers(self, other: Claim) -> bool:
         # check if the qualifiers are equal with the 'other' object
-        equal_qualifiers = True
         self_qualifiers = copy.deepcopy(self.qualifiers)
         other_qualifiers = copy.deepcopy(other.qualifiers)
 
         if len(self_qualifiers) != len(other_qualifiers):
-            equal_qualifiers = False
-        else:
-            flg = [False for _ in range(len(self_qualifiers))]
-            for count, i in enumerate(self_qualifiers):
+            return False
+
+        for property_number in self_qualifiers.qualifiers:
+            if property_number not in other_qualifiers.qualifiers:
+                return False
+
+            if len(self_qualifiers.qualifiers[property_number]) != len(other_qualifiers.qualifiers[property_number]):
+                return False
+
+            flg = [False for _ in range(len(self_qualifiers.qualifiers[property_number]))]
+            for count, i in enumerate(self_qualifiers.qualifiers[property_number]):
                 for q in other_qualifiers:
                     if i == q:
                         flg[count] = True
             if not all(flg):
-                equal_qualifiers = False
+                return False
 
-        return equal_qualifiers
+        return True
 
     # TODO: rewrite this?
     def __contains__(self, item):

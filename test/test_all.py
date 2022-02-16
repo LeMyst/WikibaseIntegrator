@@ -2,7 +2,7 @@ import copy
 import unittest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType
+from wikibaseintegrator.datatypes import BaseDataType, Item
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
@@ -159,6 +159,21 @@ def test_ref_equals():
     assert not olditem.equals(newitem, include_ref=True)
     olditem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
     assert olditem.equals(newitem, include_ref=True)
+
+
+def test_equal_qualifiers():
+    claim1 = Item(prop_nr='P1')
+    claim1.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2')])
+    claim2 = Item(prop_nr='P4')
+    claim2.qualifiers.set([Item(prop_nr='P2', value='Q1')])
+    claim3 = Item(prop_nr='P4')
+    claim3.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2')])
+    claim4 = Item(prop_nr='P4')
+    claim4.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q3')])
+
+    assert claim1.has_equal_qualifiers(claim2) is False
+    assert claim1.has_equal_qualifiers(claim3) is True
+    assert claim1.has_equal_qualifiers(claim4) is False
 
 
 def test_mediainfo():

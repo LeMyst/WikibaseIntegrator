@@ -23,7 +23,7 @@ class Qualifiers(BaseModel):
         assert isinstance(value, dict)
         self.__qualifiers = value
 
-    def set(self, qualifiers: Union[Qualifiers, List, None]) -> Qualifiers:
+    def set(self, qualifiers: Union[Qualifiers, List[Union[Snak, Claim]], None]) -> Qualifiers:
         if isinstance(qualifiers, list):
             for qualifier in qualifiers:
                 self.add(qualifier)
