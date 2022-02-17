@@ -48,6 +48,7 @@ wikibaseintegrator~=0.11.0
     - [Modify an existing item](#modify-an-existing-item)
     - [A bot for Mass Import](#a-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
+- [Debugging](#debugging)
 
 # WikibaseIntegrator / WikidataIntegrator #
 
@@ -525,3 +526,13 @@ for entrez_id, ensembl in raw_data.items():
 Note: Fastrun mode checks for equality of property/value pairs, qualifers (not including qualifier attributes), labels,
 aliases and description, but it ignores references by default!
 References can be checked in fast run mode by setting `use_refs` to `True`.
+
+# Debugging #
+
+You can enable debugging by adding this piece of code to the top of your project:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+```
