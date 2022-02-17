@@ -3,4 +3,4 @@ readthedocs-sphinx-ext~=2.1.4
 sphinx-rtd-theme~=1.0.0
 sphinx_github_changelog~=1.2.0
 m2r2~=0.3.2
-sphinx-autodoc-typehints~=1.16.0
+sphinx-autodoc-typehints==1.17.0
