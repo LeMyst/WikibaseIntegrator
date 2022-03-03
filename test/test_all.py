@@ -4,8 +4,11 @@ import unittest
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, Item
 from wikibaseintegrator.entities import ItemEntity
+from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
+
+wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_all.py)'
 
 wbi = WikibaseIntegrator()
 
@@ -65,7 +68,6 @@ class TestFastRun(unittest.TestCase):
             message = 'fastrun failed'
         else:
             message = 'successful fastrun'
-        print(fastrun_result, message)
 
         # here, fastrun should succeed, if not, test failed
         if fastrun_result:

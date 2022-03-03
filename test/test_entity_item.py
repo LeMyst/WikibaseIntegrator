@@ -1,10 +1,12 @@
-import json
 import unittest
 
 import requests
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import BaseDataType, Item
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_item.py)'
 
 wbi = WikibaseIntegrator()
 

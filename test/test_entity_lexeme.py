@@ -1,6 +1,9 @@
 import unittest
 
 from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_lexeme.py)'
 
 wbi = WikibaseIntegrator()
 

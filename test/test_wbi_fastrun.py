@@ -3,7 +3,10 @@ from typing import Any
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
+from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import ActionIfExists
+
+wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_fastrun.py)'
 
 wbi = WikibaseIntegrator()
 

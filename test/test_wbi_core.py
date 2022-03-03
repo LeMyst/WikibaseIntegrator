@@ -7,8 +7,11 @@ from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, G
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.models import LanguageValues
+from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatePrecision, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities
+
+wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_core.py)'
 
 wbi = WikibaseIntegrator()
 
