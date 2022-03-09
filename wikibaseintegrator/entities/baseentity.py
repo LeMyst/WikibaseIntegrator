@@ -204,8 +204,6 @@ class BaseEntity:
         if self.lastrevid:
             payload.update({'baserevid': self.lastrevid})
 
-        log.debug(payload)
-
         login = login or self.api.login
 
         try:

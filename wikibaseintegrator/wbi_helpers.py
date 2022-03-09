@@ -186,6 +186,8 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediaw
 
     login_session = login.get_session() if login is not None else None
 
+    log.debug(data)
+
     return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=login_session, data=data, headers=headers, max_retries=max_retries,
                               retry_after=retry_after, **kwargs)
 
