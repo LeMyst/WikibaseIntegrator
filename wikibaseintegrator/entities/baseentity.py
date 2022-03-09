@@ -189,7 +189,8 @@ class BaseEntity:
         if not summary:
             payload.pop('summary')
 
-        if self.api.is_bot:
+        is_bot = is_bot if is_bot is not None else self.api.is_bot
+        if is_bot:
             payload.update({'bot': ''})
 
         if clear:
@@ -206,7 +207,6 @@ class BaseEntity:
         log.debug(payload)
 
         login = login or self.api.login
-        is_bot = is_bot if is_bot is not None else self.api.is_bot
 
         try:
             json_result: dict = mediawiki_api_call_helper(data=payload, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
