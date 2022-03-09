@@ -161,35 +161,42 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediaw
         'User-Agent': get_user_agent(user_agent)
     }
 
-    if data is not None:
-        if not allow_anonymous and login is not None and 'token' not in data:
-            data.update({'token': login.get_edit_token()})
-        elif 'token' not in data:
-            data.update({'token': '+\\'})
+    # Default token is anonymous
+    if isinstance(data, dict) and 'token' not in data:
+        data.update({'token': '+\\'})
 
+    if data is not None:
         if not allow_anonymous:
+            # Get edit token if there is a login instance
+            if login is not None:
+                data.update({'token': login.get_edit_token()})
+
             # Always assert user if allow_anonymous is False
             if 'assert' not in data:
                 if is_bot:
                     data.update({'assert': 'bot'})
                 else:
                     data.update({'assert': 'user'})
+
             if 'token' in data and data['token'] == '+\\':
                 raise Exception("Anonymous edit are not allowed by default. "
                                 "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
-        elif 'assert' not in data:
-            # Always assert anon if allow_anonymous is True
-            data.update({'assert': 'anon'})
+        else:
+            if 'assert' not in data and login is None:
+                # Assert anon if allow_anonymous is True and no Login instance
+                data.update({'assert': 'anon'})
 
         if maxlag > 0:
             data.update({'maxlag': maxlag})
 
-    login_session = login.get_session() if login is not None else None
+    if login is not None:
+        session = login.get_session()
+    else:
+        session = None
 
     log.debug(data)
 
-    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=login_session, data=data, headers=headers, max_retries=max_retries,
-                              retry_after=retry_after, **kwargs)
+    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
 
 
 @wbi_backoff()
