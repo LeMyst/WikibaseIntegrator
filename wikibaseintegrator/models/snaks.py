@@ -68,11 +68,11 @@ class Snak(BaseModel):
         self.__snaktype = WikibaseSnakType(value)
 
     @property
-    def property_number(self):
+    def property_number(self) -> str:
         return self.__property_number
 
     @property_number.setter
-    def property_number(self, value):
+    def property_number(self, value: str):
         if isinstance(value, int):
             self.__property_number = 'P' + str(value)
         elif value is not None:
@@ -83,8 +83,8 @@ class Snak(BaseModel):
                 raise ValueError('Invalid property_number, format must be "P[0-9]+"')
 
             self.__property_number = 'P' + str(matches.group(1))
-
-        self.__property_number = value
+        else:
+            self.__property_number = value
 
     @property
     def hash(self):
