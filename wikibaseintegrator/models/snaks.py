@@ -83,8 +83,8 @@ class Snak(BaseModel):
                 raise ValueError('Invalid property_number, format must be "P[0-9]+"')
 
             self.__property_number = 'P' + str(matches.group(1))
-
-        self.__property_number = value
+        else:
+            self.__property_number = value
 
     @property
     def hash(self):
