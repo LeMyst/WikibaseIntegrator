@@ -1,0 +1,82 @@
+# Example Wikibase docker-compose setup
+version: '3.4'
+
+x-common-variables: &wikibase_variables
+  DB_SERVER: mysql.svc:3306
+  MW_ADMIN_NAME: ${MW_ADMIN_NAME}
+  MW_ADMIN_PASS: ${MW_ADMIN_PASS}
+  MW_ADMIN_EMAIL: ${MW_ADMIN_EMAIL}
+  MW_WG_SECRET_KEY: ${MW_SECRET_KEY}
+  # Disable jobs running after requests when wikibase_jobrunner is defined
+  MW_WG_JOB_RUN_RATE: 0
+  DB_USER: ${DB_USER}
+  DB_PASS: ${DB_PASS}
+  DB_NAME: ${DB_NAME}
+  WIKIBASE_HOST: ${WIKIBASE_HOST}
+
+services:
+  wikibase:
+    image: "${WIKIBASE_BUNDLE_IMAGE_NAME}"
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    ports:
+      - "${WIKIBASE_PORT}:80"
+    volumes:
+      ## This shares the configuration with jobrunner
+      - shared:/var/www/html/:rw
+
+      ## Uncomment this next line to mount your own LocalSettings.php file
+      #- ./LocalSettings.php:/var/www/html/LocalSettings.d/LocalSettings.override.php
+
+    networks:
+      default:
+        aliases:
+         - ${WIKIBASE_HOST}
+         - wikibase-docker.svc
+    environment:
+      <<: *wikibase_variables
+      WIKIBASE_PINGBACK:
+      MW_WG_ENABLE_UPLOADS:
+
+  wikibase_jobrunner:
+    image: "${WIKIBASE_BUNDLE_IMAGE_NAME}"
+    entrypoint: /bin/bash
+    command:  /jobrunner-entrypoint.sh
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    restart: always
+    volumes:
+      - shared:/shared/:ro
+      - ./jobrunner-entrypoint.sh:/jobrunner-entrypoint.sh
+    networks:
+      default:
+        aliases:
+          - wikibase-jobrunner.svc
+    environment:
+      <<: *wikibase_variables
+      MAX_JOBS: ${MAX_JOBS}
+
+  mysql:
+    image: "${MYSQL_IMAGE_NAME}"
+    restart: unless-stopped
+    volumes:
+      - mediawiki-mysql-data:/var/lib/mysql
+    environment:
+      # CONFIG - Change the default values below (should match values passed to wikibase)
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+    networks:
+      default:
+        aliases:
+         - mysql.svc
+
+volumes:
+  shared:
+  mediawiki-mysql-data:
