@@ -19,18 +19,26 @@ on:
 
 jobs:
   build:
-    name: pytest ${{ matrix.python-version }}
+    name: pytest ${{ matrix.python-version }}/${{ matrix.mediawiki-version }}
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12' ] # '3.13-dev' wait for new version of pypa/installer > 0.7.0
+        mediawiki-version: [ '1.39.7-wmde.18', '1.40.3-wmde.19', '1.41.1-wmde.20' ]
 
     steps:
       - uses: actions/checkout@v4.1.6
 
       - name: Install poetry
         run: pipx install poetry
+
+      - name: Set up Docker containers with v${{ matrix.mediawiki-version }}
+        run: |
+          docker-compose -f ./docker-compose.yml -f ./docker-compose.extra.yml up -d
+        working-directory: test/docker-compose
+        env:
+          WIKIBASE_BUNDLE_IMAGE_NAME: wikibase/wikibase-bundle:${{ matrix.mediawiki-version }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5.1.0
