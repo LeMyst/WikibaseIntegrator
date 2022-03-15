@@ -100,8 +100,6 @@ class BaseEntity:
         }
         if self.id:
             json_data['id'] = self.id
-        if self.type == 'mediainfo':  # MediaInfo change name of 'claims' to 'statements'
-            json_data['statements'] = json_data.pop('claims')
 
         return json_data
 
@@ -112,9 +110,7 @@ class BaseEntity:
         self.lastrevid = int(json_data['lastrevid'])
         self.type = str(json_data['type'])
         self.id = str(json_data['id'])
-        if self.type == 'mediainfo':  # 'claims' is named 'statements' in Wikimedia Commons MediaInfo
-            self.claims = Claims().from_json(json_data['statements'])
-        else:
+        if 'claims' in json_data:  # 'claims' is named 'statements' in Wikimedia Commons MediaInfo
             self.claims = Claims().from_json(json_data['claims'])
 
         return self

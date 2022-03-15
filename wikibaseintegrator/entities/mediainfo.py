@@ -4,7 +4,7 @@ import re
 from typing import Any, Dict, List, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models import LanguageValues
+from wikibaseintegrator.models import Claims, LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
@@ -72,18 +72,29 @@ class MediaInfoEntity(BaseEntity):
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
-        return {
+        json_data = {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
-            'aliases': self.aliases.get_json(),
             **super().get_json()
         }
+
+        # if 'claims' in json_data:  # MediaInfo change name of 'claims' to 'statements'
+        #     json_data['statements'] = json_data.pop('claims')
+
+        # if 'statements' in json_data:
+        #     for prop_nr in json_data['statements']:
+        #         for statement in json_data['statements'][prop_nr]:
+        #             if 'mainsnak' in statement and 'datatype' in statement['mainsnak']:
+        #                 del statement['mainsnak']['datatype']
+
+        return json_data
 
     def from_json(self, json_data: Dict[str, Any]) -> MediaInfoEntity:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])
         self.descriptions = Descriptions().from_json(json_data['descriptions'])
+        self.claims = Claims().from_json(json_data['statements'])
 
         return self
 

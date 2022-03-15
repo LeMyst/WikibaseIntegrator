@@ -38,6 +38,9 @@ wikibaseintegrator~=0.11.0
         - [Login with a bot password](#login-with-a-bot-password)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
     - [Wikibase Data Types](#wikibase-data-types)
+    - [Structured Data on Commons](#structured-data-on-commons)
+        - [Retrieve data](#retrieve-data)
+        - [Write data](#write-data)
 - [Helper Methods](#helper-methods)
     - [Use Mediawiki API](#use-mediawiki-api)
     - [Execute SPARQL queries](#execute-sparql-queries)
@@ -273,6 +276,37 @@ Two additional data types are also implemented but require the installation of t
 For details of how to create values (=instances) with these data types, please (for now) consult the docstrings in the
 source code or the documentation website. Of note, these data type instances hold the values and, if specified, data
 type instances for references and qualifiers.
+
+## Structured Data on Commons ##
+
+WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.
+
+### Retrieve data ###
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+
+wbi = WikibaseIntegrator()
+media = wbi.mediainfo.get('M16431477')
+
+# Retrieve the first "depicts" (P180) claim
+print(media.claims.get('P180')[0].mainsnak.datavalue['value']['id'])
+```
+
+### Write data ###
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import Item
+
+wbi = WikibaseIntegrator()
+media = wbi.mediainfo.get('M16431477')
+
+# Add the "depicts" (P180) claim
+media.claims.add(Item(prop_nr='P180', value='Q3146211'))
+
+media.write()
+```
 
 # Helper Methods #
 
