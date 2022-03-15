@@ -72,7 +72,7 @@ class MediaInfoEntity(BaseEntity):
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
-        json_data = {
+        return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             **super().get_json()
@@ -86,8 +86,6 @@ class MediaInfoEntity(BaseEntity):
         #         for statement in json_data['statements'][prop_nr]:
         #             if 'mainsnak' in statement and 'datatype' in statement['mainsnak']:
         #                 del statement['mainsnak']['datatype']
-
-        return json_data
 
     def from_json(self, json_data: Dict[str, Any]) -> MediaInfoEntity:
         super().from_json(json_data=json_data)
