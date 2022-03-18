@@ -18,7 +18,7 @@ entities (in addition to Item).
 If you want to stay on v0.11.x, you can put this line in your requirements.txt:
 
 ```
-wikibaseintegrator~=0.11.0
+wikibaseintegrator~=0.11.1
 ```
 
 ---
@@ -99,14 +99,15 @@ print(my_first_wikidata_item.get_json())
 WikibaseIntegrator uses Wikidata as default endpoint. To use another instance of Wikibase instead, you can override the
 wbi_config module.
 
-An example for a Wikibase instance installed with [Wikibase Docker](https://www.mediawiki.org/wiki/Wikibase/Docker), add
-this to the top of your script:
+An example for a Wikibase instance installed
+with [wikibase-docker](https://github.com/wmde/wikibase-release-pipeline/tree/main/example), add this to the top of your
+script:
 
 ```python
 from wikibaseintegrator.wbi_config import config as wbi_config
 
 wbi_config['MEDIAWIKI_API_URL'] = 'http://localhost/api.php'
-wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost/bigdata/sparql'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8834/proxy/wdqs/bigdata/namespace/wdq/sparql'
 wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
