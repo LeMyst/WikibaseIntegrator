@@ -36,7 +36,7 @@ class TestWbiCore(unittest.TestCase):
         descr = item.descriptions.get('en').value
         assert len(descr) > 3
 
-        assert "Terra" in item.aliases.get('es')
+        assert "la Terre" in item.aliases.get('fr')
         assert "planet" in item.descriptions.get('en')
 
         assert item.labels.get('es') == "Tierra"
@@ -107,7 +107,7 @@ class TestWbiCore(unittest.TestCase):
 
         assert item.labels.get('en') == "Earth"
 
-        assert "Terra" in item.aliases.get('es')
+        assert "la Terre" in item.aliases.get('fr')
 
         assert item.labels.get("es") == "Tierra"
 
