@@ -91,5 +91,17 @@ class ItemEntity(BaseEntity):
         return self
 
     def write(self, **kwargs: Any) -> ItemEntity:
+        """
+        Write the ItemEntity data to the Wikibase instance and return the ItemEntity object returned by the instance.
+
+        :param data: The serialized object that is used as the data source. A newly created entity will be assigned an 'id'.
+        :param summary: A summary of the edit
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param clear: Clear the existing entity before updating
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for Python requests
+        :return: an ItemEntity of the response from the instance
+        """
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)
