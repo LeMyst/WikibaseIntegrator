@@ -4,6 +4,7 @@
 [![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
 [![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
 [![Pyversions](https://img.shields.io/pypi/implementation/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+[![Read the Docs](https://readthedocs.org/projects/pip/badge/?version=latest&style=flat)](https://wikibaseintegrator.readthedocs.io)
 
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
 Wikidata).
@@ -26,6 +27,7 @@ wikibaseintegrator~=0.11.1
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
+- [Documentation](#documentation)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
     - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
@@ -59,6 +61,11 @@ WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/Su
 purpose is to focus on compatibility with Wikibase. There have been many improvements which have led to radical changes
 in the code. See the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
 changed.
+
+# Documentation #
+
+A (basic) documentation generated from the python source code is available on
+the [Read the Docs website](https://wikibaseintegrator.readthedocs.io/).
 
 # Installation #
 
