@@ -286,15 +286,16 @@ def merge_items(from_id: str, to_id: str, login: _Login = None, ignore_conflicts
     if is_bot:
         params.update({'bot': ''})
 
-    return mediawiki_api_call_helper(data=params, login=login, **kwargs)
+    return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_lexemes(source: str, target: str, login: _Login = None, summary: str = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two lexemes
 
     :param source: The ID to merge from. This parameter is required.
     :param target: The ID to merge to. This parameter is required.
+    :param login: A wbi_login.Login instance
     :param summary: Summary for the edit.
     :param is_bot: Mark this edit as bot.
     """
@@ -312,7 +313,7 @@ def merge_lexemes(source: str, target: str, summary: str = None, is_bot: bool = 
     if is_bot:
         params.update({'bot': ''})
 
-    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+    return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
 def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs: Any) -> Dict:
@@ -340,7 +341,55 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_
     if is_bot:
         params.update({'bot': ''})
 
-    return mediawiki_api_call_helper(data=params, **kwargs)
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def delete_page(title: str = None, pageid: int = None, reason: str = None, deletetalk: bool = False, watchlist: str = 'preferences', watchlistexpiry: str = None,
+                login: _Login = None, **kwargs: Any) -> Dict:
+    """
+    Delete a page
+
+    :param title: Title of the page to delete. Cannot be used together with pageid.
+    :param pageid: Page ID of the page to delete. Cannot be used together with title.
+    :param reason: Reason for the deletion. If not set, an automatically generated reason will be used.
+    :param deletetalk: Delete the talk page, if it exists.
+    :param watchlist: Unconditionally add or remove the page from the current user's watchlist, use preferences (ignored for bot users) or do not change watch.
+                      One of the following values: nochange, preferences, unwatch, watch
+    :param watchlistexpiry: Watchlist expiry timestamp. Omit this parameter entirely to leave the current expiry unchanged.
+    :param login: A wbi_login.Login instance
+    :param kwargs:
+    :return:
+    """
+
+    if not title and not pageid:
+        raise ValueError("A title or a pageid must be specified.")
+
+    if title and pageid:
+        raise ValueError("You can't specify a title and a pageid at the same time.")
+
+    if pageid and not isinstance(pageid, int):
+        raise ValueError("pageid must be an integer.")
+
+    params = {
+        'action': 'delete',
+        'deletetalk': deletetalk,
+        'watchlist': watchlist,
+        'format': 'json'
+    }
+
+    if title:
+        params.update({'title': title})
+
+    if pageid:
+        params.update({'pageid': pageid})
+
+    if reason:
+        params.update({'reason': reason})
+
+    if watchlistexpiry:
+        params.update({'watchlistexpiry': watchlistexpiry})
+
+    return mediawiki_api_call_helper(data=params, login=login, **kwargs)
 
 
 def search_entities(search_string: str, language: str = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
