@@ -127,7 +127,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
-    A simplified function to call the Mediawiki API
+    A simplified function to call the Mediawiki API.
+    Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
 
     :param data: A dictionary containing the JSON data to send to the API
     :param login: A wbi_login._Login instance
