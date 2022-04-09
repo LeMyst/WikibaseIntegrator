@@ -11,7 +11,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
 if TYPE_CHECKING:
@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 class BaseEntity:
     ETYPE = 'base-entity'
 
-    def __init__(self, api: 'WikibaseIntegrator' = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None, is_bot: bool = None, login: _Login = None):
+    def __init__(self, api: 'WikibaseIntegrator' = None, title: str = None, pageid: int = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None,
+                 is_bot: bool = None, login: _Login = None):
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -33,6 +34,8 @@ class BaseEntity:
         self.api.is_bot = is_bot or self.api.is_bot
         self.api.login = login or self.api.login
 
+        self.title = title
+        self.pageid = pageid
         self.lastrevid = lastrevid
         self.type = str(type or self.ETYPE)
         self.id = id
@@ -45,6 +48,22 @@ class BaseEntity:
     @api.setter
     def api(self, value: WikibaseIntegrator):
         self.__api = value
+
+    @property
+    def title(self) -> Optional[str]:
+        return self.__title
+
+    @title.setter
+    def title(self, value: Optional[str]):
+        self.__title = value
+
+    @property
+    def pageid(self) -> Optional[int]:
+        return self.__pageid
+
+    @pageid.setter
+    def pageid(self, value: Optional[int]):
+        self.__pageid = value
 
     @property
     def lastrevid(self) -> Optional[int]:
@@ -107,6 +126,8 @@ class BaseEntity:
         if 'missing' in json_data:
             raise ValueError('Entity is nonexistent')
 
+        self.title = str(json_data['title'])
+        self.pageid = int(json_data['pageid'])
         self.lastrevid = int(json_data['lastrevid'])
         self.type = str(json_data['type'])
         self.id = str(json_data['id'])
@@ -216,6 +237,30 @@ class BaseEntity:
             raise
 
         return json_result['entity']
+
+    def delete(self, login: _Login = None, allow_anonymous: bool = False, is_bot: bool = None, **kwargs: Any):
+        """
+        Delete the current entity. Use the pageid first if available and fallback to the page title.
+
+        :param login: A wbi_login.Login instance
+        :param allow_anonymous: Allow an unidentified edit to the Mediawiki API (default False)
+        :param is_bot: Flag the edit as a bot
+        :param reason: Reason for the deletion. If not set, an automatically generated reason will be used.
+        :param deletetalk: Delete the talk page, if it exists.
+        :param kwargs: Any additional keyword arguments to pass to mediawiki_api_call_helper and requests.request
+        :return: The data returned by the API as a dictionary
+        """
+
+        if not self.pageid and self.title:
+            raise ValueError("A pageid or a page title attribute must be set before deleting an entity object.")
+
+        if not self.pageid:
+            return delete_page(title=self.title, pageid=None, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        else:
+            if isinstance(self.pageid, int):
+                raise ValueError("The entity must have a pageid attribute correctly set")
+
+            return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
     def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
