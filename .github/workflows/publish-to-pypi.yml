@@ -8,18 +8,21 @@ jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
           python-version: 3.9
+
       - name: Install pypa/build
         run: >-
           python -m
           pip install
           build
           --user
+
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m
@@ -27,12 +30,14 @@ jobs:
           --sdist
           --wheel
           .
+
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
           password: ${{ secrets.test_pypi_password }}
           repository_url: https://test.pypi.org/legacy/
+
       - name: Publish distribution 📦 to PyPI
         if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@v1.5.0
