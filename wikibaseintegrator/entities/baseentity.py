@@ -160,8 +160,15 @@ class BaseEntity:
 
         return mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def clear(self, **kwargs: Any) -> None:
-        self._write(clear=True, **kwargs)
+    def clear(self, **kwargs: Any) -> Dict[str, Any]:
+        """
+        Use the `clear` parameter of `wbeditentity` API call to clear the content of the entity.
+        The entity will be updated with an empty dictionary.
+
+        :param kwargs: More arguments for _write() and Python requests
+        :return: A dictionary representation of the edited Entity
+        """
+        return self._write(data={}, clear=True, **kwargs)
 
     def _write(self, data: Dict = None, summary: str = None, login: _Login = None, allow_anonymous: bool = False, clear: bool = False, is_bot: bool = None, **kwargs: Any) -> Dict[
         str, Any]:
@@ -172,10 +179,10 @@ class BaseEntity:
         :param summary: A summary of the edit
         :param login: A login instance
         :param allow_anonymous: Force a check if the query can be anonymous or not
-        :param clear: Clear the existing entity before updating
+        :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
         :param is_bot: Add the bot flag to the query
         :param kwargs: More arguments for Python requests
-        :return: A dictionary representation of the Entity
+        :return: A dictionary representation of the edited Entity
         """
 
         data = data or {}
