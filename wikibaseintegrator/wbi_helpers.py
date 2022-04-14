@@ -40,7 +40,7 @@ default_session = requests.Session()
 
 def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
     """
-    A function to call the Mediawiki API.
+    A function to call the MediaWiki API.
 
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
@@ -77,7 +77,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 
         response.raise_for_status()
         json_data = response.json()
-        # Mediawiki api response has code = 200 even if there are errors.
+        # MediaWiki api response has code = 200 even if there are errors.
         # Rate limit doesn't return HTTP 429 either, may in the future.
         # https://phabricator.wikimedia.org/T172293
         if 'error' in json_data:
@@ -127,14 +127,14 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
-    A simplified function to call the Mediawiki API.
+    A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
 
     :param data: A dictionary containing the JSON data to send to the API
     :param login: A wbi_login._Login instance
-    :param mediawiki_api_url: The URL to the Mediawiki API (default Wikidata)
+    :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
-    :param allow_anonymous: Allow an unidentified edit to the Mediawiki API (default False)
+    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
     :param max_retries: The maximum number of retries
     :param retry_after: The tiemout between each retry
     :param maxlag: If appliable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)

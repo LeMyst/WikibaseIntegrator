@@ -250,7 +250,7 @@ class BaseEntity:
         Delete the current entity. Use the pageid first if available and fallback to the page title.
 
         :param login: A wbi_login.Login instance
-        :param allow_anonymous: Allow an unidentified edit to the Mediawiki API (default False)
+        :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
         :param is_bot: Flag the edit as a bot
         :param reason: Reason for the deletion. If not set, an automatically generated reason will be used.
         :param deletetalk: Delete the talk page, if it exists.

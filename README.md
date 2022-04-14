@@ -44,7 +44,7 @@ wikibaseintegrator~=0.11.1
         - [Retrieve data](#retrieve-data)
         - [Write data](#write-data)
 - [Helper Methods](#helper-methods)
-    - [Use Mediawiki API](#use-mediawiki-api)
+    - [Use MediaWiki API](#use-mediawiki-api)
     - [Execute SPARQL queries](#execute-sparql-queries)
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
@@ -122,7 +122,7 @@ You can find more default settings in the file wbi_config.py
 
 ## Wikimedia Foundation User-Agent policy ##
 
-If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Mediawiki Commons, etc.),
+If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Wikimedia Commons, etc.),
 it's highly advised to follow the User-Agent policy that you can find on the
 page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
 of the Wikimedia Meta-Wiki.
@@ -163,7 +163,7 @@ Features:
 ## wbi_login ##
 
 `wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
-every Mediawiki edit requires an edit token). There is multiple methods to login:
+every MediaWiki edit requires an edit token). There is multiple methods to login:
 
 * `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
 * `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
@@ -175,7 +175,7 @@ mediawiki_api_url, mediawiki_rest_url or mediawiki_index_url. Read the documenta
 
 ### Login using OAuth1 or OAuth2 ###
 
-OAuth is the authentication method recommended by the Mediawiki developers. It can be used to authenticate a bot or to
+OAuth is the authentication method recommended by the MediaWiki developers. It can be used to authenticate a bot or to
 use WBI as a backend for an application.
 
 #### As a bot ####
@@ -184,7 +184,7 @@ If you want to use WBI with a bot account, you should use OAuth as
 an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers). This allows to use the
 authentication without the "continue oauth" step.
 
-The first step is to request a new OAuth consumer on your Mediawiki instance on the page
+The first step is to request a new OAuth consumer on your MediaWiki instance on the page
 "Special:OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked and
 the correct version of the OAuth protocol must be set (OAuth 2.0). You will get a consumer token and consumer secret
 (and an access token and access secret if you chose OAuth 1.0a). For a Wikimedia instance (like Wikidata), you need to
@@ -276,7 +276,7 @@ The data types currently implemented:
 * Time
 * URL
 
-Two additional data types are also implemented but require the installation of the Mediawiki extension to work properly:
+Two additional data types are also implemented but require the installation of the MediaWiki extension to work properly:
 
 * extra.EDTF ([Wikibase EDTF](https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF))
 * extra.LocalMedia ([Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media))
@@ -318,11 +318,11 @@ media.write()
 
 # Helper Methods #
 
-## Use Mediawiki API ##
+## Use MediaWiki API ##
 
 The method `wbi_helpers.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It takes a mandatory
 data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a mediawiki_api_url
-string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header, and an
+string if the MediaWiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header, and an
 allow_anonymous boolean to force authentication.
 
 Example:

@@ -20,8 +20,8 @@ class WikibaseIntegrator:
         """
         This function initializes a WikibaseIntegrator instance to quickly access different entity type instances.
 
-        :param is_bot: declare if the bot flag must be set when you interact with the Mediawiki API.
-        :param login: a wbi_login instance needed when you try to access a restricted Mediawiki instance.
+        :param is_bot: declare if the bot flag must be set when you interact with the MediaWiki API.
+        :param login: a wbi_login instance needed when you try to access a restricted MediaWiki instance.
         """
         # Runtime variables
         self.is_bot = is_bot or False

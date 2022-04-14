@@ -39,7 +39,7 @@ class ItemEntity(BaseEntity):
 
     def get(self, entity_id: Union[str, int] = None, **kwargs: Any) -> ItemEntity:
         """
-        Request the Mediawiki API to get data for the entity specified in argument.
+        Request the MediaWiki API to get data for the entity specified in argument.
 
         :param entity_id: The entity_id of the Item entity you want. Must start with a 'Q'.
         :param kwargs:

@@ -1,6 +1,6 @@
 class MWApiError(Exception):
     """
-    Base class for Mediawiki API error handling
+    Base class for MediaWiki API error handling
     """
 
 
