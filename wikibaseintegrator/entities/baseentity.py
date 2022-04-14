@@ -258,9 +258,10 @@ class BaseEntity:
         :return: The data returned by the API as a dictionary
         """
 
-        if not self.pageid and self.title:
+        if not self.pageid and not self.title:
             raise ValueError("A pageid or a page title attribute must be set before deleting an entity object.")
 
+        # If there is no pageid, fallback to using the page title. It's not the preferred method.
         if not self.pageid:
             return delete_page(title=self.title, pageid=None, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
         else:
