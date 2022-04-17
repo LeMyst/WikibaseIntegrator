@@ -20,12 +20,12 @@ setup(
             "mypy"
         ],
         "docs": [
-            "Sphinx ~= 4.4.0",
-            "readthedocs-sphinx-ext ~= 2.1.4",
+            "Sphinx ~= 4.5.0",
+            "readthedocs-sphinx-ext ~= 2.1.5",
             "sphinx-rtd-theme ~= 1.0.0",
             "sphinx_github_changelog ~= 1.2.0",
             "m2r2 ~= 0.3.2",
-            "sphinx-autodoc-typehints ~= 1.17.0"
+            "sphinx-autodoc-typehints ~= 1.18.1"
         ],
         "notebooks": ["jupyter"],
         "coverage": ["pytest-cov"],
