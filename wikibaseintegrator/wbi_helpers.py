@@ -373,7 +373,6 @@ def delete_page(title: str = None, pageid: int = None, reason: str = None, delet
 
     params = {
         'action': 'delete',
-        'deletetalk': deletetalk,
         'watchlist': watchlist,
         'format': 'json'
     }
@@ -386,6 +385,9 @@ def delete_page(title: str = None, pageid: int = None, reason: str = None, delet
 
     if reason:
         params.update({'reason': reason})
+
+    if deletetalk:
+        params.update({'deletetalk': ''})
 
     if watchlistexpiry:
         params.update({'watchlistexpiry': watchlistexpiry})
