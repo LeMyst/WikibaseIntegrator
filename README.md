@@ -19,7 +19,7 @@ entities (in addition to Item).
 If you want to stay on v0.11.x, you can put this line in your requirements.txt:
 
 ```
-wikibaseintegrator~=0.11.1
+wikibaseintegrator~=0.11.2
 ```
 
 ---
