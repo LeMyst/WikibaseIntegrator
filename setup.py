@@ -7,8 +7,8 @@ setup(
     install_requires=[
         "backoff ~= 1.11.1",
         "mwoauth ~= 0.3.7",
-        "oauthlib >= 3.1.1,< 3.3.0",
-        "requests >= 2.26,< 2.28",
+        "oauthlib ~= 3.2.0",
+        "requests ~= 2.27.1",
         "simplejson ~= 3.17.5"
     ],
     extras_require={
