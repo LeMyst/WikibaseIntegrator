@@ -371,7 +371,7 @@ def delete_page(title: str = None, pageid: int = None, reason: str = None, delet
     if pageid and not isinstance(pageid, int):
         raise ValueError("pageid must be an integer.")
 
-    params = {
+    params: Dict[str, Any] = {
         'action': 'delete',
         'watchlist': watchlist,
         'format': 'json'
