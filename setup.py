@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name="wikibaseintegrator",
     install_requires=[
-        "backoff ~= 1.11.1",
+        "backoff >= 1.11.1,< 2.1.0",
         "mwoauth ~= 0.3.7",
         "oauthlib ~= 3.2.0",
         "requests ~= 2.27.1",
