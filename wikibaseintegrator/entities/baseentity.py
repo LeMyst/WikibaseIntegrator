@@ -126,9 +126,9 @@ class BaseEntity:
         if 'missing' in json_data:
             raise ValueError('Entity is nonexistent')
 
-        if "title" in json_data:
+        if 'title' in json_data:  # TODO: 1.35 compatibility
             self.title = str(json_data['title'])
-        if "pageid" in json_data:
+        if 'pageid' in json_data:  # TODO: 1.35 compatibility
             self.pageid = int(json_data['pageid'])
         self.lastrevid = int(json_data['lastrevid'])
         self.type = str(json_data['type'])
