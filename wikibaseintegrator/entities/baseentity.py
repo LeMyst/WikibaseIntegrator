@@ -10,7 +10,7 @@ from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import MWApiError, NonUniqueLabelDescriptionPairError
+from wikibaseintegrator.wbi_exceptions import MWApiError, NonExistentEntityError, NonUniqueLabelDescriptionPairError
 from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
@@ -123,8 +123,14 @@ class BaseEntity:
         return json_data
 
     def from_json(self, json_data: Dict[str, Any]) -> BaseEntity:
-        if 'missing' in json_data:
-            raise ValueError('Entity is nonexistent')
+        """
+        Import a dictionary into BaseEntity attributes.
+
+        :param json_data: A specific dictionary from MediaWiki API
+        :return:
+        """
+        if 'missing' in json_data:  # TODO: 1.35 compatibility
+            raise NonExistentEntityError('The MW API returned that the entity was missing.')
 
         if 'title' in json_data:  # TODO: 1.35 compatibility
             self.title = str(json_data['title'])
