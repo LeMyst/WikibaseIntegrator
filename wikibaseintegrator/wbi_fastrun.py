@@ -34,12 +34,12 @@ class FastRunContainer:
         self.base_filter_string = ''
         self.prop_dt_map: Dict[str, str] = {}
 
-        self.base_data_type = base_data_type
-        self.mediawiki_api_url = mediawiki_api_url or config['MEDIAWIKI_API_URL']
-        self.sparql_endpoint_url = sparql_endpoint_url or config['SPARQL_ENDPOINT_URL']
-        self.wikibase_url = wikibase_url or config['WIKIBASE_URL']
-        self.use_refs = use_refs
-        self.case_insensitive = case_insensitive
+        self.base_data_type: Type[BaseDataType] = base_data_type
+        self.mediawiki_api_url: str = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+        self.sparql_endpoint_url: str = str(sparql_endpoint_url or config['SPARQL_ENDPOINT_URL'])
+        self.wikibase_url: str = str(wikibase_url or config['WIKIBASE_URL'])
+        self.use_refs: bool = use_refs
+        self.case_insensitive: bool = case_insensitive
 
         if base_filter and any(base_filter):
             self.base_filter = base_filter
