@@ -60,3 +60,7 @@ class CorePropIntegrityException(Exception):
 
 class MergeError(Exception):
     pass
+
+
+class NonExistentEntityError(Exception):
+    pass
