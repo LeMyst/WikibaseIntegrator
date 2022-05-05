@@ -5,6 +5,7 @@ import requests
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import BaseDataType, Item
 from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_item.py)'
 
@@ -32,6 +33,10 @@ class TestEntityItem(unittest.TestCase):
         # Test with negative id
         with self.assertRaises(ValueError):
             wbi.item.get(-1)
+
+        # Test with negative id
+        with self.assertRaises(NonExistentEntityError):
+            wbi.item.get("Q99999999999999")
 
     def test_get_json(self):
         assert wbi.item.get('Q582').get_json()['labels']['fr']['value'] == 'Villeurbanne'

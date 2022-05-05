@@ -11,7 +11,7 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
+from wikibaseintegrator.wbi_exceptions import MWApiError, NonExistentEntityError, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.entities.baseentity import BaseEntity
@@ -109,6 +109,13 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 print(f'The Wikibase instance is currently in readonly mode, waiting for {retry_after} seconds')
                 sleep(retry_after)
                 continue
+
+            # non-existent error
+            if 'code' in json_data['error'] and json_data['error']['code'] == 'no-such-entity':
+                if 'info' in json_data['error']['code']:
+                    raise NonExistentEntityError(json_data['error']['code']['info'])
+                else:
+                    raise NonExistentEntityError()
 
             # others case
             raise MWApiError(response.json() if response else {})
