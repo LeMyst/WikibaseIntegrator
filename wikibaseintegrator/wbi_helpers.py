@@ -201,7 +201,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediaw
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Optional[Dict[str, Dict]]:
+def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Dict[str, Dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -260,7 +260,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
 
         return results
 
-    return None
+    raise Exception(f"No result after {max_retries} retries.")
 
 
 def merge_items(from_id: str, to_id: str, login: _Login = None, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
