@@ -28,7 +28,7 @@ class TestWbiCore(unittest.TestCase):
         descr = item.get_description('en')
         assert len(descr) > 3
 
-        assert "Terra" in item.get_aliases()
+        assert "the Earth" in item.get_aliases()
         assert "planet" in item.get_description()
 
         assert item.get_label("es") == "Tierra"
@@ -50,11 +50,11 @@ class TestWbiCore(unittest.TestCase):
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_replace], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31'] if 'remove' not in x]
         removed_claims = [True for x in item.get_json_representation()['claims']['P31'] if 'remove' in x]
-        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 2 and True in removed_claims
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == 3 and True in removed_claims
 
         item = wbi_core.ItemEngine(item_id="Q2", data=[instance_of_keep], debug=True)
         claims = [x['mainsnak']['datavalue']['value']['id'] for x in item.get_json_representation()['claims']['P31']]
-        assert len(claims) == 2 and 'Q1234' not in claims
+        assert len(claims) == 3 and 'Q1234' not in claims
 
     def test_description(self):
         item = wbi_core.ItemEngine(item_id="Q2")
@@ -84,7 +84,7 @@ class TestWbiCore(unittest.TestCase):
 
         assert item.get_label('en') == "Earth"
 
-        assert "Terra" in item.get_aliases()
+        assert "the Earth" in item.get_aliases()
 
         assert item.get_label("es") == "Tierra"
 
@@ -106,9 +106,9 @@ class TestWbiCore(unittest.TestCase):
         item.set_label("label", lang='ak')
         item.set_description("d", lang='ak')
         item.set_aliases(["a"], lang='ak', if_exists='APPEND')
-        assert item.get_aliases('ak') == ['a']
+        assert 'a' in item.get_aliases('ak')
         item.set_aliases("b", lang='ak')
-        assert item.get_aliases('ak') == ['a', 'b']
+        assert 'a' in item.get_aliases('ak') and 'b' in item.get_aliases('ak') and len(item.get_aliases('ak')) > 2
         item.set_aliases("b", lang='ak', if_exists='REPLACE')
         assert item.get_aliases('ak') == ['b']
         item.set_aliases(["c"], lang='ak', if_exists='REPLACE')
@@ -161,9 +161,10 @@ class TestWbiCore(unittest.TestCase):
             wbi_datatype.Lexeme(123, prop_nr="P15"),
             wbi_datatype.Form("L123-F123", prop_nr="P16"),
             wbi_datatype.Sense("L123-S123", prop_nr="P17"),
-            wbi_datatype.LocalMedia("DemoCat 2.png", prop_nr="P18")
+            wbi_datatype.EDTF("2004-06-~01/2004-06-~20", prop_nr="P18"),
+            wbi_datatype.LocalMedia("DemoCat 2.png", prop_nr="P19")
         ]
-        core_props = set(["P{}".format(x) for x in range(20)])
+        core_props = {f"P{x}" for x in range(20)}
 
         for d in data:
             item = wbi_core.ItemEngine(new_item=True, data=[d], core_props=core_props)

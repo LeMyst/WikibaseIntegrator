@@ -19,9 +19,10 @@ class TestMediawikiApiCall(unittest.TestCase):
         with self.assertRaises(requests.HTTPError):
             wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/400", max_retries=3, retry_after=1, allow_anonymous=True)
 
-        test = wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1,
-                                                       allow_anonymous=True)
-        print(test)
+        wbi_functions.mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
+
+        with self.assertRaises(MWApiError):
+            wbi_functions.mediawiki_api_call_helper(data=None, mediawiki_api_url="https://httpbin.org/status/502", max_retries=3, retry_after=1, allow_anonymous=True)
 
 
 class TestDataType(unittest.TestCase):
@@ -127,11 +128,11 @@ class TestFastRun(unittest.TestCase):
         descr = item.get_description('en')
         assert len(descr) > 3
         aliases = item.get_aliases()
-        assert "Terra" in aliases
+        assert "the Earth" in aliases
 
         assert list(item.fast_run_container.get_language_data("Q2", 'en', 'label'))[0] == "Earth"
         assert item.fast_run_container.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "Terra" in item.get_aliases()
+        assert "the Earth" in item.get_aliases()
         assert "planet" in item.get_description()
 
         assert item.get_label("es") == "Tierra"

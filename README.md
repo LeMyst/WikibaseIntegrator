@@ -5,19 +5,29 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 
-# Breaking changes in v0.12 #
+# Breaking changes in future major version #
 
-I am currently doing a rewrite of this library.<br>
-You can track the progress and ask questions in the related Pull
-Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152).<br>
-This change will break the compatibility with all existing scripts.<br>
-If you want to avoid an unwanted upgrade to the v0.12, you can put in your requirements.txt this line:
+A complete rewrite of the core of WikibaseIntegrator is in progress. You can track the evolution and ask questions in
+the related Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152). The changes will break
+compatibility with existing scripts.
+
+It offers a new object-oriented approach, a better readibility and a support of Property, Lexeme and MediaInfo entities.
+
+The new version is currently in "beta" state, but I invite people to start using it. If you want to install it, you can
+use this command in your project to get the latest pre-release:
+
+```bash
+python -m pip install --pre wikibaseintegrator
+```
+
+If you want to avoid an unwanted upgrade to the v0.12, you can put this line in your requirements.txt:
 
 ```
-wikibaseintegrator~=0.11.0
+wikibaseintegrator~=0.11.2
 ```
 
-I will continue to maintain the current version (v0.11) even after the release of V0.12+ (if the merge is performed).
+I will continue to bug-fixes the current version (v0.11) even after the release of v0.12+.
+
 <hr>
 
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
@@ -56,7 +66,7 @@ The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator
 Python 2 is installed `pip` will lead to an error indicating missing dependencies.
 
 ```bash
-pip install wikibaseintegrator
+python -m pip install wikibaseintegrator
 ```
 
 You can also clone the repo and execute with administrator rights or install into a virtualenv.
@@ -68,7 +78,7 @@ cd WikibaseIntegrator
 
 python -m pip install pip setuptools
 
-python setup.py install
+python -m pip install .
 ```
 
 To test for correct installation, start a Python console and execute the following (Will retrieve the Wikidata item
@@ -88,14 +98,15 @@ print(my_first_wikidata_item.get_json_representation())
 WikibaseIntegrator use Wikidata as default endpoint. To use a Wikibase instance instead, you can overload the
 wbi_config.
 
-An example for a Wikibase instance installed with [wikibase-docker](https://github.com/wmde/wikibase-docker), add this
-to the top of your script:
+An example for a Wikibase instance installed
+with [wikibase-docker](https://github.com/wmde/wikibase-release-pipeline/tree/main/example), add this to the top of your
+script:
 
 ```python
 from wikibaseintegrator.wbi_config import config as wbi_config
 
-wbi_config['MEDIAWIKI_API_URL'] = 'http://localhost:8181/api.php'
-wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8989/bigdata/sparql'
+wbi_config['MEDIAWIKI_API_URL'] = 'http://localhost/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8834/proxy/wdqs/bigdata/namespace/wdq/sparql'
 wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
@@ -243,6 +254,7 @@ Coordinates).
 The data types currently implemented:
 
 * wbi_datatype.CommonsMedia
+* wbi_datatype.EDTF
 * wbi_datatype.ExternalID
 * wbi_datatype.Form
 * wbi_datatype.GeoShape
@@ -392,7 +404,7 @@ In order to use the fast run mode, you need to know the property/value combinati
 would like to operate on. E.g. for operating on human genes, you need to know
 that [P351](https://www.wikidata.org/entity/P351) is the NCBI entrez gene ID and you also need to know that you are
 dealing with humans, best represented by the [found in taxon property (P703)](https://www.wikidata.org/entity/P703) with
-the value [Q15978631](https://www.wikidata.org/entity/Q15978631) for homo sapiens.
+the value [Q15978631](https://www.wikidata.org/entity/Q15978631) for Homo sapiens.
 
 IMPORTANT: In order for the fast run mode to work, the data you provide in the constructor must contain at least one
 unique value/id only present on one Wikidata item, e.g. an NCBI entrez gene ID, Uniprot ID, etc. Usually, these would be
