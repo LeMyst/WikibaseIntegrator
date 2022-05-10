@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import re
 from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.models import Claim
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class GlobeCoordinate(BaseDataType):
@@ -11,6 +14,7 @@ class GlobeCoordinate(BaseDataType):
     Implements the Wikibase data type for globe coordinates
     """
     DTYPE = 'globe-coordinate'
+    PTYPE = 'http://wikiba.se/ontology#GlobeCoordinate'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -75,8 +79,37 @@ class GlobeCoordinate(BaseDataType):
 
         return super().__eq__(other)
 
-    def get_sparql_value(self) -> str:
-        return '"Point(' + str(self.mainsnak.datavalue['value']['longitude']) + ' ' + str(self.mainsnak.datavalue['value']['latitude']) + ')"'
+    def from_sparql_value(self, sparql_value: dict) -> GlobeCoordinate:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of datatype, type and value
+        :return: True if the parsing is successful
+        """
+        datatype = sparql_value['datatype']
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if datatype != 'http://www.opengis.net/ont/geosparql#wktLiteral':
+            raise ValueError('Wrong SPARQL datatype')
+
+        if type != 'literal':
+            raise ValueError('Wrong SPARQL type')
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            pattern = re.compile(r'^Point\((.*) (.*)\)$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError('Invalid SPARQL value')
+
+            self.set_value(longitude=float(matches.group(1)), latitude=float(matches.group(2)))
+
+        return self
+
+    def get_sparql_value(self, **kwargs: Any) -> str:
+        return '"Point(' + str(self.mainsnak.datavalue['value']['longitude']) + ' ' + str(self.mainsnak.datavalue['value']['latitude']) + ')"^^geo:wktLiteral'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         pattern = re.compile(r'^"?Point\((.*) (.*)\)"?(?:\^\^geo:wktLiteral)?$')
