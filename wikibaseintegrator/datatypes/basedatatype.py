@@ -11,6 +11,7 @@ class BaseDataType(Claim):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
+    PTYPE = 'property-data-type'
     subclasses: list[type[BaseDataType]] = []
     sparql_query: str = '''
         SELECT * WHERE {{
@@ -28,7 +29,14 @@ class BaseDataType(Claim):
 
         super().__init__(**kwargs)
 
-        self.mainsnak.property_number = prop_nr or None
+        if isinstance(prop_nr, str):
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            matches = pattern.match(str(prop_nr))
+
+            if matches:
+                prop_nr = prop_nr.rsplit('/', 1)[-1]
+
+        self.mainsnak.property_number = prop_nr
         # self.subclasses.append(self)
 
     # Allow registration of subclasses of BaseDataType into BaseDataType.subclasses
@@ -39,7 +47,7 @@ class BaseDataType(Claim):
     def set_value(self, value: Any | None = None):
         pass
 
-    def get_sparql_value(self) -> str:
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
         return '"' + self.mainsnak.datavalue['value'] + '"'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
@@ -61,3 +69,6 @@ class BaseDataType(Claim):
             raise ValueError
 
         return True
+
+    def from_sparql_value(self, sparql_value: dict) -> BaseDataType:  # type: ignore
+        pass

@@ -9,6 +9,7 @@ class GeoShape(BaseDataType):
     Implements the Wikibase data type 'geo-shape'
     """
     DTYPE = 'geo-shape'
+    PTYPE = 'http://wikiba.se/ontology#GeoShape'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -53,3 +54,7 @@ class GeoShape(BaseDataType):
                 'value': value,
                 'type': 'string'
             }
+
+    # TODO: Does GeoShape need a full URL to wikimedia commons?
+    def get_sparql_value(self, **kwargs: Any) -> str:
+        return '<' + self.mainsnak.datavalue['value'] + '>'
