@@ -787,7 +787,15 @@ for entrez_id, ensembl in raw_data.items():
 
 Note: Fastrun mode checks for equality of property/value pairs, qualifiers (not including qualifier attributes), labels,
 aliases and description, but it ignores references by default!
-References can be checked in fast run mode by setting `use_refs` to `True`.
+References can be checked in fast run mode by setting `use_references` to `True`.
+
+# Statistics #
+
+| Dataset                     | partial fastrun | fastrun without qualifiers/references | fastrun with qualifiers | fastrun with qualifiers/references |
+|:----------------------------|----------------:|--------------------------------------:|------------------------:|-----------------------------------:|
+| Communes (34990 elements)   |               ? |                                  7min |                     30s |                                60s |
+| Cantons (2042 elements)     |               ? |                                     ? |                       ? |                                  ? |
+| Départements (100 elements) |           70min |                                    1s |                     30s |                                60s |
 
 # Debugging #
 

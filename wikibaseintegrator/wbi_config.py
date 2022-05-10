@@ -28,5 +28,6 @@ config: Dict[str, Union[str, int, None, bool]] = {
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
     'WIKIBASE_URL': 'http://www.wikidata.org',
     'DEFAULT_LANGUAGE': 'en',
-    'DEFAULT_LEXEME_LANGUAGE': 'Q1860'
+    'DEFAULT_LEXEME_LANGUAGE': 'Q1860',
+    'SPARQL_QUERY_LIMIT': 10000
 }
