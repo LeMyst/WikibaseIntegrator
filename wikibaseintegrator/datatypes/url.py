@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import re
-from typing import Any, Optional
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class URL(BaseDataType):
@@ -9,6 +12,7 @@ class URL(BaseDataType):
     Implements the Wikibase data type for URL strings
     """
     DTYPE = 'url'
+    PTYPE = 'http://wikiba.se/ontology#Url'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -16,7 +20,7 @@ class URL(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: Optional[str] = None, **kwargs: Any):
+    def __init__(self, value: str | None = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -26,7 +30,7 @@ class URL(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: Optional[str] = None):
+    def set_value(self, value: str | None = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
@@ -41,7 +45,26 @@ class URL(BaseDataType):
                 'type': 'string'
             }
 
-    def get_sparql_value(self) -> str:
+    def from_sparql_value(self, sparql_value: dict) -> URL:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if type != 'uri':
+            raise ValueError(f"Wrong SPARQL type {type}")
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            self.set_value(value=value)
+        return self
+
+    def get_sparql_value(self, **kwargs: Any) -> str:
         return '<' + self.mainsnak.datavalue['value'] + '>'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:

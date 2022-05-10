@@ -46,6 +46,9 @@ class Snaks(BaseModel):
                 json_data[property].append(snak.get_json())
         return json_data
 
+    def __eq__(self, other):
+        return self.snaks == other.snaks
+
     def __iter__(self):
         iterate = []
         for snak in self.snaks.values():

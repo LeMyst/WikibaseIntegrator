@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class Qualifiers(BaseModel):
     def __init__(self) -> None:
-        self.qualifiers: dict[str, list[Snak]] = {}
+        self.qualifiers: dict[str, list[Snak | Claim]] = {}
 
     @property
     def qualifiers(self):

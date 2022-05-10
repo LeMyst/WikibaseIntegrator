@@ -1,7 +1,10 @@
-from typing import Any, Optional, Union
+from __future__ import annotations
+
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import format_amount
 
 
@@ -10,6 +13,7 @@ class Quantity(BaseDataType):
     Implements the Wikibase data type for quantities
     """
     DTYPE = 'quantity'
+    PTYPE = 'http://wikiba.se/ontology#Quantity'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -17,8 +21,8 @@ class Quantity(BaseDataType):
         }}
     '''
 
-    def __init__(self, amount: Optional[Union[str, int, float]] = None, upper_bound: Optional[Union[str, int, float]] = None, lower_bound: Optional[Union[str, int, float]] = None, unit: Union[str, int] = '1',
-                 wikibase_url: Optional[str] = None, **kwargs: Any):
+    def __init__(self, amount: str | int | float | None = None, upper_bound: str | int | float | None = None, lower_bound: str | int | float | None = None, unit: str | int = '1',
+                 wikibase_url: str | None = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -33,8 +37,8 @@ class Quantity(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(amount=amount, upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
 
-    def set_value(self, amount: Optional[Union[str, int, float]] = None, upper_bound: Optional[Union[str, int, float]] = None, lower_bound: Optional[Union[str, int, float]] = None, unit: Union[str, int] = '1',
-                  wikibase_url: Optional[str] = None):
+    def set_value(self, amount: str | int | float | None = None, upper_bound: str | int | float | None = None, lower_bound: str | int | float | None = None, unit: str | int = '1',
+                  wikibase_url: str | None = None):
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
         unit = str(unit or '1')
@@ -81,7 +85,31 @@ class Quantity(BaseDataType):
             if not lower_bound:
                 del self.mainsnak.datavalue['value']['lowerBound']
 
-    def get_sparql_value(self) -> str:
+    def from_sparql_value(self, sparql_value: dict) -> Quantity:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of datatype, type and value
+        :return: True if the parsing is successful
+        """
+        datatype = sparql_value['datatype']
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if datatype != 'http://www.w3.org/2001/XMLSchema#decimal':
+            raise ValueError(f"Wrong SPARQL datatype {datatype}")
+
+        if type != 'literal':
+            raise ValueError(f"Wrong SPARQL type {type}")
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            self.set_value(amount=value)
+
+        return self
+
+    def get_sparql_value(self, **kwargs: Any) -> str:
         return '"' + format_amount(self.mainsnak.datavalue['value']['amount']) + '"^^xsd:decimal'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
