@@ -111,11 +111,10 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 continue
 
             # non-existent error
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'no-such-entity':
+            if 'code' in json_data['error'] and json_data['error']['code'] in ['no-such-entity', 'missingtitle']:
                 if 'info' in json_data['error']['code']:
                     raise NonExistentEntityError(json_data['error']['code']['info'])
-                else:
-                    raise NonExistentEntityError()
+                raise NonExistentEntityError()
 
             # others case
             raise MWApiError(response.json() if response else {})
