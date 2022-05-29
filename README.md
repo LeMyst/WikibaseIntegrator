@@ -13,7 +13,7 @@ Wikidata).
 
 A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which has led to some important changes.
 
-It offers a new object-oriented approach, better code readibility and support for Property, Lexeme and MediaInfo
+It offers a new object-oriented approach, better code readability and support for Property, Lexeme and MediaInfo
 entities (in addition to Item).
 
 If you want to stay on v0.11.x, you can put this line in your requirements.txt:
@@ -346,7 +346,7 @@ print(wbi_helpers.mediawiki_api_call_helper(data=data, allow_anonymous=True))
 
 The method `wbi_helpers.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes the
 actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata, the
-actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL server (
+actual endpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL server (
 user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you execute
 many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email address,
 or the URL to your bot code repository.)
@@ -565,7 +565,7 @@ for entrez_id, ensembl in raw_data.items():
     wb_item.write()
 ```
 
-Note: Fastrun mode checks for equality of property/value pairs, qualifers (not including qualifier attributes), labels,
+Note: Fastrun mode checks for equality of property/value pairs, qualifiers (not including qualifier attributes), labels,
 aliases and description, but it ignores references by default!
 References can be checked in fast run mode by setting `use_refs` to `True`.
 
