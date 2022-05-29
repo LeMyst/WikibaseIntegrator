@@ -11,7 +11,7 @@ A complete rewrite of the core of WikibaseIntegrator is in progress. You can tra
 the related Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152). The changes will break
 compatibility with existing scripts.
 
-It offers a new object-oriented approach, a better readibility and a support of Property, Lexeme and MediaInfo entities.
+It offers a new object-oriented approach, a better readability and a support of Property, Lexeme and MediaInfo entities.
 
 The new version is currently in "beta" state, but I invite people to start using it. If you want to install it, you can
 use this command in your project to get the latest pre-release:
@@ -120,7 +120,7 @@ Wikidata. The latter mode allows for great speedups (measured up to 9x) when ten
 be checked if they require updates but only a small number will finally be updated, a situation usually encountered when
 keeping Wikidata in sync with an external resource.
 
-wbi_core consists of a central class called ItemEngine and Login for authenticating with a MediaWiki isntance (like
+wbi_core consists of a central class called ItemEngine and Login for authenticating with a MediaWiki instance (like
 Wikidata).
 
 ## wbi_core.ItemEngine ##
@@ -181,7 +181,7 @@ print(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
 
 ### Login using OAuth1 or OAuth2 ###
 
-OAuth is the authentication method recommended by the Mediawiki developpers. It can be used for authenticating a bot or
+OAuth is the authentication method recommended by the Mediawiki developers. It can be used for authenticating a bot or
 to use WBI as a backend for an application.
 
 #### As a bot ####
