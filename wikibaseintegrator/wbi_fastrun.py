@@ -454,11 +454,11 @@ class FastRunContainer:
         num_pages = None
         if self.debug:
             # get the number of pages/queries so we can show a progress bar
-            query = """
+            query = f"""
             SELECT (COUNT(?item) as ?c) where {{
-                  {base_filter}
-                  ?item <{wb_url}/prop/{prop_nr}> ?sid .
-            }}""".format(wb_url=self.wikibase_url, base_filter=self.base_filter_string, prop_nr=prop_nr)
+                  {self.base_filter_string}
+                  ?item <{self.wikibase_url}/prop/{prop_nr}> ?sid .
+            }}"""
 
             if self.debug:
                 print(query)
