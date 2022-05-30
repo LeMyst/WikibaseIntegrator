@@ -99,7 +99,7 @@ class TestFastRun(unittest.TestCase):
         item.aliases.set(values=["fake alias"], action_if_exists=ActionIfExists.APPEND)
         assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
 
-        # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
+        # something that's empty (for now.., can change, so this just makes sure no exception is thrown)
         frc.check_language_data("Q2", ['Ewiase'], 'ak', 'label')
         frc.check_language_data("Q2", ['not Ewiase'], 'ak', 'label')
         frc.check_language_data("Q2", [''], 'ak', 'description')
