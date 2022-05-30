@@ -146,7 +146,7 @@ class TestFastRun(unittest.TestCase):
         item.set_aliases(["fake alias"], if_exists='APPEND')
         assert {'language': 'en', 'value': 'fake alias'} in item.json_representation['aliases']['en']
 
-        # something thats empty (for now.., can change, so this just makes sure no exception is thrown)
+        # something that's empty (for now.., can change, so this just makes sure no exception is thrown)
         frc.check_language_data("Q2", ['Ewiase'], 'ak', 'label')
         frc.check_language_data("Q2", ['not Ewiase'], 'ak', 'label')
         frc.check_language_data("Q2", [''], 'ak', 'description')
@@ -172,7 +172,7 @@ def test_sitelinks():
 
 
 def test_nositelinks():
-    # this item doesn't and probably wont ever have any sitelinks (but who knows?? maybe one day..)
+    # this item doesn't and probably won't ever have any sitelinks (but who knows?? maybe one day..)
     data = [wbi_datatype.ItemID(value='Q5', prop_nr='P31')]
     item = wbi_core.ItemEngine(item_id='Q27869338', data=data)
     item.get_sitelink("enwiki")

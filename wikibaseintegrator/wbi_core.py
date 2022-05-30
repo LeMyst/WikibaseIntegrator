@@ -263,7 +263,7 @@ class ItemEngine:
         being instantiated with search_only=True. In the latter case, this allows for checking the item data before deciding which new data should be written to
         the Wikidata item. The actual write to Wikidata only happens on calling of the write() method. If data has been provided already via the constructor,
         data provided via the update() method will be appended to these data.
-        :param data: A list of Wikidata statment items inheriting from BaseDataType
+        :param data: A list of Wikidata statement items inheriting from BaseDataType
         :type data: list
         """
 
@@ -585,7 +585,7 @@ class ItemEngine:
         :type bot_account: bool
         :param edit_summary: A short (max 250 characters) summary of the purpose of the edit. This will be displayed as the revision summary of the item.
         :type edit_summary: str
-        :param entity_type: Decides wether the object will become a 'form', 'item' (default), 'lexeme', 'property' or 'sense'
+        :param entity_type: Decides whether the object will become a 'form', 'item' (default), 'lexeme', 'property' or 'sense'
         :type entity_type: str
         :param property_datatype: When payload_type is 'property' then this parameter set the datatype for the property
         :type property_datatype: str
