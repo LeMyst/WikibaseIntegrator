@@ -601,7 +601,7 @@ class FastRunContainer:
 
     def clear(self) -> None:
         """
-        convinience function to empty this fastrun container
+        convenience function to empty this fastrun container
         """
         self.prop_dt_map = {}
         self.prop_data = {}
