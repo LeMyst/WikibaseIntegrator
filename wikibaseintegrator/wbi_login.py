@@ -134,12 +134,12 @@ class Login:
                 if 'clientlogin' in login_result:
                     if login_result['clientlogin']['status'] != 'PASS':
                         clientlogin = login_result['clientlogin']
-                        raise LoginError("Login failed ({}). Message: '{}'".format(clientlogin['messagecode'], clientlogin['message']))
+                        raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
                     elif debug:
                         print("Successfully logged in as", login_result['clientlogin']['username'])
                 else:
                     error = login_result['error']
-                    raise LoginError("Login failed ({}). Message: '{}'".format(error['code'], error['info']))
+                    raise LoginError(f"Login failed ({error['code']}). Message: '{error['info']}'")
 
             else:
                 params = {
@@ -156,14 +156,14 @@ class Login:
                     print(login_result)
 
                 if login_result['login']['result'] != 'Success':
-                    raise LoginError("Login failed. Reason: '{}'".format(login_result['login']['result']))
+                    raise LoginError(f"Login failed. Reason: '{login_result['login']['result']}'")
                 elif debug:
                     print("Successfully logged in as", login_result['login']['lgusername'])
 
                 if 'warnings' in login_result:
                     print("MediaWiki login warnings messages:")
                     for message in login_result['warnings']:
-                        print("* {}: {}".format(message, login_result['warnings'][message]['*']))
+                        print(f"* {message}: {login_result['warnings'][message]['*']}")
 
             self.generate_edit_credentials()
 
