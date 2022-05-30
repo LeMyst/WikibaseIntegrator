@@ -49,7 +49,7 @@ jobs:
 
       - name: codespell spell checking
         run: |
-          python -m codespell wikibaseintegrator test
+          codespell wikibaseintegrator test
 
       - name: flynt string formatter converting
         run: |
