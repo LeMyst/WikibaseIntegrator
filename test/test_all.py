@@ -124,7 +124,7 @@ def test_sitelinks():
 
 
 def test_nositelinks():
-    # this item doesn't and probably wont ever have any sitelinks (but who knows?? maybe one day..)
+    # this item doesn't and probably won't ever have any sitelinks (but who knows?? maybe one day..)
     item = wbi.item.get('Q27869338')
     item.claims.add(datatypes.Item(value='Q5', prop_nr='P31'))
     assert item.sitelinks.get('enwiki') is None

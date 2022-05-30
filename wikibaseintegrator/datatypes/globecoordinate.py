@@ -23,7 +23,7 @@ class GlobeCoordinate(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
 
-        :param latitude: Latitute in decimal format
+        :param latitude: Latitude in decimal format
         :param longitude: Longitude in decimal format
         :param altitude: Altitude (in decimal format?) (Always None at this moment)
         :param precision: Precision of the position measurement, default 1 / 3600

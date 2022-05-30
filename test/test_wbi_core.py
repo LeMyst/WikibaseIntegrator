@@ -88,7 +88,7 @@ class TestWbiCore(unittest.TestCase):
         assert item.descriptions.get('es') == "lorem ipsum"
         item.descriptions.set(language='en', value="lorem ipsum", action_if_exists=ActionIfExists.KEEP)
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem'}
-        # set_description on empty desription
+        # set_description on empty description
         item.descriptions = LanguageValues()
         item.descriptions.set(value='')
         item.descriptions.set(language='en', value="lorem ipsum", action_if_exists=ActionIfExists.KEEP)

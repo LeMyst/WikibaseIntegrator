@@ -88,7 +88,7 @@ class LanguageValues(BaseModel):
 
     def get_json(self) -> Dict[str, Dict]:
         """
-        Get a formated dict who respect the Wikibase format.
+        Get a formatted dict who respect the Wikibase format.
 
         :return: A dict using Wikibase format.
         """

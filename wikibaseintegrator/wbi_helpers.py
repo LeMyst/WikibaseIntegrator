@@ -123,7 +123,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
         break
     else:
         # the first time I've ever used for - else!!
-        # else executes if the for loop completes normally. i.e. does not encouter a `break`
+        # else executes if the for loop completes normally. i.e. does not encounter a `break`
         # in this case, that means it tried this api call 10 times
         raise MWApiError(response.json() if response else {})
 
@@ -142,8 +142,8 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediaw
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
     :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
     :param max_retries: The maximum number of retries
-    :param retry_after: The tiemout between each retry
-    :param maxlag: If appliable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)
+    :param retry_after: The timeout between each retry
+    :param maxlag: If applicable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)
     :param is_bot: Flag the edit as a bot
     :param kwargs: Any additional keyword arguments to pass to requests.request
     :return: The data returned by the API as a dictionary
