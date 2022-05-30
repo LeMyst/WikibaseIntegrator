@@ -46,3 +46,11 @@ jobs:
       - name: pylint code linting
         run: |
           python -m pylint wikibaseintegrator test || pylint-exit $?
+
+      - name: codespell spell checking
+        run: |
+          python -m codespell wikibaseintegrator test
+
+      - name: flynt string formatter converting
+        run: |
+          python -m flynt -f wikibaseintegrator test

@@ -17,7 +17,9 @@ setup(
             "pytest",
             "pylint",
             "pylint-exit",
-            "mypy"
+            "mypy",
+            "codespell",
+            "flynt"
         ],
         "docs": [
             "Sphinx ~= 4.5.0",
