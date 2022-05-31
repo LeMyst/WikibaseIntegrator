@@ -11,7 +11,7 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MWApiError, NonExistentEntityError, SearchError
+from wikibaseintegrator.wbi_exceptions import MWApiError, NonExistentEntityError, NonUniqueLabelDescriptionPairError, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.entities.baseentity import BaseEntity
@@ -115,6 +115,10 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 if 'info' in json_data['error']['code']:
                     raise NonExistentEntityError(json_data['error']['code']['info'])
                 raise NonExistentEntityError()
+
+            # duplicate error
+            if 'code' in json_data['error'] and json_data['error']['code'] in ['modification-failed', 'wikibase-validator-label-with-description-conflict']:  # pragma: no cover
+                raise NonUniqueLabelDescriptionPairError(response.json())
 
             # others case
             raise MWApiError(response.json() if response else {})
