@@ -67,11 +67,11 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
+            logging.error(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
-            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
+            logging.error(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
 
@@ -87,7 +87,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 error_msg_names = {x.get('name') for x in json_data['error']['messages']}
             if 'actionthrottledtext' in error_msg_names:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
-                print(f"{datetime.datetime.utcnow()}: rate limited. sleeping for {sleep_sec} seconds")
+                logging.error(f"{datetime.datetime.utcnow()}: rate limited. sleeping for {sleep_sec} seconds")
                 sleep(sleep_sec)
                 continue
 
@@ -100,13 +100,13 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                print(f"{datetime.datetime.utcnow()}: maxlag. sleeping for {sleep_sec} seconds")
+                logging.error(f"{datetime.datetime.utcnow()}: maxlag. sleeping for {sleep_sec} seconds")
                 sleep(sleep_sec)
                 continue
 
             # readonly
             if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
-                print(f'The Wikibase instance is currently in readonly mode, waiting for {retry_after} seconds')
+                logging.error(f'The Wikibase instance is currently in readonly mode, waiting for {retry_after} seconds')
                 sleep(retry_after)
                 continue
 
@@ -248,17 +248,17 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
         try:
             response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
         except requests.exceptions.ConnectionError as e:
-            print(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
+            logging.error(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
-            print(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
+            logging.error(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
             sleep(retry_after)
             continue
         if response.status_code == 429:
             if 'retry-after' in response.headers.keys():
                 retry_after = int(response.headers['retry-after'])
-            print(f"Too Many Requests (429). Sleeping for {retry_after} seconds")
+            logging.error(f"Too Many Requests (429). Sleeping for {retry_after} seconds")
             sleep(retry_after)
             continue
         response.raise_for_status()

@@ -240,7 +240,7 @@ class BaseEntity:
         try:
             json_result: dict = mediawiki_api_call_helper(data=payload, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
         except Exception:
-            print('Error while writing to the Wikibase instance')
+            logging.error('Error while writing to the Wikibase instance')
             raise
         else:
             if 'error' in json_result and 'messages' in json_result['error']:
