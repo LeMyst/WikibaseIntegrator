@@ -30,7 +30,7 @@ class NonUniqueLabelDescriptionPairError(MWApiError):
         """
         qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
 
-        return qid_string.split('|')[0][2:]
+        return str(qid_string.split('|')[0][2:])
 
     def __str__(self):
         return repr(self.error_msg)
