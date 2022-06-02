@@ -113,14 +113,14 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
             # non-existent error
             if 'code' in json_data['error'] and json_data['error']['code'] in ['no-such-entity', 'missingtitle']:
                 if 'info' in json_data['error']['code']:
-                    raise NonExistentEntityError(json_data['error']['code']['info'])
+                    raise NonExistentEntityError(json_data)
                 raise NonExistentEntityError()
 
             # duplicate error
             if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed' and any(
                     obj['name'] == 'wikibase-validator-label-with-description-conflict' for obj in json_data['error']['messages']):  # pragma: no cover
                 if 'info' in json_data['error']:
-                    raise NonUniqueLabelDescriptionPairError(json_data['error']['info'])
+                    raise NonUniqueLabelDescriptionPairError(json_data)
                 raise NonUniqueLabelDescriptionPairError(response.json() if response else {})
 
             # others case
