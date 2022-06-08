@@ -1,4 +1,4 @@
-backoff~=2.0.1
+backoff~=2.1.0
 mwoauth~=0.3.8
 oauthlib~=3.2.0
 requests~=2.27.1
