@@ -411,7 +411,7 @@ def search_entities(search_string: str, language: str = None, strict_language: b
     :param language: The language in which to perform the search. This only affects how entities are selected. Default is 'en' from wbi_config.
                      You can see the list of languages for Wikidata at https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all (Use the WMF code)
     :param strict_language: Whether to disable language fallback. Default is 'False'.
-    :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
+    :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense, mediainfo
     :param max_results: The maximum number of search results returned. The value must be between 0 and 50. Default is 50
     :param dict_result: Return the results as a detailed dictionary instead of a list of IDs.
     :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
