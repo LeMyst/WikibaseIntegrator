@@ -31,4 +31,4 @@ class TestEntityProperty(unittest.TestCase):
             wbi.property.get(-1)
 
     def test_get_json(self):
-        assert wbi.property.get('P50', mediawiki_api_url='https://commons.wikimedia.org/w/api.php').get_json()['labels']['fr']['value'] == 'auteur'
+        assert wbi.property.get('P50', mediawiki_api_url='https://commons.wikimedia.org/w/api.php').get_json()['labels']['fr']['value'] == 'auteur ou autrice'

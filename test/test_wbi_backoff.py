@@ -10,8 +10,8 @@ from wikibaseintegrator.wbi_config import config
 
 class TestMethods(unittest.TestCase):
     def test_all(self):
-        config['BACKOFF_MAX_TRIES'] = 1
-        config['BACKOFF_MAX_VALUE'] = 2
+        config['BACKOFF_MAX_TRIES'] = 2
+        config['BACKOFF_MAX_VALUE'] = 3
         with self.assertRaises(requests.RequestException):
             bad_http_code()
         with self.assertRaises(requests.RequestException):

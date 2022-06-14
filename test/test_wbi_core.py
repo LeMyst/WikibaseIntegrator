@@ -6,7 +6,7 @@ from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, G
                                           Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.models import LanguageValues
+from wikibaseintegrator.models import Descriptions
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatePrecision, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities
@@ -89,7 +89,7 @@ class TestWbiCore(unittest.TestCase):
         item.descriptions.set(language='en', value="lorem ipsum", action_if_exists=ActionIfExists.KEEP)
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem'}
         # set_description on empty description
-        item.descriptions = LanguageValues()
+        item.descriptions = Descriptions()
         item.descriptions.set(value='')
         item.descriptions.set(language='en', value="lorem ipsum", action_if_exists=ActionIfExists.KEEP)
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
