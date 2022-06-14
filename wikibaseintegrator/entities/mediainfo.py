@@ -31,6 +31,36 @@ class MediaInfoEntity(BaseEntity):
         self.descriptions: LanguageValues = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
+    @property
+    def labels(self) -> Labels:
+        return self.__labels
+
+    @labels.setter
+    def labels(self, labels: Labels):
+        if not isinstance(labels, Labels):
+            raise TypeError
+        self.__labels = labels
+
+    @property
+    def descriptions(self) -> Descriptions:
+        return self.__descriptions
+
+    @descriptions.setter
+    def descriptions(self, descriptions: Descriptions):
+        if not isinstance(descriptions, Descriptions):
+            raise TypeError
+        self.__descriptions = descriptions
+
+    @property
+    def aliases(self) -> Aliases:
+        return self.__aliases
+
+    @aliases.setter
+    def aliases(self, aliases: Aliases):
+        if not isinstance(aliases, Aliases):
+            raise TypeError
+        self.__aliases = aliases
+
     def new(self, **kwargs: Any) -> MediaInfoEntity:
         return MediaInfoEntity(api=self.api, **kwargs)
 

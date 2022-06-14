@@ -47,6 +47,9 @@ class BaseEntity:
 
     @api.setter
     def api(self, value: WikibaseIntegrator):
+        # Special case to avoid circular import.
+        if value.__class__.__name__ != 'WikibaseIntegrator':
+            raise TypeError
         self.__api = value
 
     @property
@@ -95,6 +98,8 @@ class BaseEntity:
 
     @claims.setter
     def claims(self, value: Claims):
+        if not isinstance(value, Claims):
+            raise TypeError
         self.__claims = value
 
     def add_claims(self, claims: Union[Claim, List], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:

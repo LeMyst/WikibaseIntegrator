@@ -4,7 +4,6 @@ import re
 from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
 from wikibaseintegrator.models.senses import Senses
@@ -17,11 +16,57 @@ class LexemeEntity(BaseEntity):
     def __init__(self, lemmas: Lemmas = None, lexical_category: str = None, language: str = None, forms: Forms = None, senses: Senses = None, **kwargs: Any):
         super().__init__(**kwargs)
 
-        self.lemmas: LanguageValues = lemmas or Lemmas()
-        self.lexical_category = lexical_category
-        self.language = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
-        self.forms = forms or Forms()
-        self.senses = senses or Senses()
+        self.lemmas: Lemmas = lemmas or Lemmas()
+        self.lexical_category: str = lexical_category
+        self.language: str = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
+        self.forms: Forms = forms or Forms()
+        self.senses: Senses = senses or Senses()
+
+    @property
+    def lemmas(self) -> Lemmas:
+        return self.__lemmas
+
+    @lemmas.setter
+    def lemmas(self, lemmas: Lemmas):
+        if not isinstance(lemmas, Lemmas):
+            raise TypeError
+        self.__lemmas = lemmas
+
+    @property
+    def lexical_category(self) -> str:
+        return self.__lexical_category
+
+    @lexical_category.setter
+    def lexical_category(self, lexical_category: str):
+        self.__lexical_category = lexical_category
+
+    @property
+    def language(self) -> str:
+        return self.__language
+
+    @language.setter
+    def language(self, language: str):
+        self.__language = language
+
+    @property
+    def forms(self) -> Forms:
+        return self.__forms
+
+    @forms.setter
+    def forms(self, forms: Forms):
+        if not isinstance(forms, Forms):
+            raise TypeError
+        self.__forms = forms
+
+    @property
+    def senses(self) -> Senses:
+        return self.__senses
+
+    @senses.setter
+    def senses(self, senses: Senses):
+        if not isinstance(senses, Senses):
+            raise TypeError
+        self.__senses = senses
 
     def new(self, **kwargs: Any) -> LexemeEntity:
         return LexemeEntity(api=self.api, **kwargs)

@@ -34,6 +34,46 @@ class ItemEntity(BaseEntity):
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
+    @property
+    def labels(self) -> Labels:
+        return self.__labels
+
+    @labels.setter
+    def labels(self, labels: Labels):
+        if not isinstance(labels, Labels):
+            raise TypeError
+        self.__labels = labels
+
+    @property
+    def descriptions(self) -> Descriptions:
+        return self.__descriptions
+
+    @descriptions.setter
+    def descriptions(self, descriptions: Descriptions):
+        if not isinstance(descriptions, Descriptions):
+            raise TypeError
+        self.__descriptions = descriptions
+
+    @property
+    def aliases(self) -> Aliases:
+        return self.__aliases
+
+    @aliases.setter
+    def aliases(self, aliases: Aliases):
+        if not isinstance(aliases, Aliases):
+            raise TypeError
+        self.__aliases = aliases
+
+    @property
+    def sitelinks(self) -> Sitelinks:
+        return self.__sitelinks
+
+    @sitelinks.setter
+    def sitelinks(self, sitelinks: Sitelinks):
+        if not isinstance(sitelinks, Sitelinks):
+            raise TypeError
+        self.__sitelinks = sitelinks
+
     def new(self, **kwargs: Any) -> ItemEntity:
         return ItemEntity(api=self.api, **kwargs)
 
