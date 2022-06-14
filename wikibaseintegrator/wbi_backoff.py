@@ -16,7 +16,7 @@ def wbi_backoff_backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
     if exc_type == JSONDecodeError:
         logging.error(exc_value.doc)  # pragma: no cover
-    logging.error("Backing off {wait:0.1f} seconds afters {tries} tries calling function with args {args} and kwargs {kwargs}".format(**details))  # pylint: disable=consider-using-f-string
+    logging.error("Backing off %0.1f seconds afters %s tries calling function with args %r and kwargs %r", details['wait'], details['tries'], details['args'], details['kwargs'])
 
 
 def wbi_backoff_check_json_decode_error(e) -> bool:
