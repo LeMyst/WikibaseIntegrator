@@ -5,7 +5,7 @@ from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, Item
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatatype
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_all.py)'
@@ -19,7 +19,7 @@ class TestDataType(unittest.TestCase):
 
         dt_json = dt.get_json()
 
-        assert dt_json['mainsnak']['datatype'] == 'quantity'
+        assert dt_json['mainsnak']['datatype'] == WikibaseDatatype.QUANTITY.value
 
         value = dt_json['mainsnak']['datavalue']
 
@@ -40,7 +40,7 @@ class TestDataType(unittest.TestCase):
 
         dt_json = dt.get_json()
 
-        assert dt_json['mainsnak']['datatype'] == 'geo-shape'
+        assert dt_json['mainsnak']['datatype'] == WikibaseDatatype.GEOSHAPE.value
 
         value = dt_json['mainsnak']['datavalue']
 

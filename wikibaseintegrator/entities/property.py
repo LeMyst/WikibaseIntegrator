@@ -7,6 +7,7 @@ from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
+from wikibaseintegrator.wbi_enums import WikibaseDatatype
 
 
 class PropertyEntity(BaseEntity):
@@ -16,7 +17,10 @@ class PropertyEntity(BaseEntity):
         super().__init__(**kwargs)
 
         # Property specific
-        self.datatype = datatype
+        if datatype is not None:
+            self.datatype = WikibaseDatatype(datatype)
+        else:
+            self.datatype = datatype
 
         # Item, Property and MediaInfo specific
         self.labels: Labels = labels or Labels()
