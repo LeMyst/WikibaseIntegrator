@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.forms import Forms
@@ -17,7 +17,7 @@ class LexemeEntity(BaseEntity):
         super().__init__(**kwargs)
 
         self.lemmas: Lemmas = lemmas or Lemmas()
-        self.lexical_category: str = lexical_category
+        self.lexical_category: Optional[str] = lexical_category
         self.language: str = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
         self.forms: Forms = forms or Forms()
         self.senses: Senses = senses or Senses()
@@ -33,11 +33,11 @@ class LexemeEntity(BaseEntity):
         self.__lemmas = lemmas
 
     @property
-    def lexical_category(self) -> str:
+    def lexical_category(self) -> Optional[str]:
         return self.__lexical_category
 
     @lexical_category.setter
-    def lexical_category(self, lexical_category: str):
+    def lexical_category(self, lexical_category: Optional[str]):
         self.__lexical_category = lexical_category
 
     @property

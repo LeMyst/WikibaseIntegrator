@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -24,11 +24,11 @@ class PropertyEntity(BaseEntity):
         self.aliases = aliases or Aliases()
 
     @property
-    def datatype(self) -> str:
+    def datatype(self) -> Optional[str]:
         return self.__datatype
 
     @datatype.setter
-    def datatype(self, value: str):
+    def datatype(self, value: Optional[str]):
         self.__datatype = value
 
     @property

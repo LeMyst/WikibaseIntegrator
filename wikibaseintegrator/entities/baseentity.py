@@ -47,8 +47,8 @@ class BaseEntity:
 
     @api.setter
     def api(self, value: WikibaseIntegrator):
-        # Special case to avoid circular import.
-        if value.__class__.__name__ != 'WikibaseIntegrator':
+        from wikibaseintegrator import WikibaseIntegrator
+        if not isinstance(value, WikibaseIntegrator):
             raise TypeError
         self.__api = value
 
