@@ -1,8 +1,8 @@
 import unittest
 from copy import deepcopy
 
-from wikibaseintegrator import WikibaseIntegrator, datatypes
-from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
+from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
                                           Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import ItemEntity
@@ -42,7 +42,7 @@ class TestWbiCore(unittest.TestCase):
         assert item.labels.get('es') == "Tierra"
 
     def test_basedatatype_action_if_exists(self):
-        instances = [datatypes.Item(prop_nr='P31', value='Q1234'), datatypes.Item(prop_nr='P31', value='Q1234')]
+        instances = [Item(prop_nr='P31', value='Q1234'), Item(prop_nr='P31', value='Q1234')]
         item_original = wbi.item.get('Q2')
         len_claims_original = len([x.mainsnak.datavalue['value']['id'] for x in item_original.claims.get('P31')])
 
@@ -214,36 +214,39 @@ class TestWbiCore(unittest.TestCase):
             String(value='test1', prop_nr='P1'),
             String(value='test2', prop_nr='1'),
             String(value='test3', prop_nr=1),
-            Math(value="xxx", prop_nr="P2"),
-            ExternalID(value="xxx", prop_nr="P3"),
-            datatypes.Item(value="Q123", prop_nr="P4"),
-            datatypes.Item(value="123", prop_nr="P4"),
-            datatypes.Item(value=123, prop_nr="P4"),
-            Time(time='-0458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
-            Time(time='+458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
-            Time(time='+2021-01-01T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr="P5"),
-            Time(time='now', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr="P5"),
-            URL(value="http://www.wikidata.org", prop_nr="P6"),
-            URL(value="https://www.wikidata.org", prop_nr="P6"),
-            URL(value="ftp://example.com", prop_nr="P6"),
-            URL(value="ssh://user@server/project.git", prop_nr="P6"),
-            URL(value="svn+ssh://user@server:8888/path", prop_nr="P6"),
-            MonolingualText(text="xxx", language="fr", prop_nr="P7"),
-            Quantity(amount=-5.04, prop_nr="P8"),
-            Quantity(amount=5.06, upper_bound=9.99, lower_bound=-2.22, unit="Q11573", prop_nr="P8"),
-            CommonsMedia(value="xxx", prop_nr="P9"),
-            GlobeCoordinate(latitude=1.2345, longitude=-1.2345, precision=12, prop_nr="P10"),
-            GeoShape(value="Data:xxx.map", prop_nr="P11"),
-            Property(value="P123", prop_nr="P12"),
-            Property(value="123", prop_nr="P12"),
-            Property(value=123, prop_nr="P12"),
-            TabularData(value="Data:Taipei+Population.tab", prop_nr="P13"),
-            MusicalNotation(value="\relative c' { c d e f | g2 g | a4 a a a | g1 |}", prop_nr="P14"),
-            Lexeme(value="L123", prop_nr="P15"),
-            Lexeme(value="123", prop_nr="P15"),
-            Lexeme(value=123, prop_nr="P15"),
-            Form(value="L123-F123", prop_nr="P16"),
-            Sense(value="L123-S123", prop_nr="P17")
+            Math(value='xxx', prop_nr='P2'),
+            ExternalID(value='xxx', prop_nr='P3'),
+            Item(value='Q123', prop_nr='P4'),
+            Item(value='123', prop_nr='P4'),
+            Item(value=123, prop_nr='P4'),
+            Item(value='Item:Q123', prop_nr='P4'),
+            Time(time='-0458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
+            Time(time='+458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
+            Time(time='+2021-01-01T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr='P5'),
+            Time(time='now', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
+            URL(value="http://www.wikidata.org", prop_nr='P6'),
+            URL(value="https://www.wikidata.org", prop_nr='P6'),
+            URL(value="ftp://example.com", prop_nr='P6'),
+            URL(value="ssh://user@server/project.git", prop_nr='P6'),
+            URL(value="svn+ssh://user@server:8888/path", prop_nr='P6'),
+            MonolingualText(text='xxx', language='fr', prop_nr='P7'),
+            Quantity(amount=-5.04, prop_nr='P8'),
+            Quantity(amount=5.06, upper_bound=9.99, lower_bound=-2.22, unit='Q11573', prop_nr='P8'),
+            CommonsMedia(value='xxx', prop_nr='P9'),
+            GlobeCoordinate(latitude=1.2345, longitude=-1.2345, precision=12, prop_nr='P10'),
+            GeoShape(value='Data:xxx.map', prop_nr='P11'),
+            Property(value='P123', prop_nr='P12'),
+            Property(value='123', prop_nr='P12'),
+            Property(value=123, prop_nr='P12'),
+            Property(value='Property:P123', prop_nr='P12'),
+            TabularData(value="Data:Taipei+Population.tab", prop_nr='P13'),
+            MusicalNotation(value="\relative c' { c d e f | g2 g | a4 a a a | g1 |}", prop_nr='P14'),
+            Lexeme(value='L123', prop_nr='P15'),
+            Lexeme(value='123', prop_nr='P15'),
+            Lexeme(value=123, prop_nr='P15'),
+            Lexeme(value='Lexeme:L123', prop_nr='P15'),
+            Form(value='L123-F123', prop_nr='P16'),
+            Sense(value='L123-S123', prop_nr='P17')
         ]
 
         for d in data:

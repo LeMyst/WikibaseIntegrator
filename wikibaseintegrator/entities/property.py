@@ -70,7 +70,7 @@ class PropertyEntity(BaseEntity):
 
     def get(self, entity_id: Union[str, int], **kwargs: Any) -> PropertyEntity:
         if isinstance(entity_id, str):
-            pattern = re.compile(r'^P?([0-9]+)$')
+            pattern = re.compile(r'^(?:[a-zA-Z]+:)?P?([0-9]+)$')
             matches = pattern.match(entity_id)
 
             if not matches:

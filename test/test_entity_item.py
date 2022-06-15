@@ -60,3 +60,6 @@ class TestEntityItem(unittest.TestCase):
         item = wbi.item.get('Q582')
         item.claims.get('P2581')[0].references.references.pop()
         assert item.write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)
+
+    def test_long_item_id(self):
+        assert wbi.item.get('Item:Q582').id == 'Q582'

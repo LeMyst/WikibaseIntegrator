@@ -35,3 +35,6 @@ class TestEntityProperty(unittest.TestCase):
 
     def test_create_property(self):
         wbi.property.new(datatype='wikibase-item')
+
+    def test_long_item_id(self):
+        assert wbi.property.get('Property:P582').id == 'P582'

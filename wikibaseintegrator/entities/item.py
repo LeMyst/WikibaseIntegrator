@@ -92,7 +92,7 @@ class ItemEntity(BaseEntity):
             raise ValueError("You must provide an entity_id")
 
         if isinstance(entity_id, str):
-            pattern = re.compile(r'^Q?([0-9]+)$')
+            pattern = re.compile(r'^(?:[a-zA-Z]+:)?Q?([0-9]+)$')
             matches = pattern.match(entity_id)
 
             if not matches:

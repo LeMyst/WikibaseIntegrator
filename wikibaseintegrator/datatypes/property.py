@@ -32,7 +32,7 @@ class Property(BaseDataType):
 
         if value:
             if isinstance(value, str):
-                pattern = re.compile(r'^P?([0-9]+)$')
+                pattern = re.compile(r'^(?:[a-zA-Z]+:)?P?([0-9]+)$')
                 matches = pattern.match(value)
 
                 if not matches:

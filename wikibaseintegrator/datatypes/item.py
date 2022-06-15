@@ -31,7 +31,7 @@ class Item(BaseDataType):
 
         if value:
             if isinstance(value, str):
-                pattern = re.compile(r'^Q?([0-9]+)$')
+                pattern = re.compile(r'^(?:[a-zA-Z]+:)?Q?([0-9]+)$')
                 matches = pattern.match(value)
 
                 if not matches:

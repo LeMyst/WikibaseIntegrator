@@ -31,7 +31,7 @@ class Lexeme(BaseDataType):
 
         if value:
             if isinstance(value, str):
-                pattern = re.compile(r'^L?([0-9]+)$')
+                pattern = re.compile(r'^(?:[a-zA-Z]+:)?L?([0-9]+)$')
                 matches = pattern.match(value)
 
                 if not matches:

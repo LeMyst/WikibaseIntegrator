@@ -32,3 +32,6 @@ class TestEntityLexeme(unittest.TestCase):
 
     def test_get_json(self):
         assert wbi.lexeme.get('L5').get_json()['forms'][0]['representations']['es']['value'] == 'pinos'
+
+    def test_long_item_id(self):
+        assert wbi.lexeme.get('Lexeme:L582').id == 'L582'
