@@ -10,7 +10,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class Aliases(BaseModel):
     def __init__(self, language: str = None, value: str = None):
-        self.aliases: Dict[str, str] = {}
+        self.aliases: Dict[str, List[Alias]] = {}
 
         if language is not None:
             self.set(language=language, values=value)

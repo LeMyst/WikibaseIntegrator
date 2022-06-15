@@ -12,14 +12,14 @@ if TYPE_CHECKING:
 
 class References(BaseModel):
     def __init__(self):
-        self.references = []
+        self.references: List[Reference] = []
 
     @property
-    def references(self):
+    def references(self) -> List[Reference]:
         return self.__references
 
     @references.setter
-    def references(self, value):
+    def references(self, value: List[Reference]):
         self.__references = value
 
     def get(self, hash: str = None) -> Optional[Reference]:
@@ -37,8 +37,8 @@ class References(BaseModel):
         if reference is not None:
             assert isinstance(reference, Reference)
 
-        if reference not in self.references:
-            self.references.append(reference)
+            if reference not in self.references:
+                self.references.append(reference)
 
         return self
 

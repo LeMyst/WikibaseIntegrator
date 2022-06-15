@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class LanguageValues(BaseModel):
     def __init__(self):
-        self.values = {}
+        self.values: Dict[str, LanguageValue] = {}
 
     @property
     def values(self) -> Dict[str, LanguageValue]:
@@ -19,7 +19,7 @@ class LanguageValues(BaseModel):
         return self.__values
 
     @values.setter
-    def values(self, value):
+    def values(self, value: Dict[str, LanguageValue]):
         self.__values = value
 
     def add(self, language_value: LanguageValue) -> LanguageValues:
