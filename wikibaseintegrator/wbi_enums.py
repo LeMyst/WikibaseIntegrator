@@ -11,6 +11,26 @@ class ActionIfExists(Enum):
     REPLACE = auto()
 
 
+class WikibaseDatatype(Enum):
+    COMMONSMEDIA = 'commonsMedia'
+    EXTERNALID = 'external-id'
+    FORM = 'wikibase-form'
+    GEOSHAPE = 'geo-shape'
+    GLOBECOORDINATE = 'globe-coordinate'
+    ITEM = 'wikibase-item'
+    LEXEME = 'wikibase-lexeme'
+    MATH = 'math'
+    MONOLINGUALTEXT = 'monolingualtext'
+    MUSICALNOTATION = 'musical-notation'
+    PROPERTY = 'wikibase-property'
+    QUANTITY = 'quantity'
+    SENSE = 'wikibase-sense'
+    STRING = 'string'
+    TABULARDATA = 'tabular-data'
+    TIME = 'time'
+    URL = 'url'
+
+
 class WikibaseRank(Enum):
     DEPRECATED = "deprecated"
     NORMAL = "normal"

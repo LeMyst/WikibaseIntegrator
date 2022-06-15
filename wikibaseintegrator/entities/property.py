@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models import LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
+from wikibaseintegrator.wbi_enums import WikibaseDatatype
 
 
 class PropertyEntity(BaseEntity):
@@ -17,12 +17,53 @@ class PropertyEntity(BaseEntity):
         super().__init__(**kwargs)
 
         # Property specific
-        self.datatype = datatype
+        if datatype is not None:
+            self.datatype = WikibaseDatatype(datatype)
+        else:
+            self.datatype = datatype
 
         # Item, Property and MediaInfo specific
-        self.labels: LanguageValues = labels or Labels()
-        self.descriptions: LanguageValues = descriptions or Descriptions()
+        self.labels: Labels = labels or Labels()
+        self.descriptions: Descriptions = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
+
+    @property
+    def datatype(self) -> Optional[str]:
+        return self.__datatype
+
+    @datatype.setter
+    def datatype(self, value: Optional[str]):
+        self.__datatype = value
+
+    @property
+    def labels(self) -> Labels:
+        return self.__labels
+
+    @labels.setter
+    def labels(self, labels: Labels):
+        if not isinstance(labels, Labels):
+            raise TypeError
+        self.__labels = labels
+
+    @property
+    def descriptions(self) -> Descriptions:
+        return self.__descriptions
+
+    @descriptions.setter
+    def descriptions(self, descriptions: Descriptions):
+        if not isinstance(descriptions, Descriptions):
+            raise TypeError
+        self.__descriptions = descriptions
+
+    @property
+    def aliases(self) -> Aliases:
+        return self.__aliases
+
+    @aliases.setter
+    def aliases(self, aliases: Aliases):
+        if not isinstance(aliases, Aliases):
+            raise TypeError
+        self.__aliases = aliases
 
     def new(self, **kwargs: Any) -> PropertyEntity:
         return PropertyEntity(api=self.api, **kwargs)

@@ -10,7 +10,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class Senses(BaseModel):
     def __init__(self):
-        self.senses = []
+        self.senses: List[Sense] = []
 
     def get(self, id: str) -> Optional[Sense]:
         for sense in self.senses:

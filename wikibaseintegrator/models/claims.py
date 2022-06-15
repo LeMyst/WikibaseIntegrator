@@ -12,17 +12,17 @@ from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 class Claims(BaseModel):
     def __init__(self):
-        self.claims = {}
+        self.claims: Dict[str, List[Claim]] = {}
 
     @property
-    def claims(self):
+    def claims(self) -> Dict[str, List[Claim]]:
         return self.__claims
 
     @claims.setter
-    def claims(self, claims):
+    def claims(self, claims: Dict[str, List[Claim]]):
         self.__claims = claims
 
-    def get(self, property: str = None) -> List:
+    def get(self, property: str) -> List[Claim]:
         return self.claims[property]
 
     def remove(self, property: str = None) -> None:

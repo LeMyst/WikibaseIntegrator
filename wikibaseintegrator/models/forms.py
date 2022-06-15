@@ -9,7 +9,7 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 class Forms(BaseModel):
     def __init__(self):
-        self.forms = {}
+        self.forms: Dict[str, Form] = {}
 
     @property
     def forms(self) -> Dict:

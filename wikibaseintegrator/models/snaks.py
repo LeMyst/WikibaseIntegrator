@@ -9,9 +9,9 @@ from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 class Snaks(BaseModel):
     def __init__(self):
-        self.snaks = {}
+        self.snaks: Dict[str, List[Snak]] = {}
 
-    def get(self, property: str = None) -> Snak:
+    def get(self, property: str) -> List[Snak]:
         return self.snaks[property]
 
     def add(self, snak: Snak) -> Snaks:

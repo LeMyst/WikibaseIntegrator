@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class Qualifiers(BaseModel):
     def __init__(self):
-        self.qualifiers = {}
+        self.qualifiers: Dict[str, List[Snak]] = {}
 
     @property
     def qualifiers(self):
@@ -34,7 +34,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def get(self, property: str = None) -> Snak:
+    def get(self, property: str) -> List[Snak]:
         return self.qualifiers[property]
 
     # TODO: implement action_if_exists
