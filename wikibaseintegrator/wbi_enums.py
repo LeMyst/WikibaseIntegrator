@@ -1,5 +1,8 @@
 from enum import Enum, auto
 
+from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
+                                          Sense, String, TabularData, Time)
+
 
 class ActionIfExists(Enum):
     """
@@ -9,6 +12,26 @@ class ActionIfExists(Enum):
     FORCE_APPEND = auto()
     KEEP = auto()
     REPLACE = auto()
+
+
+class WikibaseDatatype(Enum):
+    COMMONSMEDIA = CommonsMedia.DTYPE
+    EXTERNALID = ExternalID.DTYPE
+    FORM = Form.DTYPE
+    GEOSHAPE = GeoShape.DTYPE
+    GLOBECOORDINATE = GlobeCoordinate.DTYPE
+    ITEM = Item.DTYPE
+    LEXEME = Lexeme.DTYPE
+    MATH = Math.DTYPE
+    MONOLINGUALTEXT = MonolingualText.DTYPE
+    MUSICALNOTATION = MusicalNotation.DTYPE
+    PROPERTY = Property.DTYPE
+    QUANTITY = Quantity.DTYPE
+    SENSE = Sense.DTYPE
+    STRING = String.DTYPE
+    TABULARDATA = TabularData.DTYPE
+    TIME = Time.DTYPE
+    URL = URL.DTYPE
 
 
 class WikibaseRank(Enum):
