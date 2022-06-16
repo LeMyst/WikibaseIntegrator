@@ -13,14 +13,11 @@ from wikibaseintegrator.wbi_enums import WikibaseDatatype
 class PropertyEntity(BaseEntity):
     ETYPE = 'property'
 
-    def __init__(self, datatype: str = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any):
+    def __init__(self, datatype: Union[str, WikibaseDatatype, None] = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any):
         super().__init__(**kwargs)
 
         # Property specific
-        if datatype is not None:
-            self.datatype = WikibaseDatatype(datatype)
-        else:
-            self.datatype = datatype
+        self.datatype = datatype
 
         # Item, Property and MediaInfo specific
         self.labels: Labels = labels or Labels()
@@ -28,12 +25,15 @@ class PropertyEntity(BaseEntity):
         self.aliases = aliases or Aliases()
 
     @property
-    def datatype(self) -> Optional[str]:
+    def datatype(self) -> Optional[WikibaseDatatype]:
         return self.__datatype
 
     @datatype.setter
-    def datatype(self, value: Optional[str]):
-        self.__datatype = value
+    def datatype(self, value: Union[str, WikibaseDatatype, None]):
+        if isinstance(value, str):
+            self.__datatype = WikibaseDatatype(value)
+        else:
+            self.__datatype = value
 
     @property
     def labels(self) -> Labels:
@@ -87,7 +87,7 @@ class PropertyEntity(BaseEntity):
 
     def get_json(self) -> Dict[str, Union[str, Dict]]:
         return {
-            'datatype': str(self.datatype),
+            'datatype': self.datatype.value,
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),

@@ -66,7 +66,10 @@ class BaseEntity:
 
     @pageid.setter
     def pageid(self, value: Optional[int]):
-        self.__pageid = value
+        if isinstance(value, str):
+            self.__pageid = int(value)
+        else:
+            self.__pageid = value
 
     @property
     def lastrevid(self) -> Optional[int]:
@@ -271,6 +274,8 @@ class BaseEntity:
         :return: The data returned by the API as a dictionary
         """
 
+        login = login or self.api.login
+
         if not self.pageid and not self.title:
             raise ValueError("A pageid or a page title attribute must be set before deleting an entity object.")
 
@@ -278,8 +283,8 @@ class BaseEntity:
         if not self.pageid:
             return delete_page(title=self.title, pageid=None, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
         else:
-            if isinstance(self.pageid, int):
-                raise ValueError("The entity must have a pageid attribute correctly set")
+            if not isinstance(self.pageid, int):
+                raise ValueError(f"The entity must have a pageid attribute correctly set ({self.pageid})")
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
