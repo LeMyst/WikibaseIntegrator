@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type, Union
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models import Claim
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatatype
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format_amount
 
 if TYPE_CHECKING:
@@ -616,7 +616,10 @@ class FastRunContainer:
         from wikibaseintegrator import WikibaseIntegrator
         wbi = WikibaseIntegrator()
         property = wbi.property.get(prop_nr)
-        return property.datatype
+        datatype = property.datatype
+        if isinstance(datatype, WikibaseDatatype):
+            return datatype.value
+        return datatype
 
     def clear(self) -> None:
         """
