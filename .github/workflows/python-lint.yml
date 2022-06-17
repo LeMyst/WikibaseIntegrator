@@ -3,8 +3,14 @@ name: Python Code Quality and Lint
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'wikibaseintegrator/**.py'
+      - 'test/**.py'
   pull_request:
     branches: [ '**' ]
+    paths:
+      - 'wikibaseintegrator/**.py'
+      - 'test/**.py'
 
 jobs:
   build:

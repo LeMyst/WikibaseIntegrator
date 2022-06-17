@@ -3,8 +3,22 @@ name: Python pytest
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'wikibaseintegrator/**.py'
+      - 'test/**.py'
+      - 'setup.cfg'
+      - 'setup.py'
+      - 'requirements.txt'
+      - 'pyproject.toml'
   pull_request:
     branches: [ '**' ]
+    paths:
+      - 'wikibaseintegrator/**.py'
+      - 'test/**.py'
+      - 'setup.cfg'
+      - 'setup.py'
+      - 'requirements.txt'
+      - 'pyproject.toml'
 
 jobs:
   build:
