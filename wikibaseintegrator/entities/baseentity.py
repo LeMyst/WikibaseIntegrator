@@ -61,13 +61,13 @@ class BaseEntity:
         self.__title = value
 
     @property
-    def pageid(self) -> Optional[int]:
+    def pageid(self) -> Union[str, int, None]:
         return self.__pageid
 
     @pageid.setter
-    def pageid(self, value: Optional[int]):
+    def pageid(self, value: Union[str, int, None]):
         if isinstance(value, str):
-            self.__pageid = int(value)
+            self.__pageid: Union[str, int, None] = int(value)
         else:
             self.__pageid = value
 

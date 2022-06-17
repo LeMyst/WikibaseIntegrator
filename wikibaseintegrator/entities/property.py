@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -25,13 +25,13 @@ class PropertyEntity(BaseEntity):
         self.aliases = aliases or Aliases()
 
     @property
-    def datatype(self) -> Optional[WikibaseDatatype]:
+    def datatype(self) -> Union[str, WikibaseDatatype, None]:
         return self.__datatype
 
     @datatype.setter
     def datatype(self, value: Union[str, WikibaseDatatype, None]):
         if isinstance(value, str):
-            self.__datatype = WikibaseDatatype(value)
+            self.__datatype: Union[str, WikibaseDatatype, None] = WikibaseDatatype(value)
         else:
             self.__datatype = value
 
@@ -85,14 +85,18 @@ class PropertyEntity(BaseEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return PropertyEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
-        return {
-            'datatype': self.datatype.value,
+    def get_json(self) -> Dict[str, Union[str, Any]]:
+        json = {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),
             **super().get_json()
         }
+
+        if self.datatype and isinstance(self.datatype, WikibaseDatatype):
+            json.update({'datatype': self.datatype.value})
+
+        return json
 
     def from_json(self, json_data: Dict[str, Any]) -> PropertyEntity:
         super().from_json(json_data=json_data)
