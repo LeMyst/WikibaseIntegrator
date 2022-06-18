@@ -1,3 +1,6 @@
+"""
+Multiple functions or classes that can be used to interact with the Wikibase instance.
+"""
 from __future__ import annotations
 
 import datetime
@@ -11,7 +14,7 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MWApiError, NonExistentEntityError, SearchError
+from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.entities.baseentity import BaseEntity
@@ -23,6 +26,9 @@ helpers_session = requests.Session()
 
 
 class BColors:
+    """
+    Default colors for pretty outputs.
+    """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -44,7 +50,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
 
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
-    :param session: If a session is passed, it will be used. Otherwise a new requests session is created
+    :param session: If a session is passed, it will be used. Otherwise, a new requests session is created
     :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
     :param retry_after: Number of seconds to wait before retrying request (see max_retries)
     :param kwargs: Any additional keyword arguments to pass to requests.request
@@ -67,11 +73,11 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            logging.error(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
+            logging.error("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
-            logging.error(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
+            logging.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
             sleep(retry_after)
             continue
 
@@ -82,12 +88,9 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
         # https://phabricator.wikimedia.org/T172293
         if 'error' in json_data:
             # rate limiting
-            error_msg_names = set()
-            if 'messages' in json_data['error']:
-                error_msg_names = {x.get('name') for x in json_data['error']['messages']}
-            if 'actionthrottledtext' in error_msg_names:  # pragma: no cover
+            if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
-                logging.error(f"{datetime.datetime.utcnow()}: rate limited. sleeping for {sleep_sec} seconds")
+                logging.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
@@ -100,32 +103,34 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                logging.error(f"{datetime.datetime.utcnow()}: maxlag. sleeping for {sleep_sec} seconds")
+                logging.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
             # readonly
             if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
-                logging.error(f'The Wikibase instance is currently in readonly mode, waiting for {retry_after} seconds')
+                logging.error("The Wikibase instance is currently in readonly mode, waiting for %s seconds", retry_after)
                 sleep(retry_after)
                 continue
 
             # non-existent error
             if 'code' in json_data['error'] and json_data['error']['code'] in ['no-such-entity', 'missingtitle']:
-                if 'info' in json_data['error']['code']:
-                    raise NonExistentEntityError(json_data['error']['code']['info'])
-                raise NonExistentEntityError()
+                raise NonExistentEntityError(json_data['error'])
+
+            # duplicate error
+            if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':  # pragma: no cover
+                raise ModificationFailed(json_data['error'])
 
             # others case
-            raise MWApiError(response.json() if response else {})
+            raise MWApiError(json_data)
 
         # there is no error or waiting. break out of this loop and parse response
         break
     else:
-        # the first time I've ever used for - else!!
+        # the first time I've ever used "for - else!!"
         # else executes if the for loop completes normally. i.e. does not encounter a `break`
         # in this case, that means it tried this api call 10 times
-        raise MWApiError(response.json() if response else {})
+        raise MaxRetriesReachedException(f'The number of retries ({max_retries}) have been reached.')
 
     return json_data
 
@@ -248,17 +253,17 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
         try:
             response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
         except requests.exceptions.ConnectionError as e:
-            logging.error(f"Connection error: {e}. Sleeping for {retry_after} seconds.")
+            logging.error("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
-            logging.error(f"Service unavailable (HTTP Code {response.status_code}). Sleeping for {retry_after} seconds.")
+            logging.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
             sleep(retry_after)
             continue
         if response.status_code == 429:
             if 'retry-after' in response.headers.keys():
                 retry_after = int(response.headers['retry-after'])
-            logging.error(f"Too Many Requests (429). Sleeping for {retry_after} seconds")
+            logging.error("Too Many Requests (429). Sleeping for %d seconds", retry_after)
             sleep(retry_after)
             continue
         response.raise_for_status()
@@ -504,6 +509,11 @@ def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: 
 
 
 def format_amount(amount: Union[int, str, float]) -> str:
+    """
+    A formatting function mostly used for Quantity datatype.
+    :param amount: A int, float or str you want to pass to Quantity value.
+    :return: A correctly formatted string amount by Wikibase standard.
+    """
     # Remove .0 by casting to int
     if float(amount) % 1 == 0:
         amount = int(float(amount))
@@ -517,6 +527,12 @@ def format_amount(amount: Union[int, str, float]) -> str:
 
 
 def get_user_agent(user_agent: Optional[str]) -> str:
+    """
+    Return a user agent string suitable for interacting with the Wikibase instance.
+
+    :param user_agent: An optional user-agent. If not provided, will generate a default user-agent.
+    :return: A correctly formatted user agent.
+    """
     from wikibaseintegrator import __version__
     wbi_user_agent = f"WikibaseIntegrator/{__version__}"
 
