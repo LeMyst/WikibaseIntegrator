@@ -1,66 +1,58 @@
+from typing import Any, Dict
+
+
 class MWApiError(Exception):
     """
     Base class for MediaWiki API error handling
     """
 
+    def __init__(self, error_dict: Dict[str, Any]):
+        super().__init__(error_dict['info'])
 
-class NonUniqueLabelDescriptionPairError(MWApiError):
-    def __init__(self, error_message):
-        """
-        This class handles errors returned from the API due to an attempt to create an item which has the same label and description as an existing item in a certain language.
-
-        :param error_message: An API error message containing 'wikibase-validator-label-with-description-conflict'
-         as the message name.
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
-        super().__init__(error_message)
-
-        self.error_msg = error_message
-
-    def get_language(self) -> str:
-        """
-        :return: Returns a 2 letter language string, indicating the language which triggered the error
-        """
-        return self.error_msg['error']['messages'][0]['parameters'][1]
-
-    def get_conflicting_item_qid(self) -> str:
-        """
-        :return: Returns the QID string of the item which has the same label and description as the one which should be set.
-        """
-        qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
-
-        return qid_string.split('|')[0][2:]
+        self.code = error_dict['code']
+        self.info = error_dict['info']
+        self.messages = error_dict['messages']
+        self.messages_names = [message['name'] for message in error_dict['messages']]
 
     def __str__(self):
-        return repr(self.error_msg)
+        return repr(self.info)
+
+    def __repr__(self):
+        """A mixin implementing a simple __repr__."""
+        return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
+            klass=self.__class__.__name__,
+            id=id(self) & 0xFFFFFF,
+            attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
+        )
 
 
-class IDMissingError(Exception):
+class ModificationFailed(MWApiError):
+    """
+    When the API return a 'modification-failed' error
+    """
+    pass
+
+
+class SaveFailed(MWApiError):
+    """
+    When the API return a 'save-failed' error
+    """
+
+    def __init__(self, error_dict: Dict[str, Any]):
+        super().__init__(error_dict)
+
+
+class NonExistentEntityError(MWApiError):
+    pass
+
+
+class MaxRetriesReachedException(Exception):
+    pass
+
+
+class MissingEntityException(Exception):
     pass
 
 
 class SearchError(Exception):
-    pass
-
-
-class ManualInterventionReqException(Exception):
-    def __init__(self, value, property_string, item_list):
-        super().__init__()
-
-        self.value = value + f' Property: {property_string}, items affected: {item_list}'
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class CorePropIntegrityException(Exception):
-    pass
-
-
-class MergeError(Exception):
-    pass
-
-
-class NonExistentEntityError(Exception):
     pass

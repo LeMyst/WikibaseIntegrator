@@ -10,7 +10,7 @@ from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import MWApiError, NonExistentEntityError, NonUniqueLabelDescriptionPairError
+from wikibaseintegrator.wbi_exceptions import MissingEntityException, ModificationFailed, MWApiError
 from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
@@ -138,7 +138,7 @@ class BaseEntity:
         :return:
         """
         if 'missing' in json_data:  # TODO: 1.35 compatibility
-            raise NonExistentEntityError('The MW API returned that the entity was missing.')
+            raise MissingEntityException('The MW API returned that the entity was missing.')
 
         if 'title' in json_data:  # TODO: 1.35 compatibility
             self.title = str(json_data['title'])
@@ -251,12 +251,10 @@ class BaseEntity:
             logging.error('Error while writing to the Wikibase instance')
             raise
         else:
-            if 'error' in json_result and 'messages' in json_result['error']:
-                error_msg_names = {x.get('name') for x in json_result['error']['messages']}
-                if 'wikibase-validator-label-with-description-conflict' in error_msg_names:
-                    raise NonUniqueLabelDescriptionPairError(json_result)
-
             if 'error' in json_result:
+                if 'code' in json_result['error'] and json_result['error']['code'] == 'modification-failed':
+                    raise ModificationFailed(json_result['error'])
+
                 raise MWApiError(json_result)
 
         return json_result['entity']
