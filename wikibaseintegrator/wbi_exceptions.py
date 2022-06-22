@@ -23,7 +23,10 @@ class MWApiError(Exception):
         else:
             # TODO test with DataValueCorrupt wikibase response
             if not self.info == "Data value corrupt:":
-                entity_string = self.messages[0]['parameters'][2]
+                try:
+                    entity_string = self.messages[0]['parameters'][2]
+                except IndexError:
+                    raise IndexError(self.error_dict)
             else:
                 raise DataValueCorrupt(self.error_dict)
         if entity_string:
@@ -39,7 +42,10 @@ class MWApiError(Exception):
             return self.messages[1]['parameters'][1]
         else:
             if not self.info == "Data value corrupt:":
-                return self.messages[0]['parameters'][1]
+                try:
+                    return self.messages[0]['parameters'][1]
+                except IndexError:
+                    raise IndexError(self.error_dict)
             else:
                 raise DataValueCorrupt(self.error_dict)
 
