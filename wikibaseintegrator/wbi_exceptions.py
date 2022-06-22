@@ -16,12 +16,18 @@ class MWApiError(Exception):
         :return: Returns the QID string of the item which has the same label and description as the one which should
          be set.
         """
+        entity_string = ""
         if self.code == 'failed-save':
             # The first message has empty list as parameters so we use the second
             entity_string = self.messages[1]['parameters'][2]
         else:
-            entity_string = self.messages[0]['parameters'][2]
-        return entity_string.split('|')[0][2:].replace("Property:", "")
+            # TODO test with DataValueCorrupt wikibase response
+            if not self.info == "Data value corrupt:":
+                entity_string = self.messages[0]['parameters'][2]
+            else:
+                raise DataValueCorrupt(self.error_dict)
+        if entity_string:
+            return entity_string.split('|')[0][2:].replace("Property:", "")
 
     @property
     def get_language(self) -> str:
@@ -32,12 +38,15 @@ class MWApiError(Exception):
             # The first message has empty list as parameters so we use the second
             return self.messages[1]['parameters'][1]
         else:
-            return self.messages[0]['parameters'][1]
+            if not self.info == "Data value corrupt:":
+                return self.messages[0]['parameters'][1]
+            else:
+                raise DataValueCorrupt(self.error_dict)
 
     def __init__(self, error_dict: Dict[str, Any]):
         super().__init__(error_dict['info'])
-
         self.code = error_dict['code']
+        self.error_dict = error_dict
         self.info = error_dict['info']
         self.messages = error_dict['messages']
         self.messages_names = [message['name'] for message in error_dict['messages']]
@@ -83,4 +92,8 @@ class MissingEntityException(Exception):
 
 
 class SearchError(Exception):
+    pass
+
+
+class DataValueCorrupt(Exception):
     pass
