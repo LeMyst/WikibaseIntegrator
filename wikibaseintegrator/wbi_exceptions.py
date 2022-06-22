@@ -50,7 +50,6 @@ class MWApiError(Exception):
     def __init__(self, error_dict: Dict[str, Any]):
         super().__init__(error_dict['info'])
         self.code = error_dict['code']
-        self.error_dict = error_dict
         self.info = error_dict['info']
         self.messages = error_dict['messages']
         self.messages_names = [message['name'] for message in error_dict['messages']]
