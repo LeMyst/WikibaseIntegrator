@@ -31,8 +31,8 @@ class TestWbiExceptions(TestCase):
         assert modification_failed.code == 'modification-failed'
         assert modification_failed.info == 'Item [[Q582|Q582]] already has label "MODIFIED LABEL" associated with language code en, using the same description text.'
         assert 'wikibase-validator-label-with-description-conflict' in modification_failed.messages_names
-        assert modification_failed.get_conflicting_entity_id == 'Q582'
-        assert modification_failed.get_language == 'en'
+        assert 'Q582' in modification_failed.get_conflicting_entity_id
+        assert 'en' in modification_failed.get_language
 
     def test_modification_failed_no_dict(self):
         error_dict = {}
@@ -53,6 +53,22 @@ class TestWbiExceptions(TestCase):
 
         with self.assertRaises(KeyError):
             ModificationFailed(error_dict['error'])
+
+    def test_failed_save_no_conflict(self):
+        error_dict = {'error': {'*': 'See https://test.wikidata.org/w/api.php for API usage. '
+                                     'Subscribe to the mediawiki-api-announce mailing list at '
+                                     '&lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; '
+                                     'for notice of API deprecations and breaking changes.',
+                                'code': 'failed-save',
+                                'info': 'The save has failed.',
+                                'messages': [{'html': {'*': 'The save has failed.'},
+                                              'name': 'wikibase-api-failed-save',
+                                              'parameters': []}]},
+                      'servedby': 'mw1425'}
+
+        failed_save = SaveFailed(error_dict['error'])
+
+        assert failed_save.get_conflicting_entity_id is None
 
     def test_modification_failed_no_parameters(self):
         error_dict = {'error': {'*': 'See https://test.wikidata.org/w/api.php for API usage. '
@@ -111,8 +127,9 @@ class TestWbiExceptions(TestCase):
         assert failed_save.code == 'failed-save'
         assert failed_save.info == 'The save has failed.'
         assert 'wikibase-api-failed-save' in failed_save.messages_names
-        assert failed_save.get_conflicting_entity_id == 'P50'
-        assert failed_save.get_language == 'en'
+        assert 'P50' in failed_save.get_conflicting_entity_id
+        assert len(failed_save.get_conflicting_entity_id) == 1
+        assert 'en' in failed_save.get_language
 
     @staticmethod
     def test_searcherror():

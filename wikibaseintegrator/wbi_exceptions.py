@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class MWApiError(Exception):
@@ -11,45 +11,41 @@ class MWApiError(Exception):
     messages_names: List[str]
 
     @property
-    def get_conflicting_entity_id(self) -> str:
+    def get_conflicting_entity_id(self) -> Optional[List[str]]:
         """
-        :return: Returns the QID string of the item which has the same label and description as the one which should
-         be set.
+        Compute the list of conflicting entities from the error messages.
+
+        :return: A list of conflicting entities or None
         """
-        entity_string = ""
-        if self.code == 'failed-save':
-            # The first message has empty list as parameters so we use the second
-            entity_string = self.messages[1]['parameters'][2]
-        else:
-            # TODO test with DataValueCorrupt wikibase response
-            if not self.info == "Data value corrupt:":
-                try:
-                    entity_string = self.messages[0]['parameters'][2]
-                except IndexError:
-                    raise IndexError(self.error_dict)
-            else:
-                raise DataValueCorrupt(self.error_dict)
-        if entity_string:
-            return entity_string.split('|')[0][2:].replace("Property:", "")
+        conflict_ids = []
+        for message in self.messages:
+            if message['name'].endswith('-conflict'):
+                conflict_ids.append(message['parameters'][2].split('|')[0][2:].replace("Property:", ""))
+
+        if conflict_ids:
+            conflict_ids = list(set(conflict_ids))  # Remove duplicate
+            return conflict_ids
+
+        return None
 
     @property
-    def get_language(self) -> str:
+    def get_language(self) -> Optional[List[str]]:
         """
-        :return: Returns a 2 letter language string, indicating the language which triggered the error
+        Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
+
+        :return: A list of language identifiers or None
         """
-        if self.code == 'failed-save':
-            # The first message has empty list as parameters so we use the second
-            return self.messages[1]['parameters'][1]
-        else:
-            if not self.info == "Data value corrupt:":
-                if "not found" in self.info:
-                    raise NonExistentEntityError(self.error_dict)
-                try:
-                    return self.messages[0]['parameters'][1]
-                except IndexError:
-                    raise IndexError(self.error_dict)
-            else:
-                raise DataValueCorrupt(self.error_dict)
+
+        conflict_langs = []
+        for message in self.messages:
+            if message['name'].endswith('-conflict'):
+                conflict_langs.append(message['parameters'][1])
+
+        if conflict_langs:
+            conflict_langs = list(set(conflict_langs))  # Remove duplicate
+            return conflict_langs
+
+        return None
 
     def __init__(self, error_dict: Dict[str, Any]):
         super().__init__(error_dict['info'])
