@@ -42,6 +42,8 @@ class MWApiError(Exception):
             return self.messages[1]['parameters'][1]
         else:
             if not self.info == "Data value corrupt:":
+                if "not found" in self.info:
+                    raise NonExistentEntityError(self.error_dict)
                 try:
                     return self.messages[0]['parameters'][1]
                 except IndexError:
