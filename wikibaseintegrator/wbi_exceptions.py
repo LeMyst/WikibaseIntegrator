@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class MWApiError(Exception):
@@ -11,29 +11,26 @@ class MWApiError(Exception):
     messages_names: List[str]
 
     @property
-    def get_conflicting_entity_id(self) -> Optional[List[str]]:
+    def get_conflicting_entity_id(self) -> List[str]:
         """
         Compute the list of conflicting entities from the error messages.
 
-        :return: A list of conflicting entities or None
+        :return: A list of conflicting entities or an empty list
         """
-        conflict_ids = []
-        for message in self.messages:
-            if message['name'].endswith('-conflict'):
-                conflict_ids.append(message['parameters'][2].split('|')[0][2:].replace("Property:", ""))
 
-        if conflict_ids:
-            conflict_ids = list(set(conflict_ids))  # Remove duplicate
-            return conflict_ids
-
-        return None
+        return list(
+            {
+                message['parameters'][2].split('|')[0][2:].replace("Property:", "") for message in self.messages
+                if message['name'].endswith('-conflict')
+            }
+        )
 
     @property
-    def get_language(self) -> Optional[List[str]]:
+    def get_language(self) -> List[str]:
         """
         Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
 
-        :return: A list of language identifiers or None
+        :return: A list of language identifiers or an empty list
         """
 
         return list(
@@ -41,7 +38,7 @@ class MWApiError(Exception):
                 message['parameters'][1] for message in self.messages
                 if message['name'].endswith('-conflict')
             }
-        ) or None
+        )
 
     def __init__(self, error_dict: Dict[str, Any]):
         super().__init__(error_dict['info'])

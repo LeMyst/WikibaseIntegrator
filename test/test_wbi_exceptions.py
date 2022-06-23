@@ -68,7 +68,7 @@ class TestWbiExceptions(TestCase):
 
         failed_save = SaveFailed(error_dict['error'])
 
-        assert failed_save.get_conflicting_entity_id is None
+        assert failed_save.get_conflicting_entity_id == []
 
     def test_modification_failed_no_parameters(self):
         error_dict = {'error': {'*': 'See https://test.wikidata.org/w/api.php for API usage. '
