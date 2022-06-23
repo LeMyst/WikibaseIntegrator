@@ -89,7 +89,3 @@ class MissingEntityException(Exception):
 
 class SearchError(Exception):
     pass
-
-
-class DataValueCorrupt(Exception):
-    pass
