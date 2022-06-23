@@ -36,16 +36,12 @@ class MWApiError(Exception):
         :return: A list of language identifiers or None
         """
 
-        conflict_langs = []
-        for message in self.messages:
-            if message['name'].endswith('-conflict'):
-                conflict_langs.append(message['parameters'][1])
-
-        if conflict_langs:
-            conflict_langs = list(set(conflict_langs))  # Remove duplicate
-            return conflict_langs
-
-        return None
+        return list(
+            {
+                message['parameters'][1] for message in self.messages
+                if message['name'].endswith('-conflict')
+            }
+        ) or None
 
     def __init__(self, error_dict: Dict[str, Any]):
         super().__init__(error_dict['info'])
