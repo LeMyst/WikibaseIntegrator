@@ -157,5 +157,8 @@ fabric.properties
 # Idea pylint plugin configuration file
 .idea/pylint.xml
 
+# Completely remove .idea folder
+.idea
+
 # Other stuff
 /drafts/
