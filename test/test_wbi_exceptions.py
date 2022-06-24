@@ -31,8 +31,8 @@ class TestWbiExceptions(TestCase):
         assert modification_failed.code == 'modification-failed'
         assert modification_failed.info == 'Item [[Q582|Q582]] already has label "MODIFIED LABEL" associated with language code en, using the same description text.'
         assert 'wikibase-validator-label-with-description-conflict' in modification_failed.messages_names
-        assert 'Q582' in modification_failed.get_conflicting_entity_id
-        assert 'en' in modification_failed.get_language
+        assert 'Q582' in modification_failed.get_conflicting_entity_ids
+        assert 'en' in modification_failed.get_languages
 
     def test_modification_failed_no_dict(self):
         error_dict = {}
@@ -68,7 +68,7 @@ class TestWbiExceptions(TestCase):
 
         failed_save = SaveFailed(error_dict['error'])
 
-        assert failed_save.get_conflicting_entity_id == []
+        assert failed_save.get_conflicting_entity_ids == []
 
     def test_modification_failed_no_parameters(self):
         error_dict = {'error': {'*': 'See https://test.wikidata.org/w/api.php for API usage. '
@@ -90,7 +90,7 @@ class TestWbiExceptions(TestCase):
 
         modification_failed = ModificationFailed(error_dict['error'])
         with self.assertRaises(KeyError):
-            language = modification_failed.get_language
+            _ = modification_failed.get_languages
 
     @staticmethod
     def test_failed_save():
@@ -127,9 +127,9 @@ class TestWbiExceptions(TestCase):
         assert failed_save.code == 'failed-save'
         assert failed_save.info == 'The save has failed.'
         assert 'wikibase-api-failed-save' in failed_save.messages_names
-        assert 'P50' in failed_save.get_conflicting_entity_id
-        assert len(failed_save.get_conflicting_entity_id) == 1
-        assert 'en' in failed_save.get_language
+        assert 'P50' in failed_save.get_conflicting_entity_ids
+        assert len(failed_save.get_conflicting_entity_ids) == 1
+        assert 'en' in failed_save.get_languages
 
     @staticmethod
     def test_searcherror():

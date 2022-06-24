@@ -11,7 +11,7 @@ class MWApiError(Exception):
     messages_names: List[str]
 
     @property
-    def get_conflicting_entity_id(self) -> List[str]:
+    def get_conflicting_entity_ids(self) -> List[str]:
         """
         Compute the list of conflicting entities from the error messages.
 
@@ -26,7 +26,7 @@ class MWApiError(Exception):
         )
 
     @property
-    def get_language(self) -> List[str]:
+    def get_languages(self) -> List[str]:
         """
         Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
 
