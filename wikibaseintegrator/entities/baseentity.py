@@ -105,11 +105,17 @@ class BaseEntity:
             raise TypeError
         self.__claims = value
 
-    def add_claims(self, claims: Union[Claim, List], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
-        if isinstance(claims, Claim):
-            claims = [claims]
-        elif not isinstance(claims, list):
-            raise TypeError()
+    def add_claims(self, claims: Union[Claim, List[Claim], Claims], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
+        """
+
+        :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
+        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists.
+            KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
+            APPEND: The new claim will be added only if the new one is different (by comparing values)
+            FORCE_APPEND: The new claim will be added even if already exists
+            REPLACE: The new claim will replace the old one
+        :return: Return the updated entity object.
+        """
 
         self.claims.add(claims=claims, action_if_exists=action_if_exists)
 

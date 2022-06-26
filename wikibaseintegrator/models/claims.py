@@ -38,10 +38,13 @@ class Claims(BaseModel):
     def add(self, claims: Union[Claims, List[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
         """
 
-        :param claims:
-        :param action_if_exists: Replace or append the statement. You can force an append if the statement already exists.
-        :type action_if_exists: One of the values of the enum ActionIfExists: REPLACE, APPEND, FORCE_APPEND, KEEP
-        :return: Claims
+        :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
+        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists.
+            KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
+            APPEND: The new claim will be added only if the new one is different (by comparing values)
+            FORCE_APPEND: The new claim will be added even if already exists
+            REPLACE: The new claim will replace the old one
+        :return: Return the updated Claims object.
         """
 
         if action_if_exists not in ActionIfExists:
@@ -50,7 +53,7 @@ class Claims(BaseModel):
         if isinstance(claims, Claim):
             claims = [claims]
         elif claims is None or ((not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims)):
-            raise ValueError("claims must be an instance of Claim or Claims or a list of Claim")
+            raise TypeError("claims must be an instance of Claim or Claims or a list of Claim")
 
         # TODO: Don't replace if claim is the same
         if action_if_exists == ActionIfExists.REPLACE:
