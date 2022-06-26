@@ -73,7 +73,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            logging.error("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
+            logging.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
@@ -253,7 +253,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
         try:
             response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
         except requests.exceptions.ConnectionError as e:
-            logging.error("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
+            logging.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
