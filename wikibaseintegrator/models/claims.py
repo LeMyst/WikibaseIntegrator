@@ -56,6 +56,7 @@ class Claims(BaseModel):
             raise TypeError("claims must be an instance of Claim or Claims or a list of Claim")
 
         # TODO: Don't replace if claim is the same
+        # This code is seperated from the rest to avoid looping multiple over `self.claims`.
         if action_if_exists == ActionIfExists.REPLACE:
             for claim in claims:
                 if claim is not None:

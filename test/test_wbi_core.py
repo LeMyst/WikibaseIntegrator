@@ -66,6 +66,7 @@ class TestWbiCore(unittest.TestCase):
 
         item = deepcopy(item_original)
         item.add_claims(instances, action_if_exists=ActionIfExists.REPLACE)
+        item.add_claims(instances, action_if_exists=ActionIfExists.REPLACE)  # We add the instances a second time, in case everything is marked as removed.
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31') if not x.removed]
         removed_claims = [True for x in item.claims.get('P31') if x.removed]
         # Append claims to item, replace already existing claims with new ones, only one if it's the same property number
