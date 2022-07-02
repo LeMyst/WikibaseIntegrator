@@ -47,7 +47,7 @@ class TestWbiCore(unittest.TestCase):
         len_claims_original = len([x.mainsnak.datavalue['value']['id'] for x in item_original.claims.get('P31')])
 
         item = deepcopy(item_original)
-        item.add_claims(instances, action_if_exists=ActionIfExists.APPEND)
+        item.add_claims(instances, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31')]
         # Append claims to item, only one unique added
         assert len(claims) == len_claims_original + 1 and 'Q1234' in claims and claims.count('Q1234') == 1
@@ -65,8 +65,8 @@ class TestWbiCore(unittest.TestCase):
         assert len(claims) == len_claims_original and 'Q1234' not in claims
 
         item = deepcopy(item_original)
-        item.add_claims(instances, action_if_exists=ActionIfExists.REPLACE)
-        item.add_claims(instances, action_if_exists=ActionIfExists.REPLACE)  # We add the instances a second time, in case everything is marked as removed.
+        item.add_claims(instances, action_if_exists=ActionIfExists.REPLACE_ALL)
+        item.add_claims(instances, action_if_exists=ActionIfExists.REPLACE_ALL)  # We add the instances a second time, in case everything is marked as removed.
         claims = [x.mainsnak.datavalue['value']['id'] for x in item.claims.get('P31') if not x.removed]
         removed_claims = [True for x in item.claims.get('P31') if x.removed]
         # Append claims to item, replace already existing claims with new ones, only one if it's the same property number
@@ -96,7 +96,7 @@ class TestWbiCore(unittest.TestCase):
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
 
         item.descriptions.set(language='fr', value="lorem", action_if_exists=ActionIfExists.KEEP)
-        item.descriptions.set(language='fr', value="lorem ipsum", action_if_exists=ActionIfExists.REPLACE)
+        item.descriptions.set(language='fr', value="lorem ipsum", action_if_exists=ActionIfExists.REPLACE_ALL)
         item.descriptions.set(language='en', value="lorem", action_if_exists=ActionIfExists.KEEP)
         assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
         assert item.get_json()['descriptions']['fr'] == {'language': 'fr', 'value': 'lorem ipsum'}
@@ -117,7 +117,7 @@ class TestWbiCore(unittest.TestCase):
         item.labels.set(language='en', value='xfgfdsgtest', action_if_exists=ActionIfExists.KEEP)
         assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
         assert item.get_json()['labels']['fr'] == {'language': 'fr', 'value': 'Terre'}
-        item.aliases.set(values=["fake alias"], action_if_exists=ActionIfExists.APPEND)
+        item.aliases.set(values=["fake alias"], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
         assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
 
         item.labels.set(language='fr', value=None)
@@ -129,13 +129,13 @@ class TestWbiCore(unittest.TestCase):
         item.aliases.set(language='ak')
         item.labels.set(value='label', language='ak')
         item.descriptions.set(value='d', language='ak')
-        item.aliases.set(values=['a'], language='ak', action_if_exists=ActionIfExists.APPEND)
+        item.aliases.set(values=['a'], language='ak', action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
         assert 'a' in item.aliases.get('ak')
         item.aliases.set(values='b', language='ak')
         assert all(i in item.aliases.get('ak') for i in ['a', 'b']) and len(item.aliases.get('ak')) >= 2
-        item.aliases.set(values='b', language='ak', action_if_exists=ActionIfExists.REPLACE)
+        item.aliases.set(values='b', language='ak', action_if_exists=ActionIfExists.REPLACE_ALL)
         assert item.aliases.get('ak') == ['b']
-        item.aliases.set(values=['c'], language='ak', action_if_exists=ActionIfExists.REPLACE)
+        item.aliases.set(values=['c'], language='ak', action_if_exists=ActionIfExists.REPLACE_ALL)
         assert item.aliases.get('ak') == ['c']
         item.aliases.set(values=['d'], language='ak', action_if_exists=ActionIfExists.KEEP)
         assert 'd' not in item.aliases.get('ak')

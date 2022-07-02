@@ -33,7 +33,7 @@ class Aliases(BaseModel):
 
         return None
 
-    def set(self, language: str = None, values: Union[str, List] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> Aliases:
+    def set(self, language: str = None, values: Union[str, List] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Aliases:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
 
@@ -53,7 +53,7 @@ class Aliases(BaseModel):
         elif values is not None and not isinstance(values, list):
             raise TypeError(f"value must be a str or list of strings, got '{type(values)}'")
 
-        if action_if_exists == ActionIfExists.REPLACE:
+        if action_if_exists == ActionIfExists.REPLACE_ALL:
             aliases = []
             for value in values:
                 alias = Alias(language, value)
@@ -63,7 +63,7 @@ class Aliases(BaseModel):
             for value in values:
                 alias = Alias(language, value)
 
-                if action_if_exists == ActionIfExists.APPEND:
+                if action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
                     if alias not in self.aliases[language]:
                         self.aliases[language].append(alias)
                 elif action_if_exists == ActionIfExists.KEEP:

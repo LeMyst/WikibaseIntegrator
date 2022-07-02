@@ -3,12 +3,17 @@ from enum import Enum, auto
 
 class ActionIfExists(Enum):
     """
-    Action to take if a statement with a property already exists on the item or lexeme.
+    Action to take if a statement with a property already exists on the entity.
+
+    APPEND_OR_REPLACE: Add the new element to the property if it does not exist, otherwise replace the existing element.
+    FORCE_APPEND: Forces the addition of the new element to the property, even if it already exists.
+    KEEP: Does nothing if the property already has elements stated.
+    REPLACE_ALL: Replace all elements with the same property number.
     """
-    APPEND = auto()
+    APPEND_OR_REPLACE = auto()
     FORCE_APPEND = auto()
     KEEP = auto()
-    REPLACE = auto()
+    REPLACE_ALL = auto()
 
 
 class WikibaseDatatype(Enum):

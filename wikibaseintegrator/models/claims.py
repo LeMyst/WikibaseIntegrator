@@ -35,15 +35,15 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Union[Claims, List[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Claims:
+    def add(self, claims: Union[Claims, List[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
         :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists.
             KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
-            APPEND: The new claim will be added only if the new one is different (by comparing values)
+            APPEND_OR_REPLACE: The new claim will be added only if the new one is different (by comparing values)
             FORCE_APPEND: The new claim will be added even if already exists
-            REPLACE: The new claim will replace the old one
+            REPLACE_ALL: The new claim will replace the old one
         :return: Return the updated Claims object.
         """
 
@@ -57,7 +57,7 @@ class Claims(BaseModel):
 
         # TODO: Don't replace if claim is the same
         # This code is separated from the rest to avoid looping multiple over `self.claims`.
-        if action_if_exists == ActionIfExists.REPLACE:
+        if action_if_exists == ActionIfExists.REPLACE_ALL:
             for claim in claims:
                 if claim is not None:
                     assert isinstance(claim, Claim)
@@ -81,13 +81,13 @@ class Claims(BaseModel):
                         self.claims[property].append(claim)
                 elif action_if_exists == ActionIfExists.FORCE_APPEND:
                     self.claims[property].append(claim)
-                elif action_if_exists == ActionIfExists.APPEND:
+                elif action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
                     else:
                         # Force update the claim if already present
                         self.claims[property][self.claims[property].index(claim)].update(claim)
-                elif action_if_exists == ActionIfExists.REPLACE:
+                elif action_if_exists == ActionIfExists.REPLACE_ALL:
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
 

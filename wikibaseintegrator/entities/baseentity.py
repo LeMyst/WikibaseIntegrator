@@ -105,15 +105,15 @@ class BaseEntity:
             raise TypeError
         self.__claims = value
 
-    def add_claims(self, claims: Union[Claim, List[Claim], Claims], action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> BaseEntity:
+    def add_claims(self, claims: Union[Claim, List[Claim], Claims], action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> BaseEntity:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
         :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists.
             KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
-            APPEND: The new claim will be added only if the new one is different (by comparing values)
+            APPEND_OR_REPLACE: The new claim will be added only if the new one is different (by comparing values)
             FORCE_APPEND: The new claim will be added even if already exists
-            REPLACE: The new claim will replace the old one
+            REPLACE_ALL: The new claim will replace the old one
         :return: Return the updated entity object.
         """
 
@@ -292,7 +292,7 @@ class BaseEntity:
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE, **kwargs: Any) -> bool:
+    def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
         if base_filter is None:

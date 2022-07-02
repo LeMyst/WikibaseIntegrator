@@ -38,7 +38,7 @@ class Qualifiers(BaseModel):
         return self.qualifiers[property]
 
     # TODO: implement action_if_exists
-    def add(self, qualifier: Union[Snak, Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Qualifiers:
+    def add(self, qualifier: Union[Snak, Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Qualifiers:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])

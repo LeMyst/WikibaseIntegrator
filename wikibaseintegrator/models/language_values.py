@@ -49,17 +49,17 @@ class LanguageValues(BaseModel):
 
         return None
 
-    def set(self, language: str = None, value: str = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE) -> Optional[LanguageValue]:
+    def set(self, language: str = None, value: str = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Optional[LanguageValue]:
         """
         Create or update the specified language with the valued passed in arguments.
 
         :param language: The desired language.
         :param value: The desired value of the LanguageValue object. Use None to delete an existing LanguageValue object from the list.
-        :param action_if_exists: The action if the LanguageValue object is already defined. Can be ActionIfExists.REPLACE (default) or ActionIfExists.KEEP.
+        :param action_if_exists: The action if the LanguageValue object is already defined. Can be ActionIfExists.REPLACE_ALL (default) or ActionIfExists.KEEP.
         :return: The created or updated LanguageValue. None if there's no LanguageValue object with this language.
         """
         language = str(language or config['DEFAULT_LANGUAGE'])
-        assert action_if_exists in [ActionIfExists.REPLACE, ActionIfExists.KEEP]
+        assert action_if_exists in [ActionIfExists.REPLACE_ALL, ActionIfExists.KEEP]
 
         # Remove value if None
         if value is None:
@@ -67,7 +67,7 @@ class LanguageValues(BaseModel):
                 self.values[language].remove()
             return None
 
-        if action_if_exists == ActionIfExists.REPLACE or self.get(language=language) is None:
+        if action_if_exists == ActionIfExists.REPLACE_ALL or self.get(language=language) is None:
             language_value = LanguageValue(language, value)
             self.add(language_value)
             return language_value

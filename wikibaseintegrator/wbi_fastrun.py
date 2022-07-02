@@ -194,7 +194,7 @@ class FastRunContainer:
 
         return matching_qids.pop()
 
-    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE, cqid: str = None) -> bool:
+    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, cqid: str = None) -> bool:
         """
         Check if a write is required
 
@@ -206,7 +206,7 @@ class FastRunContainer:
         del_props = set()
         data_props = set()
         append_props = []
-        if action_if_exists == ActionIfExists.APPEND:
+        if action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
             append_props = [x.mainsnak.property_number for x in data]
 
         for x in data:
@@ -333,19 +333,19 @@ class FastRunContainer:
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid: str, lang_data: List, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND) -> bool:
+    def check_language_data(self, qid: str, lang_data: List, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
         :param lang_data: list of string values to check
         :param lang: language code
         :param lang_data_type: What kind of data is it? 'label', 'description' or 'aliases'?
-        :param action_if_exists: If aliases already exist, APPEND or REPLACE
+        :param action_if_exists: If aliases already exist, APPEND_OR_REPLACE or REPLACE_ALL
         :return: boolean
         """
         all_lang_strings = {x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type)}
 
-        if action_if_exists == ActionIfExists.REPLACE:
+        if action_if_exists == ActionIfExists.REPLACE_ALL:
             return collections.Counter(all_lang_strings) != collections.Counter(map(lambda x: x.casefold(), lang_data))
 
         for s in lang_data:

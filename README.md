@@ -442,7 +442,7 @@ item = wbi.item.get(entity_id='Q141806')
 item.labels.set(language='en', value='An updated item', action_if_exists=ActionIfExists.KEEP)
 
 # Set a French description and replace the existing one
-item.descriptions.set(language='fr', value='Une description un peu longue', action_if_exists=ActionIfExists.REPLACE)
+item.descriptions.set(language='fr', value='Une description un peu longue', action_if_exists=ActionIfExists.REPLACE_ALL)
 
 item.claims.add(data)
 item.write()
