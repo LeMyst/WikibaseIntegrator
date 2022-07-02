@@ -4,7 +4,7 @@ import unittest
 import requests
 
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, MWApiError
+from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, get_user_agent, mediawiki_api_call_helper
 
 
