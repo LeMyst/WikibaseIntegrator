@@ -1,14 +1,47 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class MWApiError(Exception):
     """
     Base class for MediaWiki API error handling
     """
+    code: str
+    info: Dict[str, Any]
+    messages: List[Dict[str, Any]]
+    messages_names: List[str]
+
+    @property
+    def get_conflicting_entity_ids(self) -> List[str]:
+        """
+        Compute the list of conflicting entities from the error messages.
+
+        :return: A list of conflicting entities or an empty list
+        """
+
+        return list(
+            {
+                message['parameters'][2].split('|')[0][2:].replace("Property:", "") for message in self.messages
+                if message['name'].endswith('-conflict')
+            }
+        )
+
+    @property
+    def get_languages(self) -> List[str]:
+        """
+        Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
+
+        :return: A list of language identifiers or an empty list
+        """
+
+        return list(
+            {
+                message['parameters'][1] for message in self.messages
+                if message['name'].endswith('-conflict')
+            }
+        )
 
     def __init__(self, error_dict: Dict[str, Any]):
         super().__init__(error_dict['info'])
-
         self.code = error_dict['code']
         self.info = error_dict['info']
         self.messages = error_dict['messages']
