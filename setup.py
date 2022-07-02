@@ -10,7 +10,7 @@ setup(
         "oauthlib ~= 3.2.0",
         "requests >= 2.27.1,< 2.29.0",
         "requests-oauthlib ~= 1.3.1",
-        "ujson ~= 5.3.0"
+        "ujson ~= 5.4.0"
     ],
     extras_require={
         "dev": [
