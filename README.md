@@ -23,7 +23,7 @@ python -m pip install --pre wikibaseintegrator
 If you want to avoid an unwanted upgrade to the v0.12, you can put this line in your requirements.txt:
 
 ```
-wikibaseintegrator~=0.11.2
+wikibaseintegrator~=0.11.3
 ```
 
 I will continue to bug-fixes the current version (v0.11) even after the release of v0.12+.
