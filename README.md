@@ -1,102 +1,110 @@
 # Wikibase Integrator #
 
+[![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
 [![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
-[![Pyversions](https://img.shields.io/pypi/pyversions/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
-[![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+[![Pyversions](https://img.shields.io/pypi/implementation/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
+[![Read the Docs](https://readthedocs.org/projects/pip/badge/?version=latest&style=flat)](https://wikibaseintegrator.readthedocs.io)
 
-# Breaking changes in future major version #
+Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
+Wikidata).
 
-A complete rewrite of the core of WikibaseIntegrator is in progress. You can track the evolution and ask questions in
-the related Pull Request [#152](https://github.com/LeMyst/WikibaseIntegrator/pull/152). The changes will break
-compatibility with existing scripts.
+# Breaking changes in v0.12 #
 
-It offers a new object-oriented approach, a better readability and a support of Property, Lexeme and MediaInfo entities.
+A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which has led to some important changes.
 
-The new version is currently in "beta" state, but I invite people to start using it. If you want to install it, you can
-use this command in your project to get the latest pre-release:
+It offers a new object-oriented approach, better code readability and support for Property, Lexeme and MediaInfo
+entities (in addition to Item).
 
-```bash
-python -m pip install --pre wikibaseintegrator
-```
-
-If you want to avoid an unwanted upgrade to the v0.12, you can put this line in your requirements.txt:
+If you want to stay on v0.11.x, you can put this line in your requirements.txt:
 
 ```
 wikibaseintegrator~=0.11.3
 ```
 
-I will continue to bug-fixes the current version (v0.11) even after the release of v0.12+.
-
-<hr>
+---
 
 <!-- ToC generator: https://luciopaiva.com/markdown-toc/ -->
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
+- [Documentation](#documentation)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
+    - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
 - [The Core Parts](#the-core-parts)
-    - [wbi_core.ItemEngine](#wbi_coreitemengine)
-    - [wbi_functions](#wbi_functions)
-        - [Use MediaWiki API](#use-mediawiki-api)
-    - [wbi_login.Login](#wbi_loginlogin)
+    - [Entity manipulation](#entity-manipulation)
+    - [wbi_login](#wbi_login)
         - [Login using OAuth1 or OAuth2](#login-using-oauth1-or-oauth2)
+            - [As a bot](#as-a-bot)
+            - [To impersonate a user (OAuth 1.0a)](#to-impersonate-a-user-oauth-10a)
+        - [Login with a bot password](#login-with-a-bot-password)
         - [Login with a username and a password](#login-with-a-username-and-a-password)
     - [Wikibase Data Types](#wikibase-data-types)
+    - [Structured Data on Commons](#structured-data-on-commons)
+        - [Retrieve data](#retrieve-data)
+        - [Write data](#write-data)
 - [Helper Methods](#helper-methods)
+    - [Use MediaWiki API](#use-mediawiki-api)
     - [Execute SPARQL queries](#execute-sparql-queries)
-    - [Use Mediawiki API](#use-mediawiki-api)
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
-    - [A Minimal Bot](#a-minimal-bot)
-    - [A Minimal Bot for Mass Import](#a-minimal-bot-for-mass-import)
+    - [Create a new Item](#create-a-new-item)
+    - [Modify an existing item](#modify-an-existing-item)
+    - [A bot for Mass Import](#a-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
+- [Debugging](#debugging)
 
 # WikibaseIntegrator / WikidataIntegrator #
 
-WikibaseIntegrator (wbi) is a fork from [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
-purpose is to be focused on Wikibase compatibility. There have been many improvements that have led to breaking changes
-in the code. Refer to the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
+WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
+purpose is to focus on compatibility with Wikibase. There have been many improvements which have led to radical changes
+in the code. See the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
 changed.
+
+# Documentation #
+
+A (basic) documentation generated from the python source code is available on
+the [Read the Docs website](https://wikibaseintegrator.readthedocs.io/).
 
 # Installation #
 
-The easiest way to install WikibaseIntegrator is using `pip`. WikibaseIntegrator supports Python 3.7 and higher. If
-Python 2 is installed `pip` will lead to an error indicating missing dependencies.
+The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
+3.7 and above. If Python 2 is installed, `pip` will lead to an error indicating missing dependencies.
 
 ```bash
 python -m pip install wikibaseintegrator
 ```
 
-You can also clone the repo and execute with administrator rights or install into a virtualenv.
+You can also clone the repo and run it with administrator rights or install it in a virtualenv.
 
 ```bash
 git clone https://github.com/LeMyst/WikibaseIntegrator.git
 
 cd WikibaseIntegrator
 
-python -m pip install pip setuptools
+python -m pip install --upgrade pip setuptools
 
 python -m pip install .
 ```
 
-To test for correct installation, start a Python console and execute the following (Will retrieve the Wikidata item
-for ['Human'](https://www.wikidata.org/entity/Q5)):
+To check that the installation is correct, launch a Python console and run the following code (which will retrieve the
+Wikidata element for [Human](https://www.wikidata.org/entity/Q5)):
 
 ```python
-from wikibaseintegrator import wbi_core
+from wikibaseintegrator import WikibaseIntegrator
 
-my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q5')
+wbi = WikibaseIntegrator()
+my_first_wikidata_item = wbi.item.get(entity_id='Q5')
 
 # to check successful installation and retrieval of the data, you can print the json representation of the item
-print(my_first_wikidata_item.get_json_representation())
+print(my_first_wikidata_item.get_json())
 ```
 
 # Using a Wikibase instance #
 
-WikibaseIntegrator use Wikidata as default endpoint. To use a Wikibase instance instead, you can overload the
-wbi_config.
+WikibaseIntegrator uses Wikidata as default endpoint. To use another instance of Wikibase instead, you can override the
+wbi_config module.
 
 An example for a Wikibase instance installed
 with [wikibase-docker](https://github.com/wmde/wikibase-release-pipeline/tree/main/example), add this to the top of your
@@ -110,79 +118,65 @@ wbi_config['SPARQL_ENDPOINT_URL'] = 'http://localhost:8834/proxy/wdqs/bigdata/na
 wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
-You can find more default parameters in the file wbi_config.py
+You can find more default settings in the file wbi_config.py
+
+## Wikimedia Foundation User-Agent policy ##
+
+If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Wikimedia Commons, etc.),
+it's highly advised to follow the User-Agent policy that you can find on the
+page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
+of the Wikimedia Meta-Wiki.
+
+You can set a complementary User-Agent by modifying the variable `wbi_config['USER_AGENT']` in wbi_config.
+
+For example, with your library name and contact information:
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
+```
 
 # The Core Parts #
 
-wbi_core supports two modes it can be operated in, a normal mode, updating each item at a time and, a fast run mode,
-which is pre-loading data locally and then just updating items if the new data provided is differing from what is in
-Wikidata. The latter mode allows for great speedups (measured up to 9x) when tens of thousand of Wikidata items need to
-be checked if they require updates but only a small number will finally be updated, a situation usually encountered when
-keeping Wikidata in sync with an external resource.
+WikibaseIntegrator supports two modes in which it can be used, a normal mode, updating each item at a time, and a fast
+run mode, which preloads some data locally and then just updates items if the new data provided differs from Wikidata.
+The latter mode allows for great speedups when tens of thousands of Wikidata elements need to be checked for updates,
+but only a small number will eventually be updated, a situation typically encountered when synchronising Wikidata with
+an external resource.
 
-wbi_core consists of a central class called ItemEngine and Login for authenticating with a MediaWiki instance (like
-Wikidata).
+## Entity manipulation ##
 
-## wbi_core.ItemEngine ##
+WikibaseIntegrator supports the manipulation of Item, Property, Lexeme and MediaInfo entities through these classes:
 
-This is the central class which does all the heavy lifting.
-
-Features:
-
-* Load a Wikibase item based on data to be written (e.g. a unique central identifier)
-* Load a Wikibase item based on its Wikibase item id (aka QID)
-* Checks for conflicts automatically (e.g. multiple items carrying a unique central identifier will trigger an
-  exception)
-* Checks automatically if the correct item has been loaded by comparing it to the data provided
-* All Wikibase data types implemented
-* A dedicated wbi_core.ItemEngine.write() method allows loading and consistency checks of data before any write to
-  Wikibase is performed
-* Full access to the whole Wikibase item as a JSON document
-
-There are two ways of working with Wikibase items:
-
-* A user can provide data, and ItemEngine will search for and load/modify an existing item or create a new one, solely
-  based on the data provided (preferred). This also performs consistency checks based on a set of SPARQL queries.
-* A user can work with a selected QID to specifically modify the data on the item. This requires that the user knows
-  what he/she is doing and should only be used with great care, as this does not perform consistency checks.
-
-## wbi_functions ##
-
-wbi_functions provides a set of static functions to request or manipulate data from MediaWiki API or SPARQL Service.
+* wikibaseintegrator.entities.item.Item
+* wikibaseintegrator.entities.property.Property
+* wikibaseintegrator.entities.lexeme.Lexeme
+* wikibaseintegrator.entities.mediainfo.MediaInfo
 
 Features:
 
-* Minimize the number of HTTP requests for reads and writes to improve performance
-* Method to easily execute [SPARQL](https://query.wikidata.org) queries on the Wikibase SPARQL endpoint.
+* Loading a Wikibase entity based on its Wikibase entity ID.
+* All Wikibase data types are implemented (and some data types implemented by extensions).
+* Full access to the entire Wikibase entity in the form of a JSON dict representation.
 
-### Use MediaWiki API ###
+## wbi_login ##
 
-WikibaseIntegrator don't have functions to make API call to non-wikibase actions. You can
-use `wbi_functions.mediawiki_api_call_helper()` to make a custom call.
+`wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
+every MediaWiki edit requires an edit token). There is multiple methods to login:
 
-Example to get the last two revisions of entity Q42 :
+* `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
+* `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
+* `wbi_login.Clientlogin(user, password)`
+* `wbi_login.Login(user, password)`
 
-```python
-from wikibaseintegrator import wbi_functions
-
-data = {
-    'action': 'query',
-    'prop': 'revisions',
-    'titles': 'Q42',
-    'rvlimit': 2,
-    'rvprop': 'ids|timestamp|comment|user',
-    'rvslots': 'main'
-}
-
-print(wbi_functions.mediawiki_api_call_helper(data, allow_anonymous=True))
-```
-
-## wbi_login.Login ##
+There is more parameters available. If you want to authenticate on another instance than Wikidata, you can set the
+mediawiki_api_url, mediawiki_rest_url or mediawiki_index_url. Read the documentation for more information.
 
 ### Login using OAuth1 or OAuth2 ###
 
-OAuth is the authentication method recommended by the Mediawiki developers. It can be used for authenticating a bot or
-to use WBI as a backend for an application.
+OAuth is the authentication method recommended by the MediaWiki developers. It can be used to authenticate a bot or to
+use WBI as a backend for an application.
 
 #### As a bot ####
 
@@ -190,185 +184,285 @@ If you want to use WBI with a bot account, you should use OAuth as
 an [Owner-only consumer](https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers). This allows to use the
 authentication without the "continue oauth" step.
 
-The first step is to request a new OAuth consumer on your Mediawiki instance on the page "Special:
-OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked. You will get
-a consumer key, consumer secret, access token and access secret.
-
-Example if you use OAuth 1.0a:
-
-```python
-from wikibaseintegrator import wbi_login
-
-login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_secret='<your_consumer_secret>',
-                                 access_token='<your_access_token>', access_secret='<your_access_secret>')
-```
+The first step is to request a new OAuth consumer on your MediaWiki instance on the page
+"Special:OAuthConsumerRegistration", the "Owner-only" (or "This consumer is for use only by ...") has to be checked and
+the correct version of the OAuth protocol must be set (OAuth 2.0). You will get a consumer token and consumer secret
+(and an access token and access secret if you chose OAuth 1.0a). For a Wikimedia instance (like Wikidata), you need to
+use the [Meta-Wiki website](https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration).
 
 Example if you use OAuth 2.0:
 
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(client_id='<your_client_app_key>', client_secret='<your_client_app_secret>')
+login_instance = wbi_login.OAuth2(consumer_token='<your_client_app_key>', consumer_secret='<your_client_app_secret>')
+```
+
+Example if you use OAuth 1.0a:
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer_secret='<your_consumer_secret>',
+                                  access_token='<your_access_token>', access_secret='<your_access_secret>')
 ```
 
 #### To impersonate a user (OAuth 1.0a) ####
 
-If WBI should be used as a backend for a webapp, the script should use OAuth for authentication, WBI supports this, you
-just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. In contrast to username and
-password login, OAuth is a 2 steps process as manual user confirmation for OAuth login is required. This means that the
-method `wbi_login.Login.continue_oauth()` needs to be called after creating the `wbi_login.Login` instance.
+If WBI is to be used as a backend for a web application, the script must use OAuth for authentication, WBI supports
+this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. Unlike login by
+username and password, OAuth is a 2-step process, as manual confirmation of the user for the OAuth login is required.
+This means that the `wbi_login.OAuth1.continue_oauth()` method must be called after creating the `wbi_login.Login`
+instance.
 
 Example:
 
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(consumer_key='<your_consumer_key>', consumer_secret='<your_consumer_secret>')
-login_instance.continue_oauth()
+login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer_secret='<your_consumer_secret>')
+login_instance.continue_oauth(oauth_callback_data='<the_callback_url_returned>')
 ```
 
-The method `wbi_login.Login.continue_oauth()` will either prompt the user for a callback URL (normal bot runs), or it
-will take a parameter so in the case of WBI being used as a backend for e.g. a web app, where the callback will provide
-the authentication information directly to the backend and so no copy and paste of the callback URL is required.
+The `wbi_login.OAuth1.continue_oauth()` method will either ask the user for a callback URL (normal bot execution) or
+take a parameter. Thus, in the case where WBI is used as a backend for a web application for example, the callback will
+provide the authentication information directly to the backend and thus no copy and paste of the callback URL is needed.
 
-### Login with a username and a password ###
+### Login with a bot password ###
 
-`wbi_login.Login` provides the login functionality and also stores the cookies and edit tokens required (For security
-reasons, every Mediawiki edit requires an edit token). The constructor takes two essential parameters, username and
-password. Additionally, the server (default wikidata.org), and the token renewal periods can be specified. It's a good
-practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple username and
-password, this allows limiting the permissions given to the bot.
+It's a good practice to use [Bot password](https://www.mediawiki.org/wiki/Manual:Bot_passwords) instead of simple
+username and password, this allows limiting the permissions given to the bot.
 
 ```python
 from wikibaseintegrator import wbi_login
 
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')     
+login_instance = wbi_login.Login(user='<bot user name>', password='<bot password>')
+```
+
+### Login with a username and a password ###
+
+If you want to log in with your user account, you can use the "clientlogin" authentication method. This method is not
+recommended.
+
+```python
+from wikibaseintegrator import wbi_login
+
+login_instance = wbi_login.Clientlogin(user='<user name>', password='<password>')
 ```
 
 ## Wikibase Data Types ##
 
 Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in
-wbi_datatype. Each data types has its specialties, which means that some of them require special parameters (e.g. Globe
-Coordinates).
+wikibaseintegrator.datatypes. Each datatype has its own peculiarities, which means that some of them require special
+parameters (e.g. Globe Coordinates). They are available under the namespace `wikibase.datatypes`.
 
 The data types currently implemented:
 
-* wbi_datatype.CommonsMedia
-* wbi_datatype.EDTF
-* wbi_datatype.ExternalID
-* wbi_datatype.Form
-* wbi_datatype.GeoShape
-* wbi_datatype.GlobeCoordinate
-* wbi_datatype.ItemID
-* wbi_datatype.Lexeme
-* wbi_datatype.LocalMedia
-* wbi_datatype.Math
-* wbi_datatype.MonolingualText
-* wbi_datatype.MusicalNotation
-* wbi_datatype.Property
-* wbi_datatype.Quantity
-* wbi_datatype.Sense
-* wbi_datatype.String
-* wbi_datatype.TabularData
-* wbi_datatype.Time
-* wbi_datatype.Url
+* CommonsMedia
+* ExternalID
+* Form
+* GeoShape
+* GlobeCoordinate
+* Item
+* Lexeme
+* Math
+* MonolingualText
+* MusicalNotation
+* Property
+* Quantity
+* Sense
+* String
+* TabularData
+* Time
+* URL
+
+Two additional data types are also implemented but require the installation of the MediaWiki extension to work properly:
+
+* extra.EDTF ([Wikibase EDTF](https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF))
+* extra.LocalMedia ([Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media))
 
 For details of how to create values (=instances) with these data types, please (for now) consult the docstrings in the
-source code. Of note, these data type instances hold the values and, if specified, data type instances for references
-and qualifiers. Furthermore, calling the get_value() method of an instance returns either an integer, a string or a
-tuple, depending on the complexity of the data type.
+source code or the documentation website. Of note, these data type instances hold the values and, if specified, data
+type instances for references and qualifiers.
+
+## Structured Data on Commons ##
+
+WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.
+
+### Retrieve data ###
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+
+wbi = WikibaseIntegrator()
+media = wbi.mediainfo.get('M16431477')
+
+# Retrieve the first "depicts" (P180) claim
+print(media.claims.get('P180')[0].mainsnak.datavalue['value']['id'])
+```
+
+### Write data ###
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import Item
+
+wbi = WikibaseIntegrator()
+media = wbi.mediainfo.get('M16431477')
+
+# Add the "depicts" (P180) claim
+media.claims.add(Item(prop_nr='P180', value='Q3146211'))
+
+media.write()
+```
 
 # Helper Methods #
 
-## Execute SPARQL queries ##
+## Use MediaWiki API ##
 
-The method `wbi_core.ItemEngine.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes
-the actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata,
-the actual entpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL
-server (user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you
-execute many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email
-address, or the URL to your bot code repository.)
-
-## Use Mediawiki API ##
-
-The method `wbi_functions.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It takes a
-mandatory data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a
-mediawiki_api_url string if the Mediawiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header,
-and an allow_anonymous boolean to force authentication.
+The method `wbi_helpers.mediawiki_api_call_helper()` allows you to execute MediaWiki API POST call. It takes a mandatory
+data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a mediawiki_api_url
+string if the MediaWiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header, and an
+allow_anonymous boolean to force authentication.
 
 Example:
 
 Retrieve last 10 revisions from Wikidata element Q2 (Earth):
 
 ```python
-from wikibaseintegrator import wbi_functions
+from wikibaseintegrator import wbi_helpers
 
-query = {
+data = {
     'action': 'query',
     'prop': 'revisions',
     'titles': 'Q2',
     'rvlimit': 10
 }
 
-print(wbi_functions.mediawiki_api_call_helper(query, allow_anonymous=True))
+print(wbi_helpers.mediawiki_api_call_helper(data=data, allow_anonymous=True))
 ```
+
+## Execute SPARQL queries ##
+
+The method `wbi_helpers.execute_sparql_query()` allows you to execute SPARQL queries without a hassle. It takes the
+actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata, the
+actual endpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL server (
+user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you execute
+many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email address,
+or the URL to your bot code repository.)
 
 ## Wikibase search entities ##
 
-The method `wbi_core.ItemEngine.search_entities()` allows for string search in a Wikibase instance. This means that
-labels, descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual
-search string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not
-Wikidata), an optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an
-option dict_id_label to return a dict of item id and label as a result.
+The method `wbi_helpers.search_entities()` allows for string search in a Wikibase instance. This means that labels,
+descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual search
+string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not Wikidata), an
+optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an option
+dict_id_label to return a dict of item id and label as a result.
 
 ## Merge Wikibase items ##
 
 Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_functions.merge_items()` takes five arguments:
-the QID of the item which should be merged into another item (from_id), the QID of the item the first item should be
-merged into (to_id), a login object of type wbi_login.Login to provide the API call with the required authentication
-information, a server (mediawiki_api_url) if the Wikibase instance is not Wikidata and a flag for ignoring merge
-conflicts (ignore_conflicts). The last parameter will do a partial merge for all statements which do not conflict. This
-should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts
-should be resolved first.
+`wbi_helpers.merge_items()` takes five arguments:
+
+* the QID of the item which should be merged into another item (from_id)
+* the QID of the item the first item should be merged into (to_id)
+* a login object of type wbi_login.Login to provide the API call with the required authentication information
+* a boolean if the changes need to be marked as made by a bot (is_bot)
+* a flag for ignoring merge conflicts (ignore_conflicts), will do a partial merge for all statements which do not
+  conflict. This should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any
+  potential conflicts should be resolved first.
 
 # Examples (in "normal" mode) #
 
-## A Minimal Bot ##
+In order to create a minimal bot based on wbi_core, two things are required:
 
-In order to create a minimal bot based on wbi_core, three things are required:
+* A datatype object containing a value.
+* An entity object (Item/Property/Lexeme/...) which takes the data, does the checks and performs write.
 
-* A login object, as described above.
-* A data type object containing a value.
-* A ItemEngine object which takes the data, does the checks and performs write.
+An optional Login object can be used to be authenticated on the Wikibase instance.
+
+## Create a new Item ##
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
+from wikibaseintegrator import wbi_login, WikibaseIntegrator
+from wikibaseintegrator.datatypes import ExternalID
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
+login_instance = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
+
+wbi = WikibaseIntegrator(login=login_instance)
 
 # data type object, e.g. for a NCBI gene entrez ID
-entrez_gene_id = wbi_datatype.String(value='<some_entrez_id>', prop_nr='P351')
+entrez_gene_id = ExternalID(value='<some_entrez_id>', prop_nr='P351')
 
 # data goes into a list, because many data objects can be provided to
 data = [entrez_gene_id]
 
-# Search for and then edit/create new item
-wd_item = wbi_core.ItemEngine(data=data)
-wd_item.write(login_instance)
+# Create a new item
+item = wbi.item.new()
+
+# Set an english label
+item.labels.set(language='en', value='Newly created item')
+
+# Set a French description
+item.descriptions.set(language='fr', value='Une description un peu longue')
+
+item.claims.add(data)
+item.write()
 ```
 
-## A Minimal Bot for Mass Import ##
+## Modify an existing item ##
+
+```python
+from wikibaseintegrator import wbi_login, WikibaseIntegrator
+from wikibaseintegrator.datatypes import ExternalID
+from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
+
+# login object
+login_instance = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
+
+wbi = WikibaseIntegrator(login=login_instance)
+
+# data type object, e.g. for a NCBI gene entrez ID
+entrez_gene_id = ExternalID(value='<some_entrez_id>', prop_nr='P351')
+
+# data goes into a list, because many data objects can be provided to
+data = [entrez_gene_id]
+
+# Search and then edit an Item
+item = wbi.item.get(entity_id='Q141806')
+
+# Set an english label but don't modify it if there is already an entry
+item.labels.set(language='en', value='An updated item', action_if_exists=ActionIfExists.KEEP)
+
+# Set a French description and replace the existing one
+item.descriptions.set(language='fr', value='Une description un peu longue', action_if_exists=ActionIfExists.REPLACE_ALL)
+
+item.claims.add(data)
+item.write()
+```
+
+## A bot for Mass Import ##
 
 An enhanced example of the previous bot just puts two of the three things into a 'for loop' and so allows mass creation,
 or modification of items.
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
+from wikibaseintegrator import WikibaseIntegrator, wbi_login
+from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
+from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
+
+wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
+login_instance = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
 raw_data = {
@@ -376,39 +470,42 @@ raw_data = {
     '1029': 'ENST00000498124'
 }
 
+wbi = WikibaseIntegrator(login=login_instance)
+
 for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+            Item(value='Q20641742', prop_nr='P248'),
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseDatePrecision.DAY),
+            ExternalID(value='1017', prop_nr='P351')
         ]
     ]
 
     # data type object
-    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
+    entrez_gene_id = String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data)
-    wd_item.write(login_instance)
+    item = wbi.item.new()
+    item.claims.add(data)
+    item.write()
 ```
 
 # Examples (in "fast run" mode) #
 
 In order to use the fast run mode, you need to know the property/value combination which determines the data corpus you
 would like to operate on. E.g. for operating on human genes, you need to know
-that [P351](https://www.wikidata.org/entity/P351) is the NCBI entrez gene ID and you also need to know that you are
+that [P351](https://www.wikidata.org/entity/P351) is the NCBI Entrez Gene ID and you also need to know that you are
 dealing with humans, best represented by the [found in taxon property (P703)](https://www.wikidata.org/entity/P703) with
 the value [Q15978631](https://www.wikidata.org/entity/Q15978631) for Homo sapiens.
 
 IMPORTANT: In order for the fast run mode to work, the data you provide in the constructor must contain at least one
-unique value/id only present on one Wikidata item, e.g. an NCBI entrez gene ID, Uniprot ID, etc. Usually, these would be
-the same unique core properties used for defining domains in wbi_core, e.g. for genes, proteins, drugs or your custom
+unique value/id only present on one Wikidata element, e.g. an NCBI entrez gene ID, Uniprot ID, etc. Usually, these would
+be the same unique core properties used for defining domains in wbi_core, e.g. for genes, proteins, drugs or your custom
 domains.
 
 Below, the normal mode run example from above, slightly modified, to meet the requirements for the fast run mode. To
@@ -417,18 +514,22 @@ holding the properties to filter for as keys, and the item QIDs as dict values. 
 just provide an empty string. For the above example, the dictionary looks like this:
 
 ```python
-fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
+from wikibaseintegrator.datatypes import ExternalID, Item
+
+fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 ```
 
 The full example:
 
 ```python
-from wikibaseintegrator import wbi_core, wbi_login, wbi_datatype
+from wikibaseintegrator import WikibaseIntegrator, wbi_login
+from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
+from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 
 # login object
-login_instance = wbi_login.Login(user='<bot user name>', pwd='<bot password>')
+login = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
-fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
+fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 fast_run = True
 
 # We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
@@ -442,24 +543,38 @@ for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            wbi_datatype.ItemID(value='Q20641742', prop_nr='P248', is_reference=True),
-            wbi_datatype.Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', is_reference=True),
-            wbi_datatype.ExternalID(value='1017', prop_nr='P351', is_reference=True)
+            Item(value='Q20641742', prop_nr='P248')
+        ],
+        [
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseDatePrecision.DAY),
+            ExternalID(value='1017', prop_nr='P351')
         ]
     ]
 
     # data type object
-    entrez_gene_id = wbi_datatype.String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = wbi_datatype.String(value=ensembl, prop_nr='P704', references=references)
+    entrez_gene_id = String(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = String(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
     # Search for and then edit/create new item
-    wd_item = wbi_core.ItemEngine(data=data, fast_run=fast_run, fast_run_base_filter=fast_run_base_filter)
-    wd_item.write(login_instance)
+    wb_item = WikibaseIntegrator(login=login).item.new()
+    wb_item.add_claims(claims=data)
+    wb_item.init_fastrun(base_filter=fast_run_base_filter)
+    wb_item.write()
 ```
 
-Note: Fastrun mode checks for equality of property/value pairs, qualifers (not including qualifier attributes), labels,
+Note: Fastrun mode checks for equality of property/value pairs, qualifiers (not including qualifier attributes), labels,
 aliases and description, but it ignores references by default!
-References can be checked in fast run mode by setting `fast_run_use_refs` to `True`.
+References can be checked in fast run mode by setting `use_refs` to `True`.
+
+# Debugging #
+
+You can enable debugging by adding this piece of code to the top of your project:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+```

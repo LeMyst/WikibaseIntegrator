@@ -1,88 +1,91 @@
+from typing import Any, Dict, List
+
+
 class MWApiError(Exception):
-    def __init__(self, error_message):
+    """
+    Base class for MediaWiki API error handling
+    """
+    code: str
+    info: Dict[str, Any]
+    messages: List[Dict[str, Any]]
+    messages_names: List[str]
+
+    @property
+    def get_conflicting_entity_ids(self) -> List[str]:
         """
-        Base class for Mediawiki API error handling
-        :param error_message: The error message returned by the Mediawiki API
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
+        Compute the list of conflicting entities from the error messages.
+
+        :return: A list of conflicting entities or an empty list
         """
-        self.error_msg = error_message
+
+        return list(
+            {
+                message['parameters'][2].split('|')[0][2:].replace("Property:", "") for message in self.messages
+                if message['name'].endswith('-conflict')
+            }
+        )
+
+    @property
+    def get_languages(self) -> List[str]:
+        """
+        Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
+
+        :return: A list of language identifiers or an empty list
+        """
+
+        return list(
+            {
+                message['parameters'][1] for message in self.messages
+                if message['name'].endswith('-conflict')
+            }
+        )
+
+    def __init__(self, error_dict: Dict[str, Any]):
+        super().__init__(error_dict['info'])
+        self.code = error_dict['code']
+        self.info = error_dict['info']
+        self.messages = error_dict['messages']
+        self.messages_names = [message['name'] for message in error_dict['messages']]
 
     def __str__(self):
-        return repr(self.error_msg)
+        return repr(self.info)
+
+    def __repr__(self):
+        """A mixin implementing a simple __repr__."""
+        return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
+            klass=self.__class__.__name__,
+            id=id(self) & 0xFFFFFF,
+            attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
+        )
 
 
-class NonUniqueLabelDescriptionPairError(MWApiError):
-    def __init__(self, error_message):
-        """
-        This class handles errors returned from the API due to an attempt to create an item which has the same
-         label and description as an existing item in a certain language.
-        :param error_message: An API error message containing 'wikibase-validator-label-with-description-conflict'
-         as the message name.
-        :type error_message: A Python json representation dictionary of the error message
-        :return:
-        """
-        self.error_msg = error_message
-
-    def get_language(self):
-        """
-        :return: Returns a 2 letter language string, indicating the language which triggered the error
-        """
-        return self.error_msg['error']['messages'][0]['parameters'][1]
-
-    def get_conflicting_item_qid(self):
-        """
-        :return: Returns the QID string of the item which has the same label and description as the one which should
-         be set.
-        """
-        qid_string = self.error_msg['error']['messages'][0]['parameters'][2]
-
-        return qid_string.split('|')[0][2:]
-
-    def __str__(self):
-        return repr(self.error_msg)
+class ModificationFailed(MWApiError):
+    """
+    When the API return a 'modification-failed' error
+    """
+    pass
 
 
-class IDMissingError(Exception):
-    def __init__(self, value):
-        self.value = value
+class SaveFailed(MWApiError):
+    """
+    When the API return a 'save-failed' error
+    """
 
-    def __str__(self):
-        return repr(self.value)
+    def __init__(self, error_dict: Dict[str, Any]):
+        super().__init__(error_dict)
+
+
+class NonExistentEntityError(MWApiError):
+    pass
+
+
+class MaxRetriesReachedException(Exception):
+    pass
+
+
+class MissingEntityException(Exception):
+    pass
 
 
 class SearchError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class ManualInterventionReqException(Exception):
-    def __init__(self, value, property_string, item_list):
-        self.value = value + f' Property: {property_string}, items affected: {item_list}'
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class CorePropIntegrityException(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class MergeError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class SearchOnlyError(Exception):
-    """Raised when the ItemEngine is in search_only mode"""
     pass

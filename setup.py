@@ -6,13 +6,30 @@ setup(
     name="wikibaseintegrator",
     install_requires=[
         "backoff >= 1.11.1,< 2.2.0",
-        "mwoauth ~= 0.3.7",
+        "mwoauth ~= 0.3.8",
         "oauthlib ~= 3.2.0",
         "requests >= 2.27.1,< 2.29.0",
-        "simplejson ~= 3.17.5"
+        "requests-oauthlib ~= 1.3.1",
+        "ujson ~= 5.4.0"
     ],
     extras_require={
-        "dev": ["pytest"],
+        "dev": [
+            "pytest",
+            "pylint",
+            "pylint-exit",
+            "mypy",
+            "codespell",
+            "flynt"
+        ],
+        "docs": [
+            "Sphinx ~= 4.5.0",
+            "readthedocs-sphinx-ext ~= 2.1.5",
+            "sphinx-rtd-theme ~= 1.0.0",
+            "sphinx_github_changelog ~= 1.2.0",
+            "m2r2 ~= 0.3.2",
+            "sphinx-autodoc-typehints ~= 1.18.1"
+        ],
+        "notebooks": ["jupyter"],
         "coverage": ["pytest-cov"],
     },
 )
