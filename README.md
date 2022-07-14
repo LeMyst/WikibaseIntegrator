@@ -1,7 +1,8 @@
 # Wikibase Integrator #
 
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
-[![Python package](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-package.yml)
+[![Python pytest](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-pytest.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-pytest.yml)
+[![Python Code Quality and Lint](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-lint.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-lint.yml)
 [![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yml)
 [![Pyversions](https://img.shields.io/pypi/implementation/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![Read the Docs](https://readthedocs.org/projects/pip/badge/?version=latest&style=flat)](https://wikibaseintegrator.readthedocs.io)
