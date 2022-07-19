@@ -18,7 +18,7 @@ on:
       - 'poetry.lock'
 
 jobs:
-  build:
+  pytest:
     name: pytest ${{ matrix.python-version }}/${{ matrix.mediawiki-version }}
     runs-on: ubuntu-latest
     container: ubuntu
@@ -52,7 +52,7 @@ jobs:
 
       - name: Set up Docker containers with v${{ matrix.mediawiki-version }}
         run: |
-          docker-compose -f ./docker-compose.yml -f ./docker-compose.extra.yml up -d
+          docker compose -f ./docker-compose.yml -f ./docker-compose.extra.yml up -d
         working-directory: test/docker-compose
         env:
           WIKIBASE_BUNDLE_IMAGE_NAME: wikibase/wikibase-bundle:${{ matrix.mediawiki-version }}
