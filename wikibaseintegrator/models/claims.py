@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -26,14 +27,12 @@ class Claims(BaseModel):
         return self.claims[property]
 
     def remove(self, property: str = None) -> None:
+        """We remove all claims with the specified property
+
+        :param property: Property of claims to be removed"""
         if property in self.claims:
-            for prop in self.claims[property]:
-                if prop.id:
-                    prop.remove()
-                else:
-                    self.claims[property].remove(prop)
-            if len(self.claims[property]) == 0:
-                del self.claims[property]
+            logging.debug(f"property {property} was found in the claims")
+            del self.claims[property]
 
     def add(self, claims: Union[Claims, List[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
         """
@@ -203,6 +202,7 @@ class Claim(BaseModel):
 
     @property
     def id(self) -> Optional[str]:
+        # TODO: document the purpose of this method
         return self.__id
 
     @id.setter

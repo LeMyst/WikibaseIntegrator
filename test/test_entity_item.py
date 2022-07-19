@@ -63,3 +63,12 @@ class TestEntityItem(unittest.TestCase):
 
     def test_long_item_id(self):
         assert wbi.item.get('Item:Q582').id == 'Q582'
+
+    def test_remove_claims(self):
+        """This tests removal of all claims with a specified property"""
+        item = wbi.item.get('Q582')
+        list_of_claims = item.claims.get(property='P2581')
+        assert list_of_claims != []
+        item.claims.remove(property='P2581')
+        with self.assertRaises(KeyError):
+            item.claims.get('P2581')
