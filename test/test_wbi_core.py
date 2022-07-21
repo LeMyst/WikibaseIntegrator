@@ -6,7 +6,7 @@ from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, G
                                           Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.models import Descriptions
+from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatePrecision, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities

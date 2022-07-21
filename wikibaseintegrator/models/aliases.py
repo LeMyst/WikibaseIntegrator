@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Union
 
+from wikibaseintegrator.models.alias import Alias
 from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -91,7 +91,3 @@ class Aliases(BaseModel):
     # def __contains__(self, item):
     #     all_aliases = [item for sublist in list(self.aliases.values()) for item in sublist]
     #     return item in list(map(lambda x: x.value, all_aliases))
-
-
-class Alias(LanguageValue):
-    pass
