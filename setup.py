@@ -22,7 +22,7 @@ setup(
             "flynt"
         ],
         "docs": [
-            "Sphinx >= 4.5,< 5.1",
+            "Sphinx >= 4.5,< 5.2",
             "readthedocs-sphinx-ext ~= 2.1.5",
             "sphinx-rtd-theme ~= 1.0.0",
             "sphinx_github_changelog ~= 1.2.0",
