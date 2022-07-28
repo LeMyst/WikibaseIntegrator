@@ -27,7 +27,7 @@ setup(
             "sphinx-rtd-theme ~= 1.0.0",
             "sphinx_github_changelog ~= 1.2.0",
             "m2r2 ~= 0.3.2",
-            "sphinx-autodoc-typehints ~= 1.18.1"
+            "sphinx-autodoc-typehints >= 1.18.1,< 1.20.0"
         ],
         "notebooks": ["jupyter"],
         "coverage": ["pytest-cov"],
