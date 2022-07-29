@@ -63,7 +63,9 @@ class ModificationFailed(MWApiError):
     """
     When the API return a 'modification-failed' error
     """
-    pass
+
+    def __init__(self, error_dict: Dict[str, Any]):
+        super().__init__(error_dict)
 
 
 class SaveFailed(MWApiError):
