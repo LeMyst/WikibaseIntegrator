@@ -19,11 +19,11 @@ updates:
       - "LeMyst"
     open-pull-requests-limit: 10
 
-  # Maintain dependencies for documentation
-  - package-ecosystem: "pip"
-    directory: "/docs/"
-    schedule:
-      interval: "daily"
-    assignees:
-      - "LeMyst"
-    open-pull-requests-limit: 10
+#  # Maintain dependencies for documentation
+#  - package-ecosystem: "pip"
+#    directory: "/docs/"
+#    schedule:
+#      interval: "daily"
+#    assignees:
+#      - "LeMyst"
+#    open-pull-requests-limit: 10
