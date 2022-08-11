@@ -51,8 +51,8 @@ class TestWbiExceptions(TestCase):
                                 },
                       'servedby': 'mw1375'}
 
-        with self.assertRaises(KeyError):
-            ModificationFailed(error_dict['error'])
+        exception = ModificationFailed(error_dict['error'])
+        assert 'wikibaseintegrator-missing-messages' in exception.messages_names
 
     def test_failed_save_no_conflict(self):
         error_dict = {'error': {'*': 'See https://test.wikidata.org/w/api.php for API usage. '
@@ -134,3 +134,11 @@ class TestWbiExceptions(TestCase):
     @staticmethod
     def test_searcherror():
         assert str(SearchError('SearchError')) == 'SearchError'
+
+    def test_modification_failed_error_dict(self):
+        error_dict = {'error': {}}
+
+        exception = ModificationFailed(error_dict['error'])
+        assert 'wikibaseintegrator-missing-messages' in exception.messages_names
+        assert exception.info == 'MWApiError'
+        assert exception.code == 'wikibaseintegrator-missing-error-code'

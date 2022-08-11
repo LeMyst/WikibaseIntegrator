@@ -6,7 +6,7 @@ class MWApiError(Exception):
     Base class for MediaWiki API error handling
     """
     code: str
-    info: Dict[str, Any]
+    info: str
     messages: List[Dict[str, Any]]
     messages_names: List[str]
 
@@ -41,11 +41,18 @@ class MWApiError(Exception):
         )
 
     def __init__(self, error_dict: Dict[str, Any]):
-        super().__init__(error_dict['info'])
-        self.code = error_dict['code']
-        self.info = error_dict['info']
-        self.messages = error_dict['messages']
-        self.messages_names = [message['name'] for message in error_dict['messages']]
+        if 'info' in error_dict:
+            self.info = error_dict['info']
+        else:
+            self.info = 'MWApiError'
+        super().__init__(self.info)
+        self.code = error_dict['code'] if 'code' in error_dict else 'wikibaseintegrator-missing-error-code'
+        if 'messages' in error_dict:
+            self.messages = error_dict['messages']
+            self.messages_names = [message['name'] for message in error_dict['messages']]
+        else:
+            self.messages = [{'html': {'*': 'WikibaseIntegrator: missing message from HTML return.'}, 'name': 'wikibaseintegrator-missing-messages'}]
+            self.messages_names = ['wikibaseintegrator-missing-messages']
 
     def __str__(self):
         return repr(self.info)
