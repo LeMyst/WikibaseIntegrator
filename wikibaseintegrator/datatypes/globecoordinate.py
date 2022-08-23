@@ -2,7 +2,7 @@ import re
 from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.models import Claim
+from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_config import config
 
 

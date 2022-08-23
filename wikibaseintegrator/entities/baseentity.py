@@ -8,7 +8,8 @@ import ujson
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
-from wikibaseintegrator.models.claims import Claim, Claims
+from wikibaseintegrator.models.claim import Claim
+from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MissingEntityException, ModificationFailed, MWApiError
 from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper

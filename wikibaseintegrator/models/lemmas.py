@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Dict
 
-from wikibaseintegrator.models.language_values import LanguageValue, LanguageValues
+from wikibaseintegrator.models.language_value import LanguageValue
+from wikibaseintegrator.models.language_values import LanguageValues
 
 
 class Lemmas(LanguageValues):

@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, List, Union
 
 from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.models.snaks import Snak
+from wikibaseintegrator.models.snak import Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.models.claims import Claim
+    from wikibaseintegrator.models.claim import Claim
 
 
 class Qualifiers(BaseModel):

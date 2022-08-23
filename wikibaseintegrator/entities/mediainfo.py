@@ -4,10 +4,11 @@ import re
 from typing import Any, Dict, List, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models import Claims, LanguageValues
 from wikibaseintegrator.models.aliases import Aliases
+from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
+from wikibaseintegrator.models.language_values import LanguageValues
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 

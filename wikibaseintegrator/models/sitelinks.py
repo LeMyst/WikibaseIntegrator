@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.models.sitelink import Sitelink
 
 
 class Sitelinks(BaseModel):
@@ -25,13 +26,3 @@ class Sitelinks(BaseModel):
             self.set(site=json_data[sitelink]['site'], title=json_data[sitelink]['title'], badges=json_data[sitelink]['badges'])
 
         return self
-
-
-class Sitelink(BaseModel):
-    def __init__(self, site: str = None, title: str = None, badges: List[str] = None):
-        self.site = site
-        self.title = title
-        self.badges: List[str] = badges or []
-
-    def __str__(self):
-        return self.title

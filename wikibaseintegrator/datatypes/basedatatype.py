@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any, List, Type, Union
 
-from wikibaseintegrator.models import Claim
+from wikibaseintegrator.models.claim import Claim
 
 
 class BaseDataType(Claim):
