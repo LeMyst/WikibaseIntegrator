@@ -215,7 +215,7 @@ class Claim(BaseModel):
 
     @rank.setter
     def rank(self, value: WikibaseRank):
-        """Parse the rank. The enum thows an error if it is not one of the recognized values"""
+        """Parse the rank. The enum throws an error if it is not one of the recognized values"""
         self.__rank = WikibaseRank(value)
 
     @property
