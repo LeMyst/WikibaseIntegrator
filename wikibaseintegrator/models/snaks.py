@@ -64,7 +64,7 @@ class Snak(BaseModel):
 
     @snaktype.setter
     def snaktype(self, value: WikibaseSnakType):
-        """Parse the snaktype. The enum thows an error if it is not one of the recognized values"""
+        """Parse the snaktype. The enum throws an error if it is not one of the recognized values"""
         self.__snaktype = WikibaseSnakType(value)
 
     @property
