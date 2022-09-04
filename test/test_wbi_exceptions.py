@@ -34,6 +34,26 @@ class TestWbiExceptions(TestCase):
         assert 'Q582' in modification_failed.get_conflicting_entity_ids
         assert 'en' in modification_failed.get_languages
 
+    def test_invalid_claim(self):
+        error_dict = {
+            'error': {
+                '*': 'See https://test.wikidata.org/w/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/mailman/listinfo/mediawiki-api-announce&gt; for notice of API deprecations and breaking changes.',
+                'code': 'invalid-claim',
+                'info': "'' is not a valid property ID",
+                'messages': [{
+                    'name': 'wikibase-api-invalid-claim',
+                    'parameters': ["'' is not a valid property ID"],
+                    'html': {'*': '<i> is not a valid property ID</i>'}
+                }],
+            }}
+
+        invalid_claim = ModificationFailed(error_dict['error'])
+
+        assert str(invalid_claim) == '"\'\' is not a valid property ID"'
+        assert invalid_claim.code == 'invalid-claim'
+        assert invalid_claim.info == "'' is not a valid property ID"
+        assert 'wikibase-api-invalid-claim' in invalid_claim.messages_names
+
     def test_modification_failed_no_dict(self):
         error_dict = {}
         with self.assertRaises(KeyError):
