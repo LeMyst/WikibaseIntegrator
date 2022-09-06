@@ -254,16 +254,15 @@ class BaseEntity:
         try:
             json_result: dict = mediawiki_api_call_helper(data=payload, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
         except Exception:
-            logging.exception('Error while writing to the Wikibase instance')
+            log.error('Error while writing to the Wikibase instance')
             raise
+        if 'error' in json_result:
+            if 'code' in json_result['error'] and json_result['error']['code'] == 'modification-failed':
+                raise ModificationFailed(json_result['error'])
+            raise MWApiError(json_result)
         else:
-            if 'error' in json_result:
-                if 'code' in json_result['error'] and json_result['error']['code'] == 'modification-failed':
-                    raise ModificationFailed(json_result['error'])
-
-                raise MWApiError(json_result)
-
-        return json_result['entity']
+            # No errors reported so return the entity key
+            return json_result['entity']
 
     def delete(self, login: _Login = None, allow_anonymous: bool = False, is_bot: bool = None, **kwargs: Any):
         """
