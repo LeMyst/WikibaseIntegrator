@@ -10,7 +10,7 @@ from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import MissingEntityException, ModificationFailed, MWApiError
+from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
@@ -254,7 +254,7 @@ class BaseEntity:
         try:
             json_result: dict = mediawiki_api_call_helper(data=payload, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
         except Exception:
-            logging.exception('Error while writing to the Wikibase instance')
+            log.exception('Error while writing to the Wikibase instance')
             raise
 
         return json_result['entity']
