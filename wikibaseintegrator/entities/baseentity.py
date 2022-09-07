@@ -256,12 +256,6 @@ class BaseEntity:
         except Exception:
             logging.exception('Error while writing to the Wikibase instance')
             raise
-        else:
-            if 'error' in json_result:
-                if 'code' in json_result['error'] and json_result['error']['code'] == 'modification-failed':
-                    raise ModificationFailed(json_result['error'])
-
-                raise MWApiError(json_result)
 
         return json_result['entity']
 
