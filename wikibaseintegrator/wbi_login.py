@@ -239,9 +239,9 @@ class Login(_Login):
             raise LoginError(f"Login failed. Reason: '{login_result['login']['reason']}'")
 
         if 'warnings' in login_result:
-            logging.warning("MediaWiki login warnings messages:")
+            log.warning("MediaWiki login warnings messages:")
             for message in login_result['warnings']:
-                logging.warning(f"* {message}: {login_result['warnings'][message]['*']}")
+                log.warning(f"* {message}: {login_result['warnings'][message]['*']}")
 
         super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
 
@@ -296,9 +296,9 @@ class Clientlogin(_Login):
             raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
 
         if 'warnings' in login_result:
-            logging.warning("MediaWiki login warnings messages:")
+            log.warning("MediaWiki login warnings messages:")
             for message in login_result['warnings']:
-                logging.warning(f"* {message}: {login_result['warnings'][message]['*']}")
+                log.warning(f"* {message}: {login_result['warnings'][message]['*']}")
 
         super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
 

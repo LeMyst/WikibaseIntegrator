@@ -11,12 +11,14 @@ import requests
 
 from wikibaseintegrator.wbi_config import config
 
+log = logging.getLogger(__name__)
+
 
 def wbi_backoff_backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
     if exc_type == JSONDecodeError:
-        logging.error(exc_value.doc)  # pragma: no cover
-    logging.error("Backing off %0.1f seconds afters %s tries calling function with args %r and kwargs %r", details['wait'], details['tries'], details['args'], details['kwargs'])
+        log.error(exc_value.doc)  # pragma: no cover
+    log.error("Backing off %0.1f seconds afters %s tries calling function with args %r and kwargs %r", details['wait'], details['tries'], details['args'], details['kwargs'])
 
 
 def wbi_backoff_check_json_decode_error(e) -> bool:
