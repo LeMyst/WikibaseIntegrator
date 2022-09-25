@@ -137,6 +137,7 @@ class Claim(BaseModel):
         :param qualifiers:
         :param rank:
         :param references: A References object, a list of Claim object or a list of list of Claim object
+        :param snaktype:
         """
         self.mainsnak = Snak(datatype=self.DTYPE, snaktype=snaktype)
         self.type = 'statement'
