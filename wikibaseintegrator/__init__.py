@@ -15,11 +15,6 @@ Basic read usage:
 
 Full documentation is available at <https://wikibaseintegrator.readthedocs.io/>.
 """
-import pkg_resources
 
+from .__version__ import __version__
 from .wikibaseintegrator import WikibaseIntegrator
-
-try:
-    __version__ = pkg_resources.get_distribution('wikibaseintegrator').version
-except pkg_resources.DistributionNotFound as e:  # pragma: no cover
-    __version__ = 'dev'
