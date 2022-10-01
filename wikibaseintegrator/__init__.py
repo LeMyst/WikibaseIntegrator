@@ -16,5 +16,6 @@ Basic read usage:
 Full documentation is available at <https://wikibaseintegrator.readthedocs.io/>.
 """
 
-from .__version__ import __version__
 from .wikibaseintegrator import WikibaseIntegrator
+
+__version__ = '0.12.2.dev0'
