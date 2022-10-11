@@ -472,7 +472,7 @@ def search_entities(search_string: str, language: Optional[str] = None, strict_l
     return results
 
 
-def fulltext_search(search, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any):
+def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
     """
     Perform a fulltext search on the mediawiki instance.
     It's an exception to the "only wikibase related function" rule!
