@@ -1,5 +1,5 @@
 Sphinx~=5.3.0
-readthedocs-sphinx-ext~=2.1.9
+readthedocs-sphinx-ext~=2.2.0
 sphinx-rtd-theme~=1.0.0
 sphinx_github_changelog~=1.2.0
 m2r2~=0.3.3
