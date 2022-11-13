@@ -8,7 +8,7 @@ from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.references import Reference, References
 from wikibaseintegrator.models.snaks import Snak, Snaks
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 
 class Claims(BaseModel):
@@ -131,14 +131,15 @@ class Claims(BaseModel):
 class Claim(BaseModel):
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Optional[Qualifiers] = None, rank: Optional[WikibaseRank] = None, references: Optional[Union[References, List[Union[Claim, List[Claim]]]]] = None) -> None:
+    def __init__(self, qualifiers: Optional[Qualifiers] = None, rank: Optional[WikibaseRank] = None, references: Optional[Union[References, List[Union[Claim, List[Claim]]]]] = None, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
         """
 
         :param qualifiers:
         :param rank:
         :param references: A References object, a list of Claim object or a list of list of Claim object
+        :param snaktype:
         """
-        self.mainsnak = Snak(datatype=self.DTYPE)
+        self.mainsnak = Snak(datatype=self.DTYPE, snaktype=snaktype)
         self.type = 'statement'
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []

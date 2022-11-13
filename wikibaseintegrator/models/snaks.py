@@ -100,7 +100,7 @@ class Snak(BaseModel):
 
     @datavalue.setter
     def datavalue(self, value):
-        if value is not None:
+        if value is not None and value != {}:
             self.snaktype = WikibaseSnakType.KNOWN_VALUE
         self.__datavalue = value
 

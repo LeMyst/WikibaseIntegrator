@@ -210,6 +210,9 @@ class TestWbiCore(unittest.TestCase):
         with self.assertRaises(ValueError):
             t4.mainsnak.snaktype = 'invalid_value'
 
+        t5 = String(prop_nr='P1', snaktype=WikibaseSnakType.NO_VALUE)
+        assert t5.mainsnak.get_json()['snaktype'] == WikibaseSnakType.NO_VALUE.value
+
     def test_new_item_creation(self):
         data = [
             String(value='test1', prop_nr='P1'),
