@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Optional
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.models import Claim
@@ -18,7 +18,7 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude: float = None, longitude: float = None, altitude: float = None, precision: float = None, globe: str = None, wikibase_url: str = None,
+    def __init__(self, latitude: Optional[float] = None, longitude: Optional[float] = None, altitude: Optional[float] = None, precision: Optional[float] = None, globe: Optional[str] = None, wikibase_url: Optional[str] = None,
                  **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
@@ -34,7 +34,7 @@ class GlobeCoordinate(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(latitude=latitude, longitude=longitude, altitude=altitude, precision=precision, globe=globe, wikibase_url=wikibase_url)
 
-    def set_value(self, latitude: float = None, longitude: float = None, altitude: float = None, precision: float = None, globe: str = None, wikibase_url: str = None):
+    def set_value(self, latitude: Optional[float] = None, longitude: Optional[float] = None, altitude: Optional[float] = None, precision: Optional[float] = None, globe: Optional[str] = None, wikibase_url: Optional[str] = None):
         # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
         precision = precision or 1 / 3600
         globe = globe or str(config['COORDINATE_GLOBE_QID'])

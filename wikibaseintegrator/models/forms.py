@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -8,7 +8,7 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 
 class Forms(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.forms: Dict[str, Form] = {}
 
     @property
@@ -42,7 +42,7 @@ class Forms(BaseModel):
 
 
 class Form(BaseModel):
-    def __init__(self, form_id: str = None, representations: Representations = None, grammatical_features: Union[str, int, List[str]] = None, claims: Claims = None):
+    def __init__(self, form_id: Optional[str] = None, representations: Optional[Representations] = None, grammatical_features: Optional[Union[str, int, List[str]]] = None, claims: Optional[Claims] = None):
         self.id = form_id
         self.representations: Representations = representations or LanguageValues()
         self.grammatical_features = grammatical_features or []

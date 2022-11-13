@@ -23,8 +23,8 @@ fastrun_store: List[FastRunContainer] = []
 
 
 class FastRunContainer:
-    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: str = None, sparql_endpoint_url: str = None, wikibase_url: str = None,
-                 base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False):
+    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: Optional[str] = None, sparql_endpoint_url: Optional[str] = None, wikibase_url: Optional[str] = None,
+                 base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, use_refs: bool = False, case_insensitive: bool = False):
         self.reconstructed_statements: List[BaseDataType] = []
         self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
         self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
@@ -110,7 +110,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_items(self, claims: Union[List[Claim], Claims, Claim], cqid: str = None) -> Optional[Set[str]]:
+    def get_items(self, claims: Union[List[Claim], Claims, Claim], cqid: Optional[str] = None) -> Optional[Set[str]]:
         """
         Get items ID from a SPARQL endpoint
 
@@ -173,7 +173,7 @@ class FastRunContainer:
 
         return matching_qids
 
-    def get_item(self, claims: Union[List[Claim], Claims, Claim], cqid: str = None) -> Optional[str]:
+    def get_item(self, claims: Union[List[Claim], Claims, Claim], cqid: Optional[str] = None) -> Optional[str]:
         """
 
         :param claims: A list of claims the entity should have
@@ -194,7 +194,7 @@ class FastRunContainer:
 
         return matching_qids.pop()
 
-    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, cqid: str = None) -> bool:
+    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, cqid: Optional[str] = None) -> bool:
         """
         Check if a write is required
 
@@ -639,7 +639,7 @@ class FastRunContainer:
         )
 
 
-def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def get_fastrun_container(base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     if base_filter is None:
         base_filter = []
 
@@ -649,7 +649,7 @@ def get_fastrun_container(base_filter: List[BaseDataType | List[BaseDataType]] =
     return fastrun_container
 
 
-def _search_fastrun_store(base_filter: List[BaseDataType | List[BaseDataType]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def _search_fastrun_store(base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_refs == use_refs) and (fastrun.case_insensitive == case_insensitive) and (
                 fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -10,7 +10,7 @@ class String(BaseDataType):
 
     DTYPE = 'string'
 
-    def __init__(self, value: str = None, **kwargs: Any):
+    def __init__(self, value: Optional[str] = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -20,7 +20,7 @@ class String(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: str = None):
+    def set_value(self, value: Optional[str] = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:

@@ -25,7 +25,7 @@ class _Login:
     """
 
     @wbi_backoff()
-    def __init__(self, session: Session = None, mediawiki_api_url: str = None, token_renew_period: int = 1800, user_agent: str = None):
+    def __init__(self, session: Optional[Session] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None):
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
@@ -105,8 +105,8 @@ class _Login:
 
 class OAuth2(_Login):
     @wbi_backoff()
-    def __init__(self, consumer_token: str = None, consumer_secret: str = None, mediawiki_api_url: str = None, mediawiki_rest_url: str = None, token_renew_period: int = 1800,
-                 user_agent: str = None):
+    def __init__(self, consumer_token: Optional[str] = None, consumer_secret: Optional[str] = None, mediawiki_api_url: Optional[str] = None, mediawiki_rest_url: Optional[str] = None, token_renew_period: int = 1800,
+                 user_agent: Optional[str] = None):
         """
         This class is used to interact with the OAuth2 API.
 
@@ -131,8 +131,8 @@ class OAuth2(_Login):
 class OAuth1(_Login):
 
     @wbi_backoff()
-    def __init__(self, consumer_token: str = None, consumer_secret: str = None, access_token: str = None, access_secret: str = None, callback_url: str = 'oob',
-                 mediawiki_api_url: str = None, mediawiki_index_url: str = None, token_renew_period: int = 1800, user_agent: str = None):
+    def __init__(self, consumer_token: Optional[str] = None, consumer_secret: Optional[str] = None, access_token: Optional[str] = None, access_secret: Optional[str] = None, callback_url: str = 'oob',
+                 mediawiki_api_url: Optional[str] = None, mediawiki_index_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None):
         """
         This class is used to interact with the OAuth1 API.
 
@@ -169,7 +169,7 @@ class OAuth1(_Login):
             except OAuthException as err:
                 raise LoginError(err) from err
 
-    def continue_oauth(self, oauth_callback_data: str = None) -> None:
+    def continue_oauth(self, oauth_callback_data: Optional[str] = None) -> None:
         """
         Continuation of OAuth procedure. Method must be explicitly called in order to complete OAuth. This allows
         external entities, e.g. websites, to provide tokens through callback URLs directly.
@@ -199,7 +199,7 @@ class OAuth1(_Login):
 
 class Login(_Login):
     @wbi_backoff()
-    def __init__(self, user: str = None, password: str = None, mediawiki_api_url: str = None, token_renew_period: int = 1800, user_agent: str = None):
+    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None):
         """
         This class is used to log in with a bot password
 
@@ -248,7 +248,7 @@ class Login(_Login):
 
 class Clientlogin(_Login):
     @wbi_backoff()
-    def __init__(self, user: str = None, password: str = None, mediawiki_api_url: str = None, token_renew_period: int = 1800, user_agent: str = None):
+    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None):
         """
         This class is used to log in with a user account
 

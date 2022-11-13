@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Optional
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -16,7 +16,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: str = None, **kwargs: Any):
+    def __init__(self, value: Optional[str] = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -39,7 +39,7 @@ class GeoShape(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: str = None):
+    def set_value(self, value: Optional[str] = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:

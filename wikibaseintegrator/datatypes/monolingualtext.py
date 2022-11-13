@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Optional
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -17,7 +17,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text: str = None, language: str = None, **kwargs: Any):
+    def __init__(self, text: Optional[str] = None, language: Optional[str] = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -28,7 +28,7 @@ class MonolingualText(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(text=text, language=language)
 
-    def set_value(self, text: str = None, language: str = None):
+    def set_value(self, text: Optional[str] = None, language: Optional[str] = None):
         language = language or str(config['DEFAULT_LANGUAGE'])
 
         assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"

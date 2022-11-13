@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Qualifiers(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.qualifiers: Dict[str, List[Snak]] = {}
 
     @property

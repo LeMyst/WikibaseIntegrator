@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class References(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.references: List[Reference] = []
 
     @property
@@ -22,14 +22,14 @@ class References(BaseModel):
     def references(self, value: List[Reference]):
         self.__references = value
 
-    def get(self, hash: str = None) -> Optional[Reference]:
+    def get(self, hash: Optional[str] = None) -> Optional[Reference]:
         for reference in self.references:
             if reference.hash == hash:
                 return reference
         return None
 
     # TODO: implement action_if_exists
-    def add(self, reference: Union[Reference, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> References:
+    def add(self, reference: Optional[Union[Reference, Claim]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> References:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
@@ -80,7 +80,7 @@ class References(BaseModel):
 
 
 class Reference(BaseModel):
-    def __init__(self, snaks: Snaks = None, snaks_order: List = None):
+    def __init__(self, snaks: Optional[Snaks] = None, snaks_order: Optional[List] = None):
         self.hash = None
         self.snaks = snaks or Snaks()
         self.snaks_order = snaks_order or []
@@ -110,7 +110,7 @@ class Reference(BaseModel):
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
-    def add(self, snak: Union[Snak, Claim] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Reference:
+    def add(self, snak: Optional[Union[Snak, Claim]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Reference:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])
