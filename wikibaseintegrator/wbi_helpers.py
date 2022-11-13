@@ -472,6 +472,28 @@ def search_entities(search_string: str, language: Optional[str] = None, strict_l
     return results
 
 
+def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
+    """
+    Perform a fulltext search on the mediawiki instance.
+    It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
+
+    :param search: Search for page titles or content matching this value. You can use the search string to invoke special search features, depending on what the wiki's search backend implements.
+    :param max_results: How many total pages to return. The value must be between 1 and 500.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper()
+    :return:
+    """
+    params = {
+        'action': 'query',
+        'list': 'search',
+        'srsearch': search,
+        'srlimit': max_results,
+        'format': 'json'
+    }
+
+    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['query']['search']
+
+
 def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: bool = True, **kwargs: Any) -> List[Tuple[str, BaseEntity]]:
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
