@@ -13,7 +13,7 @@ from wikibaseintegrator.wbi_config import config
 class LexemeEntity(BaseEntity):
     ETYPE = 'lexeme'
 
-    def __init__(self, lemmas: Lemmas = None, lexical_category: str = None, language: str = None, forms: Forms = None, senses: Senses = None, **kwargs: Any):
+    def __init__(self, lemmas: Optional[Lemmas] = None, lexical_category: Optional[str] = None, language: Optional[str] = None, forms: Optional[Forms] = None, senses: Optional[Senses] = None, **kwargs: Any):
         super().__init__(**kwargs)
 
         self.lemmas: Lemmas = lemmas or Lemmas()

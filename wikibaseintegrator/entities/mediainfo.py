@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models import Claims, LanguageValues
@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 class MediaInfoEntity(BaseEntity):
     ETYPE = 'mediainfo'
 
-    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any) -> None:
+    def __init__(self, labels: Optional[Labels] = None, descriptions: Optional[Descriptions] = None, aliases: Optional[Aliases] = None, **kwargs: Any) -> None:
         """
 
         :param api:

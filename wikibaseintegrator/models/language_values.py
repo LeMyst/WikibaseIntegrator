@@ -8,7 +8,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class LanguageValues(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.values: Dict[str, LanguageValue] = {}
 
     @property
@@ -36,7 +36,7 @@ class LanguageValues(BaseModel):
 
         return self
 
-    def get(self, language: str = None) -> Optional[LanguageValue]:
+    def get(self, language: Optional[str] = None) -> Optional[LanguageValue]:
         """
         Get a LanguageValue object with the specified language. Use the default language in wbi_config if none specified.
 
@@ -49,7 +49,7 @@ class LanguageValues(BaseModel):
 
         return None
 
-    def set(self, language: str = None, value: str = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Optional[LanguageValue]:
+    def set(self, language: Optional[str] = None, value: Optional[str] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Optional[LanguageValue]:
         """
         Create or update the specified language with the valued passed in arguments.
 
@@ -106,7 +106,7 @@ class LanguageValues(BaseModel):
 
 
 class LanguageValue(BaseModel):
-    def __init__(self, language: str, value: str = None):
+    def __init__(self, language: str, value: Optional[str] = None):
         self.language = language
         self.value = value
         self.removed = False

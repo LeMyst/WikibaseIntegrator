@@ -44,7 +44,7 @@ class BColors:
 default_session = requests.Session()
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Session = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
+def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, session: Optional[Session] = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
     """
     A function to call the MediaWiki API.
 
@@ -135,7 +135,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str = None, session: Sess
     return json_data
 
 
-def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediawiki_api_url: str = None, user_agent: str = None, allow_anonymous: bool = False,
+def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = None, mediawiki_api_url: Optional[str] = None, user_agent: Optional[str] = None, allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A simplified function to call the MediaWiki API.
@@ -212,7 +212,7 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: _Login = None, mediaw
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, user_agent: str = None, max_retries: int = 1000, retry_after: int = 60) -> Dict[str, Dict]:
+def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Optional[str] = None, user_agent: Optional[str] = None, max_retries: int = 1000, retry_after: int = 60) -> Dict[str, Dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -274,7 +274,7 @@ def execute_sparql_query(query: str, prefix: str = None, endpoint: str = None, u
     raise Exception(f"No result after {max_retries} retries.")
 
 
-def merge_items(from_id: str, to_id: str, login: _Login = None, ignore_conflicts: List[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_items(from_id: str, to_id: str, login: Optional[_Login] = None, ignore_conflicts: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two items
 
@@ -301,7 +301,7 @@ def merge_items(from_id: str, to_id: str, login: _Login = None, ignore_conflicts
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: _Login = None, summary: str = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_lexemes(source: str, target: str, login: Optional[_Login] = None, summary: Optional[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A static method to merge two lexemes
 
@@ -328,7 +328,7 @@ def merge_lexemes(source: str, target: str, login: _Login = None, summary: str =
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def remove_claims(claim_id: str, summary: Optional[str] = None, baserevid: Optional[int] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     Delete a claim from an entity
 
@@ -356,8 +356,8 @@ def remove_claims(claim_id: str, summary: str = None, baserevid: int = None, is_
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def delete_page(title: str = None, pageid: int = None, reason: str = None, deletetalk: bool = False, watchlist: str = 'preferences', watchlistexpiry: str = None,
-                login: _Login = None, **kwargs: Any) -> Dict:
+def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reason: Optional[str] = None, deletetalk: bool = False, watchlist: str = 'preferences', watchlistexpiry: Optional[str] = None,
+                login: Optional[_Login] = None, **kwargs: Any) -> Dict:
     """
     Delete a page
 
@@ -406,7 +406,7 @@ def delete_page(title: str = None, pageid: int = None, reason: str = None, delet
     return mediawiki_api_call_helper(data=params, login=login, **kwargs)
 
 
-def search_entities(search_string: str, language: str = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
+def search_entities(search_string: str, language: Optional[str] = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
                     allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class Snaks(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.snaks: Dict[str, List[Snak]] = {}
 
     def get(self, property: str) -> List[Snak]:
@@ -51,7 +51,7 @@ class Snaks(BaseModel):
 
 
 class Snak(BaseModel):
-    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str = None, hash: str = None, datavalue: Dict = None, datatype: str = None):
+    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: Optional[str] = None, hash: Optional[str] = None, datavalue: Optional[Dict] = None, datatype: Optional[str] = None):
         self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash

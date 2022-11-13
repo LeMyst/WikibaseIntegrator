@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Senses(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.senses: List[Sense] = []
 
     def get(self, id: str) -> Optional[Sense]:
@@ -39,7 +39,7 @@ class Senses(BaseModel):
 
 
 class Sense(BaseModel):
-    def __init__(self, sense_id: str = None, glosses: Glosses = None, claims: Claims = None):
+    def __init__(self, sense_id: Optional[str] = None, glosses: Optional[Glosses] = None, claims: Optional[Claims] = None):
         self.id = sense_id
         self.glosses: LanguageValues = glosses or Glosses()
         self.claims = claims or Claims()

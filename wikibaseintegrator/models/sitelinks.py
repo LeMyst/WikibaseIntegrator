@@ -6,16 +6,16 @@ from wikibaseintegrator.models.basemodel import BaseModel
 
 
 class Sitelinks(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.sitelinks: Dict[str, Sitelink] = {}
 
-    def get(self, site: str = None) -> Optional[Sitelink]:
+    def get(self, site: Optional[str] = None) -> Optional[Sitelink]:
         if site in self.sitelinks:
             return self.sitelinks[site]
 
         return None
 
-    def set(self, site: str, title: str = None, badges: List[str] = None) -> Sitelink:
+    def set(self, site: str, title: Optional[str] = None, badges: Optional[List[str]] = None) -> Sitelink:
         sitelink = Sitelink(site, title, badges)
         self.sitelinks[site] = sitelink
         return sitelink
@@ -28,7 +28,7 @@ class Sitelinks(BaseModel):
 
 
 class Sitelink(BaseModel):
-    def __init__(self, site: str = None, title: str = None, badges: List[str] = None):
+    def __init__(self, site: Optional[str] = None, title: Optional[str] = None, badges: Optional[List[str]] = None):
         self.site = site
         self.title = title
         self.badges: List[str] = badges or []

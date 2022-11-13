@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from abc import abstractmethod
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -11,7 +12,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 
 class Claims(BaseModel):
-    def __init__(self):
+    def __init__(self) -> None:
         self.claims: Dict[str, List[Claim]] = {}
 
     @property
@@ -25,7 +26,7 @@ class Claims(BaseModel):
     def get(self, property: str) -> List[Claim]:
         return self.claims[property]
 
-    def remove(self, property: str = None) -> None:
+    def remove(self, property: Optional[str] = None) -> None:
         if property in self.claims:
             for prop in self.claims[property]:
                 if prop.id:
@@ -130,7 +131,7 @@ class Claims(BaseModel):
 class Claim(BaseModel):
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Qualifiers = None, rank: WikibaseRank = None, references: Union[References, List[Union[Claim, List[Claim]]]] = None) -> None:
+    def __init__(self, qualifiers: Optional[Qualifiers] = None, rank: Optional[WikibaseRank] = None, references: Optional[Union[References, List[Union[Claim, List[Claim]]]]] = None) -> None:
         """
 
         :param qualifiers:
@@ -326,7 +327,7 @@ class Claim(BaseModel):
 
         raise super().__eq__(other)
 
-    def equals(self, that: Claim, include_ref: bool = False, fref: Callable = None) -> bool:
+    def equals(self, that: Claim, include_ref: bool = False, fref: Optional[Callable] = None) -> bool:
         """
         Tests for equality of two statements.
         If comparing references, the order of the arguments matters!!!
@@ -362,5 +363,6 @@ class Claim(BaseModel):
 
         return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
 
+    @abstractmethod
     def get_sparql_value(self) -> str:
         pass

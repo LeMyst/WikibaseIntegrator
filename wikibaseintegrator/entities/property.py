@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -13,7 +13,7 @@ from wikibaseintegrator.wbi_enums import WikibaseDatatype
 class PropertyEntity(BaseEntity):
     ETYPE = 'property'
 
-    def __init__(self, datatype: Union[str, WikibaseDatatype, None] = None, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, **kwargs: Any):
+    def __init__(self, datatype: Union[str, WikibaseDatatype, None] = None, labels: Optional[Labels] = None, descriptions: Optional[Descriptions] = None, aliases: Optional[Aliases] = None, **kwargs: Any):
         super().__init__(**kwargs)
 
         # Property specific

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models import LanguageValues
@@ -14,7 +14,7 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class ItemEntity(BaseEntity):
     ETYPE = 'item'
 
-    def __init__(self, labels: Labels = None, descriptions: Descriptions = None, aliases: Aliases = None, sitelinks: Sitelinks = None, **kwargs: Any) -> None:
+    def __init__(self, labels: Optional[Labels] = None, descriptions: Optional[Descriptions] = None, aliases: Optional[Aliases] = None, sitelinks: Optional[Sitelinks] = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -77,7 +77,7 @@ class ItemEntity(BaseEntity):
     def new(self, **kwargs: Any) -> ItemEntity:
         return ItemEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int] = None, **kwargs: Any) -> ItemEntity:
+    def get(self, entity_id: Optional[Union[str, int]] = None, **kwargs: Any) -> ItemEntity:
         """
         Request the MediaWiki API to get data for the entity specified in argument.
 

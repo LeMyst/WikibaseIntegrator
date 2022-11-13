@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, List, Type, Union
+from typing import Any, List, Optional, Type, Union
 
 from wikibaseintegrator.models import Claim
 
@@ -19,7 +19,7 @@ class BaseDataType(Claim):
         }}
     '''
 
-    def __init__(self, prop_nr: Union[int, str] = None, **kwargs: Any):
+    def __init__(self, prop_nr: Optional[Union[int, str]] = None, **kwargs: Any):
         """
         Constructor, will be called by all data types.
 
@@ -36,7 +36,7 @@ class BaseDataType(Claim):
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
 
-    def set_value(self, value: Any = None):
+    def set_value(self, value: Optional[Any] = None):
         pass
 
     def get_sparql_value(self) -> str:

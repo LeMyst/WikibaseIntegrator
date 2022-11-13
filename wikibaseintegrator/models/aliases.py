@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Aliases(BaseModel):
-    def __init__(self, language: str = None, value: str = None):
+    def __init__(self, language: Optional[str] = None, value: Optional[str] = None):
         self.aliases: Dict[str, List[Alias]] = {}
 
         if language is not None:
@@ -23,7 +23,7 @@ class Aliases(BaseModel):
     def aliases(self, value: Dict[str, List[Alias]]):
         self.__aliases = value
 
-    def get(self, language: str = None) -> Optional[List[Alias]]:
+    def get(self, language: Optional[str] = None) -> Optional[List[Alias]]:
         if language is None:
             # TODO: Don't return a list of list, just a list
             return [item for sublist in self.aliases.values() for item in sublist]
@@ -33,7 +33,7 @@ class Aliases(BaseModel):
 
         return None
 
-    def set(self, language: str = None, values: Union[str, List] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Aliases:
+    def set(self, language: Optional[str] = None, values: Optional[Union[str, List]] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Aliases:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
 

@@ -23,8 +23,8 @@ log = logging.getLogger(__name__)
 class BaseEntity:
     ETYPE = 'base-entity'
 
-    def __init__(self, api: 'WikibaseIntegrator' = None, title: str = None, pageid: int = None, lastrevid: int = None, type: str = None, id: str = None, claims: Claims = None,
-                 is_bot: bool = None, login: _Login = None):
+    def __init__(self, api: Optional['WikibaseIntegrator'] = None, title: Optional[str] = None, pageid: Optional[int] = None, lastrevid: Optional[int] = None, type: Optional[str] = None, id: Optional[str] = None, claims: Optional[Claims] = None,
+                 is_bot: Optional[bool] = None, login: Optional[_Login] = None):
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -159,7 +159,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: _Login = None, allow_anonymous: bool = True, is_bot: bool = None, **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
+    def _get(self, entity_id: str, login: Optional[_Login] = None, allow_anonymous: bool = True, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
         """
         Retrieve an entity in json representation from the Wikibase instance
 
@@ -192,7 +192,7 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def _write(self, data: Dict = None, summary: str = None, login: _Login = None, allow_anonymous: bool = False, clear: bool = False, is_bot: bool = None, **kwargs: Any) -> Dict[
+    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, clear: bool = False, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[
         str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
@@ -259,7 +259,7 @@ class BaseEntity:
 
         return json_result['entity']
 
-    def delete(self, login: _Login = None, allow_anonymous: bool = False, is_bot: bool = None, **kwargs: Any):
+    def delete(self, login: Optional[_Login] = None, allow_anonymous: bool = False, is_bot: Optional[bool] = None, **kwargs: Any):
         """
         Delete the current entity. Use the pageid first if available and fallback to the page title.
 
@@ -286,7 +286,7 @@ class BaseEntity:
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def write_required(self, base_filter: List[BaseDataType | List[BaseDataType]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
+    def write_required(self, base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
         if base_filter is None:
