@@ -475,7 +475,7 @@ def search_entities(search_string: str, language: Optional[str] = None, strict_l
 def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
     """
     Perform a fulltext search on the mediawiki instance.
-    It's an exception to the "only wikibase related function" rule!
+    It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
 
     :param search: Search for page titles or content matching this value. You can use the search string to invoke special search features, depending on what the wiki's search backend implements.
     :param max_results: How many total pages to return. The value must be between 1 and 500.
