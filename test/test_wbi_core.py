@@ -227,7 +227,7 @@ class TestWbiCore(unittest.TestCase):
             Time(time='-0458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
             Time(time='+458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
             Time(time='+2021-01-01T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr='P5'),
-            Time(time='now', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
+            Time(time='now', before=1, after=2, precision=WikibaseDatePrecision.MONTH, timezone=4, prop_nr='P5'),
             URL(value="http://www.wikidata.org", prop_nr='P6'),
             URL(value="https://www.wikidata.org", prop_nr='P6'),
             URL(value="ftp://example.com", prop_nr='P6'),

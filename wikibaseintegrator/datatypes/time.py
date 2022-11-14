@@ -24,7 +24,7 @@ class Time(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
 
-        :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601
+        :param time: Explicit value for point in time, represented as a timestamp resembling ISO 8601. You can use the keyword 'now' to get the current UTC date.
         :param prop_nr: The property number for this claim
         :param before: explicit integer value for how many units after the given time it could be.
                        The unit is given by the precision.
