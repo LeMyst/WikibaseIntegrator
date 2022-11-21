@@ -122,7 +122,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, ses
                 raise ModificationFailed(json_data['error'])
 
             # others case
-            raise MWApiError(json_data)
+            raise MWApiError(json_data['error'])
 
         # there is no error or waiting. break out of this loop and parse response
         break
