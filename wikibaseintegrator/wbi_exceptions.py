@@ -5,7 +5,7 @@ class MWApiError(Exception):
     """
     Base class for MediaWiki API error handling
     """
-    error_dict = {}
+    error_dict: Dict[str, Any] = {}
     code: str
     info: str
     messages: List[Dict[str, Any]]
