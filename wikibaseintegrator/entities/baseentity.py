@@ -192,8 +192,7 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, clear: bool = False, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[
-        str, Any]:
+    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, clear: bool = False, as_new: bool = False, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
 
@@ -202,6 +201,7 @@ class BaseEntity:
         :param login: A login instance
         :param allow_anonymous: Force a check if the query can be anonymous or not
         :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
+        :param as_new: Write the entity as a new one
         :param is_bot: Add the bot flag to the query
         :param kwargs: More arguments for Python requests
         :return: A dictionary representation of the edited Entity
@@ -238,16 +238,19 @@ class BaseEntity:
         if is_bot:
             payload.update({'bot': ''})
 
-        if clear:
-            payload.update({'clear': True})
+        if not as_new:
+            if clear:
+                payload.update({'clear': True})
 
-        if self.id:
-            payload.update({'id': self.id})
+            if self.id:
+                payload.update({'id': self.id})
+            else:
+                payload.update({'new': self.type})
+
+            if self.lastrevid:
+                payload.update({'baserevid': self.lastrevid})
         else:
             payload.update({'new': self.type})
-
-        if self.lastrevid:
-            payload.update({'baserevid': self.lastrevid})
 
         login = login or self.api.login
 
