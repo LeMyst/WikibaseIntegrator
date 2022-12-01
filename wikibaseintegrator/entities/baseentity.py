@@ -224,6 +224,9 @@ class BaseEntity:
         #                 new_json_repr['claims'].pop(claim)
         #     data = json.JSONEncoder().encode(new_json_repr)
 
+        if as_new:
+            data['id'] = None
+
         payload: Dict[str, Any] = {
             'action': 'wbeditentity',
             'data': ujson.dumps(data),
@@ -251,6 +254,7 @@ class BaseEntity:
                 payload.update({'baserevid': self.lastrevid})
         else:
             payload.update({'new': self.type})
+            self.id = None
 
         login = login or self.api.login
 
