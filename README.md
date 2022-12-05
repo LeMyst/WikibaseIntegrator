@@ -59,9 +59,20 @@ wikibaseintegrator~=0.11.3
 # WikibaseIntegrator / WikidataIntegrator #
 
 WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
-purpose is to focus on compatibility with Wikibase. There have been many improvements which have led to radical changes
-in the code. See the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
-changed.
+purpose is to focus on an improved compatibility with Wikibase and adding missing functionalities.
+The main differences between these two libraries are :
+
+* A complete rewrite of the library with an object-oriented architecture allowing for easy interaction, data validation
+  and extended functionality
+* Add support for reading and writing Lexeme, MediaInfo and Property datatypes
+* Add support for [Structured Data on Commons](https://commons.wikimedia.org/wiki/Commons:Structured_data) (SDC)
+* Python 3.7 to 3.11 suport, validated with unit tests
+* Type hints implementation for arguments and return
+* Improved login methods (OAuth 2.0, OAuth 1.0a, bot password and login/password)
+* Support for additionnal datatypes like EDTF and LocalMedia
+* Add logging module support
+
+But WikibaseIntegrator lack to "fastrun" implemented in WikidataIntegrator.
 
 # Documentation #
 
