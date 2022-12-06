@@ -69,10 +69,9 @@ The main differences between these two libraries are :
 * Python 3.7 to 3.11 suport, validated with unit tests
 * Type hints implementation for arguments and return
 * Improved login methods (OAuth 2.0, OAuth 1.0a, bot password and login/password)
-* Support for additionnal datatypes like EDTF and LocalMedia
 * Add logging module support
 
-But WikibaseIntegrator lack to "fastrun" implemented in WikidataIntegrator.
+But WikibaseIntegrator lack the "fastrun" functionality implemented in WikidataIntegrator.
 
 # Documentation #
 
