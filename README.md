@@ -66,7 +66,7 @@ The main differences between these two libraries are :
   and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property datatypes
 * Add support for [Structured Data on Commons](https://commons.wikimedia.org/wiki/Commons:Structured_data) (SDC)
-* Python 3.7 to 3.11 suport, validated with unit tests
+* Python 3.7 to 3.11 support, validated with unit tests
 * Type hints implementation for arguments and return
 * Improved login methods (OAuth 2.0, OAuth 1.0a, bot password and login/password)
 * Add logging module support
