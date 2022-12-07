@@ -44,6 +44,7 @@ wikibaseintegrator~=0.11.3
     - [Structured Data on Commons](#structured-data-on-commons)
         - [Retrieve data](#retrieve-data)
         - [Write data](#write-data)
+- [More than Wikibase](#more-than-wikibase)
 - [Helper Methods](#helper-methods)
     - [Use MediaWiki API](#use-mediawiki-api)
     - [Execute SPARQL queries](#execute-sparql-queries)
@@ -64,11 +65,10 @@ The main differences between these two libraries are :
 
 * A complete rewrite of the library with an object-oriented architecture allowing for easy interaction, data validation
   and extended functionality
-* Add support for reading and writing Lexeme, MediaInfo and Property datatypes
-* Add support for [Structured Data on Commons](https://commons.wikimedia.org/wiki/Commons:Structured_data) (SDC)
+* Add support for reading and writing Lexeme, MediaInfo and Property entities
 * Python 3.7 to 3.11 support, validated with unit tests
-* Type hints implementation for arguments and return
-* Improved login methods (OAuth 2.0, OAuth 1.0a, bot password and login/password)
+* Type hints implementation for arguments and return, checked with mypy static type checker
+* Add OAuth 2.0 login method
 * Add logging module support
 
 But WikibaseIntegrator lack the "fastrun" functionality implemented in WikidataIntegrator.
@@ -326,6 +326,15 @@ media.claims.add(Item(prop_nr='P180', value='Q3146211'))
 
 media.write()
 ```
+
+# More than Wikibase #
+
+WikibaseIntegrator natively supports some extensions:
+
+* MediaInfo entity - [WikibaseMediaInfo](https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo)
+* EDTF datatype - [Wikibase EDTF](https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF)
+* LocalMedia datatype - [Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media)
+* Lexeme entity and datatype - [WikibaseLexeme](https://www.mediawiki.org/wiki/Extension:WikibaseLexeme)
 
 # Helper Methods #
 
