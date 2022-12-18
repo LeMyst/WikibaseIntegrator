@@ -63,8 +63,7 @@ WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/Su
 purpose is to focus on an improved compatibility with Wikibase and adding missing functionalities.
 The main differences between these two libraries are :
 
-* A complete rewrite of the library with an object-oriented architecture allowing for easy interaction, data validation
-  and extended functionality
+* A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data validation and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property entities
 * Python 3.7 to 3.11 support, validated with unit tests
 * Type hints implementation for arguments and return, checked with mypy static type checker
