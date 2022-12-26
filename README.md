@@ -29,6 +29,8 @@ wikibaseintegrator~=0.11.3
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Documentation](#documentation)
+    - [Jupyter notebooks](#jupyter-notebooks)
+    - [Other projects](#other-projects)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
     - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
@@ -63,7 +65,8 @@ WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/Su
 purpose is to focus on an improved compatibility with Wikibase and adding missing functionalities.
 The main differences between these two libraries are :
 
-* A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data validation and extended functionality
+* A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data
+  validation and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property entities
 * Python 3.7 to 3.11 support, validated with unit tests
 * Type hints implementation for arguments and return, checked with mypy static type checker
@@ -76,6 +79,18 @@ But WikibaseIntegrator lack the "fastrun" functionality implemented in WikidataI
 
 A (basic) documentation generated from the python source code is available on
 the [Read the Docs website](https://wikibaseintegrator.readthedocs.io/).
+
+## Jupyter notebooks ##
+
+You can found some Jupyter notebook examples in
+the [notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tree/master/notebooks) of the repository.
+
+## Other projects ##
+
+Here is a list of different projects that use the library:
+
+* https://github.com/internetarchive/wcdimportbot maintained by [dpriskorn](https://github.com/dpriskorn)
+* https://github.com/dlindem/wikibase maintained by [dlindem](https://github.com/dlindem)
 
 # Installation #
 
