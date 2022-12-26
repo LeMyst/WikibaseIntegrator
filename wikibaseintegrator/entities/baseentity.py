@@ -4,14 +4,12 @@ import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-import ujson
-
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
-from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
 if TYPE_CHECKING:
@@ -23,8 +21,8 @@ log = logging.getLogger(__name__)
 class BaseEntity:
     ETYPE = 'base-entity'
 
-    def __init__(self, api: Optional['WikibaseIntegrator'] = None, title: Optional[str] = None, pageid: Optional[int] = None, lastrevid: Optional[int] = None, type: Optional[str] = None, id: Optional[str] = None, claims: Optional[Claims] = None,
-                 is_bot: Optional[bool] = None, login: Optional[_Login] = None):
+    def __init__(self, api: Optional['WikibaseIntegrator'] = None, title: Optional[str] = None, pageid: Optional[int] = None, lastrevid: Optional[int] = None,
+                 type: Optional[str] = None, id: Optional[str] = None, claims: Optional[Claims] = None, is_bot: Optional[bool] = None, login: Optional[_Login] = None):
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -159,7 +157,8 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: Optional[_Login] = None, allow_anonymous: bool = True, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
+    def _get(self, entity_id: str, login: Optional[_Login] = None, allow_anonymous: bool = True, is_bot: Optional[bool] = None,
+             **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
         """
         Retrieve an entity in json representation from the Wikibase instance
 
@@ -192,7 +191,8 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, clear: bool = False, as_new: bool = False, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[str, Any]:
+    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, clear: bool = False,
+               as_new: bool = False, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
 
@@ -224,42 +224,12 @@ class BaseEntity:
         #                 new_json_repr['claims'].pop(claim)
         #     data = json.JSONEncoder().encode(new_json_repr)
 
-        if as_new:
-            data['id'] = None
-
-        payload: Dict[str, Any] = {
-            'action': 'wbeditentity',
-            'data': ujson.dumps(data),
-            'format': 'json',
-            'summary': summary
-        }
-
-        if not summary:
-            payload.pop('summary')
-
         is_bot = is_bot if is_bot is not None else self.api.is_bot
-        if is_bot:
-            payload.update({'bot': ''})
-
-        if not as_new:
-            if clear:
-                payload.update({'clear': True})
-
-            if self.id:
-                payload.update({'id': self.id})
-            else:
-                payload.update({'new': self.type})
-
-            if self.lastrevid:
-                payload.update({'baserevid': self.lastrevid})
-        else:
-            payload.update({'new': self.type})
-            self.id = None
-
         login = login or self.api.login
 
         try:
-            json_result: dict = mediawiki_api_call_helper(data=payload, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+            json_result: dict = edit_entity(data=data, id=self.id, type=self.type, as_new=as_new, summary=summary, clear=clear, is_bot=is_bot, allow_anonymous=allow_anonymous,
+                                            login=login, **kwargs)
         except Exception:
             log.exception('Error while writing to the Wikibase instance')
             raise
@@ -293,7 +263,8 @@ class BaseEntity:
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def write_required(self, base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
+    def write_required(self, base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL,
+                       **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
         if base_filter is None:
