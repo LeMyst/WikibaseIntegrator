@@ -306,7 +306,7 @@ def edit_entity(data: Dict, id: Optional[str] = None, as_new: bool = False, type
     }
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({'baserevid': str(baserevid)})
 
     if summary:
         params.update({'summary': summary})
