@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import requests
+import ujson
 from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
@@ -44,7 +45,8 @@ class BColors:
 default_session = requests.Session()
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, session: Optional[Session] = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> Dict:
+def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, session: Optional[Session] = None, max_retries: int = 100, retry_after: int = 60,
+                       **kwargs: Any) -> Dict:
     """
     A function to call the MediaWiki API.
 
@@ -135,7 +137,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, ses
     return json_data
 
 
-def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = None, mediawiki_api_url: Optional[str] = None, user_agent: Optional[str] = None, allow_anonymous: bool = False,
+def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = None, mediawiki_api_url: Optional[str] = None, user_agent: Optional[str] = None,
+                              allow_anonymous: bool = False,
                               max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     A simplified function to call the MediaWiki API.
@@ -212,7 +215,8 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = No
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Optional[str] = None, user_agent: Optional[str] = None, max_retries: int = 1000, retry_after: int = 60) -> Dict[str, Dict]:
+def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Optional[str] = None, user_agent: Optional[str] = None, max_retries: int = 1000,
+                         retry_after: int = 60) -> Dict[str, Dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -272,6 +276,61 @@ def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Opt
         return results
 
     raise Exception(f"No result after {max_retries} retries.")
+
+
+def edit_entity(data: Dict, id: Optional[str] = None, type: Optional[str] = None, baserevid: Optional[int] = None, summary: Optional[str] = None, clear: bool = False,
+                is_bot: bool = False, login: Optional[_Login] = None, tags: Optional[List[str]] = None, site: Optional[str] = None, title: Optional[str] = None,
+                **kwargs: Any) -> Dict:
+    """
+    Creates a single new Wikibase entity and modifies it with serialised information.
+
+    :param data: The serialized object that is used as the data source. A newly created entity will be assigned an 'id'.
+    :param id: The identifier for the entity, including the prefix. Use either id or site and title together.
+    :param type: Set this to the type of the entity to be created. One of the following values: form, item, lexeme, property, sense
+    :param baserevid: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
+    :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
+    :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
+    :param is_bot: Mark this edit as bot.
+    :param login: A login instance
+    :param tags: Change tags to apply to the revision.
+    :param site: An identifier for the site on which the page resides. Use together with title to make a complete sitelink.
+    :param title: Title of the page to associate. Use together with site to make a complete sitelink.
+    :param kwargs: More arguments for Python requests
+    :return: The answer from the Wikibase API
+    """
+    params = {
+        'action': 'wbeditentity',
+        'data': ujson.dumps(data),
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': str(baserevid)})
+
+    if summary:
+        params.update({'summary': summary})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if id:
+        params.update({'id': id})
+    elif site and title:
+        params.update({
+            'site': site,
+            'title': title
+        })
+    else:
+        assert type
+        params.update({'new': type})
+
+    if clear:
+        params.update({'clear': ''})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
 def merge_items(from_id: str, to_id: str, login: Optional[_Login] = None, ignore_conflicts: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
@@ -356,7 +415,8 @@ def remove_claims(claim_id: str, summary: Optional[str] = None, baserevid: Optio
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reason: Optional[str] = None, deletetalk: bool = False, watchlist: str = 'preferences', watchlistexpiry: Optional[str] = None,
+def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reason: Optional[str] = None, deletetalk: bool = False, watchlist: str = 'preferences',
+                watchlistexpiry: Optional[str] = None,
                 login: Optional[_Login] = None, **kwargs: Any) -> Dict:
     """
     Delete a page
