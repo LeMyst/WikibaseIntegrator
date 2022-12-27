@@ -278,15 +278,14 @@ def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Opt
     raise Exception(f"No result after {max_retries} retries.")
 
 
-def edit_entity(data: Dict, id: Optional[str] = None, as_new: bool = False, type: Optional[str] = None, baserevid: Optional[int] = None, summary: Optional[str] = None,
-                clear: bool = False, is_bot: bool = False,
-                login: Optional[_Login] = None, tags: Optional[List[str]] = None, site: Optional[str] = None, title: Optional[str] = None, **kwargs: Any) -> Dict:
+def edit_entity(data: Dict, id: Optional[str] = None, type: Optional[str] = None, baserevid: Optional[int] = None, summary: Optional[str] = None, clear: bool = False,
+                is_bot: bool = False, login: Optional[_Login] = None, tags: Optional[List[str]] = None, site: Optional[str] = None, title: Optional[str] = None,
+                **kwargs: Any) -> Dict:
     """
     Creates a single new Wikibase entity and modifies it with serialised information.
 
     :param data: The serialized object that is used as the data source. A newly created entity will be assigned an 'id'.
     :param id: The identifier for the entity, including the prefix. Use either id or site and title together.
-    :param as_new: If set, a new entity will be created. It is not allowed to have this set when id is also set.
     :param type: Set this to the type of the entity to be created. One of the following values: form, item, lexeme, property, sense
     :param baserevid: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
     :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
@@ -314,21 +313,19 @@ def edit_entity(data: Dict, id: Optional[str] = None, as_new: bool = False, type
     if tags:
         params.update({'tags': '|'.join(tags)})
 
-    if not as_new:
-        if id:
-            params.update({'id': id})
-        else:
-            assert site and title
-            params.update({
-                'site': site,
-                'title': title
-            })
-
-        if clear:
-            params.update({'clear': ''})
+    if id:
+        params.update({'id': id})
+    elif site and title:
+        params.update({
+            'site': site,
+            'title': title
+        })
     else:
-        assert type is not None
+        assert type
         params.update({'new': type})
+
+    if clear:
+        params.update({'clear': ''})
 
     if is_bot:
         params.update({'bot': ''})

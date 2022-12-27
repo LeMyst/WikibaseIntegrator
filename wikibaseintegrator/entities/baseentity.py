@@ -227,8 +227,14 @@ class BaseEntity:
         is_bot = is_bot if is_bot is not None else self.api.is_bot
         login = login or self.api.login
 
+        if as_new:
+            entity_id = None
+            data['id'] = None
+        else:
+            entity_id = self.id
+
         try:
-            json_result: dict = edit_entity(data=data, id=self.id, type=self.type, as_new=as_new, summary=summary, clear=clear, is_bot=is_bot, allow_anonymous=allow_anonymous,
+            json_result: dict = edit_entity(data=data, id=entity_id, type=self.type, summary=summary, clear=clear, is_bot=is_bot, allow_anonymous=allow_anonymous,
                                             login=login, **kwargs)
         except Exception:
             log.exception('Error while writing to the Wikibase instance')
