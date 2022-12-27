@@ -4,10 +4,12 @@ import re
 from typing import Any
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models.forms import Forms
+from wikibaseintegrator.models.forms import Form, Forms
 from wikibaseintegrator.models.lemmas import Lemmas
-from wikibaseintegrator.models.senses import Senses
+from wikibaseintegrator.models.senses import Sense, Senses
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense
+from wikibaseintegrator.wbi_login import _Login
 
 
 class LexemeEntity(BaseEntity):
@@ -168,3 +170,86 @@ class LexemeEntity(BaseEntity):
         """
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)
+
+    def write_form(self, form: Form, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
+        """
+        Add a single Form to the Lexeme with the wbladdform action.
+
+        Contrary to write(), only the Form is sent to the Wikibase instance, the rest of the Lexeme is left untouched.
+
+        :param form: The Form to add. It must be a new Form, without an id.
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for lexeme_add_form and Python requests
+        :return: The id of the newly created Form, e.g. L10-F2
+        """
+        if not self.id:
+            raise ValueError('You must set a Lexeme id before writing a Form.')
+
+        if form.id:
+            raise ValueError(f"The Form {form.id} already exists, adding it again would create a duplicate.")
+
+        data = form.get_json()
+        # 'add' is a marker used by wbeditentity, the wbladdform action doesn't expect it.
+        data.pop('add', None)
+
+        login = login or self.api.login
+        is_bot = is_bot if is_bot is not None else self.api.is_bot
+
+        form.id = lexeme_add_form(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)['form']['id']
+
+        return form.id
+
+    def write_forms(self, **kwargs: Any) -> list[str]:
+        """
+        Add all the new Forms of the Lexeme, one wbladdform action per Form. The Forms already existing on the
+        Wikibase instance are skipped.
+
+        :param kwargs: Arguments passed to write_form()
+        :return: The ids of the newly created Forms
+        """
+        return [self.write_form(form, **kwargs) for form in self.forms if not form.id]
+
+    def write_sense(self, sense: Sense, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
+        """
+        Add a single Sense to the Lexeme with the wbladdsense action.
+
+        Contrary to write(), only the Sense is sent to the Wikibase instance, the rest of the Lexeme is left untouched.
+
+        :param sense: The Sense to add. It must be a new Sense, without an id.
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for lexeme_add_sense and Python requests
+        :return: The id of the newly created Sense, e.g. L10-S2
+        """
+        if not self.id:
+            raise ValueError('You must set a Lexeme id before writing a Sense.')
+
+        if sense.id:
+            raise ValueError(f"The Sense {sense.id} already exists, adding it again would create a duplicate.")
+
+        if sense.removed:
+            raise ValueError('The Sense is marked as removed, it cannot be added.')
+
+        data = sense.get_json()
+        # 'add' is a marker used by wbeditentity, the wbladdsense action doesn't expect it.
+        data.pop('add', None)
+
+        login = login or self.api.login
+        is_bot = is_bot if is_bot is not None else self.api.is_bot
+
+        sense.id = lexeme_add_sense(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)['sense']['id']
+
+        return sense.id
+
+    def write_senses(self, **kwargs: Any) -> list[str]:
+        """
+        Add all the new Senses of the Lexeme, one wbladdsense action per Sense. The Senses already existing on the
+        Wikibase instance and the Senses marked as removed are skipped.
+
+        :param kwargs: Arguments passed to write_sense()
+        :return: The ids of the newly created Senses
+        """
+        return [self.write_sense(sense, **kwargs) for sense in self.senses if not sense.id and not sense.removed]

@@ -47,6 +47,7 @@ wikibaseintegrator~=0.11.3
             - [Set lemma on lexeme](#set-lemma-on-lexeme)
             - [Add gloss to a sense on lexeme](#add-gloss-to-a-sense-on-lexeme)
             - [Add form to a lexeme](#add-form-to-a-lexeme)
+            - [Add a form or a sense to an existing lexeme](#add-a-form-or-a-sense-to-an-existing-lexeme)
     - [Other projects](#other-projects)
 - [Installation](#installation)
 - [Installation of the development environment](#installation-of-the-development-environment)
@@ -311,6 +312,30 @@ form.representations.set(language='fr', value='French form representation')
 claim = datatypes.String(prop_nr='P828', value="Create a string claim for form")
 form.claims.add(claim)
 lexeme.forms.add(form)
+```
+
+#### Add a form or a sense to an existing lexeme
+
+Contrary to `write()`, `write_form()` and `write_sense()` only send the new Form or Sense to the Wikibase instance (with
+the `wbladdform` and `wbladdsense` actions), the rest of the lexeme is left untouched. They return the id assigned by the
+instance, which is also set on the object.
+
+`write_forms()` and `write_senses()` add every Form or Sense of the lexeme without an id, one request per Form or Sense.
+
+From [lexeme_write.ipynb](notebooks/lexeme_write.ipynb)
+
+```python
+lexeme = wbi.lexeme.get('L5')
+
+form = Form()
+form.representations.set(language='en', value='English form representation')
+form.grammatical_features = ['Q146786']
+lexeme.write_form(form)  # 'L5-F3'
+
+sense = Sense()
+sense.glosses.set(language='en', value='English gloss')
+lexeme.senses.add(sense)
+lexeme.write_senses()  # ['L5-S2']
 ```
 
 ## Other projects ##
