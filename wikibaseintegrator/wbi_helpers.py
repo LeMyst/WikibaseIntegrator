@@ -279,8 +279,7 @@ def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Opt
 
 
 def edit_entity(data: Dict, id: Optional[str] = None, type: Optional[str] = None, baserevid: Optional[int] = None, summary: Optional[str] = None, clear: bool = False,
-                is_bot: bool = False, login: Optional[_Login] = None, tags: Optional[List[str]] = None, site: Optional[str] = None, title: Optional[str] = None,
-                **kwargs: Any) -> Dict:
+                is_bot: bool = False, tags: Optional[List[str]] = None, site: Optional[str] = None, title: Optional[str] = None, **kwargs: Any) -> Dict:
     """
     Creates a single new Wikibase entity and modifies it with serialised information.
 
@@ -330,7 +329,7 @@ def edit_entity(data: Dict, id: Optional[str] = None, type: Optional[str] = None
     if is_bot:
         params.update({'bot': ''})
 
-    return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
 def merge_items(from_id: str, to_id: str, login: Optional[_Login] = None, ignore_conflicts: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
@@ -416,8 +415,7 @@ def remove_claims(claim_id: str, summary: Optional[str] = None, baserevid: Optio
 
 
 def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reason: Optional[str] = None, deletetalk: bool = False, watchlist: str = 'preferences',
-                watchlistexpiry: Optional[str] = None,
-                login: Optional[_Login] = None, **kwargs: Any) -> Dict:
+                watchlistexpiry: Optional[str] = None, login: Optional[_Login] = None, **kwargs: Any) -> Dict:
     """
     Delete a page
 
@@ -530,6 +528,200 @@ def search_entities(search_string: str, language: Optional[str] = None, strict_l
             break
 
     return results
+
+
+def lexeme_add_form(lexeme_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Adds Form to Lexeme
+
+    :param lexeme_id: ID of the Lexeme
+    :param data: The serialized object that is used as the data source.
+    :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
+    :param tags: Change tags to apply to the revision.
+    :param is_bot: Mark this edit as bot.
+    :param kwargs:
+    :return:
+
+    """
+
+    params = {
+        'action': 'wbladdform',
+        'lexemeId': lexeme_id,
+        'data': ujson.dumps(data),
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def lexeme_edit_form(form_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Edits representations and grammatical features of a Form
+
+    :param form_id: ID of the Form, e.g. L10-F2
+    :param data: The serialized object that is used as the data source.
+    :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
+    :param tags: Change tags to apply to the revision.
+    :param is_bot: Mark this edit as bot.
+    :param kwargs:
+    :return:
+
+    """
+
+    params = {
+        'action': 'wbleditformelements',
+        'formId': form_id,
+        'data': ujson.dumps(data),
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def lexeme_remove_form(form_id, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Removes Form from Lexeme
+
+    :param form_id: ID of the Form, e.g. L10-F2
+    :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
+    :param tags: Change tags to apply to the revision.
+    :param is_bot: Mark this edit as bot.
+    :param kwargs:
+    :return:
+
+    """
+
+    params = {
+        'action': 'wblremoveform',
+        'id': form_id,
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def lexeme_add_sense(lexeme_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Adds a Sense to a Lexeme
+
+    :param lexeme_id: ID of the Lexeme
+    :param data: The serialized object that is used as the data source.
+    :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
+    :param tags: Change tags to apply to the revision.
+    :param is_bot: Mark this edit as bot.
+    :param kwargs:
+    :return:
+
+    """
+
+    params = {
+        'action': 'wbladdsense',
+        'lexemeId': lexeme_id,
+        'data': ujson.dumps(data),
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def lexeme_edit_sense(sense_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Edits glosses of a Sense
+
+    :param sense_id: ID of the Sense, e.g. L10-S2
+    :param data: The serialized object that is used as the data source.
+    :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
+    :param tags: Change tags to apply to the revision.
+    :param is_bot: Mark this edit as bot.
+    :param kwargs:
+    :return:
+
+    """
+
+    params = {
+        'action': 'wbleditsenseelements',
+        'formId': sense_id,
+        'data': ujson.dumps(data),
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def lexeme_remove_sense(sense_id, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+    """
+    Adds Form to Lexeme
+
+    :param sense_id: ID of the Sense, e.g. L10-S2
+    :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
+    :param tags: Change tags to apply to the revision.
+    :param is_bot: Mark this edit as bot.
+    :param kwargs:
+    :return:
+
+    """
+
+    params = {
+        'action': 'wblremovesense',
+        'id': sense_id,
+        'format': 'json'
+    }
+
+    if baserevid:
+        params.update({'baserevid': baserevid})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
 def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
