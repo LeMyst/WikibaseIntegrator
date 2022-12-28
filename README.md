@@ -82,8 +82,8 @@ the [Read the Docs website](https://wikibaseintegrator.readthedocs.io/).
 
 ## Jupyter notebooks ##
 
-You can found some Jupyter notebook examples in
-the [notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tree/master/notebooks) of the repository.
+You can find some sample code (adding an entity, a lexeme, etc.) in
+the [Jupyter notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tree/master/notebooks) of the repository.
 
 ## Other projects ##
 
