@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 from time import sleep
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -534,7 +535,7 @@ def lexeme_add_form(lexeme_id, data, baserevid: Optional[int] = None, tags: Opti
     """
     Adds Form to Lexeme
 
-    :param lexeme_id: ID of the Lexeme
+    :param lexeme_id: ID of the Lexeme, e.g. L10
     :param data: The serialized object that is used as the data source.
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
     :param tags: Change tags to apply to the revision.
@@ -563,11 +564,11 @@ def lexeme_add_form(lexeme_id, data, baserevid: Optional[int] = None, tags: Opti
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_form(form_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_edit_form(form_id: str, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     Edits representations and grammatical features of a Form
 
-    :param form_id: ID of the Form, e.g. L10-F2
+    :param form_id: ID of the Form or the concept URI, e.g. L10-F2
     :param data: The serialized object that is used as the data source.
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
     :param tags: Change tags to apply to the revision.
@@ -576,6 +577,14 @@ def lexeme_edit_form(form_id, data, baserevid: Optional[int] = None, tags: Optio
     :return:
 
     """
+
+    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-F[0-9]+)$')
+    matches = pattern.match(form_id)
+
+    if not matches:
+        raise ValueError(f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'")
+
+    form_id = matches.group(1)
 
     params = {
         'action': 'wbleditformelements',
@@ -596,11 +605,11 @@ def lexeme_edit_form(form_id, data, baserevid: Optional[int] = None, tags: Optio
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_remove_form(form_id, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_remove_form(form_id: str, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     Removes Form from Lexeme
 
-    :param form_id: ID of the Form, e.g. L10-F2
+    :param form_id: ID of the Form or the concept URI, e.g. L10-F2
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
     :param tags: Change tags to apply to the revision.
     :param is_bot: Mark this edit as bot.
@@ -608,6 +617,14 @@ def lexeme_remove_form(form_id, baserevid: Optional[int] = None, tags: Optional[
     :return:
 
     """
+
+    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-F[0-9]+)$')
+    matches = pattern.match(form_id)
+
+    if not matches:
+        raise ValueError(f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'")
+
+    form_id = matches.group(1)
 
     params = {
         'action': 'wblremoveform',
@@ -631,8 +648,8 @@ def lexeme_add_sense(lexeme_id, data, baserevid: Optional[int] = None, tags: Opt
     """
     Adds a Sense to a Lexeme
 
-    :param lexeme_id: ID of the Lexeme
-    :param data: The serialized object that is used as the data source.
+    :param lexeme_id: ID of the Lexeme, e.g. L10
+    :param data: JSON-encoded data for the Sense, i.e. its glosses
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
     :param tags: Change tags to apply to the revision.
     :param is_bot: Mark this edit as bot.
@@ -660,11 +677,11 @@ def lexeme_add_sense(lexeme_id, data, baserevid: Optional[int] = None, tags: Opt
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_sense(sense_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_edit_sense(sense_id: str, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     Edits glosses of a Sense
 
-    :param sense_id: ID of the Sense, e.g. L10-S2
+    :param sense_id: ID of the Sense or the concept URI, e.g. L10-S2
     :param data: The serialized object that is used as the data source.
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
     :param tags: Change tags to apply to the revision.
@@ -673,6 +690,14 @@ def lexeme_edit_sense(sense_id, data, baserevid: Optional[int] = None, tags: Opt
     :return:
 
     """
+
+    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-S[0-9]+)$')
+    matches = pattern.match(sense_id)
+
+    if not matches:
+        raise ValueError(f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'")
+
+    sense_id = matches.group(1)
 
     params = {
         'action': 'wbleditsenseelements',
@@ -693,11 +718,11 @@ def lexeme_edit_sense(sense_id, data, baserevid: Optional[int] = None, tags: Opt
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_remove_sense(sense_id, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_remove_sense(sense_id: str, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
     """
     Adds Form to Lexeme
 
-    :param sense_id: ID of the Sense, e.g. L10-S2
+    :param sense_id: ID of the Sense, e.g. L10-S20
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
     :param tags: Change tags to apply to the revision.
     :param is_bot: Mark this edit as bot.
@@ -705,6 +730,14 @@ def lexeme_remove_sense(sense_id, baserevid: Optional[int] = None, tags: Optiona
     :return:
 
     """
+
+    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-S[0-9]+)$')
+    matches = pattern.match(sense_id)
+
+    if not matches:
+        raise ValueError(f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'")
+
+    sense_id = matches.group(1)
 
     params = {
         'action': 'wblremovesense',

@@ -224,6 +224,7 @@ class TestWbiCore(unittest.TestCase):
             Item(value='123', prop_nr='P4'),
             Item(value=123, prop_nr='P4'),
             Item(value='Item:Q123', prop_nr='P4'),
+            Item(value='http://www.wikidata.org/entity/Q123', prop_nr='P4'),
             Time(time='-0458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
             Time(time='+458-01-01T00:00:00Z', before=1, after=2, precision=WikibaseDatePrecision.MILLION_YEARS, timezone=4, prop_nr='P5'),
             Time(time='+2021-01-01T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr='P5'),
@@ -243,12 +244,14 @@ class TestWbiCore(unittest.TestCase):
             Property(value='123', prop_nr='P12'),
             Property(value=123, prop_nr='P12'),
             Property(value='Property:P123', prop_nr='P12'),
+            Property(value='http://www.wikidata.org/entity/P123', prop_nr='P12'),
             TabularData(value="Data:Taipei+Population.tab", prop_nr='P13'),
             MusicalNotation(value="\relative c' { c d e f | g2 g | a4 a a a | g1 |}", prop_nr='P14'),
             Lexeme(value='L123', prop_nr='P15'),
             Lexeme(value='123', prop_nr='P15'),
             Lexeme(value=123, prop_nr='P15'),
             Lexeme(value='Lexeme:L123', prop_nr='P15'),
+            Lexeme(value='http://www.wikidata.org/entity/L123', prop_nr='P15'),
             Form(value='L123-F123', prop_nr='P16'),
             Sense(value='L123-S123', prop_nr='P17')
         ]
