@@ -65,7 +65,7 @@ class Time(BaseDataType):
                 pattern = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T00:00:00Z$')
             matches = pattern.match(time)
             if not matches:
-                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'")
+                raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'. Check whether your accuracy is consistent with your value.")
 
             if isinstance(precision, int):
                 precision = WikibaseDatePrecision(precision)
