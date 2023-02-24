@@ -104,6 +104,9 @@ class LanguageValues(BaseModel):
     def __iter__(self):
         return iter(self.values.values())
 
+    def __len__(self):
+        return len(self.values)
+
 
 class LanguageValue(BaseModel):
     def __init__(self, language: str, value: Optional[str] = None):

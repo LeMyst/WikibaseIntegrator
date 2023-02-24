@@ -118,14 +118,14 @@ class Claims(BaseModel):
                 del json_data[property]
         return json_data
 
-    def __len__(self):
-        return len(self.claims)
-
     def __iter__(self):
         iterate = []
         for claim in self.claims.values():
             iterate.extend(claim)
         return iter(iterate)
+
+    def __len__(self):
+        return len(self.claims)
 
 
 class Claim(BaseModel):
