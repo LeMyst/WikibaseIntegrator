@@ -37,6 +37,9 @@ class Senses(BaseModel):
 
         return json_data
 
+    def __len__(self):
+        return len(self.senses)
+
 
 class Sense(BaseModel):
     def __init__(self, sense_id: Optional[str] = None, glosses: Optional[Glosses] = None, claims: Optional[Claims] = None):

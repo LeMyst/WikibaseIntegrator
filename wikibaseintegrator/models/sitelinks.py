@@ -26,6 +26,9 @@ class Sitelinks(BaseModel):
 
         return self
 
+    def __len__(self):
+        return len(self.sitelinks)
+
 
 class Sitelink(BaseModel):
     def __init__(self, site: Optional[str] = None, title: Optional[str] = None, badges: Optional[List[str]] = None):
