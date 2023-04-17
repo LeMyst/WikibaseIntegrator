@@ -35,7 +35,7 @@ class Item(BaseDataType):
                 matches = pattern.match(value)
 
                 if not matches:
-                    raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
+                    raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+' or 'L[0-9]+'")
                 thetype=matches.group(1)
                 value = int(matches.group(2))
 
