@@ -31,19 +31,19 @@ class Item(BaseDataType):
 
         if value:
             if isinstance(value, str):
-                pattern = re.compile(r'^(?:[a-zA-Z]+:|.+\/entity\/)?(Q|L)?([0-9]+)$')
+                pattern = re.compile(r'^(?:[a-zA-Z]+:|.+\/entity\/)?((?:Q|L)[0-9]+)$')
                 matches = pattern.match(value)
 
                 if not matches:
                     raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+' or 'L[0-9]+'")
-                thetype=matches.group(1)
-                value = int(matches.group(2))
+
+                value = int(matches.group(1))
 
             self.mainsnak.datavalue = {
                 'value': {
                     'entity-type': 'item',
                     'numeric-id': value,
-                    'id': f'{thetype}{value}'
+                    'id': f'{value}'
                 },
                 'type': 'wikibase-entityid'
             }
