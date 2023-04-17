@@ -3,6 +3,7 @@ from typing import Any, Optional, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
+
 class Item(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-item' with a value being another item ID
