@@ -43,7 +43,7 @@ class Item(BaseDataType):
                 'value': {
                     'entity-type': 'item',
                     'numeric-id': value,
-                    'id': f'{value}'
+                    'id': value
                 },
                 'type': 'wikibase-entityid'
             }
