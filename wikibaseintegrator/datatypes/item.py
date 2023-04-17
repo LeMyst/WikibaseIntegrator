@@ -1,9 +1,3 @@
-import re
-from typing import Any, Optional, Union
-
-from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-
-
 class Item(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-item' with a value being another item ID
@@ -31,19 +25,19 @@ class Item(BaseDataType):
 
         if value:
             if isinstance(value, str):
-                pattern = re.compile(r'^(?:[a-zA-Z]+:|.+\/entity\/)?Q?([0-9]+)$')
+                pattern = re.compile(r'^(?:[a-zA-Z]+:)?(Q|L)?([0-9]+)$')
                 matches = pattern.match(value)
 
                 if not matches:
                     raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
-
-                value = int(matches.group(1))
+                thetype=matches.group(1)
+                value = int(matches.group(2))
 
             self.mainsnak.datavalue = {
                 'value': {
                     'entity-type': 'item',
                     'numeric-id': value,
-                    'id': f'Q{value}'
+                    'id': f'{thetype}{value}'
                 },
                 'type': 'wikibase-entityid'
             }
