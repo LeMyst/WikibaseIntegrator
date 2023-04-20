@@ -29,6 +29,8 @@ wikibaseintegrator~=0.11.3
 
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Documentation](#documentation)
+    - [Jupyter notebooks](#jupyter-notebooks)
+    - [Other projects](#other-projects)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
     - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
@@ -44,6 +46,7 @@ wikibaseintegrator~=0.11.3
     - [Structured Data on Commons](#structured-data-on-commons)
         - [Retrieve data](#retrieve-data)
         - [Write data](#write-data)
+- [More than Wikibase](#more-than-wikibase)
 - [Helper Methods](#helper-methods)
     - [Use MediaWiki API](#use-mediawiki-api)
     - [Execute SPARQL queries](#execute-sparql-queries)
@@ -59,14 +62,35 @@ wikibaseintegrator~=0.11.3
 # WikibaseIntegrator / WikidataIntegrator #
 
 WikibaseIntegrator (wbi) is a fork of [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator) (wdi) whose
-purpose is to focus on compatibility with Wikibase. There have been many improvements which have led to radical changes
-in the code. See the [release notes](https://github.com/LeMyst/WikibaseIntegrator/releases) to find out what has
-changed.
+purpose is to focus on an improved compatibility with Wikibase and adding missing functionalities.
+The main differences between these two libraries are :
+
+* A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data
+  validation and extended functionality
+* Add support for reading and writing Lexeme, MediaInfo and Property entities
+* Python 3.7 to 3.11 support, validated with unit tests
+* Type hints implementation for arguments and return, checked with mypy static type checker
+* Add OAuth 2.0 login method
+* Add logging module support
+
+But WikibaseIntegrator lack the "fastrun" functionality implemented in WikidataIntegrator.
 
 # Documentation #
 
 A (basic) documentation generated from the python source code is available on
 the [Read the Docs website](https://wikibaseintegrator.readthedocs.io/).
+
+## Jupyter notebooks ##
+
+You can find some sample code (adding an entity, a lexeme, etc.) in
+the [Jupyter notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tree/master/notebooks) of the repository.
+
+## Other projects ##
+
+Here is a list of different projects that use the library:
+
+* https://github.com/internetarchive/wcdimportbot maintained by [dpriskorn](https://github.com/dpriskorn)
+* https://github.com/dlindem/wikibase maintained by [dlindem](https://github.com/dlindem)
 
 # Installation #
 
@@ -316,6 +340,15 @@ media.claims.add(Item(prop_nr='P180', value='Q3146211'))
 
 media.write()
 ```
+
+# More than Wikibase #
+
+WikibaseIntegrator natively supports some extensions:
+
+* MediaInfo entity - [WikibaseMediaInfo](https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo)
+* EDTF datatype - [Wikibase EDTF](https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF)
+* LocalMedia datatype - [Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media)
+* Lexeme entity and datatype - [WikibaseLexeme](https://www.mediawiki.org/wiki/Extension:WikibaseLexeme)
 
 # Helper Methods #
 
