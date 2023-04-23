@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from copy import copy
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 
 class BaseEntity:
     ETYPE = 'base-entity'
+    subclasses: List[Type[BaseDataType]] = []
 
     def __init__(self, api: Optional['WikibaseIntegrator'] = None, title: Optional[str] = None, pageid: Optional[int] = None, lastrevid: Optional[int] = None,
                  type: Optional[str] = None, id: Optional[str] = None, claims: Optional[Claims] = None, is_bot: Optional[bool] = None, login: Optional[_Login] = None):
@@ -38,6 +39,11 @@ class BaseEntity:
         self.type = str(type or self.ETYPE)
         self.id = id
         self.claims = claims or Claims()
+
+    # Allow registration of subclasses of BaseEntity into BaseEntity.subclasses
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.subclasses.append(cls)
 
     @property
     def api(self) -> WikibaseIntegrator:
