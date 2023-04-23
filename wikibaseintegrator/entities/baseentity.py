@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 class BaseEntity:
     ETYPE = 'base-entity'
-    subclasses: List[Type[BaseDataType]] = []
+    subclasses: List[Type[BaseEntity]] = []
 
     def __init__(self, api: Optional['WikibaseIntegrator'] = None, title: Optional[str] = None, pageid: Optional[int] = None, lastrevid: Optional[int] = None,
                  type: Optional[str] = None, id: Optional[str] = None, claims: Optional[Claims] = None, is_bot: Optional[bool] = None, login: Optional[_Login] = None):
