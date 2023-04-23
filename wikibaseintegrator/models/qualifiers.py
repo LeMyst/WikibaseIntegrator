@@ -24,7 +24,7 @@ class Qualifiers(BaseModel):
         self.__qualifiers = value
 
     def set(self, qualifiers: Union[Qualifiers, List[Union[Snak, Claim]], None]) -> Qualifiers:
-        if isinstance(qualifiers, list):
+        if isinstance(qualifiers, list) or isinstance(qualifiers, Qualifiers):
             for qualifier in qualifiers:
                 self.add(qualifier)
         elif qualifiers is None:
