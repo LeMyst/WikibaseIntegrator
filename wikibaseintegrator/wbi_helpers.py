@@ -7,7 +7,6 @@ import datetime
 import json
 import logging
 import re
-from pprint import pprint
 from time import sleep
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -21,6 +20,7 @@ from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SearchError
 
 if TYPE_CHECKING:
+    from wikibaseintegrator.datatypes import BaseDataType
     from wikibaseintegrator.entities.baseentity import BaseEntity
     from wikibaseintegrator.wbi_login import _Login
 
@@ -853,40 +853,43 @@ def get_user_agent(user_agent: Optional[str]) -> str:
     return return_user_agent
 
 
-def format2wbi(json_raw: str, login: Optional[_Login] = None, mediawiki_api_url: Optional[str] = None, user_agent: Optional[str] = None, allow_anonymous: bool = True, wikibase_url: str = None, **kwargs):
-    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
-    user_agent = str(user_agent or config['USER_AGENT'])
+properties_dt: dict = {}
+
+
+def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: Optional[str] = None, **kwargs) -> BaseEntity:
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
     json_decoded = json.loads(json_raw)
-    pprint(json_decoded)
+    # pprint(json_decoded)
 
-    from wikibaseintegrator import WikibaseIntegrator
-    from wikibaseintegrator.wbi_enums import ActionIfExists
+    from wikibaseintegrator.entities.baseentity import BaseEntity
 
-    wbi = WikibaseIntegrator(login=login)
-    item = wbi.item.new()
+    entity_list = [x for x in BaseEntity.subclasses if x.ETYPE == entitytype]
+    if not entity_list:
+        raise ValueError(f'Unknown entity type: {entitytype}')
 
-    if 'aliases' in json_decoded:
-        for language in json_decoded['aliases']:
-            pprint(language)
-            values = []
-            if isinstance(json_decoded['aliases'][language], list):
+    entity = entity_list[0]()
 
-            #item.aliases.set(language=language, value=json_decoded['aliases'][language])
-    exit(0)
-    if 'descriptions' in json_decoded:
+    # Add aliases (for Item and MediaInfo)
+    # Add lemmas (for Lexeme)
+    # Add lexical_category (for Lexeme)
+    # Add language (for Lexeme)
+    # Add forms (for Lexeme)
+    # Add senses (for Lexeme)
+    # Add datatype (for Property)
+
+    if 'descriptions' in json_decoded and hasattr(entity, 'descriptions'):
         for language in json_decoded['descriptions']:
-            item.descriptions.set(language=language, value=json_decoded['descriptions'][language])
+            entity.descriptions.set(language=language, value=json_decoded['descriptions'][language])  # type: ignore
 
-    if 'labels' in json_decoded:
+    if 'labels' in json_decoded and hasattr(entity, 'labels'):
         for language in json_decoded['labels']:
-            item.labels.set(language=language, value=json_decoded['labels'][language])
+            entity.labels.set(language=language, value=json_decoded['labels'][language])  # type: ignore
 
     if 'claims' in json_decoded:
         properties = list(json_decoded['claims'].keys())
-        properties_dt = {}
 
-        from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+        from wikibaseintegrator.models import Qualifiers, References
+        from wikibaseintegrator.wbi_enums import ActionIfExists
 
         params = {
             'action': 'wbgetentities',
@@ -907,40 +910,83 @@ def format2wbi(json_raw: str, login: Optional[_Login] = None, mediawiki_api_url:
                 statements = [json_decoded['claims'][claim]]
 
             for statement in statements:
-                # TODO: Add support for qualifiers
-                # TODO: Add support for references
-
-                f = [x for x in BaseDataType.subclasses if x.DTYPE == properties_dt[claim]][0]
-                if f.__name__ in ['CommonsMedia', 'ExternalID', 'Form', 'GeoShape', 'Item', 'Lexeme', 'Math', 'MusicalNotation', 'Property', 'Sense', 'String', 'TabularData', 'URL']:
-                    if isinstance(statement, dict):
-                        value = statement['value']
+                qualifiers = Qualifiers()
+                if 'qualifiers' in statement:
+                    if isinstance(statement['qualifiers'], list):
+                        qualifiers_list = statement['qualifiers']
                     else:
-                        value = statement
-                    item.claims.add(f(prop_nr=claim, value=value), action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-                elif f.__name__ == 'GlobeCoordinate':
-                    altitude = statement['altitude'] or None
-                    precision = statement['precision'] or None
-                    globe = statement['globe'] or None
-                    item.claims.add(f(prop_nr=claim, latitude=statement['latitude'], longitude=statement['longitude'], altitude=altitude, precision=precision, globe=globe, wikibase_url=wikibase_url),
-                                    action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-                elif f.__name__ == 'MonolingualText':
-                    item.claims.add(f(prop_nr=claim, language=statement['language'], text=statement['text']), action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-                elif f.__name__ == 'Quantity':
-                    upper_bound = statement['upper_bound'] or None
-                    lower_bound = statement['lower_bound'] or None
-                    unit = statement['unit'] or '1'
-                    item.claims.add(f(prop_nr=claim, quantity=statement['quantity'], upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url), action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-                elif f.__name__ == 'Time':
-                    before = statement['before'] or 0
-                    after = statement['after'] or 0
-                    precision = statement['precision'] or None
-                    timezone = statement['timezone'] or 0
-                    calendarmodel = statement['calendarmodel'] or None
-                    item.claims.add(f(prop_nr=claim, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url),
-                                    action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+                        qualifiers_list = [statement['qualifiers']]
 
-    pprint(item.get_json())
-    # item.write(mediawiki_api_url=mediawiki_api_url, user_agent=user_agent)
+                    for qualifiers_raw in qualifiers_list:
+                        for qualifier in qualifiers_raw:
+                            qualifiers.add(_json2datatype(qualifier, qualifiers_raw[qualifier], wikibase_url))
+
+                references = References()
+                if 'references' in statement:
+                    if isinstance(statement['references'], list):
+                        references_list = statement['references']
+                    else:
+                        references_list = [statement['references']]
+
+                    for references_raw in references_list:
+                        for reference in references_raw:
+                            references.add(_json2datatype(reference, references_raw[reference], wikibase_url))
+                # TODO: Add support for references
+                sub_entity = _json2datatype(claim, statement, wikibase_url)
+                sub_entity.qualifiers.set(qualifiers)
+                # entity.references.set(references)
+                entity.claims.add(sub_entity, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+
+    return entity
+
+
+def _json2datatype(prop_nr: str, statement: dict, wikibase_url: Optional[str] = None, allow_anonymous=True, **kwargs) -> BaseDataType:
+    from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+    wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+
+    if prop_nr not in properties_dt:
+        params = {
+            'action': 'wbgetentities',
+            'ids': prop_nr,
+            'props': 'datatype',
+            'format': 'json'
+        }
+
+        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+
+        for p in reply['entities']:
+            properties_dt[p] = reply['entities'][p]['datatype']
+
+    datatype = properties_dt[prop_nr]
+
+    f = [x for x in BaseDataType.subclasses if x.DTYPE == datatype][0]
+    if f.__name__ in ['CommonsMedia', 'ExternalID', 'Form', 'GeoShape', 'Item', 'Lexeme', 'Math', 'MusicalNotation', 'Property', 'Sense', 'String', 'TabularData', 'URL']:
+        if isinstance(statement, dict):
+            value = statement['value']
+        else:
+            value = statement
+        return f(prop_nr=prop_nr, value=value)
+    elif f.__name__ == 'GlobeCoordinate':
+        altitude = statement['altitude'] or None
+        precision = statement['precision'] or None
+        globe = statement['globe'] or None
+        return f(prop_nr=prop_nr, latitude=statement['latitude'], longitude=statement['longitude'], altitude=altitude, precision=precision, globe=globe, wikibase_url=wikibase_url)
+    elif f.__name__ == 'MonolingualText':
+        return f(prop_nr=prop_nr, language=statement['language'], text=statement['text'])
+    elif f.__name__ == 'Quantity':
+        upper_bound = statement['upper_bound'] or None
+        lower_bound = statement['lower_bound'] or None
+        unit = statement['unit'] or '1'
+        return f(prop_nr=prop_nr, quantity=statement['quantity'], upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
+    elif f.__name__ == 'Time':
+        before = statement['before'] or 0
+        after = statement['after'] or 0
+        precision = statement['precision'] or None
+        timezone = statement['timezone'] or 0
+        calendarmodel = statement['calendarmodel'] or None
+        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
+
+    return f()
 
 # def __deepcopy__(memo):
 #     # Don't return a copy of the module

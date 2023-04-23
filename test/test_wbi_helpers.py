@@ -5,7 +5,7 @@ import requests
 
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException
-from wikibaseintegrator.wbi_helpers import execute_sparql_query, get_user_agent, mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import execute_sparql_query, format2wbi, get_user_agent, mediawiki_api_call_helper
 
 
 def test_connection():
@@ -73,3 +73,86 @@ WHERE
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
 }''')
     assert len(results['results']['bindings']) > 1
+
+
+def test_format2wbi():
+    wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
+    from wikibaseintegrator.entities import ItemEntity, LexemeEntity, MediaInfoEntity, PropertyEntity
+
+    assert isinstance(format2wbi('item', '{}'), ItemEntity)
+    assert isinstance(format2wbi('property', '{}'), PropertyEntity)
+    assert isinstance(format2wbi('lexeme', '{}'), LexemeEntity)
+    assert isinstance(format2wbi('mediainfo', '{}'), MediaInfoEntity)
+    with unittest.TestCase().assertRaises(ValueError):
+        format2wbi('unknown', '{}')
+
+    result = format2wbi('item', '''{
+  "aliases": {
+    "uk": "Війєрбан",
+    "be": [
+      {
+        "value": "Вілербан"
+      },
+      {
+        "value": "Віербан"
+      }
+    ],
+    "en": [
+      "first alias",
+      "second alias"
+    ]
+  },
+  "labels": {
+    "en": "Between Expressiveness and Verifiability: P/T-nets with Synchronous Channels and Modular Structure"
+  },
+  "descriptions": {
+    "en": "scientific paper published in CEUR-WS Volume 3170"
+  },
+  "claims": {
+    "P1433": "Q113529188",
+    "P1476": {
+      "text": "Between Expressiveness and Verifiability: P/T-nets with Synchronous Channels and Modular Structure",
+      "language": "en"
+    },
+    "P2093": [
+      {
+        "value": "Lukas Voß",
+        "qualifiers": {
+          "P1545": "1"
+        }
+      },
+      {
+        "value": "Sven Willrodt",
+        "qualifiers": {
+          "P1545": "2"
+        }
+      },
+      {
+        "value": "Daniel Moldt",
+        "qualifiers": {
+          "P1545": "3"
+        }
+      },
+      {
+        "value": "Michael Haustermann",
+        "qualifiers": {
+          "P1545": "4"
+        }
+      }
+    ],
+    "P31": "Q13442814",
+    "P407": "Q1860",
+    "P50": [],
+    "P953": "https://ceur-ws.org/Vol-3170/paper3.pdf"
+  }
+}''')
+    assert isinstance(result, ItemEntity)
+
+    # Test aliases
+    # TODO: add test aliases
+
+    # Test descriptions
+    assert result.descriptions.get('en') == 'scientific paper published in CEUR-WS Volume 3170'
+
+    # Test labels
+    assert result.labels.get('en') == 'Between Expressiveness and Verifiability: P/T-nets with Synchronous Channels and Modular Structure'
