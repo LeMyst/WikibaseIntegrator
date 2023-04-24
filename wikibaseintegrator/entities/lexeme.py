@@ -22,7 +22,7 @@ class LexemeEntity(BaseEntity):
         self.forms: Forms = forms or Forms()
         self.senses: Senses = senses or Senses()
 
-    @BaseEntity.id.setter
+    @BaseEntity.id.setter  # type: ignore
     def id(self, value: Union[None, str, int]):
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?L?([0-9]+)$')
@@ -39,7 +39,7 @@ class LexemeEntity(BaseEntity):
         else:
             raise ValueError(f"Invalid lexeme ID ({value}), format must be 'L[0-9]+'")
 
-        BaseEntity.id.fset(self, value)
+        BaseEntity.id.fset(self, value)  # type: ignore
 
     @property
     def lemmas(self) -> Lemmas:

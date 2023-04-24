@@ -34,7 +34,7 @@ class ItemEntity(BaseEntity):
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
 
-    @BaseEntity.id.setter
+    @BaseEntity.id.setter  # type: ignore
     def id(self, value: Union[None, str, int]):
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?Q?([0-9]+)$')
@@ -51,7 +51,7 @@ class ItemEntity(BaseEntity):
         else:
             raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
 
-        BaseEntity.id.fset(self, value)
+        BaseEntity.id.fset(self, value)  # type: ignore
 
     @property
     def labels(self) -> Labels:
