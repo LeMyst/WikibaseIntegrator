@@ -32,3 +32,8 @@ class TestEntityMediaInfo(unittest.TestCase):
 
     def test_get_json(self):
         assert wbi.mediainfo.get('M75908279', mediawiki_api_url='https://commons.wikimedia.org/w/api.php').get_json()
+
+    def test_entity_url(self):
+        assert wbi.mediainfo.new(id='M582').get_entity_url() == 'http://www.wikidata.org/entity/M582'
+        assert wbi.mediainfo.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/M582'
+        assert wbi.mediainfo.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/M582'

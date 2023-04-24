@@ -35,3 +35,8 @@ class TestEntityLexeme(unittest.TestCase):
 
     def test_long_item_id(self):
         assert wbi.lexeme.get('Lexeme:L582').id == 'L582'
+
+    def test_entity_url(self):
+        assert wbi.lexeme.new(id='L582').get_entity_url() == 'http://www.wikidata.org/entity/L582'
+        assert wbi.lexeme.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/L582'
+        assert wbi.lexeme.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/L582'

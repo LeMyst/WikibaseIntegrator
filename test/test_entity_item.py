@@ -63,3 +63,8 @@ class TestEntityItem(unittest.TestCase):
 
     def test_long_item_id(self):
         assert wbi.item.get('Item:Q582').id == 'Q582'
+
+    def test_entity_url(self):
+        assert wbi.item.new(id='Q582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+        assert wbi.item.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+        assert wbi.item.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/Q582'

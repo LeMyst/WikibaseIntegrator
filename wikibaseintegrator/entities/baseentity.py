@@ -291,6 +291,14 @@ class BaseEntity:
 
         return fastrun_container.write_required(data=claims_to_check, cqid=self.id, action_if_exists=action_if_exists)
 
+    def get_entity_url(self, wikibase_url: Optional[str] = None) -> str:
+        from wikibaseintegrator.wbi_config import config
+        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
+        if wikibase_url and self.id:
+            return wikibase_url + '/entity/' + self.id
+
+        raise ValueError('wikibase_url or entity ID is null.')
+
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
