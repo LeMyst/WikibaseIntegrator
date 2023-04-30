@@ -24,6 +24,25 @@ class PropertyEntity(BaseEntity):
         self.descriptions: Descriptions = descriptions or Descriptions()
         self.aliases = aliases or Aliases()
 
+    @BaseEntity.id.setter  # type: ignore
+    def id(self, value: Union[None, str, int]):
+        if isinstance(value, str):
+            pattern = re.compile(r'^(?:[a-zA-Z]+:)?P?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError(f"Invalid property ID ({value}), format must be 'P[0-9]+'")
+
+            value = f'P{matches.group(1)}'
+        elif isinstance(value, int):
+            value = f'P{value}'
+        elif value is None:
+            pass
+        else:
+            raise ValueError(f"Invalid property ID ({value}), format must be 'P[0-9]+'")
+
+        BaseEntity.id.fset(self, value)  # type: ignore
+
     @property
     def datatype(self) -> Union[str, WikibaseDatatype, None]:
         return self.__datatype

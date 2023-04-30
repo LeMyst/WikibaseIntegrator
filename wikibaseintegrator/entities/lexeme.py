@@ -22,6 +22,25 @@ class LexemeEntity(BaseEntity):
         self.forms: Forms = forms or Forms()
         self.senses: Senses = senses or Senses()
 
+    @BaseEntity.id.setter  # type: ignore
+    def id(self, value: Union[None, str, int]):
+        if isinstance(value, str):
+            pattern = re.compile(r'^(?:[a-zA-Z]+:)?L?([0-9]+)$')
+            matches = pattern.match(value)
+
+            if not matches:
+                raise ValueError(f"Invalid lexeme ID ({value}), format must be 'L[0-9]+'")
+
+            value = f'L{matches.group(1)}'
+        elif isinstance(value, int):
+            value = f'L{value}'
+        elif value is None:
+            pass
+        else:
+            raise ValueError(f"Invalid lexeme ID ({value}), format must be 'L[0-9]+'")
+
+        BaseEntity.id.fset(self, value)  # type: ignore
+
     @property
     def lemmas(self) -> Lemmas:
         return self.__lemmas
