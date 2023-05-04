@@ -1,5 +1,6 @@
 import datetime
 import re
+from functools import total_ordering
 from typing import Any, Optional, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
@@ -7,6 +8,7 @@ from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 
 
+@total_ordering
 class Time(BaseDataType):
     """
     Implements the Wikibase data type with date and time values
@@ -102,3 +104,17 @@ class Time(BaseDataType):
 
     def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['time']
+
+    def get_year(self) -> int:
+        return int(self.mainsnak.datavalue['value']['time'][0:5])
+
+    def get_month(self) -> int:
+        return int(self.mainsnak.datavalue['value']['time'][6:8])
+
+    def get_day(self) -> int:
+        return int(self.mainsnak.datavalue['value']['time'][9:11])
+
+    def __lt__(self, other):
+        return (self.get_year() < other.get_year()) or \
+            (self.get_year() == other.get_year() and self.get_month() < other.get_month()) or \
+            (self.get_year() == other.get_year() and self.get_month() == other.get_month() and self.get_day() < other.get_day())
