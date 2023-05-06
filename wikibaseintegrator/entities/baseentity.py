@@ -197,8 +197,8 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, clear: bool = False,
-               as_new: bool = False, is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[str, Any]:
+    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, limit_claims: Optional[List[Union[str, int]]] = None, clear: bool = False, as_new: bool = False,
+               is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
 
@@ -206,6 +206,7 @@ class BaseEntity:
         :param summary: A summary of the edit
         :param login: A login instance
         :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param limit_claims: Limit to a list of specific claims to reduce the data sent and avoid sending the complete entity.
         :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
         :param as_new: Write the entity as a new one
         :param is_bot: Add the bot flag to the query
@@ -215,20 +216,20 @@ class BaseEntity:
 
         data = data or {}
 
-        # if all_claims:
-        #     data = json.JSONEncoder().encode(self.json_representation)
-        # else:
-        #     new_json_repr = {k: self.json_representation[k] for k in set(list(self.json_representation.keys())) - {'claims'}}
-        #     new_json_repr['claims'] = {}
-        #     for claim in self.json_representation['claims']:
-        #         if [True for x in self.json_representation['claims'][claim] if 'id' not in x or 'remove' in x]:
-        #             new_json_repr['claims'][claim] = copy.deepcopy(self.json_representation['claims'][claim])
-        #             for statement in new_json_repr['claims'][claim]:
-        #                 if 'id' in statement and 'remove' not in statement:
-        #                     new_json_repr['claims'][claim].remove(statement)
-        #             if not new_json_repr['claims'][claim]:
-        #                 new_json_repr['claims'].pop(claim)
-        #     data = json.JSONEncoder().encode(new_json_repr)
+        if limit_claims:
+            new_claims = {}
+
+            if not isinstance(limit_claims, list):
+                limit_claims = [limit_claims]
+
+            for claim in limit_claims:
+                if isinstance(claim, int):
+                    claim = 'P' + str(claim)
+
+                if claim in data['claims']:
+                    new_claims[claim] = data['claims'][claim]
+
+            data['claims'] = new_claims
 
         is_bot = is_bot if is_bot is not None else self.api.is_bot
         login = login or self.api.login
