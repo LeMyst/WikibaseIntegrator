@@ -1,4 +1,5 @@
 import unittest
+from copy import deepcopy
 
 import requests
 
@@ -68,3 +69,26 @@ class TestEntityItem(unittest.TestCase):
         assert wbi.item.new(id='Q582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
         assert wbi.item.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
         assert wbi.item.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+
+    def test_entity_qualifers_remove(self):
+        from wikibaseintegrator.models import Claim
+        item_original = wbi.item.get('Q582')
+
+        # clear()
+        item = deepcopy(item_original)
+        assert len(item.claims.get('P452')[0].qualifiers.clear('P666')) >= 1
+        item = deepcopy(item_original)
+        assert len(item.claims.get('P452')[0].qualifiers.clear('P1013')) == 0
+        item = deepcopy(item_original)
+        assert len(item.claims.get('P452')[0].qualifiers.clear()) == 0
+
+        # remove()
+        item = deepcopy(item_original)
+        from pprint import pprint
+        pprint(item.claims.get('P452')[0].qualifiers)
+        assert len(item.claims.get('P452')[0].qualifiers.remove(Item(prop_nr='P1013', value='Q112111570'))) == 0
+
+        # common
+        item = deepcopy(item_original)
+        assert len(item.claims.get('P452')) >= 1
+        assert len(item.claims.get('P452')[0].qualifiers) >= 1
