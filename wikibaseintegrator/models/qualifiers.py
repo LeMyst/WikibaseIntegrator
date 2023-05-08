@@ -69,7 +69,8 @@ class Qualifiers(BaseModel):
         if qualifier is not None:
             assert isinstance(qualifier, Snak)
 
-        self.qualifiers[qualifier.property_number].remove(qualifier)
+        if qualifier in self.qualifiers[qualifier.property_number]:
+            self.qualifiers[qualifier.property_number].remove(qualifier)
 
         if len(self.qualifiers[qualifier.property_number]) == 0:
             del self.qualifiers[qualifier.property_number]
