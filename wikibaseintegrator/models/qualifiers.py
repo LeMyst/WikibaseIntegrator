@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak
@@ -34,8 +34,14 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def get(self, property: str) -> List[Snak]:
-        return self.qualifiers[property]
+    def get(self, property: Union[str, int]) -> List[Snak]:
+        if isinstance(property, int):
+            property = 'P' + str(property)
+
+        if property in self.qualifiers:
+            return self.qualifiers[property]
+
+        return []
 
     # TODO: implement action_if_exists
     def add(self, qualifier: Union[Snak, Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Qualifiers:
@@ -53,6 +59,31 @@ class Qualifiers(BaseModel):
 
         self.qualifiers[property].append(qualifier)
 
+        return self
+
+    def remove(self, qualifier: Union[Snak, Claim]) -> Qualifiers:
+        from wikibaseintegrator.models.claims import Claim
+        if isinstance(qualifier, Claim):
+            qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
+
+        if qualifier is not None:
+            assert isinstance(qualifier, Snak)
+
+        self.qualifiers[qualifier.property_number].remove(qualifier)
+
+        if len(self.qualifiers[qualifier.property_number]) == 0:
+            del self.qualifiers[qualifier.property_number]
+
+        return self
+
+    def clear(self, property: Optional[Union[str, int]] = None) -> Qualifiers:
+        if isinstance(property, int):
+            property = 'P' + str(property)
+
+        if property is None:
+            self.qualifiers = {}
+        elif property in self.qualifiers:
+            del self.qualifiers[property]
         return self
 
     def from_json(self, json_data: Dict[str, List]) -> Qualifiers:
