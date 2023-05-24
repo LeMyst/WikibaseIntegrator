@@ -1,6 +1,6 @@
 Sphinx~=7.0.1
 readthedocs-sphinx-ext~=2.2.0
-sphinx-rtd-theme~=1.2.0
+sphinx-rtd-theme~=1.2.1
 sphinx_github_changelog~=1.2.1
 m2r2~=0.3.3
 sphinx-autodoc-typehints==1.23.4
