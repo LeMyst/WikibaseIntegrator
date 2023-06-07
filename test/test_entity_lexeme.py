@@ -40,3 +40,11 @@ class TestEntityLexeme(unittest.TestCase):
         assert wbi.lexeme.new(id='L582').get_entity_url() == 'http://www.wikidata.org/entity/L582'
         assert wbi.lexeme.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/L582'
         assert wbi.lexeme.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/L582'
+
+    # Test if the language is correctly formatted (T338255)
+    def test_wrong_language(self):
+        assert wbi.lexeme.new(language='http://www.wikidata.org/entity/Q397').language == 'Q397'
+        assert wbi.lexeme.new(language='wd:Q397').language == 'Q397'
+        assert wbi.lexeme.new(language='Q397').language == 'Q397'
+        assert wbi.lexeme.new(language='397').language == 'Q397'
+        assert wbi.lexeme.new(language=397).language == 'Q397'
