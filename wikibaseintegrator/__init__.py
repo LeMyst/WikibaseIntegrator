@@ -18,4 +18,4 @@ Full documentation is available at <https://wikibaseintegrator.readthedocs.io/>.
 
 from .wikibaseintegrator import WikibaseIntegrator
 
-__version__ = '0.12.4'
+__version__ = '0.12.5.dev0'
