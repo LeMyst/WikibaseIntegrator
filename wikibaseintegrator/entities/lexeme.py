@@ -13,7 +13,8 @@ from wikibaseintegrator.wbi_config import config
 class LexemeEntity(BaseEntity):
     ETYPE = 'lexeme'
 
-    def __init__(self, lemmas: Optional[Lemmas] = None, lexical_category: Optional[str] = None, language: Optional[str] = None, forms: Optional[Forms] = None, senses: Optional[Senses] = None, **kwargs: Any):
+    def __init__(self, lemmas: Optional[Lemmas] = None, lexical_category: Optional[str] = None, language: Optional[str] = None, forms: Optional[Forms] = None,
+                 senses: Optional[Senses] = None, **kwargs: Any):
         super().__init__(**kwargs)
 
         self.lemmas: Lemmas = lemmas or Lemmas()
@@ -65,6 +66,21 @@ class LexemeEntity(BaseEntity):
 
     @language.setter
     def language(self, language: str):
+        if isinstance(language, str):
+            pattern = re.compile(r'^(?:[a-zA-Z]+:|.+/entity/)?Q?([0-9]+)$')
+            matches = pattern.match(language)
+
+            if not matches:
+                raise ValueError(f"Invalid lexeme language value ({language}), format must be 'Q[0-9]+'")
+
+            language = f'Q{matches.group(1)}'
+        elif isinstance(language, int):
+            language = f'Q{language}'
+        elif language is None:
+            pass
+        else:
+            raise ValueError(f"Invalid lexeme language value ({language}), format must be 'Q[0-9]+'")
+
         self.__language = language
 
     @property
