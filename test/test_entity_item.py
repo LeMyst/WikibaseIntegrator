@@ -1,10 +1,11 @@
 import unittest
 from copy import deepcopy
 
+import pytest
 import requests
 
 from wikibaseintegrator import WikibaseIntegrator
-from wikibaseintegrator.datatypes import BaseDataType, Item
+from wikibaseintegrator.datatypes import BaseDataType, Item, MonolingualText, String
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 
@@ -71,7 +72,6 @@ class TestEntityItem(unittest.TestCase):
         assert wbi.item.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/Q582'
 
     def test_entity_qualifers_remove(self):
-        from wikibaseintegrator.models import Claim
         item_original = wbi.item.get('Q582')
 
         # clear()
@@ -92,3 +92,18 @@ class TestEntityItem(unittest.TestCase):
         item = deepcopy(item_original)
         assert len(item.claims.get('P452')) >= 1
         assert len(item.claims.get('P452')[0].qualifiers) >= 1
+
+    def test_new_lines(self):
+        item = wbi.item.new()
+
+        with pytest.raises(ValueError):
+            item.claims.add(String(prop_nr=123, value="Multi\r\nline"))
+        with pytest.raises(ValueError):
+            item.claims.add(String(prop_nr=123, value="Multi\rline"))
+        with pytest.raises(ValueError):
+            item.claims.add(String(prop_nr=123, value="Multi\nline"))
+
+        with pytest.raises(ValueError):
+            item.claims.add(MonolingualText(prop_nr=123, text="Multi\r\nline"))
+            item.claims.add(MonolingualText(prop_nr=123, text="Multi\rline"))
+            item.claims.add(MonolingualText(prop_nr=123, text="Multi\nline"))

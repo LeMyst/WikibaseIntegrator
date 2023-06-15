@@ -23,6 +23,9 @@ class String(BaseDataType):
     def set_value(self, value: Optional[str] = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
+        if value and ('\n' in value or '\r' in value):
+            raise ValueError("String value must not contain new ine character")
+
         if value:
             self.mainsnak.datavalue = {
                 'value': value,

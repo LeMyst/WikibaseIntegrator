@@ -34,6 +34,9 @@ class MonolingualText(BaseDataType):
         assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
         assert isinstance(language, str), f"Expected str, found {type(language)} ({language})"
 
+        if text and ('\n' in text or '\r' in text):
+            raise ValueError("MonolingualText text must not contain newline character")
+
         if text and language:
             self.mainsnak.datavalue = {
                 'value': {
