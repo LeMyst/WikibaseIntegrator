@@ -131,7 +131,8 @@ class Claims(BaseModel):
 class Claim(BaseModel):
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Optional[Qualifiers] = None, rank: Optional[WikibaseRank] = None, references: Optional[Union[References, List[Union[Claim, List[Claim]]]]] = None, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
+    def __init__(self, qualifiers: Optional[Qualifiers] = None, rank: Optional[WikibaseRank] = None,
+                 references: Optional[Union[References, List[Union[Claim, List[Claim]]]]] = None, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
         """
 
         :param qualifiers:
@@ -308,6 +309,12 @@ class Claim(BaseModel):
                 return False
 
         return True
+
+    def reset_id(self):
+        """
+        Reset the ID of the current claim
+        """
+        self.id = None
 
     # TODO: rewrite this?
     def __contains__(self, item):
