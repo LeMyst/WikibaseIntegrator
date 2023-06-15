@@ -291,3 +291,10 @@ class TestWbiCore(unittest.TestCase):
 
     def test_get_qualifier_properties(self):
         self.assertTrue(len(self.common_item.claims.get(property='P2067')))
+
+    def test_claim_reset_id(self):
+        item = wbi.item.get('Q582')
+        claim = item.claims.get('P31')[0]
+        assert claim.id is not None
+        claim.reset_id()
+        assert claim.id is None
