@@ -57,3 +57,9 @@ class Form(BaseDataType):
 
     def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['id']
+
+    def get_lexeme_id(self) -> str:
+        """
+        Return the lexeme ID of the Form
+        """
+        return self.mainsnak.datavalue['value']['id'].split('-')[0]

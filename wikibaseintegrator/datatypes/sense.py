@@ -46,3 +46,9 @@ class Sense(BaseDataType):
 
     def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['id']
+
+    def get_lexeme_id(self) -> str:
+        """
+        Return the lexeme ID of the Sense
+        """
+        return self.mainsnak.datavalue['value']['id'].split('-')[0]

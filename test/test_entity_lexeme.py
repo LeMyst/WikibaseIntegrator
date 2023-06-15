@@ -1,6 +1,7 @@
 import unittest
 
 from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import Form, Sense
 from wikibaseintegrator.wbi_config import config as wbi_config
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_lexeme.py)'
@@ -48,3 +49,7 @@ class TestEntityLexeme(unittest.TestCase):
         assert wbi.lexeme.new(language='Q397').language == 'Q397'
         assert wbi.lexeme.new(language='397').language == 'Q397'
         assert wbi.lexeme.new(language=397).language == 'Q397'
+
+    def test_get_lexeme_id(self):
+        assert Form(value='L123-F123', prop_nr='P16').get_lexeme_id() == 'L123'
+        assert Sense(value='L123-S123', prop_nr='P16').get_lexeme_id() == 'L123'
