@@ -89,7 +89,6 @@ the [Jupyter notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tr
 
 Here is a list of different projects that use the library:
 
-* https://github.com/internetarchive/wcdimportbot maintained by [dpriskorn](https://github.com/dpriskorn)
 * https://github.com/dlindem/wikibase maintained by [dlindem](https://github.com/dlindem)
 * https://github.com/LeMyst/wd-population maintained by [LeMyst](https://github.com/LeMyst)
 
