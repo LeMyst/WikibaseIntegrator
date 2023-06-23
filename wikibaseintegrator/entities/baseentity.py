@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import logging
+import re
 from copy import copy
 from typing import TYPE_CHECKING, Any
+
+from entityshape import EntityShape
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
+from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
@@ -298,6 +302,23 @@ class BaseEntity:
             return wikibase_url + '/entity/' + self.id
 
         raise ValueError('wikibase_url or entity ID is null.')
+
+    def validate_schema(self, entity_schema: str, language: str | None = None) -> bool:
+        if isinstance(entity_schema, str):
+            pattern = re.compile(r'^(?:[a-zA-Z]+:)?E?([0-9]+)$')
+            matches = pattern.match(entity_schema)
+
+            if not matches:
+                raise ValueError(f"Invalid EntitySchema ID ({entity_schema}), format must be 'E[0-9]+'")
+
+            entity_schema = f'E{matches.group(1)}'
+        elif isinstance(entity_schema, int):
+            entity_schema = f'E{entity_schema}'
+        else:
+            raise ValueError(f"Invalid EntitySchema ID ({entity_schema}), format must be 'E[0-9]+'")
+
+        language = str(language or config['DEFAULT_LANGUAGE'])
+        return EntityShape(qid=self.id, eid=entity_schema, lang=language).get_result().is_valid
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

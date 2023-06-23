@@ -107,3 +107,10 @@ class TestEntityItem(unittest.TestCase):
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\r\nline"))
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\rline"))
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\nline"))
+
+    def test_entity_schema(self):
+        random_campsite = wbi.item.get('Q119156070')
+        assert random_campsite.validate_schema(entity_schema="E376")
+        assert random_campsite.validate_schema(entity_schema="376")
+        assert random_campsite.validate_schema(entity_schema=376)
+        assert not wbi.item.get('Q582').validate_schema(entity_schema="E376")
