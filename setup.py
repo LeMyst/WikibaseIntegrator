@@ -15,6 +15,7 @@ setup(
     extras_require={
         "dev": [
             "pytest",
+            "pytest-order",
             "pylint",
             "pylint-exit",
             "mypy",

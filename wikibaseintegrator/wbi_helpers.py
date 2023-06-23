@@ -7,6 +7,7 @@ import datetime
 import json
 import logging
 import re
+from pprint import pprint
 from time import sleep
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -213,6 +214,8 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = No
         session = None
 
     log.debug(data)
+
+    pprint(data)
 
     return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
 
@@ -984,7 +987,8 @@ def _json2datatype(prop_nr: str, statement: dict, wikibase_url: Optional[str] = 
         precision = statement['precision'] or None
         timezone = statement['timezone'] or 0
         calendarmodel = statement['calendarmodel'] or None
-        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
+        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel,
+                 wikibase_url=wikibase_url)
 
     return f()
 
