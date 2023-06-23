@@ -7,13 +7,13 @@ services:
     image: "${WDQS_FRONTEND_IMAGE_NAME}"
     restart: unless-stopped
     ports:
-     - "${WDQS_FRONTEND_PORT}:80"
+      - "${WDQS_FRONTEND_PORT}:80"
     depends_on:
       - wdqs-proxy
     networks:
       default:
         aliases:
-         - ${WDQS_FRONTEND_HOST}
+          - ${WDQS_FRONTEND_HOST}
     environment:
       - WIKIBASE_HOST=${WIKIBASE_HOST}
       - WDQS_HOST=wdqs-proxy.svc
@@ -26,7 +26,7 @@ services:
     networks:
       default:
         aliases:
-         - wdqs.svc
+          - wdqs.svc
     environment:
       - WIKIBASE_HOST=${WIKIBASE_HOST}
       - WDQS_HOST=wdqs.svc
@@ -44,24 +44,24 @@ services:
     networks:
       default:
         aliases:
-         - wdqs-proxy.svc
+          - wdqs-proxy.svc
 
   wdqs-updater:
     image: "${WDQS_IMAGE_NAME}"
     restart: unless-stopped
     command: /runUpdate.sh
     depends_on:
-    - wdqs
-    - wikibase
+      - wdqs
+      - wikibase
     networks:
       default:
         aliases:
-         - wdqs-updater.svc
+          - wdqs-updater.svc
     environment:
-     - WIKIBASE_HOST=${WIKIBASE_HOST}
-     - WDQS_HOST=wdqs.svc
-     - WDQS_PORT=9999
-     # CONFIG - WIKIBASE_SCHEME can be set to 'https' if the updater should expect https concept uris
+      - WIKIBASE_HOST=${WIKIBASE_HOST}
+      - WDQS_HOST=wdqs.svc
+      - WDQS_PORT=9999
+      # CONFIG - WIKIBASE_SCHEME can be set to 'https' if the updater should expect https concept uris
 
 volumes:
   LocalSettings:
