@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from wikibaseintegrator.models.basemodel import BaseModel
 
 
 class Sitelinks(BaseModel):
     def __init__(self) -> None:
-        self.sitelinks: Dict[str, Sitelink] = {}
+        self.sitelinks: dict[str, Sitelink] = {}
 
-    def get(self, site: Optional[str] = None) -> Optional[Sitelink]:
+    def get(self, site: str | None = None) -> Sitelink | None:
         if site in self.sitelinks:
             return self.sitelinks[site]
 
         return None
 
-    def set(self, site: str, title: Optional[str] = None, badges: Optional[List[str]] = None) -> Sitelink:
+    def set(self, site: str, title: str | None = None, badges: list[str] | None = None) -> Sitelink:
         sitelink = Sitelink(site, title, badges)
         self.sitelinks[site] = sitelink
         return sitelink
 
-    def from_json(self, json_data: Dict[str, Dict]) -> Sitelinks:
+    def from_json(self, json_data: dict[str, dict]) -> Sitelinks:
         for sitelink in json_data:
             self.set(site=json_data[sitelink]['site'], title=json_data[sitelink]['title'], badges=json_data[sitelink]['badges'])
 
@@ -31,10 +29,10 @@ class Sitelinks(BaseModel):
 
 
 class Sitelink(BaseModel):
-    def __init__(self, site: Optional[str] = None, title: Optional[str] = None, badges: Optional[List[str]] = None):
+    def __init__(self, site: str | None = None, title: str | None = None, badges: list[str] | None = None):
         self.site = site
         self.title = title
-        self.badges: List[str] = badges or []
+        self.badges: list[str] = badges or []
 
     def __str__(self):
         return self.title

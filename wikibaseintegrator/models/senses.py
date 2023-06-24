@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -10,9 +10,9 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class Senses(BaseModel):
     def __init__(self) -> None:
-        self.senses: List[Sense] = []
+        self.senses: list[Sense] = []
 
-    def get(self, id: str) -> Optional[Sense]:
+    def get(self, id: str) -> Sense | None:
         for sense in self.senses:
             if sense.id == id:
                 return sense
@@ -24,14 +24,14 @@ class Senses(BaseModel):
 
         return self
 
-    def from_json(self, json_data: List[Dict]) -> Senses:
+    def from_json(self, json_data: list[dict]) -> Senses:
         for sense in json_data:
             self.add(sense=Sense().from_json(sense))
 
         return self
 
-    def get_json(self) -> List[Dict]:
-        json_data: List[Dict] = []
+    def get_json(self) -> list[dict]:
+        json_data: list[dict] = []
         for sense in self.senses:
             json_data.append(sense.get_json())
 
@@ -42,21 +42,21 @@ class Senses(BaseModel):
 
 
 class Sense(BaseModel):
-    def __init__(self, sense_id: Optional[str] = None, glosses: Optional[Glosses] = None, claims: Optional[Claims] = None):
+    def __init__(self, sense_id: str | None = None, glosses: Glosses | None = None, claims: Claims | None = None):
         self.id = sense_id
         self.glosses: LanguageValues = glosses or Glosses()
         self.claims = claims or Claims()
         self.removed = False
 
-    def from_json(self, json_data: Dict[str, Any]) -> Sense:
+    def from_json(self, json_data: dict[str, Any]) -> Sense:
         self.id = json_data['id']
         self.glosses = Glosses().from_json(json_data['glosses'])
         self.claims = Claims().from_json(json_data['claims'])
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
-        json_data: Dict[str, Union[str, Dict]] = {
+    def get_json(self) -> dict[str, str | dict]:
+        json_data: dict[str, str | dict] = {
             'id': str(self.id),
             'glosses': self.glosses.get_json(),
             'claims': self.claims.get_json()

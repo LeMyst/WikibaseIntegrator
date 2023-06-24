@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -9,9 +9,9 @@ from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 class Snaks(BaseModel):
     def __init__(self) -> None:
-        self.snaks: Dict[str, List[Snak]] = {}
+        self.snaks: dict[str, list[Snak]] = {}
 
-    def get(self, property: str) -> List[Snak]:
+    def get(self, property: str) -> list[Snak]:
         return self.snaks[property]
 
     def add(self, snak: Snak) -> Snaks:
@@ -24,15 +24,15 @@ class Snaks(BaseModel):
 
         return self
 
-    def from_json(self, json_data: Dict[str, List]) -> Snaks:
+    def from_json(self, json_data: dict[str, list]) -> Snaks:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(snak=Snak().from_json(snak))
 
         return self
 
-    def get_json(self) -> Dict[str, List]:
-        json_data: Dict[str, List] = {}
+    def get_json(self) -> dict[str, list]:
+        json_data: dict[str, list] = {}
         for property, snaks in self.snaks.items():
             if property not in json_data:
                 json_data[property] = []
@@ -51,7 +51,7 @@ class Snaks(BaseModel):
 
 
 class Snak(BaseModel):
-    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: Optional[str] = None, hash: Optional[str] = None, datavalue: Optional[Dict] = None, datatype: Optional[str] = None):
+    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str | None = None, hash: str | None = None, datavalue: dict | None = None, datatype: str | None = None):
         self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash
@@ -112,7 +112,7 @@ class Snak(BaseModel):
     def datatype(self, value):
         self.__datatype = value
 
-    def from_json(self, json_data: Dict[str, Any]) -> Snak:
+    def from_json(self, json_data: dict[str, Any]) -> Snak:
         self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
         self.property_number = json_data['property']
         if 'hash' in json_data:
@@ -123,7 +123,7 @@ class Snak(BaseModel):
             self.datatype = json_data['datatype']
         return self
 
-    def get_json(self) -> Dict[str, str]:
+    def get_json(self) -> dict[str, str]:
         json_data = {
             'snaktype': self.snaktype.value,
             'property': self.property_number,

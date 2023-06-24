@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models import Claims, LanguageValues
@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 class MediaInfoEntity(BaseEntity):
     ETYPE = 'mediainfo'
 
-    def __init__(self, labels: Optional[Labels] = None, descriptions: Optional[Descriptions] = None, aliases: Optional[Aliases] = None, **kwargs: Any) -> None:
+    def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -32,7 +32,7 @@ class MediaInfoEntity(BaseEntity):
         self.aliases = aliases or Aliases()
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: Union[None, str, int]):
+    def id(self, value: None | str | int):
         if isinstance(value, str):
             pattern = re.compile(r'^M?([0-9]+)$')
             matches = pattern.match(value)
@@ -83,7 +83,7 @@ class MediaInfoEntity(BaseEntity):
     def new(self, **kwargs: Any) -> MediaInfoEntity:
         return MediaInfoEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs: Any) -> MediaInfoEntity:
+    def get(self, entity_id: str | int, **kwargs: Any) -> MediaInfoEntity:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^M?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -100,7 +100,7 @@ class MediaInfoEntity(BaseEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_by_title(self, titles: Union[List[str], str], sites: str = 'commonswiki', **kwargs: Any) -> MediaInfoEntity:
+    def get_by_title(self, titles: list[str] | str, sites: str = 'commonswiki', **kwargs: Any) -> MediaInfoEntity:
         if isinstance(titles, list):
             titles = '|'.join(titles)
 
@@ -120,7 +120,7 @@ class MediaInfoEntity(BaseEntity):
 
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
+    def get_json(self) -> dict[str, str | dict]:
         return {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
@@ -136,7 +136,7 @@ class MediaInfoEntity(BaseEntity):
         #             if 'mainsnak' in statement and 'datatype' in statement['mainsnak']:
         #                 del statement['mainsnak']['datatype']
 
-    def from_json(self, json_data: Dict[str, Any]) -> MediaInfoEntity:
+    def from_json(self, json_data: dict[str, Any]) -> MediaInfoEntity:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])

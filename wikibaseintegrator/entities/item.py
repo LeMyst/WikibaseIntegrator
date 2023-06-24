@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models import LanguageValues
@@ -14,7 +14,7 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class ItemEntity(BaseEntity):
     ETYPE = 'item'
 
-    def __init__(self, labels: Optional[Labels] = None, descriptions: Optional[Descriptions] = None, aliases: Optional[Aliases] = None, sitelinks: Optional[Sitelinks] = None, **kwargs: Any) -> None:
+    def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, sitelinks: Sitelinks | None = None, **kwargs: Any) -> None:
         """
 
         :param api:
@@ -35,7 +35,7 @@ class ItemEntity(BaseEntity):
         self.sitelinks = sitelinks or Sitelinks()
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: Union[None, str, int]):
+    def id(self, value: None | str | int):
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?Q?([0-9]+)$')
             matches = pattern.match(value)
@@ -96,7 +96,7 @@ class ItemEntity(BaseEntity):
     def new(self, **kwargs: Any) -> ItemEntity:
         return ItemEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Optional[Union[str, int]] = None, **kwargs: Any) -> ItemEntity:
+    def get(self, entity_id: str | int | None = None, **kwargs: Any) -> ItemEntity:
         """
         Request the MediaWiki API to get data for the entity specified in argument.
 
@@ -126,7 +126,7 @@ class ItemEntity(BaseEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return ItemEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
+    def get_json(self) -> dict[str, str | dict]:
         """
         To get the dict equivalent of the JSON representation of the Item.
 
@@ -139,7 +139,7 @@ class ItemEntity(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data: Dict[str, Any]) -> ItemEntity:
+    def from_json(self, json_data: dict[str, Any]) -> ItemEntity:
         super().from_json(json_data=json_data)
 
         self.labels = Labels().from_json(json_data['labels'])

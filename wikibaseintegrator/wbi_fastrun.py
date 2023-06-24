@@ -6,7 +6,7 @@ import logging
 from collections import defaultdict
 from functools import lru_cache
 from itertools import chain
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Type, Union
+from typing import TYPE_CHECKING
 
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models import Claim
@@ -19,22 +19,22 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-fastrun_store: List[FastRunContainer] = []
+fastrun_store: list[FastRunContainer] = []
 
 
 class FastRunContainer:
-    def __init__(self, base_data_type: Type[BaseDataType], mediawiki_api_url: Optional[str] = None, sparql_endpoint_url: Optional[str] = None, wikibase_url: Optional[str] = None,
-                 base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, use_refs: bool = False, case_insensitive: bool = False):
-        self.reconstructed_statements: List[BaseDataType] = []
-        self.rev_lookup: defaultdict[str, Set[str]] = defaultdict(set)
-        self.rev_lookup_ci: defaultdict[str, Set[str]] = defaultdict(set)
-        self.prop_data: Dict[str, Dict] = {}
-        self.loaded_langs: Dict[str, Dict] = {}
-        self.base_filter: List[BaseDataType | List[BaseDataType]] = []
+    def __init__(self, base_data_type: type[BaseDataType], mediawiki_api_url: str | None = None, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None,
+                 base_filter: list[BaseDataType | list[BaseDataType]] | None = None, use_refs: bool = False, case_insensitive: bool = False):
+        self.reconstructed_statements: list[BaseDataType] = []
+        self.rev_lookup: defaultdict[str, set[str]] = defaultdict(set)
+        self.rev_lookup_ci: defaultdict[str, set[str]] = defaultdict(set)
+        self.prop_data: dict[str, dict] = {}
+        self.loaded_langs: dict[str, dict] = {}
+        self.base_filter: list[BaseDataType | list[BaseDataType]] = []
         self.base_filter_string = ''
-        self.prop_dt_map: Dict[str, str] = {}
+        self.prop_dt_map: dict[str, str] = {}
 
-        self.base_data_type: Type[BaseDataType] = base_data_type
+        self.base_data_type: type[BaseDataType] = base_data_type
         self.mediawiki_api_url: str = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
         self.sparql_endpoint_url: str = str(sparql_endpoint_url or config['SPARQL_ENDPOINT_URL'])
         self.wikibase_url: str = str(wikibase_url or config['WIKIBASE_URL'])
@@ -62,8 +62,8 @@ class FastRunContainer:
                 else:
                     raise ValueError("base_filter must be an instance of BaseDataType or a list of instances of BaseDataType")
 
-    def reconstruct_statements(self, qid: str) -> List[BaseDataType]:
-        reconstructed_statements: List[BaseDataType] = []
+    def reconstruct_statements(self, qid: str) -> list[BaseDataType]:
+        reconstructed_statements: list[BaseDataType] = []
 
         if qid not in self.prop_data:
             self.reconstructed_statements = reconstructed_statements
@@ -110,7 +110,7 @@ class FastRunContainer:
         self.reconstructed_statements = reconstructed_statements
         return reconstructed_statements
 
-    def get_items(self, claims: Union[List[Claim], Claims, Claim], cqid: Optional[str] = None) -> Optional[Set[str]]:
+    def get_items(self, claims: list[Claim] | Claims | Claim, cqid: str | None = None) -> set[str] | None:
         """
         Get items ID from a SPARQL endpoint
 
@@ -173,7 +173,7 @@ class FastRunContainer:
 
         return matching_qids
 
-    def get_item(self, claims: Union[List[Claim], Claims, Claim], cqid: Optional[str] = None) -> Optional[str]:
+    def get_item(self, claims: list[Claim] | Claims | Claim, cqid: str | None = None) -> str | None:
         """
 
         :param claims: A list of claims the entity should have
@@ -181,7 +181,7 @@ class FastRunContainer:
         :return: An entity ID, None if there is more than one.
         """
 
-        matching_qids: Optional[Set[str]] = self.get_items(claims=claims, cqid=cqid)
+        matching_qids: set[str] | None = self.get_items(claims=claims, cqid=cqid)
 
         if matching_qids is None:
             return None
@@ -194,7 +194,7 @@ class FastRunContainer:
 
         return matching_qids.pop()
 
-    def write_required(self, data: List[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, cqid: Optional[str] = None) -> bool:
+    def write_required(self, data: list[Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, cqid: str | None = None) -> bool:
         """
         Check if a write is required
 
@@ -312,7 +312,7 @@ class FastRunContainer:
                 data = self._process_lang(result=result)
                 self.loaded_langs[lang].update({lang_data_type: data})
 
-    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> List[str]:
+    def get_language_data(self, qid: str, lang: str, lang_data_type: str) -> list[str]:
         """
         get language data for specified qid
 
@@ -333,7 +333,7 @@ class FastRunContainer:
             all_lang_strings = ['']
         return all_lang_strings
 
-    def check_language_data(self, qid: str, lang_data: List, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> bool:
+    def check_language_data(self, qid: str, lang_data: list, lang: str, lang_data_type: str, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> bool:
         """
         Method to check if certain language data exists as a label, description or aliases
         :param qid: Wikibase item id
@@ -355,10 +355,10 @@ class FastRunContainer:
 
         return False
 
-    def get_all_data(self) -> Dict[str, Dict]:
+    def get_all_data(self) -> dict[str, dict]:
         return self.prop_data
 
-    def format_query_results(self, r: List, prop_nr: str) -> None:
+    def format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
         `prop_nr` is needed to get the property datatype to determine how to format the value
@@ -440,7 +440,7 @@ class FastRunContainer:
                 else:
                     i['rval'] = i['rval']['value']
 
-    def update_frc_from_query(self, r: List, prop_nr: str) -> None:
+    def update_frc_from_query(self, r: list, prop_nr: str) -> None:
         # r is the output of format_query_results
         # this updates the frc from the query (result of _query_data)
         for i in r:
@@ -574,7 +574,7 @@ class FastRunContainer:
             if len(results) == 0 or len(results) < page_size:
                 break
 
-    def _query_lang(self, lang: str, lang_data_type: str) -> Optional[List[Dict[str, Dict]]]:
+    def _query_lang(self, lang: str, lang_data_type: str) -> list[dict[str, dict]] | None:
         """
 
         :param lang:
@@ -603,7 +603,7 @@ class FastRunContainer:
         return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
     @staticmethod
-    def _process_lang(result: List) -> defaultdict[str, set]:
+    def _process_lang(result: list) -> defaultdict[str, set]:
         data = defaultdict(set)
         for r in result:
             qid = r['item']['value'].split("/")[-1]
@@ -612,7 +612,7 @@ class FastRunContainer:
         return data
 
     @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr: str) -> Optional[str]:  # pylint: disable=no-self-use
+    def get_prop_datatype(self, prop_nr: str) -> str | None:  # pylint: disable=no-self-use
         from wikibaseintegrator import WikibaseIntegrator
         wbi = WikibaseIntegrator()
         property = wbi.property.get(prop_nr)
@@ -639,7 +639,7 @@ class FastRunContainer:
         )
 
 
-def get_fastrun_container(base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]] | None = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     if base_filter is None:
         base_filter = []
 
@@ -649,7 +649,7 @@ def get_fastrun_container(base_filter: Optional[List[BaseDataType | List[BaseDat
     return fastrun_container
 
 
-def _search_fastrun_store(base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
+def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]] | None = None, use_refs: bool = False, case_insensitive: bool = False) -> FastRunContainer:
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_refs == use_refs) and (fastrun.case_insensitive == case_insensitive) and (
                 fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):

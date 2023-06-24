@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict
-
 from wikibaseintegrator.models.language_values import LanguageValue, LanguageValues
 
 
 class Descriptions(LanguageValues):
-    def from_json(self, json_data: Dict[str, Dict]) -> Descriptions:
+    def from_json(self, json_data: dict[str, dict]) -> Descriptions:
         """
         Create a new Descriptions object from a JSON/dict object.
 

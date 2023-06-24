@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
-
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
@@ -9,21 +7,21 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Aliases(BaseModel):
-    def __init__(self, language: Optional[str] = None, value: Optional[str] = None):
-        self.aliases: Dict[str, List[Alias]] = {}
+    def __init__(self, language: str | None = None, value: str | None = None):
+        self.aliases: dict[str, list[Alias]] = {}
 
         if language is not None:
             self.set(language=language, values=value)
 
     @property
-    def aliases(self) -> Dict[str, List[Alias]]:
+    def aliases(self) -> dict[str, list[Alias]]:
         return self.__aliases
 
     @aliases.setter
-    def aliases(self, value: Dict[str, List[Alias]]):
+    def aliases(self, value: dict[str, list[Alias]]):
         self.__aliases = value
 
-    def get(self, language: Optional[str] = None) -> Optional[List[Alias]]:
+    def get(self, language: str | None = None) -> list[Alias] | None:
         if language is None:
             # TODO: Don't return a list of list, just a list
             return [item for sublist in self.aliases.values() for item in sublist]
@@ -33,7 +31,7 @@ class Aliases(BaseModel):
 
         return None
 
-    def set(self, language: Optional[str] = None, values: Optional[Union[str, List]] = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Aliases:
+    def set(self, language: str | None = None, values: str | list | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Aliases:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
 
@@ -72,8 +70,8 @@ class Aliases(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, List]:
-        json_data: Dict[str, List] = {}
+    def get_json(self) -> dict[str, list]:
+        json_data: dict[str, list] = {}
         for language, aliases in self.aliases.items():
             if language not in json_data:
                 json_data[language] = []
@@ -81,7 +79,7 @@ class Aliases(BaseModel):
                 json_data[language].append(alias.get_json())
         return json_data
 
-    def from_json(self, json_data: Dict[str, List]) -> Aliases:
+    def from_json(self, json_data: dict[str, list]) -> Aliases:
         for language in json_data:
             for alias in json_data[language]:
                 self.set(alias['language'], alias['value'])
