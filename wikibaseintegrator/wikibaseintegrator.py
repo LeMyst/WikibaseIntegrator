@@ -3,7 +3,7 @@ Main class of the Library.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from wikibaseintegrator.entities.item import ItemEntity
 from wikibaseintegrator.entities.lexeme import LexemeEntity
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class WikibaseIntegrator:
 
-    def __init__(self, is_bot: bool = False, login: Optional[_Login] = None):
+    def __init__(self, is_bot: bool = False, login: _Login | None = None):
         """
         This function initializes a WikibaseIntegrator instance to quickly access different entity type instances.
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -13,7 +13,7 @@ from wikibaseintegrator.wbi_enums import WikibaseDatatype
 class PropertyEntity(BaseEntity):
     ETYPE = 'property'
 
-    def __init__(self, datatype: Union[str, WikibaseDatatype, None] = None, labels: Optional[Labels] = None, descriptions: Optional[Descriptions] = None, aliases: Optional[Aliases] = None, **kwargs: Any):
+    def __init__(self, datatype: str | WikibaseDatatype | None = None, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any):
         super().__init__(**kwargs)
 
         # Property specific
@@ -25,7 +25,7 @@ class PropertyEntity(BaseEntity):
         self.aliases = aliases or Aliases()
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: Union[None, str, int]):
+    def id(self, value: None | str | int):
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?P?([0-9]+)$')
             matches = pattern.match(value)
@@ -44,13 +44,13 @@ class PropertyEntity(BaseEntity):
         BaseEntity.id.fset(self, value)  # type: ignore
 
     @property
-    def datatype(self) -> Union[str, WikibaseDatatype, None]:
+    def datatype(self) -> str | WikibaseDatatype | None:
         return self.__datatype
 
     @datatype.setter
-    def datatype(self, value: Union[str, WikibaseDatatype, None]):
+    def datatype(self, value: str | WikibaseDatatype | None):
         if isinstance(value, str):
-            self.__datatype: Union[str, WikibaseDatatype, None] = WikibaseDatatype(value)
+            self.__datatype: str | WikibaseDatatype | None = WikibaseDatatype(value)
         else:
             self.__datatype = value
 
@@ -87,7 +87,7 @@ class PropertyEntity(BaseEntity):
     def new(self, **kwargs: Any) -> PropertyEntity:
         return PropertyEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs: Any) -> PropertyEntity:
+    def get(self, entity_id: str | int, **kwargs: Any) -> PropertyEntity:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?P?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -104,7 +104,7 @@ class PropertyEntity(BaseEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return PropertyEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> Dict[str, Union[str, Any]]:
+    def get_json(self) -> dict[str, str | Any]:
         json = {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
@@ -117,7 +117,7 @@ class PropertyEntity(BaseEntity):
 
         return json
 
-    def from_json(self, json_data: Dict[str, Any]) -> PropertyEntity:
+    def from_json(self, json_data: dict[str, Any]) -> PropertyEntity:
         super().from_json(json_data=json_data)
 
         if 'datatype' in json_data:  # TODO: 1.35 compatibility

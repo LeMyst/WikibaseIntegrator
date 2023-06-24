@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from copy import copy
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -20,10 +20,10 @@ log = logging.getLogger(__name__)
 
 class BaseEntity:
     ETYPE = 'base-entity'
-    subclasses: List[Type[BaseEntity]] = []
+    subclasses: list[type[BaseEntity]] = []
 
-    def __init__(self, api: Optional['WikibaseIntegrator'] = None, title: Optional[str] = None, pageid: Optional[int] = None, lastrevid: Optional[int] = None,
-                 type: Optional[str] = None, id: Optional[str] = None, claims: Optional[Claims] = None, is_bot: Optional[bool] = None, login: Optional[_Login] = None):
+    def __init__(self, api: WikibaseIntegrator | None = None, title: str | None = None, pageid: int | None = None, lastrevid: int | None = None, type: str | None = None,
+                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: _Login | None = None):
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -57,30 +57,30 @@ class BaseEntity:
         self.__api = value
 
     @property
-    def title(self) -> Optional[str]:
+    def title(self) -> str | None:
         return self.__title
 
     @title.setter
-    def title(self, value: Optional[str]):
+    def title(self, value: str | None):
         self.__title = value
 
     @property
-    def pageid(self) -> Union[str, int, None]:
+    def pageid(self) -> str | int | None:
         return self.__pageid
 
     @pageid.setter
-    def pageid(self, value: Union[str, int, None]):
+    def pageid(self, value: str | int | None):
         if isinstance(value, str):
-            self.__pageid: Union[str, int, None] = int(value)
+            self.__pageid: str | int | None = int(value)
         else:
             self.__pageid = value
 
     @property
-    def lastrevid(self) -> Optional[int]:
+    def lastrevid(self) -> int | None:
         return self.__lastrevid
 
     @lastrevid.setter
-    def lastrevid(self, value: Optional[int]):
+    def lastrevid(self, value: int | None):
         self.__lastrevid = value
 
     @property
@@ -92,11 +92,11 @@ class BaseEntity:
         self.__type = value
 
     @property
-    def id(self) -> Optional[str]:
+    def id(self) -> str | None:
         return self.__id
 
     @id.setter
-    def id(self, value: Optional[str]):
+    def id(self, value: str | None):
         self.__id = value
 
     @property
@@ -109,7 +109,7 @@ class BaseEntity:
             raise TypeError
         self.__claims = value
 
-    def add_claims(self, claims: Union[Claim, List[Claim], Claims], action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> BaseEntity:
+    def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> BaseEntity:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -125,13 +125,13 @@ class BaseEntity:
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, Dict[str, List]]]:
+    def get_json(self) -> dict[str, str | dict[str, list]]:
         """
         To get the dict equivalent of the JSON representation of the entity.
 
         :return:
         """
-        json_data: Dict = {
+        json_data: dict = {
             'type': self.type,
             'claims': self.claims.get_json()
         }
@@ -140,7 +140,7 @@ class BaseEntity:
 
         return json_data
 
-    def from_json(self, json_data: Dict[str, Any]) -> BaseEntity:
+    def from_json(self, json_data: dict[str, Any]) -> BaseEntity:
         """
         Import a dictionary into BaseEntity attributes.
 
@@ -163,8 +163,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: Optional[_Login] = None, allow_anonymous: bool = True, is_bot: Optional[bool] = None,
-             **kwargs: Any) -> Dict:  # pylint: disable=no-self-use
+    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> dict:  # pylint: disable=no-self-use
         """
         Retrieve an entity in json representation from the Wikibase instance
 
@@ -187,7 +186,7 @@ class BaseEntity:
 
         return mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def clear(self, **kwargs: Any) -> Dict[str, Any]:
+    def clear(self, **kwargs: Any) -> dict[str, Any]:
         """
         Use the `clear` parameter of `wbeditentity` API call to clear the content of the entity.
         The entity will be updated with an empty dictionary.
@@ -197,8 +196,8 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def _write(self, data: Optional[Dict] = None, summary: Optional[str] = None, login: Optional[_Login] = None, allow_anonymous: bool = False, limit_claims: Optional[List[Union[str, int]]] = None, clear: bool = False, as_new: bool = False,
-               is_bot: Optional[bool] = None, **kwargs: Any) -> Dict[str, Any]:
+    def _write(self, data: dict | None = None, summary: str | None = None, login: _Login | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
+               clear: bool = False, as_new: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
 
@@ -249,7 +248,7 @@ class BaseEntity:
 
         return json_result['entity']
 
-    def delete(self, login: Optional[_Login] = None, allow_anonymous: bool = False, is_bot: Optional[bool] = None, **kwargs: Any):
+    def delete(self, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any):
         """
         Delete the current entity. Use the pageid first if available and fallback to the page title.
 
@@ -276,7 +275,7 @@ class BaseEntity:
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def write_required(self, base_filter: Optional[List[BaseDataType | List[BaseDataType]]] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL,
+    def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]] | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL,
                        **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
@@ -292,7 +291,7 @@ class BaseEntity:
 
         return fastrun_container.write_required(data=claims_to_check, cqid=self.id, action_if_exists=action_if_exists)
 
-    def get_entity_url(self, wikibase_url: Optional[str] = None) -> str:
+    def get_entity_url(self, wikibase_url: str | None = None) -> str:
         from wikibaseintegrator.wbi_config import config
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
         if wikibase_url and self.id:

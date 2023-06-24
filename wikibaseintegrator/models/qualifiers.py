@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class Qualifiers(BaseModel):
     def __init__(self) -> None:
-        self.qualifiers: Dict[str, List[Snak]] = {}
+        self.qualifiers: dict[str, list[Snak]] = {}
 
     @property
     def qualifiers(self):
@@ -23,7 +23,7 @@ class Qualifiers(BaseModel):
         assert isinstance(value, dict)
         self.__qualifiers = value
 
-    def set(self, qualifiers: Union[Qualifiers, List[Union[Snak, Claim]], None]) -> Qualifiers:
+    def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Qualifiers:
         if isinstance(qualifiers, list) or isinstance(qualifiers, Qualifiers):
             for qualifier in qualifiers:
                 self.add(qualifier)
@@ -34,7 +34,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def get(self, property: Union[str, int]) -> List[Snak]:
+    def get(self, property: str | int) -> list[Snak]:
         if isinstance(property, int):
             property = 'P' + str(property)
 
@@ -44,7 +44,7 @@ class Qualifiers(BaseModel):
         return []
 
     # TODO: implement action_if_exists
-    def add(self, qualifier: Union[Snak, Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Qualifiers:
+    def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Qualifiers:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -61,7 +61,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def remove(self, qualifier: Union[Snak, Claim]) -> Qualifiers:
+    def remove(self, qualifier: Snak | Claim) -> Qualifiers:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -77,7 +77,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def clear(self, property: Optional[Union[str, int]] = None) -> Qualifiers:
+    def clear(self, property: str | int | None = None) -> Qualifiers:
         if isinstance(property, int):
             property = 'P' + str(property)
 
@@ -87,14 +87,14 @@ class Qualifiers(BaseModel):
             del self.qualifiers[property]
         return self
 
-    def from_json(self, json_data: Dict[str, List]) -> Qualifiers:
+    def from_json(self, json_data: dict[str, list]) -> Qualifiers:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(qualifier=Snak().from_json(snak))
         return self
 
-    def get_json(self) -> Dict[str, List]:
-        json_data: Dict[str, List] = {}
+    def get_json(self) -> dict[str, list]:
+        json_data: dict[str, list] = {}
         for property in self.qualifiers:
             if property not in json_data:
                 json_data[property] = []

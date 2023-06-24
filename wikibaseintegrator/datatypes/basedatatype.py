@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, List, Optional, Type, Union
+from typing import Any
 
 from wikibaseintegrator.models import Claim
 
@@ -11,7 +11,7 @@ class BaseDataType(Claim):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
-    subclasses: List[Type[BaseDataType]] = []
+    subclasses: list[type[BaseDataType]] = []
     sparql_query: str = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -19,7 +19,7 @@ class BaseDataType(Claim):
         }}
     '''
 
-    def __init__(self, prop_nr: Optional[Union[int, str]] = None, **kwargs: Any):
+    def __init__(self, prop_nr: int | str | None = None, **kwargs: Any):
         """
         Constructor, will be called by all data types.
 
@@ -36,7 +36,7 @@ class BaseDataType(Claim):
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
 
-    def set_value(self, value: Optional[Any] = None):
+    def set_value(self, value: Any | None = None):
         pass
 
     def get_sparql_value(self) -> str:

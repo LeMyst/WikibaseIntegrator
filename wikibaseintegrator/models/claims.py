@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
@@ -13,20 +13,20 @@ from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseS
 
 class Claims(BaseModel):
     def __init__(self) -> None:
-        self.claims: Dict[str, List[Claim]] = {}
+        self.claims: dict[str, list[Claim]] = {}
 
     @property
-    def claims(self) -> Dict[str, List[Claim]]:
+    def claims(self) -> dict[str, list[Claim]]:
         return self.__claims
 
     @claims.setter
-    def claims(self, claims: Dict[str, List[Claim]]):
+    def claims(self, claims: dict[str, list[Claim]]):
         self.__claims = claims
 
-    def get(self, property: str) -> List[Claim]:
+    def get(self, property: str) -> list[Claim]:
         return self.claims[property]
 
-    def remove(self, property: Optional[str] = None) -> None:
+    def remove(self, property: str | None = None) -> None:
         if property in self.claims:
             for prop in self.claims[property]:
                 if prop.id:
@@ -36,7 +36,7 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Union[Claims, List[Claim], Claim], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
+    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -94,7 +94,7 @@ class Claims(BaseModel):
 
         return self
 
-    def from_json(self, json_data: Dict[str, Any]) -> Claims:
+    def from_json(self, json_data: dict[str, Any]) -> Claims:
         for property in json_data:
             for claim in json_data[property]:
                 from wikibaseintegrator.datatypes import BaseDataType
@@ -106,8 +106,8 @@ class Claims(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, List]:
-        json_data: Dict[str, List] = {}
+    def get_json(self) -> dict[str, list]:
+        json_data: dict[str, list] = {}
         for property, claims in self.claims.items():
             if property not in json_data:
                 json_data[property] = []
@@ -131,8 +131,8 @@ class Claims(BaseModel):
 class Claim(BaseModel):
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Optional[Qualifiers] = None, rank: Optional[WikibaseRank] = None,
-                 references: Optional[Union[References, List[Union[Claim, List[Claim]]]]] = None, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
+    def __init__(self, qualifiers: Qualifiers | None = None, rank: WikibaseRank | None = None, references: References | list[Claim | list[Claim]] | None = None,
+                 snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
         """
 
         :param qualifiers:
@@ -180,11 +180,11 @@ class Claim(BaseModel):
         self.__mainsnak = value
 
     @property
-    def type(self) -> Union[str, Dict]:
+    def type(self) -> str | dict:
         return self.__type
 
     @type.setter
-    def type(self, value: Union[str, Dict]):
+    def type(self, value: str | dict):
         self.__type = value
 
     @property
@@ -197,19 +197,19 @@ class Claim(BaseModel):
         self.__qualifiers: Qualifiers = Qualifiers().set(value) if isinstance(value, list) else value
 
     @property
-    def qualifiers_order(self) -> List[str]:
+    def qualifiers_order(self) -> list[str]:
         return self.__qualifiers_order
 
     @qualifiers_order.setter
-    def qualifiers_order(self, value: List[str]):
+    def qualifiers_order(self, value: list[str]):
         self.__qualifiers_order = value
 
     @property
-    def id(self) -> Optional[str]:
+    def id(self) -> str | None:
         return self.__id
 
     @id.setter
-    def id(self, value: Optional[str]):
+    def id(self, value: str | None):
         self.__id = value
 
     @property
@@ -247,7 +247,7 @@ class Claim(BaseModel):
         self.rank = claim.rank
         self.references = claim.references
 
-    def from_json(self, json_data: Dict[str, Any]) -> Claim:
+    def from_json(self, json_data: dict[str, Any]) -> Claim:
         """
 
         :param json_data: a JSON representation of a Claim
@@ -265,8 +265,8 @@ class Claim(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, Any]:
-        json_data: Dict[str, Union[str, List[Dict], List[str], Dict[str, str], Dict[str, List], None]] = {
+    def get_json(self) -> dict[str, Any]:
+        json_data: dict[str, str | list[dict] | list[str] | dict[str, str] | dict[str, list] | None] = {
             'mainsnak': self.mainsnak.get_json(),
             'type': self.type,
             'id': self.id,
@@ -335,7 +335,7 @@ class Claim(BaseModel):
 
         raise super().__eq__(other)
 
-    def equals(self, that: Claim, include_ref: bool = False, fref: Optional[Callable] = None) -> bool:
+    def equals(self, that: Claim, include_ref: bool = False, fref: Callable | None = None) -> bool:
         """
         Tests for equality of two statements.
         If comparing references, the order of the arguments matters!!!

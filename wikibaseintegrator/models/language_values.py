@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
-
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -9,17 +7,17 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 class LanguageValues(BaseModel):
     def __init__(self) -> None:
-        self.values: Dict[str, LanguageValue] = {}
+        self.values: dict[str, LanguageValue] = {}
 
     @property
-    def values(self) -> Dict[str, LanguageValue]:
+    def values(self) -> dict[str, LanguageValue]:
         """
         A dict of LanguageValue with the language as key.
         """
         return self.__values
 
     @values.setter
-    def values(self, value: Dict[str, LanguageValue]):
+    def values(self, value: dict[str, LanguageValue]):
         self.__values = value
 
     def add(self, language_value: LanguageValue) -> LanguageValues:
@@ -36,7 +34,7 @@ class LanguageValues(BaseModel):
 
         return self
 
-    def get(self, language: Optional[str] = None) -> Optional[LanguageValue]:
+    def get(self, language: str | None = None) -> LanguageValue | None:
         """
         Get a LanguageValue object with the specified language. Use the default language in wbi_config if none specified.
 
@@ -49,7 +47,7 @@ class LanguageValues(BaseModel):
 
         return None
 
-    def set(self, language: Optional[str] = None, value: Optional[str] = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Optional[LanguageValue]:
+    def set(self, language: str | None = None, value: str | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> LanguageValue | None:
         """
         Create or update the specified language with the valued passed in arguments.
 
@@ -74,7 +72,7 @@ class LanguageValues(BaseModel):
 
         return self.get(language=language)
 
-    def from_json(self, json_data: Dict[str, Dict]) -> LanguageValues:
+    def from_json(self, json_data: dict[str, dict]) -> LanguageValues:
         """
         Create a new LanguageValues object from a JSON/dict object.
 
@@ -86,13 +84,13 @@ class LanguageValues(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, Dict]:
+    def get_json(self) -> dict[str, dict]:
         """
         Get a formatted dict who respect the Wikibase format.
 
         :return: A dict using Wikibase format.
         """
-        json_data: Dict[str, Dict] = {}
+        json_data: dict[str, dict] = {}
         for language, language_value in self.values.items():
             json_data[language] = language_value.get_json()
 
@@ -109,7 +107,7 @@ class LanguageValues(BaseModel):
 
 
 class LanguageValue(BaseModel):
-    def __init__(self, language: str, value: Optional[str] = None):
+    def __init__(self, language: str, value: str | None = None):
         self.language = language
         self.value = value
         self.removed = False
@@ -119,7 +117,7 @@ class LanguageValue(BaseModel):
         return self.__language
 
     @language.setter
-    def language(self, value: Optional[str]):
+    def language(self, value: str | None):
         if value is None:
             raise ValueError("language can't be None")
 
@@ -132,7 +130,7 @@ class LanguageValue(BaseModel):
         self.__language = value
 
     @property
-    def value(self) -> Optional[str]:
+    def value(self) -> str | None:
         """
         The value of the LanguageValue instance.
         :return: A string with the value of the LanguageValue instance.
@@ -140,7 +138,7 @@ class LanguageValue(BaseModel):
         return self.__value
 
     @value.setter
-    def value(self, value: Optional[str]):
+    def value(self, value: str | None):
         self.__value = value
 
     @property
@@ -156,13 +154,13 @@ class LanguageValue(BaseModel):
 
         return self
 
-    def from_json(self, json_data: Dict[str, str]) -> LanguageValue:
+    def from_json(self, json_data: dict[str, str]) -> LanguageValue:
         self.language = json_data['language']
         self.value = json_data['value']
 
         return self
 
-    def get_json(self) -> Dict[str, Optional[str]]:
+    def get_json(self) -> dict[str, str | None]:
         json_data = {
             'language': self.language,
             'value': self.value

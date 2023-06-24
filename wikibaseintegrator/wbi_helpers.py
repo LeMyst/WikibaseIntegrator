@@ -8,7 +8,7 @@ import json
 import logging
 import re
 from time import sleep
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 import requests
@@ -48,8 +48,7 @@ class BColors:
 default_session = requests.Session()
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, session: Optional[Session] = None, max_retries: int = 100, retry_after: int = 60,
-                       **kwargs: Any) -> Dict:
+def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
 
@@ -140,9 +139,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: Optional[str] = None, ses
     return json_data
 
 
-def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = None, mediawiki_api_url: Optional[str] = None, user_agent: Optional[str] = None,
-                              allow_anonymous: bool = False,
-                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> Dict:
+def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
+                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
@@ -218,8 +216,8 @@ def mediawiki_api_call_helper(data: Dict[str, Any], login: Optional[_Login] = No
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Optional[str] = None, user_agent: Optional[str] = None, max_retries: int = 1000,
-                         retry_after: int = 60) -> Dict[str, Dict]:
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 1000, retry_after: int = 60) -> dict[
+    str, dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -281,8 +279,8 @@ def execute_sparql_query(query: str, prefix: Optional[str] = None, endpoint: Opt
     raise Exception(f"No result after {max_retries} retries.")
 
 
-def edit_entity(data: Dict, id: Optional[str] = None, type: Optional[str] = None, baserevid: Optional[int] = None, summary: Optional[str] = None, clear: bool = False,
-                is_bot: bool = False, tags: Optional[List[str]] = None, site: Optional[str] = None, title: Optional[str] = None, **kwargs: Any) -> Dict:
+def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
+                tags: list[str] | None = None, site: str | None = None, title: str | None = None, **kwargs: Any) -> dict:
     """
     Creates a single new Wikibase entity and modifies it with serialised information.
 
@@ -335,7 +333,7 @@ def edit_entity(data: Dict, id: Optional[str] = None, type: Optional[str] = None
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def merge_items(from_id: str, to_id: str, login: Optional[_Login] = None, ignore_conflicts: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A static method to merge two items
 
@@ -362,7 +360,7 @@ def merge_items(from_id: str, to_id: str, login: Optional[_Login] = None, ignore
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: Optional[_Login] = None, summary: Optional[str] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A static method to merge two lexemes
 
@@ -389,7 +387,7 @@ def merge_lexemes(source: str, target: str, login: Optional[_Login] = None, summ
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def remove_claims(claim_id: str, summary: Optional[str] = None, baserevid: Optional[int] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Delete a claim from an entity
 
@@ -399,7 +397,7 @@ def remove_claims(claim_id: str, summary: Optional[str] = None, baserevid: Optio
     :param is_bot: Mark this edit as bot.
     """
 
-    params: Dict[str, Union[str, int]] = {
+    params: dict[str, str | int] = {
         'action': 'wbremoveclaims',
         'claim': claim_id,
         'format': 'json'
@@ -417,8 +415,8 @@ def remove_claims(claim_id: str, summary: Optional[str] = None, baserevid: Optio
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reason: Optional[str] = None, deletetalk: bool = False, watchlist: str = 'preferences',
-                watchlistexpiry: Optional[str] = None, login: Optional[_Login] = None, **kwargs: Any) -> Dict:
+def delete_page(title: str | None = None, pageid: int | None = None, reason: str | None = None, deletetalk: bool = False, watchlist: str = 'preferences',
+                watchlistexpiry: str | None = None, login: _Login | None = None, **kwargs: Any) -> dict:
     """
     Delete a page
 
@@ -443,7 +441,7 @@ def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reaso
     if pageid and not isinstance(pageid, int):
         raise ValueError("pageid must be an integer.")
 
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         'action': 'delete',
         'watchlist': watchlist,
         'format': 'json'
@@ -467,8 +465,8 @@ def delete_page(title: Optional[str] = None, pageid: Optional[int] = None, reaso
     return mediawiki_api_call_helper(data=params, login=login, **kwargs)
 
 
-def search_entities(search_string: str, language: Optional[str] = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
-                    allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
+def search_entities(search_string: str, language: str | None = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
+                    allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
     You can have more information on the parameters in the MediaWiki API help (https://www.wikidata.org/w/api.php?action=help&modules=wbsearchentities)
@@ -533,7 +531,7 @@ def search_entities(search_string: str, language: Optional[str] = None, strict_l
     return results
 
 
-def lexeme_add_form(lexeme_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Adds Form to Lexeme
 
@@ -566,7 +564,7 @@ def lexeme_add_form(lexeme_id, data, baserevid: Optional[int] = None, tags: Opti
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_form(form_id: str, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_edit_form(form_id: str, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Edits representations and grammatical features of a Form
 
@@ -607,7 +605,7 @@ def lexeme_edit_form(form_id: str, data, baserevid: Optional[int] = None, tags: 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_remove_form(form_id: str, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_remove_form(form_id: str, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Removes Form from Lexeme
 
@@ -646,7 +644,7 @@ def lexeme_remove_form(form_id: str, baserevid: Optional[int] = None, tags: Opti
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_add_sense(lexeme_id, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Adds a Sense to a Lexeme
 
@@ -679,7 +677,7 @@ def lexeme_add_sense(lexeme_id, data, baserevid: Optional[int] = None, tags: Opt
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_sense(sense_id: str, data, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Edits glosses of a Sense
 
@@ -720,7 +718,7 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: Optional[int] = None, tags
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_remove_sense(sense_id: str, baserevid: Optional[int] = None, tags: Optional[List[str]] = None, is_bot: bool = False, **kwargs: Any) -> Dict:
+def lexeme_remove_sense(sense_id: str, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Adds Form to Lexeme
 
@@ -759,7 +757,7 @@ def lexeme_remove_sense(sense_id: str, baserevid: Optional[int] = None, tags: Op
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> List[Dict[str, Any]]:
+def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
     """
     Perform a fulltext search on the mediawiki instance.
     It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
@@ -781,7 +779,7 @@ def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = 
     return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['query']['search']
 
 
-def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: bool = True, **kwargs: Any) -> List[Tuple[str, BaseEntity]]:
+def generate_entity_instances(entities: str | list[str], allow_anonymous: bool = True, **kwargs: Any) -> list[tuple[str, BaseEntity]]:
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
     second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
@@ -817,7 +815,7 @@ def generate_entity_instances(entities: Union[str, List[str]], allow_anonymous: 
     return entity_instances
 
 
-def format_amount(amount: Union[int, str, float]) -> str:
+def format_amount(amount: int | str | float) -> str:
     """
     A formatting function mostly used for Quantity datatype.
     :param amount: A int, float or str you want to pass to Quantity value.
@@ -835,7 +833,7 @@ def format_amount(amount: Union[int, str, float]) -> str:
     return str(amount)
 
 
-def get_user_agent(user_agent: Optional[str]) -> str:
+def get_user_agent(user_agent: str | None) -> str:
     """
     Return a user agent string suitable for interacting with the Wikibase instance.
 
@@ -856,7 +854,7 @@ def get_user_agent(user_agent: Optional[str]) -> str:
 properties_dt: dict = {}
 
 
-def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: Optional[str] = None, **kwargs) -> BaseEntity:
+def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs) -> BaseEntity:
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
     json_decoded = json.loads(json_raw)
     # pprint(json_decoded)
@@ -940,7 +938,7 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
     return entity
 
 
-def _json2datatype(prop_nr: str, statement: dict, wikibase_url: Optional[str] = None, allow_anonymous=True, **kwargs) -> BaseDataType:
+def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous=True, **kwargs) -> BaseDataType:
     from wikibaseintegrator.datatypes.basedatatype import BaseDataType
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
 
@@ -984,7 +982,8 @@ def _json2datatype(prop_nr: str, statement: dict, wikibase_url: Optional[str] = 
         precision = statement['precision'] or None
         timezone = statement['timezone'] or 0
         calendarmodel = statement['calendarmodel'] or None
-        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
+        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel,
+                 wikibase_url=wikibase_url)
 
     return f()
 

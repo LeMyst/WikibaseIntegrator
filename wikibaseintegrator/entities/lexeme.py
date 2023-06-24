@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
 from wikibaseintegrator.models.forms import Forms
@@ -13,18 +13,18 @@ from wikibaseintegrator.wbi_config import config
 class LexemeEntity(BaseEntity):
     ETYPE = 'lexeme'
 
-    def __init__(self, lemmas: Optional[Lemmas] = None, lexical_category: Optional[str] = None, language: Optional[str] = None, forms: Optional[Forms] = None,
-                 senses: Optional[Senses] = None, **kwargs: Any):
+    def __init__(self, lemmas: Lemmas | None = None, lexical_category: str | None = None, language: str | None = None, forms: Forms | None = None, senses: Senses | None = None,
+                 **kwargs: Any):
         super().__init__(**kwargs)
 
         self.lemmas: Lemmas = lemmas or Lemmas()
-        self.lexical_category: Optional[str] = lexical_category
+        self.lexical_category: str | None = lexical_category
         self.language: str = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
         self.forms: Forms = forms or Forms()
         self.senses: Senses = senses or Senses()
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: Union[None, str, int]):
+    def id(self, value: None | str | int):
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?L?([0-9]+)$')
             matches = pattern.match(value)
@@ -53,11 +53,11 @@ class LexemeEntity(BaseEntity):
         self.__lemmas = lemmas
 
     @property
-    def lexical_category(self) -> Optional[str]:
+    def lexical_category(self) -> str | None:
         return self.__lexical_category
 
     @lexical_category.setter
-    def lexical_category(self, lexical_category: Optional[str]):
+    def lexical_category(self, lexical_category: str | None):
         self.__lexical_category = lexical_category
 
     @property
@@ -106,7 +106,7 @@ class LexemeEntity(BaseEntity):
     def new(self, **kwargs: Any) -> LexemeEntity:
         return LexemeEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: Union[str, int], **kwargs: Any) -> LexemeEntity:
+    def get(self, entity_id: str | int, **kwargs: Any) -> LexemeEntity:
         if isinstance(entity_id, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?L?([0-9]+)$')
             matches = pattern.match(entity_id)
@@ -123,8 +123,8 @@ class LexemeEntity(BaseEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return LexemeEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_json(self) -> Dict[str, Union[str, Dict]]:
-        json_data: Dict = {
+    def get_json(self) -> dict[str, str | dict]:
+        json_data: dict = {
             'lemmas': self.lemmas.get_json(),
             'language': self.language,
             'forms': self.forms.get_json(),
@@ -137,7 +137,7 @@ class LexemeEntity(BaseEntity):
 
         return json_data
 
-    def from_json(self, json_data: Dict[str, Any]) -> LexemeEntity:
+    def from_json(self, json_data: dict[str, Any]) -> LexemeEntity:
         super().from_json(json_data=json_data)
 
         self.lemmas = Lemmas().from_json(json_data['lemmas'])

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -9,10 +9,10 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 class Forms(BaseModel):
     def __init__(self) -> None:
-        self.forms: Dict[str, Form] = {}
+        self.forms: dict[str, Form] = {}
 
     @property
-    def forms(self) -> Dict:
+    def forms(self) -> dict:
         return self.__forms
 
     @forms.setter
@@ -27,14 +27,14 @@ class Forms(BaseModel):
 
         return self
 
-    def from_json(self, json_data: List[Dict]) -> Forms:
+    def from_json(self, json_data: list[dict]) -> Forms:
         for form in json_data:
             self.add(form=Form().from_json(form))
 
         return self
 
-    def get_json(self) -> List[Dict]:
-        json_data: List[Dict] = []
+    def get_json(self) -> list[dict]:
+        json_data: list[dict] = []
         for _, form in self.forms.items():
             json_data.append(form.get_json())
 
@@ -45,7 +45,7 @@ class Forms(BaseModel):
 
 
 class Form(BaseModel):
-    def __init__(self, form_id: Optional[str] = None, representations: Optional[Representations] = None, grammatical_features: Optional[Union[str, int, List[str]]] = None, claims: Optional[Claims] = None):
+    def __init__(self, form_id: str | None = None, representations: Representations | None = None, grammatical_features: str | int | list[str] | None = None, claims: Claims | None = None):
         self.id = form_id
         self.representations: Representations = representations or LanguageValues()
         self.grammatical_features = grammatical_features or []
@@ -72,7 +72,7 @@ class Form(BaseModel):
         return self.__grammatical_features
 
     @grammatical_features.setter
-    def grammatical_features(self, value: Union[str, int, List[str]]):
+    def grammatical_features(self, value: str | int | list[str]):
         if not hasattr(self, '__grammatical_features') or value is None:
             self.__grammatical_features = []
 
@@ -93,7 +93,7 @@ class Form(BaseModel):
     def claims(self, value):
         self.__claims = value
 
-    def from_json(self, json_data: Dict[str, Any]) -> Form:
+    def from_json(self, json_data: dict[str, Any]) -> Form:
         self.id = json_data['id']
         self.representations = Representations().from_json(json_data['representations'])
         self.grammatical_features = json_data['grammaticalFeatures']
@@ -101,8 +101,8 @@ class Form(BaseModel):
 
         return self
 
-    def get_json(self) -> Dict[str, Union[str, Dict, List]]:
-        json_data: Dict[str, Union[str, Dict, List]] = {
+    def get_json(self) -> dict[str, str | dict | list]:
+        json_data: dict[str, str | dict | list] = {
             'id': self.id,
             'representations': self.representations.get_json(),
             'grammaticalFeatures': self.grammatical_features,

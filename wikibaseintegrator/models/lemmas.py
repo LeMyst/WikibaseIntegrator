@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict
-
 from wikibaseintegrator.models.language_values import LanguageValue, LanguageValues
 
 
 class Lemmas(LanguageValues):
-    def from_json(self, json_data: Dict[str, Dict]) -> Lemmas:
+    def from_json(self, json_data: dict[str, dict]) -> Lemmas:
         """
         Create a new Lemmas object from a JSON/dict object.
 
