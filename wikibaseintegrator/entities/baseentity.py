@@ -5,7 +5,7 @@ import re
 from copy import copy
 from typing import TYPE_CHECKING, Any
 
-from entityshape import EntityShape
+from entityshape import EntityShape, Result
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -303,22 +303,22 @@ class BaseEntity:
 
         raise ValueError('wikibase_url or entity ID is null.')
 
-    def validate_schema(self, entity_schema: str, language: str | None = None) -> bool:
-        if isinstance(entity_schema, str):
+    def schema_validator(self, entity_schema_id: str, language: str | None = None) -> Result:
+        if isinstance(entity_schema_id, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?E?([0-9]+)$')
-            matches = pattern.match(entity_schema)
+            matches = pattern.match(entity_schema_id)
 
             if not matches:
-                raise ValueError(f"Invalid EntitySchema ID ({entity_schema}), format must be 'E[0-9]+'")
+                raise ValueError(f"Invalid EntitySchema ID ({entity_schema_id}), format must be 'E[0-9]+'")
 
-            entity_schema = f'E{matches.group(1)}'
-        elif isinstance(entity_schema, int):
-            entity_schema = f'E{entity_schema}'
+            entity_schema_id = f'E{matches.group(1)}'
+        elif isinstance(entity_schema_id, int):
+            entity_schema_id = f'E{entity_schema_id}'
         else:
-            raise ValueError(f"Invalid EntitySchema ID ({entity_schema}), format must be 'E[0-9]+'")
+            raise ValueError(f"Invalid EntitySchema ID ({entity_schema_id}), format must be 'E[0-9]+'")
 
         language = str(language or config['DEFAULT_LANGUAGE'])
-        return EntityShape(qid=self.id, eid=entity_schema, lang=language).get_result().is_valid
+        return EntityShape(qid=self.id, eid=entity_schema_id, lang=language).get_result()
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
