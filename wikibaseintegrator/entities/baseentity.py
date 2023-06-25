@@ -318,7 +318,7 @@ class BaseEntity:
             raise ValueError(f"Invalid EntitySchema ID ({entity_schema_id}), format must be 'E[0-9]+'")
 
         language = str(language or config['DEFAULT_LANGUAGE'])
-        return EntityShape(qid=self.id, eid=entity_schema_id, lang=language).get_result()
+        return EntityShape(qid=self.id, eid=entity_schema_id, lang=language).validate_and_get_result()
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""

@@ -4,4 +4,4 @@ oauthlib~=3.2.2
 requests~=2.31.0
 requests-oauthlib~=1.3.1
 ujson~=5.8.0
-entityshape~=0.0.2
+entityshape~=0.1.0
