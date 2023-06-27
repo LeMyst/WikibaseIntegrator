@@ -341,6 +341,36 @@ media.claims.add(Item(prop_nr='P180', value='Q3146211'))
 media.write()
 ```
 
+## Entity validation
+Two different validators for entities are available.
+
+### Entityshape
+This is a in beta state. For simple entity schemas it has proven reliable.
+
+See https://github.com/dpriskorn/entityshape#limitations for a list of limitations
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+
+wbi = WikibaseIntegrator()
+item = wbi.item.get('Q1')
+result = item.entityshape_schema_validator(entity_schema_id="E1")
+print(result)
+```
+
+### PyShex
+This is considered highly experimental/alpha state. 
+We have not yet been able to successfully validate an item or lexeme with this library.
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+
+wbi = WikibaseIntegrator()
+item = wbi.item.get('Q1')
+result = item.pyshex_schema_validator(entity_schema_id="E1")
+print(result)
+```
+
 # More than Wikibase #
 
 WikibaseIntegrator natively supports some extensions:

@@ -108,9 +108,52 @@ class TestEntityItem(unittest.TestCase):
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\rline"))
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\nline"))
 
-    def test_entity_schema(self):
+    def test_entityshape_entity_validation(self):
         random_campsite = wbi.item.get('Q119156070')
-        assert random_campsite.schema_validator(entity_schema_id="E376").is_valid
-        assert random_campsite.schema_validator(entity_schema_id="376").is_valid
-        assert random_campsite.schema_validator(entity_schema_id=376).is_valid
-        assert not wbi.item.get('Q582').schema_validator(entity_schema_id="E376").is_valid
+        assert random_campsite.entityshape_schema_validator(entity_schema_id="E376").is_valid
+        assert random_campsite.entityshape_schema_validator(entity_schema_id="376").is_valid
+        assert random_campsite.entityshape_schema_validator(entity_schema_id=376).is_valid
+        assert not wbi.item.get('Q582').entityshape_schema_validator(entity_schema_id="E376").is_valid
+
+    def test_pyshex_entity_validation(self):
+        # TODO find a combination of shex and entity that is valid
+        # danish noun
+        result = wbi.lexeme.get('L41172').pyshex_schema_validator(entity_schema_id="E34")
+        assert result.valid is False
+        # This error makes no sense TODO report upstream to pyshex
+        assert result.reason == 'Import failure on https://www.wikidata.org/wiki/Special:EntitySchemaText/E68'
+        random_campsite = wbi.item.get('Q119156070')
+        result = random_campsite.pyshex_schema_validator(entity_schema_id="E376")
+        assert result.valid is False
+        assert result.reason == ('  Testing wd:Q119156070 against shape campsite\n'
+ '    Datatype constraint (http://www.w3.org/2001/XMLSchema#string) does not '
+ 'match URIRef '
+ '<http://commons.wikimedia.org/wiki/Special:FilePath/Grenforsen%2005.jpg>\n'
+ '  Testing wd:Q119156070 against shape campsite\n'
+ '    Datatype constraint (http://www.w3.org/2001/XMLSchema#string) does not '
+ 'match URIRef '
+ '<http://commons.wikimedia.org/wiki/Special:FilePath/Grenforsen%2005.jpg>\n'
+ '  Testing wd:Q119156070 against shape campsite\n'
+ '       No matching triples found for predicate wdt:P31')
+        assert random_campsite.pyshex_schema_validator(entity_schema_id="376").valid is False
+        assert random_campsite.pyshex_schema_validator(entity_schema_id=376).valid is False
+        result2 = wbi.item.get('Q582').pyshex_schema_validator(entity_schema_id="E376")
+        assert not result2.valid
+        assert result2.reason == ('  Testing wd:Q582 against shape campsite\n'
+ '    Triples:\n'
+ '      wd:Q582 wdt:P31 wd:Q1549591 .\n'
+ '      wd:Q582 wdt:P31 wd:Q484170 .\n'
+ '   2 triples exceeds max {1,1}\n'
+ '  Testing wd:Q582 against shape campsite\n'
+ '    Node: wd:Q1549591 not in value set:\n'
+ '\t {"values": ["http://www.wikidata.org/entity/Q832778", "http:...\n'
+ '  Testing wd:Q582 against shape campsite\n'
+ '    Node: wd:Q484170 not in value set:\n'
+ '\t {"values": ["http://www.wikidata.org/entity/Q832778", "http:...\n'
+ '  Testing wd:Q582 against shape campsite\n'
+ '    Triples:\n'
+ '      wd:Q582 wdt:P31 wd:Q1549591 .\n'
+ '      wd:Q582 wdt:P31 wd:Q484170 .\n'
+ '   2 triples exceeds max {1,1}\n'
+ '  Testing wd:Q582 against shape campsite\n'
+ '       No matching triples found for predicate wdt:P31')

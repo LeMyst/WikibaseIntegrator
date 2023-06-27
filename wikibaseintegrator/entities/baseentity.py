@@ -5,14 +5,19 @@ import re
 from copy import copy
 from typing import TYPE_CHECKING, Any
 
+import requests
 from entityshape import EntityShape, Result
+from pydantic import BaseModel
+from pyshex import ShExEvaluator
+from pyshex.shex_evaluator import EvaluationResult
+from rdflib import Graph
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import MissingEntityException, TtlDownloadError, EntitySchemaDownloadError
 from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
@@ -20,6 +25,17 @@ if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
 
 log = logging.getLogger(__name__)
+
+
+class PyshexResult(BaseModel):
+    reason: str
+    valid: bool
+
+    def __str__(self):
+        return (
+            f"Valid: {self.valid}\n"
+            f"Reason: {self.reason}"
+        )
 
 
 class BaseEntity:
@@ -303,7 +319,7 @@ class BaseEntity:
 
         raise ValueError('wikibase_url or entity ID is null.')
 
-    def schema_validator(self, entity_schema_id: str, language: str | None = None) -> Result:
+    def _get_valid_entity_schema_id(self, entity_schema_id) -> str:
         if isinstance(entity_schema_id, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?E?([0-9]+)$')
             matches = pattern.match(entity_schema_id)
@@ -316,9 +332,79 @@ class BaseEntity:
             entity_schema_id = f'E{entity_schema_id}'
         else:
             raise ValueError(f"Invalid EntitySchema ID ({entity_schema_id}), format must be 'E[0-9]+'")
+        return entity_schema_id
 
+    def _get_ttl_data(self) -> str:
+        """Download the entity data in turtle format (ttl)"""
+        api_endpoint = 'https://www.wikidata.org/wiki/Special:EntityData/'
+        api_url = f'{api_endpoint}{self.id}.ttl'
+        # TODO fix timeout
+        response = requests.get(api_url, timeout=10)
+        if response.status_code == 200:
+            return response.text
+        else:
+            raise TtlDownloadError()
+
+    def _get_schema_text(self, entity_schema_id) -> str:
+        """
+        Downloads the schema from wikidata
+
+        :param entity_schema_id: the entityschema id to be downloaded
+        """
+        url: str = f"https://www.wikidata.org/wiki/EntitySchema:{entity_schema_id}?action=raw"
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            json_text: dict = response.json()
+            return json_text["schemaText"]
+        else:
+            raise EntitySchemaDownloadError()
+
+    # TODO make an interface for the validator so the user
+    #  does not have to think about how the internals of the validators work
+    # The users should get similar output no matter which validator they choose
+    def entityshape_schema_validator(self, entity_schema_id: str, language: str | None = None) -> Result:
+        entity_schema_id = self._get_valid_entity_schema_id(entity_schema_id=entity_schema_id)
         language = str(language or config['DEFAULT_LANGUAGE'])
         return EntityShape(qid=self.id, eid=entity_schema_id, lang=language).validate_and_get_result()
+
+    def pyshex_schema_validator(self, entity_schema_id: str) -> PyshexResult:
+        entity_schema_id = self._get_valid_entity_schema_id(entity_schema_id=entity_schema_id)
+        return self._check_shex_conformance(entity_schema_id=entity_schema_id)
+
+    def _check_shex_conformance(self, entity_schema_id: str= "", data: str= "") -> PyshexResult:
+        """
+                Static method which can be used to check for conformance of a Wikidata item to an EntitySchema any SPARQL query
+
+                :param entity_schema_id: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
+                :param data: Turtle data to be validated (Optional)
+                :return: The results of the query are an instance of PyshexResult
+        """
+        # load the string of ttl data into a rdf graph to please ShExEvaluator
+        rdfdata = Graph()
+        if not data:
+            # This downloads the ttl data
+            data = self._get_ttl_data()
+            # print(data)
+            # exit()
+            rdfdata.parse(data=data)
+        else:
+            rdfdata.parse(data=data)
+        for result in ShExEvaluator(rdf=rdfdata, schema=self._get_schema_text(entity_schema_id=entity_schema_id), focus=f"http://www.wikidata.org/entity/{self.id}").evaluate():
+            result: EvaluationResult
+            # convert named tuple to pydantic class which is way nicer
+            # class EvaluationResult(NamedTuple):
+            #     result: bool
+            #     focus: Optional[URIRef]
+            #     start: Optional[URIRef]
+            #     reason: Optional[str]
+            # We return early because we expect only one result from ShExEvaluator
+            return PyshexResult(
+                valid=result[0],
+                # We ignore these for now as they seem overcomplicated
+                #focus=result[1],
+                #start=result[2],
+                reason=result[3],
+            )
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
