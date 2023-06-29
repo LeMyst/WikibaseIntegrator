@@ -89,8 +89,18 @@ the [Jupyter notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tr
 
 Here is a list of different projects that use the library:
 
-* https://github.com/dlindem/wikibase maintained by [dlindem](https://github.com/dlindem)
-* https://github.com/LeMyst/wd-population maintained by [LeMyst](https://github.com/LeMyst)
+* https://github.com/ACMILabs/acmi-wikidata-bot - A synchronisation robot to push ACMI API Wikidata links to Wikidata.
+* https://github.com/LeMyst/wd-population - Update French population on Wikidata
+* https://github.com/SisonkeBiotik-Africa/AfriBioML - Resources for developing a bibliometric study on machine learning for healthcare in Africa
+* https://github.com/SisonkeBiotik-Africa/Relational-NER - A Python code for enhancing the output of multilingual named entity recognition based on Wikidata relations
+* https://github.com/SoftwareUnderstanding/SALTbot - Software and Article Linker Toolbot
+* https://github.com/dpriskorn/ItemSubjector - CLI-tool to easily add "main subject" aka topics in bulk to groups of items on Wikidata
+* https://github.com/dpriskorn/hiking_trail_matcher - Script that helps link together hiking trails in Wikidata and OpenStreetMap
+* https://github.com/eoan-ermine/wikidata_statistik_population - Update German population on Wikidata
+* https://github.com/internetarchive/cgraphbot - Wikibase bot for updating identifiers and citation relationships
+* https://github.com/lubianat/ibge_2021_to_wikidata - Update Population of Brazilian Cities
+* https://github.com/lubianat/kudos_wikibase
+* https://github.com/dlindem/wikibase
 
 # Installation #
 
