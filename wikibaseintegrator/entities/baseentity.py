@@ -17,7 +17,7 @@ from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
-from wikibaseintegrator.wbi_exceptions import MissingEntityException, TtlDownloadError, EntitySchemaDownloadError
+from wikibaseintegrator.wbi_exceptions import EntitySchemaDownloadError, MissingEntityException, TtlDownloadError
 from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
