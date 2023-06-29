@@ -99,3 +99,11 @@ class MissingEntityException(Exception):
 
 class SearchError(Exception):
     pass
+
+
+class TtlDownloadError(BaseException):
+    pass
+
+
+class EntitySchemaDownloadError(BaseException):
+    pass
