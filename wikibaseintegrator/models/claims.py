@@ -36,7 +36,11 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
+    def add(
+        self,
+        claims: Claims | list[Claim] | Claim,
+        action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL,
+    ) -> Claims:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -49,12 +53,22 @@ class Claims(BaseModel):
         """
 
         if action_if_exists not in ActionIfExists:
-            raise ValueError(f'{action_if_exists} is not a valid action_if_exists value. Use the enum ActionIfExists')
+            raise ValueError(
+                f"{action_if_exists} is not a valid action_if_exists value. Use the enum ActionIfExists"
+            )
 
         if isinstance(claims, Claim):
             claims = [claims]
-        elif claims is None or ((not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims)):
-            raise TypeError("claims must be an instance of Claim or Claims or a list of Claim")
+        elif claims is None or (
+            (
+                not isinstance(claims, list)
+                or not all(isinstance(n, Claim) for n in claims)
+            )
+            and not isinstance(claims, Claims)
+        ):
+            raise TypeError(
+                "claims must be an instance of Claim or Claims or a list of Claim"
+            )
 
         # TODO: Don't replace if claim is the same
         # This code is separated from the rest to avoid looping multiple over `self.claims`.
@@ -87,22 +101,56 @@ class Claims(BaseModel):
                         self.claims[property].append(claim)
                     else:
                         # Force update the claim if already present
-                        self.claims[property][self.claims[property].index(claim)].update(claim)
+                        self.claims[property][
+                            self.claims[property].index(claim)
+                        ].update(claim)
                 elif action_if_exists == ActionIfExists.REPLACE_ALL:
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
+                elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
+                    claim_exists = False
+                    for existing_claim in self.claims[property]:
+                        existing_claim_json = existing_claim.get_json()
+                        claim_json = claim.get_json()
+                        # Check if the value of the claim exists
+                        if (
+                            claim_json["mainsnak"]["datavalue"]["value"]
+                            == existing_claim_json["mainsnak"]["datavalue"]["value"]
+                        ):
+                            claim_exists = True
+                            # Check if the references are identical
+                            if not Claim.refs_equal(claim, existing_claim):
+                                # If they're different, add the new reference block
+                                existing_claim["references"] = list(
+                                    set(
+                                        existing_claim.get("references", [])
+                                        + claim.get("references", [])
+                                    )
+                                )
+                            break
 
+                    # If the claim value does not exist, append it
+                    if not claim_exists:
+                        self.claims[property].append(claim)
         return self
 
     def from_json(self, json_data: dict[str, Any]) -> Claims:
         for property in json_data:
             for claim in json_data[property]:
                 from wikibaseintegrator.datatypes import BaseDataType
-                if 'datatype' in claim['mainsnak']:
-                    data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
+
+                if "datatype" in claim["mainsnak"]:
+                    data_type = [
+                        x
+                        for x in BaseDataType.subclasses
+                        if x.DTYPE == claim["mainsnak"]["datatype"]
+                    ][0]
                 else:
                     data_type = BaseDataType
-                self.add(claims=data_type().from_json(claim), action_if_exists=ActionIfExists.FORCE_APPEND)
+                self.add(
+                    claims=data_type().from_json(claim),
+                    action_if_exists=ActionIfExists.FORCE_APPEND,
+                )
 
         return self
 
@@ -129,10 +177,15 @@ class Claims(BaseModel):
 
 
 class Claim(BaseModel):
-    DTYPE = 'claim'
+    DTYPE = "claim"
 
-    def __init__(self, qualifiers: Qualifiers | None = None, rank: WikibaseRank | None = None, references: References | list[Claim | list[Claim]] | None = None,
-                 snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
+    def __init__(
+        self,
+        qualifiers: Qualifiers | None = None,
+        rank: WikibaseRank | None = None,
+        references: References | list[Claim | list[Claim]] | None = None,
+        snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE,
+    ) -> None:
         """
 
         :param qualifiers:
@@ -141,7 +194,7 @@ class Claim(BaseModel):
         :param snaktype:
         """
         self.mainsnak = Snak(datatype=self.DTYPE, snaktype=snaktype)
-        self.type = 'statement'
+        self.type = "statement"
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
         self.id = None
@@ -159,17 +212,25 @@ class Claim(BaseModel):
                     snaks = Snaks()
                     for ref_claim in ref_list:
                         if isinstance(ref_claim, Claim):
-                            snaks.add(Snak().from_json(ref_claim.get_json()['mainsnak']))
+                            snaks.add(
+                                Snak().from_json(ref_claim.get_json()["mainsnak"])
+                            )
                         else:
-                            raise ValueError("The references must be a References object or a list of Claim object")
+                            raise ValueError(
+                                "The references must be a References object or a list of Claim object"
+                            )
                     ref.snaks = snaks
                 elif isinstance(ref_list, Claim):
-                    ref.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
+                    ref.snaks = Snaks().add(
+                        Snak().from_json(ref_list.get_json()["mainsnak"])
+                    )
                 elif isinstance(ref_list, Reference):
                     ref = ref_list
                 self.references.add(reference=ref)
         elif references is not None:
-            raise ValueError("The references must be a References object or a list of Claim object")
+            raise ValueError(
+                "The references must be a References object or a list of Claim object"
+            )
 
     @property
     def mainsnak(self) -> Snak:
@@ -194,7 +255,9 @@ class Claim(BaseModel):
     @qualifiers.setter
     def qualifiers(self, value: Qualifiers) -> None:
         assert isinstance(value, (Qualifiers, list))
-        self.__qualifiers: Qualifiers = Qualifiers().set(value) if isinstance(value, list) else value
+        self.__qualifiers: Qualifiers = (
+            Qualifiers().set(value) if isinstance(value, list) else value
+        )
 
     @property
     def qualifiers_order(self) -> list[str]:
@@ -252,37 +315,39 @@ class Claim(BaseModel):
 
         :param json_data: a JSON representation of a Claim
         """
-        self.mainsnak = Snak().from_json(json_data['mainsnak'])
-        self.type = str(json_data['type'])
-        if 'qualifiers' in json_data:
-            self.qualifiers = Qualifiers().from_json(json_data['qualifiers'])
-        if 'qualifiers-order' in json_data:
-            self.qualifiers_order = list(json_data['qualifiers-order'])
-        self.id = str(json_data['id'])
-        self.rank: WikibaseRank = WikibaseRank(json_data['rank'])
-        if 'references' in json_data:
-            self.references = References().from_json(json_data['references'])
+        self.mainsnak = Snak().from_json(json_data["mainsnak"])
+        self.type = str(json_data["type"])
+        if "qualifiers" in json_data:
+            self.qualifiers = Qualifiers().from_json(json_data["qualifiers"])
+        if "qualifiers-order" in json_data:
+            self.qualifiers_order = list(json_data["qualifiers-order"])
+        self.id = str(json_data["id"])
+        self.rank: WikibaseRank = WikibaseRank(json_data["rank"])
+        if "references" in json_data:
+            self.references = References().from_json(json_data["references"])
 
         return self
 
     def get_json(self) -> dict[str, Any]:
-        json_data: dict[str, str | list[dict] | list[str] | dict[str, str] | dict[str, list] | None] = {
-            'mainsnak': self.mainsnak.get_json(),
-            'type': self.type,
-            'id': self.id,
-            'rank': self.rank.value
+        json_data: dict[
+            str, str | list[dict] | list[str] | dict[str, str] | dict[str, list] | None
+        ] = {
+            "mainsnak": self.mainsnak.get_json(),
+            "type": self.type,
+            "id": self.id,
+            "rank": self.rank.value,
         }
         # Remove id if it's a temporary one
         if not self.id:
-            del json_data['id']
+            del json_data["id"]
         if len(self.qualifiers) > 0:
-            json_data['qualifiers'] = self.qualifiers.get_json()
-            json_data['qualifiers-order'] = list(self.qualifiers_order)
+            json_data["qualifiers"] = self.qualifiers.get_json()
+            json_data["qualifiers-order"] = list(self.qualifiers_order)
         if len(self.references) > 0:
-            json_data['references'] = self.references.get_json()
+            json_data["references"] = self.references.get_json()
         if self.removed:
             if self.id:
-                json_data['remove'] = ''
+                json_data["remove"] = ""
         return json_data
 
     def has_equal_qualifiers(self, other: Claim) -> bool:
@@ -297,10 +362,14 @@ class Claim(BaseModel):
             if property_number not in other_qualifiers.qualifiers:
                 return False
 
-            if len(self_qualifiers.qualifiers[property_number]) != len(other_qualifiers.qualifiers[property_number]):
+            if len(self_qualifiers.qualifiers[property_number]) != len(
+                other_qualifiers.qualifiers[property_number]
+            ):
                 return False
 
-            flg = [False for _ in range(len(self_qualifiers.qualifiers[property_number]))]
+            flg = [
+                False for _ in range(len(self_qualifiers.qualifiers[property_number]))
+            ]
             for count, i in enumerate(self_qualifiers.qualifiers[property_number]):
                 for q in other_qualifiers:
                     if i == q:
@@ -328,14 +397,20 @@ class Claim(BaseModel):
 
     def __eq__(self, other):
         if isinstance(other, Claim):
-            return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
+            return (
+                self.mainsnak.datavalue == other.mainsnak.datavalue
+                and self.mainsnak.property_number == other.mainsnak.property_number
+                and self.has_equal_qualifiers(other)
+            )
 
         if isinstance(other, str):
             return self.mainsnak.property_number == other
 
         raise super().__eq__(other)
 
-    def equals(self, that: Claim, include_ref: bool = False, fref: Callable | None = None) -> bool:
+    def equals(
+        self, that: Claim, include_ref: bool = False, fref: Callable | None = None
+    ) -> bool:
         """
         Tests for equality of two statements.
         If comparing references, the order of the arguments matters!!!
@@ -369,7 +444,9 @@ class Claim(BaseModel):
         def ref_equal(oldref: References, newref: References) -> bool:
             return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
 
-        return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
+        return len(oldrefs) == len(newrefs) and all(
+            any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs
+        )
 
     @abstractmethod
     def get_sparql_value(self) -> str:
