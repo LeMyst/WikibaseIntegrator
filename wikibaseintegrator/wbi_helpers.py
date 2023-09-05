@@ -17,7 +17,13 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SearchError
+from wikibaseintegrator.wbi_exceptions import (
+    MaxRetriesReachedException,
+    ModificationFailed,
+    MWApiError,
+    NonExistentEntityError,
+    SearchError,
+)
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -33,22 +39,30 @@ class BColors:
     """
     Default colors for pretty outputs.
     """
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 # Session used for all anonymous requests
 default_session = requests.Session()
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> dict:
+def mediawiki_api_call(
+    method: str,
+    mediawiki_api_url: str | None = None,
+    session: Session | None = None,
+    max_retries: int = 100,
+    retry_after: int = 60,
+    **kwargs: Any,
+) -> dict:
     """
     A function to call the MediaWiki API.
 
@@ -61,15 +75,17 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     :return: The data returned by the API as a dictionary
     """
 
-    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+    mediawiki_api_url = str(mediawiki_api_url or config["MEDIAWIKI_API_URL"])
 
     # TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
 
-    if 'data' in kwargs and kwargs['data']:
-        if 'format' not in kwargs['data']:
-            kwargs['data'].update({'format': 'json'})
-        elif kwargs['data']['format'] != 'json':
-            raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
+    if "data" in kwargs and kwargs["data"]:
+        if "format" not in kwargs["data"]:
+            kwargs["data"].update({"format": "json"})
+        elif kwargs["data"]["format"] != "json":
+            raise ValueError(
+                "'format' can only be 'json' when using mediawiki_api_call()"
+            )
 
     response = None
     session = session if session else default_session
@@ -77,11 +93,17 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
+            log.exception(
+                "Connection error: %s. Sleeping for %d seconds.", e, retry_after
+            )
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
-            log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
+            log.error(
+                "Service unavailable (HTTP Code %d). Sleeping for %d seconds.",
+                response.status_code,
+                retry_after,
+            )
             sleep(retry_after)
             continue
 
@@ -90,43 +112,65 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         # MediaWiki api response has code = 200 even if there are errors.
         # Rate limit doesn't return HTTP 429 either, may in the future.
         # https://phabricator.wikimedia.org/T172293
-        if 'error' in json_data:
+        if "error" in json_data:
             # rate limiting
-            if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:  # pragma: no cover
-                sleep_sec = int(response.headers.get('retry-after', retry_after))
-                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
+            if "messages" in json_data["error"] and "actionthrottledtext" in [
+                message["name"] for message in json_data["error"]["messages"]
+            ]:  # pragma: no cover
+                sleep_sec = int(response.headers.get("retry-after", retry_after))
+                log.error(
+                    "%s: rate limited. sleeping for %d seconds",
+                    datetime.datetime.utcnow(),
+                    sleep_sec,
+                )
                 sleep(sleep_sec)
                 continue
 
             # maxlag
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'maxlag':
-                sleep_sec = json_data['error'].get('lag', retry_after)
+            if "code" in json_data["error"] and json_data["error"]["code"] == "maxlag":
+                sleep_sec = json_data["error"].get("lag", retry_after)
                 # We multiply the number of second by the number of tries
                 sleep_sec *= n + 1
                 # The number of second can't be less than 5
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
+                log.error(
+                    "%s: maxlag. sleeping for %d seconds",
+                    datetime.datetime.utcnow(),
+                    sleep_sec,
+                )
                 sleep(sleep_sec)
                 continue
 
             # readonly
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
-                log.error("The Wikibase instance is currently in readonly mode, waiting for %s seconds", retry_after)
+            if (
+                "code" in json_data["error"]
+                and json_data["error"]["code"] == "readonly"
+            ):  # pragma: no cover
+                log.error(
+                    "The Wikibase instance is currently in readonly mode, waiting for %s seconds",
+                    retry_after,
+                )
                 sleep(retry_after)
                 continue
 
             # non-existent error
-            if 'code' in json_data['error'] and json_data['error']['code'] in ['no-such-entity', 'missingtitle']:
-                raise NonExistentEntityError(json_data['error'])
+            if "code" in json_data["error"] and json_data["error"]["code"] in [
+                "no-such-entity",
+                "missingtitle",
+            ]:
+                raise NonExistentEntityError(json_data["error"])
 
             # duplicate error
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':  # pragma: no cover
-                raise ModificationFailed(json_data['error'])
+            if (
+                "code" in json_data["error"]
+                and json_data["error"]["code"] == "modification-failed"
+            ):  # pragma: no cover
+                raise ModificationFailed(json_data["error"])
 
             # others case
-            raise MWApiError(json_data['error'])
+            raise MWApiError(json_data["error"])
 
         # there is no error or waiting. break out of this loop and parse response
         break
@@ -134,13 +178,25 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         # the first time I've ever used "for - else!!"
         # else executes if the for loop completes normally. i.e. does not encounter a `break`
         # in this case, that means it tried this api call 10 times
-        raise MaxRetriesReachedException(f'The number of retries ({max_retries}) have been reached.')
+        raise MaxRetriesReachedException(
+            f"The number of retries ({max_retries}) have been reached."
+        )
 
     return json_data
 
 
-def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
-                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
+def mediawiki_api_call_helper(
+    data: dict[str, Any],
+    login: _Login | None = None,
+    mediawiki_api_url: str | None = None,
+    user_agent: str | None = None,
+    allow_anonymous: bool = False,
+    max_retries: int = 1000,
+    retry_after: int = 60,
+    maxlag: int = 5,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
@@ -157,53 +213,67 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     :param kwargs: Any additional keyword arguments to pass to requests.request
     :return: The data returned by the API as a dictionary
     """
-    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
-    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+    mediawiki_api_url = str(mediawiki_api_url or config["MEDIAWIKI_API_URL"])
+    user_agent = user_agent or (
+        str(config["USER_AGENT"]) if config["USER_AGENT"] is not None else None
+    )
 
     hostname = urlparse(mediawiki_api_url).hostname
-    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
-        log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        log.warning('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+    if (
+        hostname is not None
+        and hostname.endswith(("wikidata.org", "wikipedia.org", "wikimedia.org"))
+        and user_agent is None
+    ):
+        log.warning(
+            "WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation."
+        )
+        log.warning(
+            "More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy"
+        )
 
     if not allow_anonymous:
         if login is None:
             # Force allow_anonymous as False by default to ask for a login object
-            raise ValueError("allow_anonymous can't be False and login is None at the same time.")
+            raise ValueError(
+                "allow_anonymous can't be False and login is None at the same time."
+            )
 
         if mediawiki_api_url != login.mediawiki_api_url:
-            raise ValueError("mediawiki_api_url can't be different with the one in the login object.")
+            raise ValueError(
+                "mediawiki_api_url can't be different with the one in the login object."
+            )
 
-    headers = {
-        'User-Agent': get_user_agent(user_agent)
-    }
+    headers = {"User-Agent": get_user_agent(user_agent)}
 
     # Default token is anonymous
-    if isinstance(data, dict) and 'token' not in data:
-        data.update({'token': '+\\'})
+    if isinstance(data, dict) and "token" not in data:
+        data.update({"token": "+\\"})
 
     if data is not None:
         if not allow_anonymous:
             # Get edit token if there is a login instance
             if login is not None:
-                data.update({'token': login.get_edit_token()})
+                data.update({"token": login.get_edit_token()})
 
             # Always assert user if allow_anonymous is False
-            if 'assert' not in data:
+            if "assert" not in data:
                 if is_bot:
-                    data.update({'assert': 'bot'})
+                    data.update({"assert": "bot"})
                 else:
-                    data.update({'assert': 'user'})
+                    data.update({"assert": "user"})
 
-            if 'token' in data and data['token'] == '+\\':
-                raise Exception("Anonymous edit are not allowed by default. "
-                                "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
+            if "token" in data and data["token"] == "+\\":
+                raise Exception(
+                    "Anonymous edit are not allowed by default. "
+                    "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object."
+                )
         else:
-            if 'assert' not in data and login is None:
+            if "assert" not in data and login is None:
                 # Assert anon if allow_anonymous is True and no Login instance
-                data.update({'assert': 'anon'})
+                data.update({"assert": "anon"})
 
         if maxlag > 0:
-            data.update({'maxlag': maxlag})
+            data.update({"maxlag": maxlag})
 
     if login is not None:
         session = login.get_session()
@@ -212,12 +282,27 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
     log.debug(data)
 
-    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
+    return mediawiki_api_call(
+        "POST",
+        mediawiki_api_url=mediawiki_api_url,
+        session=session,
+        data=data,
+        headers=headers,
+        max_retries=max_retries,
+        retry_after=retry_after,
+        **kwargs,
+    )
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 1000, retry_after: int = 60) -> dict[
-    str, dict]:
+def execute_sparql_query(
+    query: str,
+    prefix: str | None = None,
+    endpoint: str | None = None,
+    user_agent: str | None = None,
+    max_retries: int = 1000,
+    retry_after: int = 60,
+) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -230,44 +315,63 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     :return: The results of the query are returned in JSON format
     """
 
-    sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
-    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+    sparql_endpoint_url = str(endpoint or config["SPARQL_ENDPOINT_URL"])
+    user_agent = user_agent or (
+        str(config["USER_AGENT"]) if config["USER_AGENT"] is not None else None
+    )
 
     hostname = urlparse(sparql_endpoint_url).hostname
-    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
-        log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        log.warning('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+    if (
+        hostname is not None
+        and hostname.endswith(("wikidata.org", "wikipedia.org", "wikimedia.org"))
+        and user_agent is None
+    ):
+        log.warning(
+            "WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation."
+        )
+        log.warning(
+            "More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy"
+        )
 
     if prefix:
-        query = prefix + '\n' + query
+        query = prefix + "\n" + query
 
     params = {
-        'query': '#Tool: WikibaseIntegrator wbi_functions.execute_sparql_query\n' + query,
-        'format': 'json'
+        "query": "#Tool: WikibaseIntegrator wbi_functions.execute_sparql_query\n"
+        + query,
+        "format": "json",
     }
 
     headers = {
-        'Accept': 'application/sparql-results+json',
-        'User-Agent': get_user_agent(user_agent),
-        'Content-Type': 'multipart/form-data'
+        "Accept": "application/sparql-results+json",
+        "User-Agent": get_user_agent(user_agent),
+        "Content-Type": "multipart/form-data",
     }
 
-    log.debug("%s%s%s", BColors.WARNING, params['query'], BColors.ENDC)
+    log.debug("%s%s%s", BColors.WARNING, params["query"], BColors.ENDC)
 
     for _ in range(max_retries):
         try:
-            response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
+            response = helpers_session.post(
+                sparql_endpoint_url, params=params, headers=headers
+            )
         except requests.exceptions.ConnectionError as e:
-            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
+            log.exception(
+                "Connection error: %s. Sleeping for %d seconds.", e, retry_after
+            )
             sleep(retry_after)
             continue
         if response.status_code in (500, 502, 503, 504):
-            log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
+            log.error(
+                "Service unavailable (HTTP Code %d). Sleeping for %d seconds.",
+                response.status_code,
+                retry_after,
+            )
             sleep(retry_after)
             continue
         if response.status_code == 429:
-            if 'retry-after' in response.headers.keys():
-                retry_after = int(response.headers['retry-after'])
+            if "retry-after" in response.headers.keys():
+                retry_after = int(response.headers["retry-after"])
             log.error("Too Many Requests (429). Sleeping for %d seconds", retry_after)
             sleep(retry_after)
             continue
@@ -279,8 +383,19 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     raise Exception(f"No result after {max_retries} retries.")
 
 
-def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
-                tags: list[str] | None = None, site: str | None = None, title: str | None = None, **kwargs: Any) -> dict:
+def edit_entity(
+    data: dict,
+    id: str | None = None,
+    type: str | None = None,
+    baserevid: int | None = None,
+    summary: str | None = None,
+    clear: bool = False,
+    is_bot: bool = False,
+    tags: list[str] | None = None,
+    site: str | None = None,
+    title: str | None = None,
+    **kwargs: Any,
+) -> dict:
     """
     Creates a single new Wikibase entity and modifies it with serialised information.
 
@@ -298,42 +413,42 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     :param kwargs: More arguments for Python requests
     :return: The answer from the Wikibase API
     """
-    params = {
-        'action': 'wbeditentity',
-        'data': ujson.dumps(data),
-        'format': 'json'
-    }
+    params = {"action": "wbeditentity", "data": ujson.dumps(data), "format": "json"}
 
     if baserevid:
-        params.update({'baserevid': str(baserevid)})
+        params.update({"baserevid": str(baserevid)})
 
     if summary:
-        params.update({'summary': summary})
+        params.update({"summary": summary})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if id:
-        params.update({'id': id})
+        params.update({"id": id})
     elif site and title:
-        params.update({
-            'site': site,
-            'title': title
-        })
+        params.update({"site": site, "title": title})
     else:
         assert type
-        params.update({'new': type})
+        params.update({"new": type})
 
     if clear:
-        params.update({'clear': ''})
+        params.update({"clear": ""})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def merge_items(
+    from_id: str,
+    to_id: str,
+    login: _Login | None = None,
+    ignore_conflicts: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     A static method to merge two items
 
@@ -345,22 +460,29 @@ def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_co
     """
 
     params = {
-        'action': 'wbmergeitems',
-        'fromid': from_id,
-        'toid': to_id,
-        'format': 'json'
+        "action": "wbmergeitems",
+        "fromid": from_id,
+        "toid": to_id,
+        "format": "json",
     }
 
     if ignore_conflicts is not None:
-        params.update({'ignoreconflicts': '|'.join(ignore_conflicts)})
+        params.update({"ignoreconflicts": "|".join(ignore_conflicts)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def merge_lexemes(
+    source: str,
+    target: str,
+    login: _Login | None = None,
+    summary: str | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     A static method to merge two lexemes
 
@@ -372,22 +494,28 @@ def merge_lexemes(source: str, target: str, login: _Login | None = None, summary
     """
 
     params = {
-        'action': 'wblmergelexemes',
-        'fromid': source,
-        'toid': target,
-        'format': 'json'
+        "action": "wblmergelexemes",
+        "fromid": source,
+        "toid": target,
+        "format": "json",
     }
 
     if summary:
-        params.update({'summary': summary})
+        params.update({"summary": summary})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def remove_claims(
+    claim_id: str,
+    summary: str | None = None,
+    baserevid: int | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Delete a claim from an entity
 
@@ -398,25 +526,33 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
     """
 
     params: dict[str, str | int] = {
-        'action': 'wbremoveclaims',
-        'claim': claim_id,
-        'format': 'json'
+        "action": "wbremoveclaims",
+        "claim": claim_id,
+        "format": "json",
     }
 
     if summary:
-        params.update({'summary': summary})
+        params.update({"summary": summary})
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def delete_page(title: str | None = None, pageid: int | None = None, reason: str | None = None, deletetalk: bool = False, watchlist: str = 'preferences',
-                watchlistexpiry: str | None = None, login: _Login | None = None, **kwargs: Any) -> dict:
+def delete_page(
+    title: str | None = None,
+    pageid: int | None = None,
+    reason: str | None = None,
+    deletetalk: bool = False,
+    watchlist: str = "preferences",
+    watchlistexpiry: str | None = None,
+    login: _Login | None = None,
+    **kwargs: Any,
+) -> dict:
     """
     Delete a page
 
@@ -442,31 +578,39 @@ def delete_page(title: str | None = None, pageid: int | None = None, reason: str
         raise ValueError("pageid must be an integer.")
 
     params: dict[str, Any] = {
-        'action': 'delete',
-        'watchlist': watchlist,
-        'format': 'json'
+        "action": "delete",
+        "watchlist": watchlist,
+        "format": "json",
     }
 
     if title:
-        params.update({'title': title})
+        params.update({"title": title})
 
     if pageid:
-        params.update({'pageid': pageid})
+        params.update({"pageid": pageid})
 
     if reason:
-        params.update({'reason': reason})
+        params.update({"reason": reason})
 
     if deletetalk:
-        params.update({'deletetalk': ''})
+        params.update({"deletetalk": ""})
 
     if watchlistexpiry:
-        params.update({'watchlistexpiry': watchlistexpiry})
+        params.update({"watchlistexpiry": watchlistexpiry})
 
     return mediawiki_api_call_helper(data=params, login=login, **kwargs)
 
 
-def search_entities(search_string: str, language: str | None = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
-                    allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
+def search_entities(
+    search_string: str,
+    language: str | None = None,
+    strict_language: bool = False,
+    search_type: str = "item",
+    max_results: int = 50,
+    dict_result: bool = False,
+    allow_anonymous: bool = True,
+    **kwargs: Any,
+) -> list[dict[str, Any]]:
     """
     Performs a search for entities in the Wikibase instance using labels and aliases.
     You can have more information on the parameters in the MediaWiki API help (https://www.wikidata.org/w/api.php?action=help&modules=wbsearchentities)
@@ -481,49 +625,53 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
     :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
     """
 
-    language = str(language or config['DEFAULT_LANGUAGE'])
+    language = str(language or config["DEFAULT_LANGUAGE"])
 
     params = {
-        'action': 'wbsearchentities',
-        'search': search_string,
-        'language': language,
-        'type': search_type,
-        'limit': 50,
-        'format': 'json'
+        "action": "wbsearchentities",
+        "search": search_string,
+        "language": language,
+        "type": search_type,
+        "limit": 50,
+        "format": "json",
     }
 
     if strict_language:
-        params.update({'strict_language': ''})
+        params.update({"strict_language": ""})
 
     cont_count = 0
     results = []
 
     while True:
-        params.update({'continue': cont_count})
+        params.update({"continue": cont_count})
 
-        search_results = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+        search_results = mediawiki_api_call_helper(
+            data=params, allow_anonymous=allow_anonymous, **kwargs
+        )
 
-        if search_results['success'] != 1:
-            raise SearchError('Wikibase API wbsearchentities failed')
+        if search_results["success"] != 1:
+            raise SearchError("Wikibase API wbsearchentities failed")
 
-        for i in search_results['search']:
+        for i in search_results["search"]:
             if dict_result:
-                description = i['description'] if 'description' in i else None
-                aliases = i['aliases'] if 'aliases' in i else None
-                results.append({
-                    'id': i['id'],
-                    'label': i['label'],
-                    'match': i['match'],
-                    'description': description,
-                    'aliases': aliases
-                })
+                description = i["description"] if "description" in i else None
+                aliases = i["aliases"] if "aliases" in i else None
+                results.append(
+                    {
+                        "id": i["id"],
+                        "label": i["label"],
+                        "match": i["match"],
+                        "description": description,
+                        "aliases": aliases,
+                    }
+                )
             else:
-                results.append(i['id'])
+                results.append(i["id"])
 
-        if 'search-continue' not in search_results:
+        if "search-continue" not in search_results:
             break
 
-        cont_count = search_results['search-continue']
+        cont_count = search_results["search-continue"]
 
         if cont_count >= max_results:
             break
@@ -531,7 +679,14 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
     return results
 
 
-def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_add_form(
+    lexeme_id,
+    data,
+    baserevid: int | None = None,
+    tags: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Adds Form to Lexeme
 
@@ -546,25 +701,32 @@ def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[st
     """
 
     params = {
-        'action': 'wbladdform',
-        'lexemeId': lexeme_id,
-        'data': ujson.dumps(data),
-        'format': 'json'
+        "action": "wbladdform",
+        "lexemeId": lexeme_id,
+        "data": ujson.dumps(data),
+        "format": "json",
     }
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_form(form_id: str, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_edit_form(
+    form_id: str,
+    data,
+    baserevid: int | None = None,
+    tags: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Edits representations and grammatical features of a Form
 
@@ -578,34 +740,42 @@ def lexeme_edit_form(form_id: str, data, baserevid: int | None = None, tags: lis
 
     """
 
-    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-F[0-9]+)$')
+    pattern = re.compile(r"^(?:.+\/entity\/)?(L[0-9]+-F[0-9]+)$")
     matches = pattern.match(form_id)
 
     if not matches:
-        raise ValueError(f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'")
+        raise ValueError(
+            f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'"
+        )
 
     form_id = matches.group(1)
 
     params = {
-        'action': 'wbleditformelements',
-        'formId': form_id,
-        'data': ujson.dumps(data),
-        'format': 'json'
+        "action": "wbleditformelements",
+        "formId": form_id,
+        "data": ujson.dumps(data),
+        "format": "json",
     }
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_remove_form(form_id: str, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_remove_form(
+    form_id: str,
+    baserevid: int | None = None,
+    tags: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Removes Form from Lexeme
 
@@ -618,33 +788,38 @@ def lexeme_remove_form(form_id: str, baserevid: int | None = None, tags: list[st
 
     """
 
-    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-F[0-9]+)$')
+    pattern = re.compile(r"^(?:.+\/entity\/)?(L[0-9]+-F[0-9]+)$")
     matches = pattern.match(form_id)
 
     if not matches:
-        raise ValueError(f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'")
+        raise ValueError(
+            f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'"
+        )
 
     form_id = matches.group(1)
 
-    params = {
-        'action': 'wblremoveform',
-        'id': form_id,
-        'format': 'json'
-    }
+    params = {"action": "wblremoveform", "id": form_id, "format": "json"}
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_add_sense(
+    lexeme_id,
+    data,
+    baserevid: int | None = None,
+    tags: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Adds a Sense to a Lexeme
 
@@ -659,25 +834,32 @@ def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[s
     """
 
     params = {
-        'action': 'wbladdsense',
-        'lexemeId': lexeme_id,
-        'data': ujson.dumps(data),
-        'format': 'json'
+        "action": "wbladdsense",
+        "lexemeId": lexeme_id,
+        "data": ujson.dumps(data),
+        "format": "json",
     }
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_edit_sense(
+    sense_id: str,
+    data,
+    baserevid: int | None = None,
+    tags: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Edits glosses of a Sense
 
@@ -691,34 +873,42 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: l
 
     """
 
-    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-S[0-9]+)$')
+    pattern = re.compile(r"^(?:.+\/entity\/)?(L[0-9]+-S[0-9]+)$")
     matches = pattern.match(sense_id)
 
     if not matches:
-        raise ValueError(f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'")
+        raise ValueError(
+            f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'"
+        )
 
     sense_id = matches.group(1)
 
     params = {
-        'action': 'wbleditsenseelements',
-        'formId': sense_id,
-        'data': ujson.dumps(data),
-        'format': 'json'
+        "action": "wbleditsenseelements",
+        "formId": sense_id,
+        "data": ujson.dumps(data),
+        "format": "json",
     }
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_remove_sense(sense_id: str, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_remove_sense(
+    sense_id: str,
+    baserevid: int | None = None,
+    tags: list[str] | None = None,
+    is_bot: bool = False,
+    **kwargs: Any,
+) -> dict:
     """
     Adds Form to Lexeme
 
@@ -731,33 +921,33 @@ def lexeme_remove_sense(sense_id: str, baserevid: int | None = None, tags: list[
 
     """
 
-    pattern = re.compile(r'^(?:.+\/entity\/)?(L[0-9]+-S[0-9]+)$')
+    pattern = re.compile(r"^(?:.+\/entity\/)?(L[0-9]+-S[0-9]+)$")
     matches = pattern.match(sense_id)
 
     if not matches:
-        raise ValueError(f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'")
+        raise ValueError(
+            f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'"
+        )
 
     sense_id = matches.group(1)
 
-    params = {
-        'action': 'wblremovesense',
-        'id': sense_id,
-        'format': 'json'
-    }
+    params = {"action": "wblremovesense", "id": sense_id, "format": "json"}
 
     if baserevid:
-        params.update({'baserevid': baserevid})
+        params.update({"baserevid": baserevid})
 
     if tags:
-        params.update({'tags': '|'.join(tags)})
+        params.update({"tags": "|".join(tags)})
 
     if is_bot:
-        params.update({'bot': ''})
+        params.update({"bot": ""})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
+def fulltext_search(
+    search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any
+) -> list[dict[str, Any]]:
     """
     Perform a fulltext search on the mediawiki instance.
     It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
@@ -769,17 +959,21 @@ def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = 
     :return:
     """
     params = {
-        'action': 'query',
-        'list': 'search',
-        'srsearch': search,
-        'srlimit': max_results,
-        'format': 'json'
+        "action": "query",
+        "list": "search",
+        "srsearch": search,
+        "srlimit": max_results,
+        "format": "json",
     }
 
-    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['query']['search']
+    return mediawiki_api_call_helper(
+        data=params, allow_anonymous=allow_anonymous, **kwargs
+    )["query"]["search"]
 
 
-def generate_entity_instances(entities: str | list[str], allow_anonymous: bool = True, **kwargs: Any) -> list[tuple[str, BaseEntity]]:
+def generate_entity_instances(
+    entities: str | list[str], allow_anonymous: bool = True, **kwargs: Any
+) -> list[tuple[str, BaseEntity]]:
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
     second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
@@ -796,19 +990,18 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
 
     assert isinstance(entities, list)
 
-    params = {
-        'action': 'wbgetentities',
-        'ids': '|'.join(entities),
-        'format': 'json'
-    }
+    params = {"action": "wbgetentities", "ids": "|".join(entities), "format": "json"}
 
-    reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+    reply = mediawiki_api_call_helper(
+        data=params, allow_anonymous=allow_anonymous, **kwargs
+    )
 
     entity_instances = []
-    for qid, v in reply['entities'].items():
+    for qid, v in reply["entities"].items():
         from wikibaseintegrator import WikibaseIntegrator
+
         wbi = WikibaseIntegrator()
-        f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
+        f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v["type"]][0]
         ii = f(api=wbi).from_json(v)
         entity_instances.append((qid, ii))
 
@@ -826,8 +1019,8 @@ def format_amount(amount: int | str | float) -> str:
         amount = int(float(amount))
 
     # Adding prefix + for positive number and 0
-    if not str(amount).startswith('+') and float(amount) >= 0:
-        amount = str(f'+{amount}')
+    if not str(amount).startswith("+") and float(amount) >= 0:
+        amount = str(f"+{amount}")
 
     # return as string
     return str(amount)
@@ -841,12 +1034,13 @@ def get_user_agent(user_agent: str | None) -> str:
     :return: A correctly formatted user agent.
     """
     from wikibaseintegrator import __version__
+
     wbi_user_agent = f"WikibaseIntegrator/{__version__}"
 
     if user_agent is None:
         return_user_agent = wbi_user_agent
     else:
-        return_user_agent = user_agent + ' ' + wbi_user_agent
+        return_user_agent = user_agent + " " + wbi_user_agent
 
     return return_user_agent
 
@@ -854,8 +1048,14 @@ def get_user_agent(user_agent: str | None) -> str:
 properties_dt: dict = {}
 
 
-def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs) -> BaseEntity:
-    wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+def format2wbi(
+    entitytype: str,
+    json_raw: str,
+    allow_anonymous: bool = True,
+    wikibase_url: str | None = None,
+    **kwargs,
+) -> BaseEntity:
+    wikibase_url = str(wikibase_url or config["WIKIBASE_URL"])
     json_decoded = json.loads(json_raw)
     # pprint(json_decoded)
 
@@ -863,7 +1063,7 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
 
     entity_list = [x for x in BaseEntity.subclasses if x.ETYPE == entitytype]
     if not entity_list:
-        raise ValueError(f'Unknown entity type: {entitytype}')
+        raise ValueError(f"Unknown entity type: {entitytype}")
 
     entity = entity_list[0]()
 
@@ -875,117 +1075,178 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
     # Add senses (for Lexeme)
     # Add datatype (for Property)
 
-    if 'descriptions' in json_decoded and hasattr(entity, 'descriptions'):
-        for language in json_decoded['descriptions']:
-            entity.descriptions.set(language=language, value=json_decoded['descriptions'][language])  # type: ignore
+    if "descriptions" in json_decoded and hasattr(entity, "descriptions"):
+        for language in json_decoded["descriptions"]:
+            entity.descriptions.set(language=language, value=json_decoded["descriptions"][language])  # type: ignore
 
-    if 'labels' in json_decoded and hasattr(entity, 'labels'):
-        for language in json_decoded['labels']:
-            entity.labels.set(language=language, value=json_decoded['labels'][language])  # type: ignore
+    if "labels" in json_decoded and hasattr(entity, "labels"):
+        for language in json_decoded["labels"]:
+            entity.labels.set(language=language, value=json_decoded["labels"][language])  # type: ignore
 
-    if 'claims' in json_decoded:
-        properties = list(json_decoded['claims'].keys())
+    if "claims" in json_decoded:
+        properties = list(json_decoded["claims"].keys())
 
         from wikibaseintegrator.models import Qualifiers, References
         from wikibaseintegrator.wbi_enums import ActionIfExists
 
         params = {
-            'action': 'wbgetentities',
-            'ids': '|'.join(properties),
-            'props': 'datatype',
-            'format': 'json'
+            "action": "wbgetentities",
+            "ids": "|".join(properties),
+            "props": "datatype",
+            "format": "json",
         }
 
-        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+        reply = mediawiki_api_call_helper(
+            data=params, allow_anonymous=allow_anonymous, **kwargs
+        )
 
-        for p in reply['entities']:
-            properties_dt[p] = reply['entities'][p]['datatype']
+        for p in reply["entities"]:
+            properties_dt[p] = reply["entities"][p]["datatype"]
 
-        for claim in json_decoded['claims']:
-            if isinstance(json_decoded['claims'][claim], list):
-                statements = json_decoded['claims'][claim]
+        for claim in json_decoded["claims"]:
+            if isinstance(json_decoded["claims"][claim], list):
+                statements = json_decoded["claims"][claim]
             else:
-                statements = [json_decoded['claims'][claim]]
+                statements = [json_decoded["claims"][claim]]
 
             for statement in statements:
                 qualifiers = Qualifiers()
-                if 'qualifiers' in statement:
-                    if isinstance(statement['qualifiers'], list):
-                        qualifiers_list = statement['qualifiers']
+                if "qualifiers" in statement:
+                    if isinstance(statement["qualifiers"], list):
+                        qualifiers_list = statement["qualifiers"]
                     else:
-                        qualifiers_list = [statement['qualifiers']]
+                        qualifiers_list = [statement["qualifiers"]]
 
                     for qualifiers_raw in qualifiers_list:
                         for qualifier in qualifiers_raw:
-                            qualifiers.add(_json2datatype(qualifier, qualifiers_raw[qualifier], wikibase_url))
+                            qualifiers.add(
+                                _json2datatype(
+                                    qualifier, qualifiers_raw[qualifier], wikibase_url
+                                )
+                            )
 
                 references = References()
-                if 'references' in statement:
-                    if isinstance(statement['references'], list):
-                        references_list = statement['references']
+                if "references" in statement:
+                    if isinstance(statement["references"], list):
+                        references_list = statement["references"]
                     else:
-                        references_list = [statement['references']]
+                        references_list = [statement["references"]]
 
                     for references_raw in references_list:
                         for reference in references_raw:
-                            references.add(_json2datatype(reference, references_raw[reference], wikibase_url))
+                            references.add(
+                                _json2datatype(
+                                    reference, references_raw[reference], wikibase_url
+                                )
+                            )
                 # TODO: Add support for references
                 sub_entity = _json2datatype(claim, statement, wikibase_url)
                 sub_entity.qualifiers.set(qualifiers)
                 # entity.references.set(references)
-                entity.claims.add(sub_entity, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+                entity.claims.add(
+                    sub_entity, action_if_exists=ActionIfExists.APPEND_OR_REPLACE
+                )
 
     return entity
 
 
-def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous=True, **kwargs) -> BaseDataType:
+def _json2datatype(
+    prop_nr: str,
+    statement: dict,
+    wikibase_url: str | None = None,
+    allow_anonymous=True,
+    **kwargs,
+) -> BaseDataType:
     from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-    wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+
+    wikibase_url = str(wikibase_url or config["WIKIBASE_URL"])
 
     if prop_nr not in properties_dt:
         params = {
-            'action': 'wbgetentities',
-            'ids': prop_nr,
-            'props': 'datatype',
-            'format': 'json'
+            "action": "wbgetentities",
+            "ids": prop_nr,
+            "props": "datatype",
+            "format": "json",
         }
 
-        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+        reply = mediawiki_api_call_helper(
+            data=params, allow_anonymous=allow_anonymous, **kwargs
+        )
 
-        for p in reply['entities']:
-            properties_dt[p] = reply['entities'][p]['datatype']
+        for p in reply["entities"]:
+            properties_dt[p] = reply["entities"][p]["datatype"]
 
     datatype = properties_dt[prop_nr]
 
     f = [x for x in BaseDataType.subclasses if x.DTYPE == datatype][0]
-    if f.__name__ in ['CommonsMedia', 'ExternalID', 'Form', 'GeoShape', 'Item', 'Lexeme', 'Math', 'MusicalNotation', 'Property', 'Sense', 'String', 'TabularData', 'URL']:
+    if f.__name__ in [
+        "CommonsMedia",
+        "ExternalID",
+        "Form",
+        "GeoShape",
+        "Item",
+        "Lexeme",
+        "Math",
+        "MusicalNotation",
+        "Property",
+        "Sense",
+        "String",
+        "TabularData",
+        "URL",
+    ]:
         if isinstance(statement, dict):
-            value = statement['value']
+            value = statement["value"]
         else:
             value = statement
         return f(prop_nr=prop_nr, value=value)
-    elif f.__name__ == 'GlobeCoordinate':
-        altitude = statement['altitude'] or None
-        precision = statement['precision'] or None
-        globe = statement['globe'] or None
-        return f(prop_nr=prop_nr, latitude=statement['latitude'], longitude=statement['longitude'], altitude=altitude, precision=precision, globe=globe, wikibase_url=wikibase_url)
-    elif f.__name__ == 'MonolingualText':
-        return f(prop_nr=prop_nr, language=statement['language'], text=statement['text'])
-    elif f.__name__ == 'Quantity':
-        upper_bound = statement['upper_bound'] or None
-        lower_bound = statement['lower_bound'] or None
-        unit = statement['unit'] or '1'
-        return f(prop_nr=prop_nr, quantity=statement['quantity'], upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
-    elif f.__name__ == 'Time':
-        before = statement['before'] or 0
-        after = statement['after'] or 0
-        precision = statement['precision'] or None
-        timezone = statement['timezone'] or 0
-        calendarmodel = statement['calendarmodel'] or None
-        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel,
-                 wikibase_url=wikibase_url)
+    elif f.__name__ == "GlobeCoordinate":
+        altitude = statement["altitude"] or None
+        precision = statement["precision"] or None
+        globe = statement["globe"] or None
+        return f(
+            prop_nr=prop_nr,
+            latitude=statement["latitude"],
+            longitude=statement["longitude"],
+            altitude=altitude,
+            precision=precision,
+            globe=globe,
+            wikibase_url=wikibase_url,
+        )
+    elif f.__name__ == "MonolingualText":
+        return f(
+            prop_nr=prop_nr, language=statement["language"], text=statement["text"]
+        )
+    elif f.__name__ == "Quantity":
+        upper_bound = statement["upper_bound"] or None
+        lower_bound = statement["lower_bound"] or None
+        unit = statement["unit"] or "1"
+        return f(
+            prop_nr=prop_nr,
+            quantity=statement["quantity"],
+            upper_bound=upper_bound,
+            lower_bound=lower_bound,
+            unit=unit,
+            wikibase_url=wikibase_url,
+        )
+    elif f.__name__ == "Time":
+        before = statement["before"] or 0
+        after = statement["after"] or 0
+        precision = statement["precision"] or None
+        timezone = statement["timezone"] or 0
+        calendarmodel = statement["calendarmodel"] or None
+        return f(
+            prop_nr=prop_nr,
+            time=statement["time"],
+            before=before,
+            after=after,
+            precision=precision,
+            timezone=timezone,
+            calendarmodel=calendarmodel,
+            wikibase_url=wikibase_url,
+        )
 
     return f()
+
 
 # def __deepcopy__(memo):
 #     # Don't return a copy of the module

@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 from abc import abstractmethod
 from typing import Any, Callable
+import warnings
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
@@ -119,11 +120,13 @@ class Claims(BaseModel):
                             == existing_claim_json["mainsnak"]["datavalue"]["value"]
                         ):
                             claim_exists = True
-                            # Check if the references are identical
-                            if not Claim.refs_equal(claim, existing_claim):
-                                # If they're different, add the new reference block
+                            # Check if current block is present on references
+                            if not Claim.ref_present(
+                                newitem=claim, olditem=existing_claim
+                            ):
                                 for ref_to_add in claim.references:
-                                    existing_claim.references.add(ref_to_add)
+                                    if ref_to_add not in existing_claim.references:
+                                        existing_claim.references.add(ref_to_add)
 
                             break
 
@@ -443,6 +446,27 @@ class Claim(BaseModel):
             return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
 
         return len(oldrefs) == len(newrefs) and all(
+            any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs
+        )
+
+    @staticmethod
+    def ref_present(olditem: Claim, newitem: Claim) -> bool:
+        """
+        Tests if (1) there is a single ref in the new item and
+        (2) if this single ref is present among the claims of the old item.
+        """
+
+        oldrefs = olditem.references
+        newrefs = newitem.references
+
+        if len(newrefs) != 1:
+            warnings.warn("New item has more or less than 1 reference block.")
+            return False
+
+        def ref_equal(oldref: References, newref: References) -> bool:
+            return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
+
+        return any(
             any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs
         )
 
