@@ -107,26 +107,24 @@ class Claims(BaseModel):
                 elif action_if_exists == ActionIfExists.REPLACE_ALL:
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
+
                 elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
                     claim_exists = False
                     for existing_claim in self.claims[property]:
                         existing_claim_json = existing_claim.get_json()
-                        claim_json = claim.get_json()
+                        claim_to_add_json = claim.get_json()
                         # Check if the value of the claim exists
                         if (
-                            claim_json["mainsnak"]["datavalue"]["value"]
+                            claim_to_add_json["mainsnak"]["datavalue"]["value"]
                             == existing_claim_json["mainsnak"]["datavalue"]["value"]
                         ):
                             claim_exists = True
                             # Check if the references are identical
                             if not Claim.refs_equal(claim, existing_claim):
                                 # If they're different, add the new reference block
-                                existing_claim["references"] = list(
-                                    set(
-                                        existing_claim.get("references", [])
-                                        + claim.get("references", [])
-                                    )
-                                )
+                                for ref_to_add in claim.references:
+                                    existing_claim.references.add(ref_to_add)
+
                             break
 
                     # If the claim value does not exist, append it
