@@ -287,7 +287,7 @@ class TestWbiCore(unittest.TestCase):
         self.assertTrue(len(self.common_item.claims))
 
     def test_count_references(self):
-        self.assertTrue(len(self.common_item.claims.get('P2067')[0].references))
+        self.assertTrue(len(self.common_item.claims.get('P2067')[0].qualifiers))
 
     def test_get_qualifier_properties(self):
         self.assertTrue(len(self.common_item.claims.get(property='P2067')))

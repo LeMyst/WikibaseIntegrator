@@ -118,7 +118,7 @@ class Claims(BaseModel):
                         if (
                             claim_to_add_json["mainsnak"]["datavalue"]["value"]
                             == existing_claim_json["mainsnak"]["datavalue"]["value"]
-                        ):
+                        ) and claim.quals_equal(claim, existing_claim):
                             claim_exists = True
                             # Check if current block is present on references
                             if not Claim.ref_present(
@@ -432,6 +432,17 @@ class Claim(BaseModel):
             return Claim.refs_equal(self, that)
 
         return fref(self, that)
+
+    @staticmethod
+    def quals_equal(olditem: Claim, newitem: Claim) -> bool:
+        """
+        Tests for exactly identical qualifiers.
+        """
+
+        oldqual = olditem.qualifiers
+        newqual = newitem.qualifiers
+
+        return (len(oldqual) == len(newqual)) and all(x in oldqual for x in newqual)
 
     @staticmethod
     def refs_equal(olditem: Claim, newitem: Claim) -> bool:
