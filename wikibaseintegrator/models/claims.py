@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import copy
+import warnings
 from abc import abstractmethod
 from typing import Any, Callable
-import warnings
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
