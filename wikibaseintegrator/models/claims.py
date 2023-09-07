@@ -105,16 +105,11 @@ class Claims(BaseModel):
                         claim_to_add_json = claim.get_json()
 
                         # Check if the values match, including qualifiers
-                        if (
-                            claim_to_add_json["mainsnak"]["datavalue"]["value"]
-                            == existing_claim_json["mainsnak"]["datavalue"]["value"]
-                        ) and claim.quals_equal(claim, existing_claim):
+                        if (claim_to_add_json["mainsnak"]["datavalue"]["value"] == existing_claim_json["mainsnak"]["datavalue"]["value"]) and claim.quals_equal(claim, existing_claim):
                             claim_exists = True
 
                             # Check if current reference block is present on references
-                            if not Claim.ref_present(
-                                newitem=claim, olditem=existing_claim
-                            ):
+                            if not Claim.ref_present(newitem=claim, olditem=existing_claim):
                                 for ref_to_add in claim.references:
                                     if ref_to_add not in existing_claim.references:
                                         existing_claim.references.add(ref_to_add)
@@ -124,7 +119,6 @@ class Claims(BaseModel):
                     if not claim_exists:
                         self.claims[property].append(claim)
         return self
-
 
     def from_json(self, json_data: dict[str, Any]) -> Claims:
         for property in json_data:
@@ -388,7 +382,7 @@ class Claim(BaseModel):
             return Claim.refs_equal(self, that)
 
         return fref(self, that)
-    
+
     @staticmethod
     def quals_equal(olditem: Claim, newitem: Claim) -> bool:
         """
@@ -399,8 +393,6 @@ class Claim(BaseModel):
         newqual = newitem.qualifiers
 
         return (len(oldqual) == len(newqual)) and all(x in oldqual for x in newqual)
-    
-
 
     @staticmethod
     def refs_equal(olditem: Claim, newitem: Claim) -> bool:
@@ -433,10 +425,8 @@ class Claim(BaseModel):
         def ref_equal(oldref: References, newref: References) -> bool:
             return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
 
-        return any(
-            any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs
-        )
-    
+        return any(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
+
     @abstractmethod
     def get_sparql_value(self) -> str:
         pass

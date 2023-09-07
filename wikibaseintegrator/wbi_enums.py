@@ -9,8 +9,7 @@ class ActionIfExists(Enum):
     FORCE_APPEND: Forces the addition of the new element to the property, even if it already exists.
     KEEP: Does nothing if the property already has elements stated.
     REPLACE_ALL: Replace all elements with the same property number.
-    MERGE_REFS_OR_APPEND: Add the new element to the property if it does not exist, otherwise merge the references, 
-    adding the references for the new claim as a new reference block.
+    MERGE_REFS_OR_APPEND: Add the new element to the property if it does not exist, otherwise merge the references, adding the references for the new claim as a new reference block.
     """
     APPEND_OR_REPLACE = auto()
     FORCE_APPEND = auto()
