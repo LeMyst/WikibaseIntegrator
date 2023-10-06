@@ -68,7 +68,7 @@ The main differences between these two libraries are :
 * A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data
   validation and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property entities
-* Python 3.8 to 3.11 support, validated with unit tests
+* Python 3.8 to 3.12 support, validated with unit tests
 * Type hints implementation for arguments and return, checked with mypy static type checker
 * Add OAuth 2.0 login method
 * Add logging module support
