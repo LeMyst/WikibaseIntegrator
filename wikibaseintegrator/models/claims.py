@@ -23,7 +23,7 @@ class Claims(BaseModel):
     def claims(self, claims: dict[str, list[Claim]]):
         self.__claims = claims
 
-    def get(self, property: str) -> list[Claim]:
+    def get(self, property: str | int) -> list[Claim]:
         if isinstance(property, int):
             property = 'P' + str(property)
 
