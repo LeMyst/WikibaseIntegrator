@@ -155,7 +155,7 @@ class OAuth1(_Login):
             super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
         else:
             # Oauth procedure, based on https://www.mediawiki.org/wiki/OAuth/For_Developers
-            # Consruct a "consumer" from the key/secret provided by MediaWiki
+            # Construct a "consumer" from the key/secret provided by MediaWiki
             self.oauth1_consumer_token = ConsumerToken(consumer_token, consumer_secret)
 
             # Construct handshaker with wiki URI and consumer
