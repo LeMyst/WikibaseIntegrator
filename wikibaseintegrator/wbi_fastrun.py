@@ -643,7 +643,7 @@ def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]] |
     if base_filter is None:
         base_filter = []
 
-    # We search if we already have a FastRunContainer with the same parameters to re-use it
+    # We search if we already have a FastRunContainer with the same parameters to reuse it
     fastrun_container = _search_fastrun_store(base_filter=base_filter, use_refs=use_refs, case_insensitive=case_insensitive)
 
     return fastrun_container
