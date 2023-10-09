@@ -24,7 +24,13 @@ class Claims(BaseModel):
         self.__claims = claims
 
     def get(self, property: str) -> list[Claim]:
-        return self.claims[property]
+        if isinstance(property, int):
+            property = 'P' + str(property)
+
+        if property in self.claims:
+            return self.claims[property]
+
+        return []
 
     def remove(self, property: str | None = None) -> None:
         if property in self.claims:
