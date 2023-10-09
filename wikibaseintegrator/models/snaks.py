@@ -11,8 +11,14 @@ class Snaks(BaseModel):
     def __init__(self) -> None:
         self.snaks: dict[str, list[Snak]] = {}
 
-    def get(self, property: str) -> list[Snak]:
-        return self.snaks[property]
+    def get(self, property: str | int) -> list[Snak]:
+        if isinstance(property, int):
+            property = 'P' + str(property)
+
+        if property in self.snaks:
+            return self.snaks[property]
+
+        return []
 
     def add(self, snak: Snak) -> Snaks:
         property = snak.property_number
