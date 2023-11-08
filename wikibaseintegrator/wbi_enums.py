@@ -19,6 +19,7 @@ class ActionIfExists(Enum):
 class WikibaseDatatype(Enum):
     COMMONSMEDIA = 'commonsMedia'
     EXTERNALID = 'external-id'
+    EDTF = 'edtf'
     FORM = 'wikibase-form'
     GEOSHAPE = 'geo-shape'
     GLOBECOORDINATE = 'globe-coordinate'
