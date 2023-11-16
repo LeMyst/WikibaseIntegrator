@@ -18,12 +18,14 @@ class ActionIfExists(Enum):
 
 class WikibaseDatatype(Enum):
     COMMONSMEDIA = 'commonsMedia'
+    EDTF = 'edtf'
     EXTERNALID = 'external-id'
     FORM = 'wikibase-form'
     GEOSHAPE = 'geo-shape'
     GLOBECOORDINATE = 'globe-coordinate'
     ITEM = 'wikibase-item'
     LEXEME = 'wikibase-lexeme'
+    LOCALMEDIA = 'localMedia'
     MATH = 'math'
     MONOLINGUALTEXT = 'monolingualtext'
     MUSICALNOTATION = 'musical-notation'
