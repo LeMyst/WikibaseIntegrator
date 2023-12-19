@@ -30,6 +30,18 @@ wikibaseintegrator~=0.11.3
 - [WikibaseIntegrator / WikidataIntegrator](#wikibaseintegrator--wikidataintegrator)
 - [Documentation](#documentation)
     - [Jupyter notebooks](#jupyter-notebooks)
+        - [Common use cases](#common-use-cases)
+            - [Read an existing entity](#read-an-existing-entity)
+            - [Start a new entity](#start-a-new-entity)
+            - [Write an entity to instance](#write-an-entity-to-instance)
+            - [Add labels](#add-labels)
+            - [Get label value](#get-label-value)
+            - [Add aliases](#add-aliases)
+            - [Add descriptions](#add-descriptions)
+            - [Add a simple claim](#add-a-simple-claim)
+            - [Get claim value](#get-claim-value)
+            - [Manipulate claim, add a qualifier](#manipulate-claim-add-a-qualifier)
+            - [Manipulate claim, add references](#manipulate-claim-add-references)
     - [Other projects](#other-projects)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
@@ -84,6 +96,116 @@ the [Read the Docs website](https://wikibaseintegrator.readthedocs.io/).
 
 You can find some sample code (adding an entity, a lexeme, etc.) in
 the [Jupyter notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tree/master/notebooks) of the repository.
+
+### Common use cases
+
+#### Read an existing entity
+
+From [import_entity.ipynb](notebooks/import_entity.ipynb)
+
+```python
+entity = wbi.item.get('Q582')
+```
+
+#### Start a new entity
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+entity = wbi.item.new()
+```
+
+#### Write an entity to instance
+
+From [import_entity.ipynb](notebooks/import_entity.ipynb)
+
+```python
+entity.write()
+```
+
+#### Add labels
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+entity.labels.set('en', 'New item')
+entity.labels.set('fr', 'Nouvel élément')
+```
+
+#### Get label value
+
+From [item_get.ipynb](notebooks/item_get.ipynb)
+
+```python
+entity.labels.get('en').value
+```
+
+#### Add aliases
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+entity.aliases.set('en', 'Item')
+entity.aliases.set('fr', 'Élément')
+```
+
+#### Add descriptions
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+entity.descriptions.set('en', 'A freshly created element')
+entity.descriptions.set('fr', 'Un élément fraichement créé')
+```
+
+#### Add a simple claim
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+claim_time = datatypes.Time(prop_nr='P74', time='now')
+
+entity.claims.add(claim_time)
+```
+
+#### Get claim value
+
+From [item_get.ipynb](notebooks/item_get.ipynb)
+
+```python
+entity.claims.get('P2048')[0].mainsnak.datavalue['value']['amount']
+```
+
+#### Manipulate claim, add a qualifier
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+qualifiers = Qualifiers()
+qualifiers.add(datatypes.String(prop_nr='P828', value='Item qualifier'))
+
+claim_string = datatypes.String(prop_nr='P31533', value='A String property', qualifiers=qualifiers)
+entity.claims.add(claim_string)
+```
+
+#### Manipulate claim, add references
+
+From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
+
+```python
+references = References()
+reference1 = Reference()
+reference1.add(datatypes.String(prop_nr='P828', value='Item string reference'))
+
+reference2 = Reference()
+reference2.add(datatypes.String(prop_nr='P828', value='Another item string reference'))
+
+references.add(reference1)
+references.add(reference2)
+
+new_claim_string = datatypes.String(prop_nr='P31533', value='A String property', references=references)
+entity.claims.add(claim_string)
+```
 
 ## Other projects ##
 
