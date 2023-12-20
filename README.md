@@ -42,6 +42,9 @@ wikibaseintegrator~=0.11.3
             - [Get claim value](#get-claim-value)
             - [Manipulate claim, add a qualifier](#manipulate-claim-add-a-qualifier)
             - [Manipulate claim, add references](#manipulate-claim-add-references)
+            - [Set lemma on lexeme](#set-lemma-on-lexeme)
+            - [Add gloss to a sense on lexeme](#add-gloss-to-a-sense-on-lexeme)
+            - [Add form to a lexeme](#add-form-to-a-lexeme)
     - [Other projects](#other-projects)
 - [Installation](#installation)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
@@ -205,6 +208,40 @@ references.add(reference2)
 
 new_claim_string = datatypes.String(prop_nr='P31533', value='A String property', references=references)
 entity.claims.add(claim_string)
+```
+
+#### Set lemma on lexeme
+
+From [lexeme_update.ipynb](notebooks/lexeme_update.ipynb)
+
+```python
+lexeme.lemmas.set(language='fr', value='réponse')
+```
+
+#### Add gloss to a sense on lexeme
+
+From [lexeme_write.ipynb](notebooks/lexeme_write.ipynb)
+
+```python
+sense = Sense()
+sense.glosses.set(language='en', value='English gloss')
+sense.glosses.set(language='fr', value='French gloss')
+claim = datatypes.String(prop_nr='P828', value="Create a string claim for sense")
+sense.claims.add(claim)
+lexeme.senses.add(sense)
+```
+
+#### Add form to a lexeme
+
+From [lexeme_write.ipynb](notebooks/lexeme_write.ipynb)
+
+```python
+form = Form()
+form.representations.set(language='en', value='English form representation')
+form.representations.set(language='fr', value='French form representation')
+claim = datatypes.String(prop_nr='P828', value="Create a string claim for form")
+form.claims.add(claim)
+lexeme.forms.add(form)
 ```
 
 ## Other projects ##
