@@ -258,6 +258,9 @@ Here is a list of different projects that use the library:
 * https://github.com/eoan-ermine/wikidata_statistik_population - Update German population on Wikidata
 * https://github.com/internetarchive/cgraphbot - Wikibase bot for updating identifiers and citation relationships
 * https://github.com/lubianat/ibge_2021_to_wikidata - Update Population of Brazilian Cities
+* https://github.com/lcnetdev/lccn-wikidata-bot - Adding LCCNs (Library of Congress Control Number) from NACO (Name Authority Cooperative Program) to Wikidata
+* https://github.com/dpriskorn/WikidataEurLexScraper - Improve all Eur-Lex items in Wikidata based on information scraped from Eur-Lex
+* https://github.com/dpriskorn/LexDanNet - Help link DanNet 2.2 word ID with Danish Wikidata lexemes
 * https://github.com/lubianat/kudos_wikibase
 * https://github.com/dlindem/wikibase
 
