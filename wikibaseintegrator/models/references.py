@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -8,6 +9,8 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 if TYPE_CHECKING:
     from wikibaseintegrator.models.claims import Claim
+
+log = logging.getLogger(__name__)
 
 
 class References(BaseModel):
@@ -32,6 +35,13 @@ class References(BaseModel):
     def add(self, reference: Reference | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> References:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
+
+            if reference.qualifiers:
+                log.warning("WARNING: It is not possible to use a qualifier in a reference, it will be ignored.")
+
+            if reference.references:
+                log.warning("WARNING: It is not possible to use a reference in a reference, it will be ignored.")
+
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
 
         if reference is not None:
