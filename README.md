@@ -210,6 +210,12 @@ new_claim_string = datatypes.String(prop_nr='P31533', value='A String property',
 entity.claims.add(claim_string)
 ```
 
+#### Get lemma on lexeme
+
+```python
+lexeme.lemmas.get(language='fr')
+```
+
 #### Set lemma on lexeme
 
 From [lexeme_update.ipynb](notebooks/lexeme_update.ipynb)
