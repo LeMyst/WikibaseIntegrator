@@ -833,7 +833,7 @@ def format_amount(amount: int | str | float) -> str:
     return str(amount)
 
 
-def get_user_agent(user_agent: str | None) -> str:
+def get_user_agent(user_agent: str | None = None) -> str:
     """
     Return a user agent string suitable for interacting with the Wikibase instance.
 
