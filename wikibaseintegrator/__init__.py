@@ -16,6 +16,8 @@ Basic read usage:
 Full documentation is available at <https://wikibaseintegrator.readthedocs.io/>.
 """
 
+import importlib.metadata
+
 from .wikibaseintegrator import WikibaseIntegrator
 
-__version__ = '0.12.5'
+__version__ = importlib.metadata.version('wikibaseintegrator')

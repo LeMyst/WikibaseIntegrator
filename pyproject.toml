@@ -1,9 +1,87 @@
-[build-system]
-requires = [
-    "setuptools >= 40.9.0",
-    "wheel"
+[tool.poetry]
+name = "WikibaseIntegrator"
+version = "0.12.5"
+description = "Python package for reading from and writing to a Wikibase instance"
+authors = [
+    "Myst",
+    "Wikibase Integrator authors",
+    "Wikidata Integrator authors"
 ]
-build-backend = "setuptools.build_meta"
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "wikibaseintegrator" }]
+include = [{ path = "tests", format = "sdist" }]
+homepage = "https://github.com/LeMyst/WikibaseIntegrator"
+repository = "https://github.com/LeMyst/WikibaseIntegrator"
+documentation = "https://wikibaseintegrator.readthedocs.io"
+keywords = ["wikibase", "wikidata", "mediawiki", "sparql"]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Development Status :: 4 - Beta",
+    "Operating System :: POSIX",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Developers",
+    "Topic :: Utilities",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/LeMyst/WikibaseIntegrator/issues"
+Changelog = "https://github.com/LeMyst/WikibaseIntegrator/releases"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+backoff = "^2.2.1"
+mwoauth = "^0.4.0"
+oauthlib = "^3.2.2"
+requests = "^2.31.0"
+requests-oauthlib = "^1.3.1"
+ujson = "^5.9.0"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+pylint = "*"
+pylint-exit = "*"
+mypy = "*"
+codespell = "*"
+flynt = "*"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "*"
+readthedocs-sphinx-ext = "*"
+sphinx-rtd-theme = "*"
+sphinx-github-changelog = "*"
+sphinx-autodoc-typehints = "*"
+
+[tool.poetry.group.notebooks]
+optional = true
+
+[tool.poetry.group.notebooks.dependencies]
+jupyter = "*"
+
+[tool.poetry.group.coverage]
+optional = true
+
+[tool.poetry.group.coverage.dependencies]
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 line_length = 179

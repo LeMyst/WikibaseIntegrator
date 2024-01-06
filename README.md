@@ -291,6 +291,14 @@ python -m pip install --upgrade pip setuptools
 python -m pip install .
 ```
 
+You can also use Poetry:
+
+```bash
+python -m pip install --upgrade poetry
+
+python -m poetry install
+```
+
 To check that the installation is correct, launch a Python console and run the following code (which will retrieve the
 Wikidata element for [Human](https://www.wikidata.org/entity/Q5)):
 
