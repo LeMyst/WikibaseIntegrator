@@ -415,56 +415,6 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def delete_page(title: str | None = None, pageid: int | None = None, reason: str | None = None, deletetalk: bool = False, watchlist: str = 'preferences',
-                watchlistexpiry: str | None = None, login: _Login | None = None, **kwargs: Any) -> dict:
-    """
-    Delete a page
-
-    :param title: Title of the page to delete. Cannot be used together with pageid.
-    :param pageid: Page ID of the page to delete. Cannot be used together with title.
-    :param reason: Reason for the deletion. If not set, an automatically generated reason will be used.
-    :param deletetalk: Delete the talk page, if it exists.
-    :param watchlist: Unconditionally add or remove the page from the current user's watchlist, use preferences (ignored for bot users) or do not change watch.
-                      One of the following values: nochange, preferences, unwatch, watch
-    :param watchlistexpiry: Watchlist expiry timestamp. Omit this parameter entirely to leave the current expiry unchanged.
-    :param login: A wbi_login.Login instance
-    :param kwargs:
-    :return:
-    """
-
-    if not title and not pageid:
-        raise ValueError("A title or a pageid must be specified.")
-
-    if title and pageid:
-        raise ValueError("You can't specify a title and a pageid at the same time.")
-
-    if pageid and not isinstance(pageid, int):
-        raise ValueError("pageid must be an integer.")
-
-    params: dict[str, Any] = {
-        'action': 'delete',
-        'watchlist': watchlist,
-        'format': 'json'
-    }
-
-    if title:
-        params.update({'title': title})
-
-    if pageid:
-        params.update({'pageid': pageid})
-
-    if reason:
-        params.update({'reason': reason})
-
-    if deletetalk:
-        params.update({'deletetalk': ''})
-
-    if watchlistexpiry:
-        params.update({'watchlistexpiry': watchlistexpiry})
-
-    return mediawiki_api_call_helper(data=params, login=login, **kwargs)
-
-
 def search_entities(search_string: str, language: str | None = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
                     allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
     """
@@ -757,28 +707,6 @@ def lexeme_remove_sense(sense_id: str, baserevid: int | None = None, tags: list[
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
-    """
-    Perform a fulltext search on the mediawiki instance.
-    It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
-
-    :param search: Search for page titles or content matching this value. You can use the search string to invoke special search features, depending on what the wiki's search backend implements.
-    :param max_results: How many total pages to return. The value must be between 1 and 500.
-    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
-    :param kwargs: Extra parameters for mediawiki_api_call_helper()
-    :return:
-    """
-    params = {
-        'action': 'query',
-        'list': 'search',
-        'srsearch': search,
-        'srlimit': max_results,
-        'format': 'json'
-    }
-
-    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['query']['search']
-
-
 def generate_entity_instances(entities: str | list[str], allow_anonymous: bool = True, **kwargs: Any) -> list[tuple[str, BaseEntity]]:
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
@@ -813,6 +741,78 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
         entity_instances.append((qid, ii))
 
     return entity_instances
+
+
+def delete_page(title: str | None = None, pageid: int | None = None, reason: str | None = None, deletetalk: bool = False, watchlist: str = 'preferences',
+                watchlistexpiry: str | None = None, login: _Login | None = None, **kwargs: Any) -> dict:
+    """
+    Delete a page
+
+    :param title: Title of the page to delete. Cannot be used together with pageid.
+    :param pageid: Page ID of the page to delete. Cannot be used together with title.
+    :param reason: Reason for the deletion. If not set, an automatically generated reason will be used.
+    :param deletetalk: Delete the talk page, if it exists.
+    :param watchlist: Unconditionally add or remove the page from the current user's watchlist, use preferences (ignored for bot users) or do not change watch.
+                      One of the following values: nochange, preferences, unwatch, watch
+    :param watchlistexpiry: Watchlist expiry timestamp. Omit this parameter entirely to leave the current expiry unchanged.
+    :param login: A wbi_login.Login instance
+    :param kwargs:
+    :return:
+    """
+
+    if not title and not pageid:
+        raise ValueError("A title or a pageid must be specified.")
+
+    if title and pageid:
+        raise ValueError("You can't specify a title and a pageid at the same time.")
+
+    if pageid and not isinstance(pageid, int):
+        raise ValueError("pageid must be an integer.")
+
+    params: dict[str, Any] = {
+        'action': 'delete',
+        'watchlist': watchlist,
+        'format': 'json'
+    }
+
+    if title:
+        params.update({'title': title})
+
+    if pageid:
+        params.update({'pageid': pageid})
+
+    if reason:
+        params.update({'reason': reason})
+
+    if deletetalk:
+        params.update({'deletetalk': ''})
+
+    if watchlistexpiry:
+        params.update({'watchlistexpiry': watchlistexpiry})
+
+    return mediawiki_api_call_helper(data=params, login=login, **kwargs)
+
+
+def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
+    """
+    Perform a fulltext search on the mediawiki instance.
+    It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
+
+    :param search: Search for page titles or content matching this value. You can use the search string to invoke special search features, depending on what the wiki's search backend implements.
+    :param max_results: How many total pages to return. The value must be between 1 and 500.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper()
+    :return:
+    """
+    params = {
+        'action': 'query',
+        'list': 'search',
+        'srsearch': search,
+        'srlimit': max_results,
+        'format': 'json'
+    }
+
+    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['query']['search']
 
 
 def format_amount(amount: int | str | float) -> str:
