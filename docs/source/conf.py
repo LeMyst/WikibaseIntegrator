@@ -121,7 +121,7 @@ html_context = {
     'github_user': 'LeMyst',
     'github_repo': 'WikibaseIntegrator',
     'github_version': 'master',
-    "conf_py_path": "/docs/"
+    "conf_py_path": "/docs/source/"
 }
 
 
