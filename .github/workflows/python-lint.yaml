@@ -19,44 +19,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
 
+      - name: Install poetry
+        run: pipx install poetry
+
       - name: Set up Python 3.12
         uses: actions/setup-python@v5.0.0
         with:
           python-version: '3.12'
+          cache: 'poetry'
 
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
-
-      - name: Upgrade setup tools
-        run: |
-          python -m pip install --upgrade pip setuptools
+      # Need to install poetry again in the new python version
+      - name: Install poetry
+        run: python -m pip install poetry
 
       - name: Install dependencies
         run: |
-          python -m pip install .[dev]
+          python -m poetry install --with dev
 
       - name: isort imports check
         run: |
-          python -m isort --check --diff wikibaseintegrator test
+          python -m poetry run isort --check --diff wikibaseintegrator test
 
       - name: mypy typing check
         run: |
-          python -m mypy --install-types --non-interactive
+          python -m poetry run mypy --install-types --non-interactive
 
       - name: pylint code linting
         run: |
-          python -m pylint wikibaseintegrator test || pylint-exit $?
+          python -m poetry run pylint wikibaseintegrator test || python -m poetry run pylint-exit $?
 
       - name: codespell spell checking
         run: |
-          codespell wikibaseintegrator test
+          python -m poetry run codespell wikibaseintegrator test
 
       - name: flynt string formatter converting
         run: |
-          python -m flynt -f wikibaseintegrator test
+          python -m poetry run flynt -f wikibaseintegrator test
