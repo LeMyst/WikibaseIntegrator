@@ -66,6 +66,7 @@ readthedocs-sphinx-ext = "*"
 sphinx-rtd-theme = "*"
 sphinx-github-changelog = "*"
 sphinx-autodoc-typehints = "*"
+toml = "*"
 
 [tool.poetry.group.notebooks]
 optional = true
