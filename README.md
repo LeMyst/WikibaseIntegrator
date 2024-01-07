@@ -5,7 +5,7 @@
 [![Python Code Quality and Lint](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-lint.yaml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-lint.yaml)
 [![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yaml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql-analysis.yaml)
 [![Pyversions](https://img.shields.io/pypi/implementation/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
-[![Read the Docs](https://readthedocs.org/projects/pip/badge/?version=latest&style=flat)](https://wikibaseintegrator.readthedocs.io)
+[![Read the Docs](https://readthedocs.org/projects/wikibaseintegrator/badge/?version=latest&style=flat)](https://wikibaseintegrator.readthedocs.io)
 
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
 Wikidata).
