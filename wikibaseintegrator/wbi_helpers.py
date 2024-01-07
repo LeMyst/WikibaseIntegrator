@@ -987,6 +987,41 @@ def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = Non
 
     return f()
 
+
+def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent: str | None = None) -> str:
+    """
+    Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.
+
+    Args:
+    - entity (str): The identifier of the entity to download the TTL content for.
+    - wikibase_url (str | None): The base URL of the Wikibase instance. If None, the default URL from the configuration
+                                  will be used.
+    - user_agent (str | None): The user agent string to be used in the HTTP request headers. If None, the default user
+                                agent from the configuration will be used if available.
+
+    Returns:
+    - str: The TTL content of the requested entity.
+
+    Raises:
+    - HTTPError: If the HTTP request to retrieve the TTL content fails (status code other than 2xx).
+
+    Note:
+    The function relies on a configuration setup (presumably a 'config' dictionary) containing at least the keys
+    'WIKIBASE_URL' and 'USER_AGENT' for the default Wikibase URL and user agent respectively.
+    """
+    wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+
+    headers = {
+        'User-Agent': get_user_agent(user_agent)
+    }
+
+    response = helpers_session.get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers)
+    response.raise_for_status()
+    results = response.text
+
+    return results
+
 # def __deepcopy__(memo):
 #     # Don't return a copy of the module
 #     # Deepcopy don't allow copy of modules (https://bugs.python.org/issue43093)
