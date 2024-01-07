@@ -83,12 +83,25 @@ class Claims(BaseModel):
                 if property not in self.claims:
                     self.claims[property] = []
 
-                if action_if_exists == ActionIfExists.KEEP:
+                if ActionIfExists.KEEP in action_if_exists:
                     if len(self.claims[property]) == 0:
                         self.claims[property].append(claim)
-                elif action_if_exists == ActionIfExists.FORCE_APPEND:
-                    self.claims[property].append(claim)
-                elif action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
+                elif action_if_exists == ActionIfExists.APPEND:
+                    # TODO: Check if merging ref is necessary
+                    if claim not in self.claims[property]:
+                        self.claims[property].append(claim)
+                elif action_if_exists == ActionIfExists.REPLACE:
+                    if claim not in self.claims[property]:
+                        self.claims[property].append(claim)
+                elif ActionIfExists.APPEND in action_if_exists and ActionIfExists.REPLACE in action_if_exists:
+                    if claim not in self.claims[property]:  # APPEND
+                        self.claims[property].append(claim)
+                    else:
+                        # Force replace the claim if already present
+                        # TODO: Check if merging ref is necessary
+                        self.claims[property][self.claims[property].index(claim)].update(claim)
+                elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
+                    # If the claim value does not exist, append it
                     if claim not in self.claims[property]:
                         self.claims[property].append(claim)
                     else:

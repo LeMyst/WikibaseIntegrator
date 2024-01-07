@@ -1,7 +1,7 @@
-from enum import Enum, auto
+from enum import Enum, auto, Flag
 
 
-class ActionIfExists(Enum):
+class ActionIfExists(Flag):
     """
     Action to take if a statement with a property already exists on the entity.
 
@@ -17,6 +17,10 @@ class ActionIfExists(Enum):
 
 
 class WikibaseDatatype(Enum):
+    """
+    Data types define how the statement will behave, and what kind of data they take.
+    More info: https://www.wikidata.org/wiki/Help:Data_type
+    """
     COMMONSMEDIA = 'commonsMedia'
     EDTF = 'edtf'
     EXTERNALID = 'external-id'
@@ -39,6 +43,10 @@ class WikibaseDatatype(Enum):
 
 
 class WikibaseRank(Enum):
+    """
+    Ranks provide a mechanism for annotating multiple values for a statement.
+    More info: https://www.wikidata.org/wiki/Help:Ranking
+    """
     DEPRECATED = "deprecated"
     NORMAL = "normal"
     PREFERRED = "preferred"
