@@ -297,7 +297,14 @@ class BaseEntity:
         if wikibase_url and self.id:
             return wikibase_url + '/entity/' + self.id
 
-        raise ValueError('wikibase_url or entity ID is null.')
+        raise ValueError('wikibase_url or entity ID is null')
+
+    def download_entity_ttl(self, **kwargs) -> str:
+        from wikibaseintegrator.wbi_helpers import download_entity_ttl
+        if self.id:
+            return download_entity_ttl(self.id, **kwargs)
+
+        raise ValueError('entity ID is null')
 
     def __repr__(self):
         """A mixin implementing a simple __repr__."""
