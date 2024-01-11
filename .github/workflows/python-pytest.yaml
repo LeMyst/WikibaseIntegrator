@@ -8,12 +8,14 @@ on:
       - 'wikibaseintegrator/**.py'
       - 'test/**.py'
       - 'pyproject.toml'
+      - 'poetry.lock'
   pull_request:
     branches: [ '**' ]
     paths:
       - 'wikibaseintegrator/**.py'
       - 'test/**.py'
       - 'pyproject.toml'
+      - 'poetry.lock'
 
 jobs:
   build:
