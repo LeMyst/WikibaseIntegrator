@@ -76,22 +76,22 @@ class TestEntityItem(unittest.TestCase):
 
         # clear()
         item = deepcopy(item_original)
-        assert len(item.claims.get('P452')[0].qualifiers.clear('P666')) >= 1
+        assert len(item.claims.get('P443')[0].qualifiers.clear('P666')) >= 1
         item = deepcopy(item_original)
-        assert len(item.claims.get('P452')[0].qualifiers.clear('P1013')) == 0
+        assert len(item.claims.get('P443')[0].qualifiers.clear('P407')) == 0
         item = deepcopy(item_original)
-        assert len(item.claims.get('P452')[0].qualifiers.clear()) == 0
+        assert len(item.claims.get('P443')[0].qualifiers.clear()) == 0
 
         # remove()
         item = deepcopy(item_original)
         from pprint import pprint
-        pprint(item.claims.get('P452')[0].qualifiers)
-        assert len(item.claims.get('P452')[0].qualifiers.remove(Item(prop_nr='P1013', value='Q112111570'))) == 0
+        pprint(item.claims.get('P443')[0].qualifiers)
+        assert len(item.claims.get('P443')[0].qualifiers.remove(Item(prop_nr='P407', value='Q150'))) == 0
 
         # common
         item = deepcopy(item_original)
-        assert len(item.claims.get('P452')) >= 1
-        assert len(item.claims.get('P452')[0].qualifiers) >= 1
+        assert len(item.claims.get('P443')) >= 1
+        assert len(item.claims.get('P443')[0].qualifiers) >= 1
 
     def test_new_lines(self):
         item = wbi.item.new()
