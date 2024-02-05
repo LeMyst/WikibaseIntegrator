@@ -1,7 +1,7 @@
 import unittest
 
-from wikibaseintegrator import WikibaseIntegrator
-from wikibaseintegrator.datatypes import Form, Sense
+from wikibaseintegrator import WikibaseIntegrator, datatypes
+from wikibaseintegrator.models import Form
 from wikibaseintegrator.wbi_config import config as wbi_config
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_lexeme.py)'
@@ -51,5 +51,40 @@ class TestEntityLexeme(unittest.TestCase):
         assert wbi.lexeme.new(language=397).language == 'Q397'
 
     def test_get_lexeme_id(self):
-        assert Form(value='L123-F123', prop_nr='P16').get_lexeme_id() == 'L123'
-        assert Sense(value='L123-S123', prop_nr='P16').get_lexeme_id() == 'L123'
+        assert datatypes.Form(value='L123-F123', prop_nr='P16').get_lexeme_id() == 'L123'
+        assert datatypes.Sense(value='L123-S123', prop_nr='P16').get_lexeme_id() == 'L123'
+
+    def test_get_forms(self):
+        lexeme = wbi.lexeme.new()
+
+        form = Form(form_id='L5-F4')
+        form.representations.set(language='en', value='English form representation')
+        form.representations.set(language='fr', value='French form representation')
+        claim = datatypes.String(prop_nr='P828', value="Create a string claim for form")
+        form.claims.add(claim)
+        lexeme.forms.add(form)
+
+        form = Form(form_id='L5-F5')
+        form.representations.set(language='en', value='English form representation')
+        form.representations.set(language='fr', value='French form representation')
+        claim = datatypes.String(prop_nr='P828', value="Create a string claim for form")
+        form.claims.add(claim)
+        lexeme.forms.add(form)
+
+        form = Form()
+        form.representations.set(language='en', value='English form representation')
+        form.representations.set(language='fr', value='French form representation')
+        claim = datatypes.String(prop_nr='P828', value="Create a string claim for form")
+        form.claims.add(claim)
+        lexeme.forms.add(form)
+
+        form = Form()
+        form.representations.set(language='en', value='English form representation')
+        form.representations.set(language='fr', value='French form representation')
+        claim = datatypes.String(prop_nr='P828', value="Create a string claim for form")
+        form.claims.add(claim)
+        lexeme.forms.add(form)
+
+        assert not lexeme.forms.get('L5-F3')
+        assert lexeme.forms.get('L5-F4') and lexeme.forms.get('L5-F5')
+        assert len(lexeme.forms) == 4
