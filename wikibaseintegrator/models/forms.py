@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, List, Optional
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -9,21 +9,27 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 class Forms(BaseModel):
     def __init__(self) -> None:
-        self.forms: dict[str, Form] = {}
+        self.forms: List[Form] = []
 
     @property
-    def forms(self) -> dict:
+    def forms(self) -> List:
         return self.__forms
 
     @forms.setter
     def forms(self, value):
         self.__forms = value
 
-    def get(self, id: str) -> Form:
-        return self.forms[id]
+    def get(self, id: str) -> Optional[Form]:
+        search = [x for x in self.__forms if x.id == id]
+        if len(search) == 1:
+            return search[0]
+        elif len(search) > 1:
+            raise ValueError('There is multiple form with the same id')
+
+        return None
 
     def add(self, form: Form) -> Forms:
-        self.forms[form.id] = form
+        self.__forms.append(form)
 
         return self
 
@@ -35,7 +41,7 @@ class Forms(BaseModel):
 
     def get_json(self) -> list[dict]:
         json_data: list[dict] = []
-        for _, form in self.forms.items():
+        for form in self.forms:
             json_data.append(form.get_json())
 
         return json_data
