@@ -9,6 +9,7 @@ class TabularData(BaseDataType):
     Implements the Wikibase data type 'tabular-data'
     """
     DTYPE = 'tabular-data'
+    PTYPE = 'http://wikiba.se/ontology#TabularData'
 
     def __init__(self, value: Optional[str] = None, **kwargs: Any):
         """
@@ -34,3 +35,7 @@ class TabularData(BaseDataType):
                 'value': value,
                 'type': 'string'
             }
+
+    # TODO: Does TabularData need a full URL to wikimedia commons?
+    def get_sparql_value(self, **kwargs: Any) -> str:
+        return '<' + self.mainsnak.datavalue['value'] + '>'
