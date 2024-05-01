@@ -163,7 +163,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     hostname = urlparse(mediawiki_api_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
         log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        log.warning('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+        log.warning('More information in the README.md and https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy')
 
     if not allow_anonymous:
         if login is None:
@@ -236,7 +236,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     hostname = urlparse(sparql_endpoint_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
         log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        log.warning('More information in the README.md and https://meta.wikimedia.org/wiki/User-Agent_policy')
+        log.warning('More information in the README.md and https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy')
 
     if prefix:
         query = prefix + '\n' + query
