@@ -335,7 +335,7 @@ You can find more default settings in the file wbi_config.py
 
 If you interact with a Wikibase instance hosted by the Wikimedia Foundation (like Wikidata, Wikimedia Commons, etc.),
 it's highly advised to follow the User-Agent policy that you can find on the
-page [User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
+page [User-Agent policy](https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy)
 of the Wikimedia Meta-Wiki.
 
 You can set a complementary User-Agent by modifying the variable `wbi_config['USER_AGENT']` in wbi_config.

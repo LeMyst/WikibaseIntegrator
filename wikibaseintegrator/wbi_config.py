@@ -9,7 +9,7 @@ BACKOFF_MAX_TRIES: maximum number of times to retry failed request to wikidata e
 BACKOFF_MAX_VALUE: maximum number of seconds to wait before retrying. wait time will increase to this number
                    Default: 3600 (one hour)
 USER_AGENT:        Complementary user agent string used for http requests. Both to Wikibase api, query service and others.
-                   See: https://meta.wikimedia.org/wiki/User-Agent_policy
+                   See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
 """
 
 from typing import Dict, Union
