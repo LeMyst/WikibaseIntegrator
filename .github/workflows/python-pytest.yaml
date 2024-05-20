@@ -31,13 +31,17 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12' ] # '3.13-dev' wait for new version of pypa/installer > 0.7.0
+        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev' ]
 
     steps:
       - uses: actions/checkout@v4.1.7
 
       - name: Install pipx
         run: apt update && apt install -y pipx && pipx ensurepath
+
+      - name: Install dependencies for Python 3.13-dev
+        if: matrix.python-version == '3.13-dev'
+        run: apt install -y build-essential libffi-dev
 
       - name: Update path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
