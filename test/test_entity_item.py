@@ -1,3 +1,4 @@
+import os
 import unittest
 from copy import deepcopy
 
@@ -45,7 +46,7 @@ class TestEntityItem(unittest.TestCase):
 
     def test_write(self):
         with self.assertRaises(requests.exceptions.JSONDecodeError):
-            wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url='https://httpbin.org/status/200')
+            wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/200")
 
     def test_write_not_required(self):
         assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P1791')])
