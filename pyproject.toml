@@ -51,6 +51,7 @@ optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
+pytest-order = "*"
 pylint = "*"
 pylint-exit = "*"
 mypy = "*"
