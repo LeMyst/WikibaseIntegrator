@@ -7,6 +7,7 @@ import datetime
 import json
 import logging
 import re
+from pprint import pprint
 from time import sleep
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -211,6 +212,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
         session = None
 
     log.debug(data)
+
+    pprint(data)
 
     return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
 
