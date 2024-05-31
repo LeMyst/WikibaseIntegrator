@@ -21,6 +21,13 @@ jobs:
   build:
     name: pytest ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    container: ubuntu
+
+    services:
+      httpstatus:
+        image: kennethreitz/httpbin
+        ports:
+          - 80:80
 
     strategy:
       matrix:
@@ -28,6 +35,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4.1.6
+
+      - name: Install pipx
+        run: apt update && apt install -y pipx && pipx ensurepath
+
+      - name: Update path
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install poetry
         run: pipx install poetry
@@ -49,3 +62,5 @@ jobs:
       - name: Test with pytest
         run: |
           python -m poetry run pytest
+        env:
+          HTTPSTATUS_SERVICE: "http://httpstatus"
