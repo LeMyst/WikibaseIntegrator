@@ -240,7 +240,7 @@ class TestWbiCore(unittest.TestCase):
             MonolingualText(text='xxx', language='fr', prop_nr='P7'),
             Quantity(amount=-5.04, prop_nr='P8'),
             Quantity(amount=5.06, upper_bound=9.99, lower_bound=-2.22, unit='Q11573', prop_nr='P8'),
-            CommonsMedia(value='xxx', prop_nr='P9'),
+            CommonsMedia(value="Place lazare goujon.jpg", prop_nr='P9'),
             GlobeCoordinate(latitude=1.2345, longitude=-1.2345, precision=12, prop_nr='P10'),
             GeoShape(value='Data:xxx.map', prop_nr='P11'),
             Property(value='P123', prop_nr='P12'),
