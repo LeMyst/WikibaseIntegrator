@@ -34,7 +34,7 @@ jobs:
         python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12' ] # '3.13-dev' wait for new version of pypa/installer > 0.7.0
 
     steps:
-      - uses: actions/checkout@v4.1.6
+      - uses: actions/checkout@v4.1.7
 
       - name: Install pipx
         run: apt update && apt install -y pipx && pipx ensurepath
