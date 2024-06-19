@@ -81,11 +81,11 @@ class TestFastRun(unittest.TestCase):
         assert item.labels.get(language='en') == "Earth"
         descr = item.descriptions.get(language='en')
         assert len(descr) > 3
-        assert "the Earth" in item.aliases.get()
+        assert "Planet Earth" in item.aliases.get()
 
         assert list(frc.get_language_data("Q2", 'en', 'label'))[0] == item.labels.get(language='en')
         assert frc.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "the Earth" in item.aliases.get()
+        assert "Planet Earth" in item.aliases.get()
         assert "planet" in item.descriptions.get()
 
         assert item.labels.get('es') == "Tierra"
