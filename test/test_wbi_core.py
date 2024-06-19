@@ -169,7 +169,7 @@ class TestWbiCore(unittest.TestCase):
         entity_instances = generate_entity_instances(entities=list(entities.keys()))
 
         for qid, entity in entity_instances:
-            self.assertIn(qid, entities)
+            self.assertIn(qid, entities)  # codespell:ignore
             assert entity.ETYPE == entities[qid]['etype']
             assert type(entity).__name__ == entities[qid]['ctype']
 
