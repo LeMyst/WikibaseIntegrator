@@ -1,5 +1,6 @@
 from .basedatatype import BaseDataType
 from .commonsmedia import CommonsMedia
+from .entityschema import EntitySchema
 from .externalid import ExternalID
 from .form import Form
 from .geoshape import GeoShape

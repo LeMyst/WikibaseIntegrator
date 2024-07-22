@@ -21,6 +21,7 @@ class ActionIfExists(Enum):
 class WikibaseDatatype(Enum):
     COMMONSMEDIA = 'commonsMedia'
     EDTF = 'edtf'
+    ENTITYSCHEMA = 'entity-schema'
     EXTERNALID = 'external-id'
     FORM = 'wikibase-form'
     GEOSHAPE = 'geo-shape'
