@@ -17,6 +17,7 @@ Submodules
 
    wikibaseintegrator.datatypes.basedatatype
    wikibaseintegrator.datatypes.commonsmedia
+   wikibaseintegrator.datatypes.entityschema
    wikibaseintegrator.datatypes.externalid
    wikibaseintegrator.datatypes.form
    wikibaseintegrator.datatypes.geoshape
