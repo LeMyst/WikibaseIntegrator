@@ -17,7 +17,7 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SearchError, SaveFailed
+from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
