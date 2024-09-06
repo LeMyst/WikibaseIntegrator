@@ -17,7 +17,7 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SearchError
+from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -124,6 +124,12 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             # duplicate error
             if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':  # pragma: no cover
                 raise ModificationFailed(json_data['error'])
+
+            # sitelink conflict
+            if ('code' in json_data['error'] and json_data['error']['code'] == 'failed-save' and
+                    any([message.get('name', '') == 'wikibase-validator-sitelink-conflict'
+                         for message in json_data['error'].get('messages', [])])):
+                raise SaveFailed(json_data['error'])
 
             # others case
             raise MWApiError(json_data['error'])

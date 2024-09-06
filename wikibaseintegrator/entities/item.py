@@ -136,6 +136,7 @@ class ItemEntity(BaseEntity):
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             'aliases': self.aliases.get_json(),
+            'sitelinks': self.sitelinks.get_json(),
             **super().get_json()
         }
 
