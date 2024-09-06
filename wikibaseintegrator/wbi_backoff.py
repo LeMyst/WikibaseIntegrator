@@ -28,8 +28,10 @@ def wbi_backoff_check_json_decode_error(e) -> bool:
     """
     return isinstance(e, JSONDecodeError) and str(e) != "Expecting value: line 1 column 1 (char 0)"
 
+def wbi_get_backoff_max_tries():
+    return config.get('BACKOFF_MAX_TRIES')
 
 wbi_backoff_exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError)
 
 wbi_backoff = partial(backoff.on_exception, backoff.expo, wbi_backoff_exceptions, max_value=partial(config.get, 'BACKOFF_MAX_VALUE'), giveup=wbi_backoff_check_json_decode_error,
-                      on_backoff=wbi_backoff_backoff_hdlr, jitter=None, max_tries=partial(config.get, 'BACKOFF_MAX_TRIES'))
+                      on_backoff=wbi_backoff_backoff_hdlr, jitter=None, max_tries=wbi_get_backoff_max_tries)
