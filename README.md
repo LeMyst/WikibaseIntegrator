@@ -42,6 +42,8 @@ wikibaseintegrator~=0.11.3
             - [Get claim value](#get-claim-value)
             - [Manipulate claim, add a qualifier](#manipulate-claim-add-a-qualifier)
             - [Manipulate claim, add references](#manipulate-claim-add-references)
+            - [Remove a specific claim](#remove-a-specific-claim)
+            - [Get lemma on lexeme](#get-lemma-on-lexeme)
             - [Set lemma on lexeme](#set-lemma-on-lexeme)
             - [Add gloss to a sense on lexeme](#add-gloss-to-a-sense-on-lexeme)
             - [Add form to a lexeme](#add-form-to-a-lexeme)
