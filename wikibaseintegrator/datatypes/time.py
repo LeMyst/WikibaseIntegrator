@@ -5,7 +5,7 @@ from typing import Any, Optional, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
+from wikibaseintegrator.wbi_enums import WikibaseTimePrecision
 
 
 @total_ordering
@@ -21,7 +21,7 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseDatePrecision, None] = None, timezone: int = 0,
+    def __init__(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseTimePrecision, None] = None, timezone: int = 0,
                  calendarmodel: Optional[str] = None, wikibase_url: Optional[str] = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
@@ -41,7 +41,7 @@ class Time(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
-    def set_value(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseDatePrecision, None] = None, timezone: int = 0,
+    def set_value(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseTimePrecision, None] = None, timezone: int = 0,
                   calendarmodel: Optional[str] = None, wikibase_url: Optional[str] = None):
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
@@ -66,23 +66,23 @@ class Time(BaseDataType):
             pattern_year = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T00:00:00Z$')
             if not precision:
                 if pattern_day.match(time):
-                    precision = WikibaseDatePrecision.DAY
+                    precision = WikibaseTimePrecision.DAY
                 elif pattern_month.match(time):
-                    precision = WikibaseDatePrecision.MONTH
+                    precision = WikibaseTimePrecision.MONTH
                 elif pattern_year.match(time):
-                    precision = WikibaseDatePrecision.YEAR
+                    precision = WikibaseTimePrecision.YEAR
                 else:
                     raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'.")
             else:
                 if isinstance(precision, int):
-                    precision = WikibaseDatePrecision(precision)
+                    precision = WikibaseTimePrecision(precision)
 
-                if precision not in WikibaseDatePrecision:
+                if precision not in WikibaseTimePrecision:
                     raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
 
-                if precision == WikibaseDatePrecision.DAY:
+                if precision == WikibaseTimePrecision.DAY:
                     pattern = pattern_day
-                elif precision == WikibaseDatePrecision.MONTH:
+                elif precision == WikibaseTimePrecision.MONTH:
                     pattern = pattern_month
                 else:
                     pattern = pattern_year

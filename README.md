@@ -677,7 +677,7 @@ or modification of items.
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
+from wikibaseintegrator.wbi_enums import WikibaseTimePrecision
 
 wbi_config['USER_AGENT'] = 'MyWikibaseBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
 
@@ -697,7 +697,7 @@ for entrez_id, ensembl in raw_data.items():
     references = [
         [
             Item(value='Q20641742', prop_nr='P248'),
-            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseDatePrecision.DAY),
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseTimePrecision.DAY),
             ExternalID(value='1017', prop_nr='P351')
         ]
     ]
@@ -744,7 +744,7 @@ The full example:
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
-from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
+from wikibaseintegrator.wbi_enums import WikibaseTimePrecision
 
 # login object
 login = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
@@ -766,7 +766,7 @@ for entrez_id, ensembl in raw_data.items():
             Item(value='Q20641742', prop_nr='P248')
         ],
         [
-            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseDatePrecision.DAY),
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseTimePrecision.DAY),
             ExternalID(value='1017', prop_nr='P351')
         ]
     ]
