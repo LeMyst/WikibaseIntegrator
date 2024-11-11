@@ -6,7 +6,7 @@
 import os
 import sys
 from datetime import datetime
-from typing import MutableMapping
+from collections.abc import MutableMapping
 
 sys.path.insert(0, os.path.abspath('../..'))
 

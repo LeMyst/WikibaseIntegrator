@@ -17,12 +17,12 @@ documentation = "https://wikibaseintegrator.readthedocs.io"
 keywords = ["wikibase", "wikidata", "mediawiki", "sparql"]
 classifiers = [
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Development Status :: 4 - Beta",
     "Operating System :: POSIX",
     "Operating System :: MacOS :: MacOS X",
@@ -39,7 +39,7 @@ classifiers = [
 Changelog = "https://github.com/LeMyst/WikibaseIntegrator/releases"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 backoff = "^2.2.1"
 mwoauth = "^0.4.0"
 oauthlib = "^3.2.2"
