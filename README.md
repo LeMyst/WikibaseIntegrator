@@ -104,6 +104,8 @@ the [Jupyter notebook directory](https://github.com/LeMyst/WikibaseIntegrator/tr
 
 #### Read an existing entity
 
+Get the entity with the QID Q582 from the instance.
+
 From [import_entity.ipynb](notebooks/import_entity.ipynb)
 
 ```python
@@ -111,6 +113,8 @@ entity = wbi.item.get('Q582')
 ```
 
 #### Start a new entity
+
+Start a new local entity.
 
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
@@ -120,6 +124,8 @@ entity = wbi.item.new()
 
 #### Write an entity to instance
 
+Write a local entity to the instance.
+
 From [import_entity.ipynb](notebooks/import_entity.ipynb)
 
 ```python
@@ -127,6 +133,8 @@ entity.write()
 ```
 
 #### Add labels
+
+Add an English and a French label to the local entity.
 
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
@@ -137,6 +145,8 @@ entity.labels.set('fr', 'Nouvel élément')
 
 #### Get label value
 
+Get the english label value of the local entity.
+
 From [item_get.ipynb](notebooks/item_get.ipynb)
 
 ```python
@@ -144,6 +154,8 @@ entity.labels.get('en').value
 ```
 
 #### Add aliases
+
+Add an English and a French alias to the local entity.
 
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
@@ -154,6 +166,8 @@ entity.aliases.set('fr', 'Élément')
 
 #### Add descriptions
 
+Add an English and a French description to the local entity.
+
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
 ```python
@@ -162,6 +176,8 @@ entity.descriptions.set('fr', 'Un élément fraichement créé')
 ```
 
 #### Add a simple claim
+
+Add a Time claim with the property P74 and the current time to the local entity.
 
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
@@ -173,6 +189,8 @@ entity.claims.add(claim_time)
 
 #### Get claim value
 
+Get the value of the first claim with the property P2048 of the local entity.
+
 From [item_get.ipynb](notebooks/item_get.ipynb)
 
 ```python
@@ -180,6 +198,10 @@ entity.claims.get('P2048')[0].mainsnak.datavalue['value']['amount']
 ```
 
 #### Manipulate claim, add a qualifier
+
+* Initialize a new Qualifiers object, add a String qualifier with the property P828 and the value 'Item qualifier' to the Qualifiers object.
+* Create a String claim with the property P31533 and the value 'A String property' with the previously created Qualifiers object as qualifiers.
+* Add the newly created claim to the local entity.
 
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
@@ -192,6 +214,13 @@ entity.claims.add(claim_string)
 ```
 
 #### Manipulate claim, add references
+
+* Initialize a new References object.
+* Initialize a new Reference object, add a String reference with the property P828 and the value 'Item string reference' to the Reference object.
+* Initialize a new Reference object, add a String reference with the property P828 and the value 'Another item string reference' to the Reference object.
+* Add the newly created Reference objects to the References object.
+* Create a String claim with the property P31533 and the value 'A String property' with the previously created References object as references.
+* Add the newly created claim to the local entity.
 
 From [item_create_new.ipynb](notebooks/item_create_new.ipynb)
 
@@ -210,13 +239,28 @@ new_claim_string = datatypes.String(prop_nr='P31533', value='A String property',
 entity.claims.add(claim_string)
 ```
 
+#### Remove a specific claim
+
+Remove all claims with the property P31533 and the value Q123 from the local entity.
+
+```python
+claims = entity.claims.get('P31533')
+for claim in claims:
+    if claim.mainsnak.datavalue['value']['id'] == 'Q123':
+        claim.remove()
+```
+
 #### Get lemma on lexeme
+
+Get all French lemmas of the lexeme.
 
 ```python
 lexeme.lemmas.get(language='fr')
 ```
 
 #### Set lemma on lexeme
+
+Add a French lemma with the value 'réponse' to the lexeme.
 
 From [lexeme_update.ipynb](notebooks/lexeme_update.ipynb)
 
@@ -225,6 +269,13 @@ lexeme.lemmas.set(language='fr', value='réponse')
 ```
 
 #### Add gloss to a sense on lexeme
+
+* Create a new Sense object.
+* Add an English gloss with the value 'English gloss' to the Sense object.
+* Add a French gloss with the value 'French gloss' to the Sense object.
+* Create a String claim with the property P828 and the value 'Create a string claim for sense'.
+* Add the newly created claim to the Sense object.
+* Add the newly created Sense object to the lexeme.
 
 From [lexeme_write.ipynb](notebooks/lexeme_write.ipynb)
 
@@ -238,6 +289,13 @@ lexeme.senses.add(sense)
 ```
 
 #### Add form to a lexeme
+
+* Create a new Form object.
+* Add an English form representation with the value 'English form representation' to the Form object.
+* Add a French form representation with the value 'French form representation' to the Form object.
+* Create a String claim with the property P828 and the value 'Create a string claim for form'.
+* Add the newly created claim to the Form object.
+* Add the newly created Form object to the lexeme.
 
 From [lexeme_write.ipynb](notebooks/lexeme_write.ipynb)
 
