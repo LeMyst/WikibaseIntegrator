@@ -1,18 +1,18 @@
-from typing import Any, Dict, List
+from typing import Any
 
 
 class MWApiError(Exception):
     """
     Base class for MediaWiki API error handling
     """
-    error_dict: Dict[str, Any]
+    error_dict: dict[str, Any]
     code: str
     info: str
-    messages: List[Dict[str, Any]]
-    messages_names: List[str]
+    messages: list[dict[str, Any]]
+    messages_names: list[str]
 
     @property
-    def get_conflicting_entity_ids(self) -> List[str]:
+    def get_conflicting_entity_ids(self) -> list[str]:
         """
         Compute the list of conflicting entities from the error messages.
 
@@ -27,7 +27,7 @@ class MWApiError(Exception):
         )
 
     @property
-    def get_languages(self) -> List[str]:
+    def get_languages(self) -> list[str]:
         """
         Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
 
@@ -41,7 +41,7 @@ class MWApiError(Exception):
             }
         )
 
-    def __init__(self, error_dict: Dict[str, Any]):
+    def __init__(self, error_dict: dict[str, Any]):
         self.error_dict = error_dict
 
         if 'info' in self.error_dict:
@@ -81,7 +81,7 @@ class SaveFailed(MWApiError):
     When the API return a 'save-failed' error
     """
 
-    def __init__(self, error_dict: Dict[str, Any]):
+    def __init__(self, error_dict: dict[str, Any]):
         super().__init__(error_dict)
 
 

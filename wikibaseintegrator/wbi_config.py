@@ -12,9 +12,9 @@ USER_AGENT:        Complementary user agent string used for http requests. Both 
                    See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
 """
 
-from typing import Dict, Union
+from typing import Union
 
-config: Dict[str, Union[str, int, None, bool]] = {
+config: dict[str, Union[str, int, None, bool]] = {
     'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
     'USER_AGENT': None,

@@ -31,7 +31,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev' ]
+        python-version: [ '3.9', '3.10', '3.11', '3.12', '3.13', '3.14-dev' ]
 
     steps:
       - uses: actions/checkout@v4.2.2
@@ -39,8 +39,8 @@ jobs:
       - name: Install pipx
         run: apt update && apt install -y pipx && pipx ensurepath
 
-      - name: Install dependencies for Python 3.13-dev
-        if: matrix.python-version == '3.13-dev'
+      - name: Install dependencies for Python 3.14-dev
+        if: matrix.python-version == '3.14-dev'
         run: apt install -y build-essential libffi-dev
 
       - name: Update path

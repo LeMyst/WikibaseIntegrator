@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -9,17 +9,17 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 class Forms(BaseModel):
     def __init__(self) -> None:
-        self.forms: List[Form] = []
+        self.forms: list[Form] = []
 
     @property
-    def forms(self) -> List:
+    def forms(self) -> list:
         return self.__forms
 
     @forms.setter
     def forms(self, value):
         self.__forms = value
 
-    def get(self, id: str) -> Optional[Form]:
+    def get(self, id: str) -> Form | None:
         search = [x for x in self.__forms if x.id == id]
         if len(search) == 1:
             return search[0]
