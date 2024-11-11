@@ -58,7 +58,7 @@ class WikibaseSnakType(Enum):
     UNKNOWN_VALUE = "somevalue"
 
 
-class WikibaseDatePrecision(Enum):
+class WikibaseTimePrecision(Enum):
     # SECOND = 14  # UNSUPPORTED TO DATE (REL1_37)
     # MINUTE = 13  # UNSUPPORTED TO DATE (REL1_37)
     # HOUR = 12  # UNSUPPORTED TO DATE (REL1_37)
