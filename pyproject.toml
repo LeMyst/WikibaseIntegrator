@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "WikibaseIntegrator"
-version = "0.12.9.dev0"
+version = "0.12.9"
 description = "Python package for reading from and writing to a Wikibase instance"
 authors = [
     "Myst",
