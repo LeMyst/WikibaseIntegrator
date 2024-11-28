@@ -1,4 +1,4 @@
-from wikibaseintegrator.datatypes import String
+from wikibaseintegrator.datatypes.string import String
 
 
 class EDTF(String):
