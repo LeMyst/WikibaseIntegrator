@@ -17,3 +17,8 @@ from .string import String
 from .tabulardata import TabularData
 from .time import Time
 from .url import URL
+
+# Extra datatypes
+# isort: off
+from .extra import EDTF
+from .extra import LocalMedia
