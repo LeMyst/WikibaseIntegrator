@@ -193,6 +193,31 @@ def test_mediainfo():
     assert mediainfo_item_by_id.id == 'M75908279'
 
 
+def test_entity_in_basedatatype():
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'commonsMedia']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'entity-schema']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'external-id']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'wikibase-form']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'geo-shape']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'globe-coordinate']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'wikibase-item']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'wikibase-lexeme']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'math']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'monolingualtext']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'musical-notation']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'wikibase-property']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'quantity']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'wikibase-sense']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'string']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'tabular-data']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'time']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'url']) == 1
+
+    # Extra datatypes
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'edtf']) == 1
+    assert len([x for x in BaseDataType.subclasses if x.DTYPE == 'localMedia']) == 1
+
+
 def test_wikibaseintegrator():
     nwbi = WikibaseIntegrator(is_bot=False)
     assert nwbi.item.api.is_bot is False
