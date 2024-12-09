@@ -49,6 +49,7 @@ wikibaseintegrator~=0.11.3
             - [Add form to a lexeme](#add-form-to-a-lexeme)
     - [Other projects](#other-projects)
 - [Installation](#installation)
+- [Installation of the development environment](#installation-of-the-development-environment)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
     - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
 - [The Core Parts](#the-core-parts)
@@ -370,6 +371,14 @@ my_first_wikidata_item = wbi.item.get(entity_id='Q5')
 
 # to check successful installation and retrieval of the data, you can print the json representation of the item
 print(my_first_wikidata_item.get_json())
+```
+
+# Installation of the development environment #
+
+The following commands will install the development environment with the necessary dependencies:
+
+```bash
+python -m poetry install --with dev,coverage
 ```
 
 # Using a Wikibase instance #
