@@ -1,4 +1,4 @@
-name: Trivy scan
+name: Recurrent Trivy scan
 
 on:
   schedule:
@@ -16,7 +16,7 @@ jobs:
       run: |
         latest_release=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
         echo "Latest release tag: $latest_release"
-        echo "::set-output name=latest_release::$latest_release"
+        echo "latest_release=$latest_release" >> $GITHUB_OUTPUT
 
     - name: Checkout latest release
       uses: actions/checkout@v4
