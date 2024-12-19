@@ -51,18 +51,18 @@ class TestEntityItem(unittest.TestCase):
     def test_write_not_required(self):
         assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P1791')])
 
+    def test_write_not_required_ref(self):
+        assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P1464')], use_references=True)
+
     def test_write_required(self):
         item = wbi.item.get('Q582')
         item.claims.add(Item(prop_nr='P1791', value='Q42'))
         assert item.write_required([BaseDataType(prop_nr='P1791')])
 
-    def test_write_not_required_ref(self):
-        assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)
-
     def test_write_required_ref(self):
         item = wbi.item.get('Q582')
-        item.claims.get('P2581')[0].references.references.pop()
-        assert item.write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)
+        item.claims.get('P1464')[0].references.references.pop()
+        assert item.write_required(base_filter=[BaseDataType(prop_nr='P1464')], use_references=True)
 
     def test_long_item_id(self):
         assert wbi.item.get('Item:Q582').id == 'Q582'
