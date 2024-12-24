@@ -4,6 +4,10 @@ on:
   schedule:
   - cron: '42 3 * * *'  # Run at 3:42 UTC every day
   workflow_dispatch:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ '**' ]
 
 jobs:
   trivy:
