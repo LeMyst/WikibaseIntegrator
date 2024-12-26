@@ -108,3 +108,15 @@ class TestEntityItem(unittest.TestCase):
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\r\nline"))
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\rline"))
             item.claims.add(MonolingualText(prop_nr=123, text="Multi\nline"))
+
+    def test_get_limited_props(self):
+        item = wbi.item.get('Q582', props=['labels'])
+        assert item.labels.get('fr').value == 'Villeurbanne'
+        assert len(item.claims) == 0
+        assert len(item.sitelinks) == 0
+        assert len(item.aliases) == 0
+        assert len(item.descriptions) == 0
+
+        item = wbi.item.get('Q582', props=['aliases'])
+        assert len(item.aliases) > 0
+        assert len(item.labels) == 0

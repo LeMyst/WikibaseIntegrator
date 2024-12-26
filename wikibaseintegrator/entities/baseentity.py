@@ -163,7 +163,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> dict:  # pylint: disable=no-self-use
+    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None, **kwargs: Any) -> dict:  # pylint: disable=no-self-use
         """
         Retrieve an entity in json representation from the Wikibase instance
 
@@ -180,6 +180,14 @@ class BaseEntity:
             'ids': entity_id,
             'format': 'json'
         }
+
+        if props:
+            if isinstance(props, list):
+                props = '|'.join(props)
+            params['props'] = props
+
+            if 'info' not in props:
+                params['props'] += '|info'
 
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot

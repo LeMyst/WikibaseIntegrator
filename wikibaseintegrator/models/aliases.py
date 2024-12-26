@@ -86,6 +86,9 @@ class Aliases(BaseModel):
 
         return self
 
+    def __len__(self):
+        return len(self.aliases)
+
     # def __contains__(self, item):
     #     all_aliases = [item for sublist in list(self.aliases.values()) for item in sublist]
     #     return item in list(map(lambda x: x.value, all_aliases))

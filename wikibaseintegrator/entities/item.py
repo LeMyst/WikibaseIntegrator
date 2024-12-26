@@ -143,10 +143,14 @@ class ItemEntity(BaseEntity):
     def from_json(self, json_data: dict[str, Any]) -> ItemEntity:
         super().from_json(json_data=json_data)
 
-        self.labels = Labels().from_json(json_data['labels'])
-        self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        self.aliases = Aliases().from_json(json_data['aliases'])
-        self.sitelinks = Sitelinks().from_json(json_data['sitelinks'])
+        if 'labels' in json_data:
+            self.labels = Labels().from_json(json_data['labels'])
+        if 'descriptions' in json_data:
+            self.descriptions = Descriptions().from_json(json_data['descriptions'])
+        if 'aliases' in json_data:
+            self.aliases = Aliases().from_json(json_data['aliases'])
+        if 'sitelinks' in json_data:
+            self.sitelinks = Sitelinks().from_json(json_data['sitelinks'])
 
         return self
 

@@ -120,11 +120,14 @@ class PropertyEntity(BaseEntity):
     def from_json(self, json_data: dict[str, Any]) -> PropertyEntity:
         super().from_json(json_data=json_data)
 
-        if 'datatype' in json_data:  # TODO: 1.35 compatibility
+        if 'datatype' in json_data:
             self.datatype = json_data['datatype']
-        self.labels = Labels().from_json(json_data['labels'])
-        self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        self.aliases = Aliases().from_json(json_data['aliases'])
+        if 'labels' in json_data:
+            self.labels = Labels().from_json(json_data['labels'])
+        if 'descriptions' in json_data:
+            self.descriptions = Descriptions().from_json(json_data['descriptions'])
+        if 'aliases' in json_data:
+            self.aliases = Aliases().from_json(json_data['aliases'])
 
         return self
 
