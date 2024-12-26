@@ -74,3 +74,24 @@ class WikibaseTimePrecision(Enum):
     TEN_MILLION_YEARS = 2
     HUNDRED_MILLION_YEARS = 1
     BILLION_YEARS = 0
+
+class EntityField(Enum):
+    """
+    The different fields of an entity.
+    Used to specify which field to update when updating an entity.
+    """
+    # BaseEntity field
+    CLAIMS = auto()
+
+    # Item fields (and partly MediaInfo and Property fields)
+    ALIASES = auto()
+    DESCRIPTIONS = auto()
+    LABELS = auto()
+    SITELINKS = auto()
+
+    # Lexeme fields
+    LEMMAS = auto()
+    LEXICAL_CATEGORY = auto()
+    LANGUAGE = auto()
+    FORMS = auto()
+    SENSES = auto()
