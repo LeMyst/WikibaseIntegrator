@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.claims import Claim, Claims
-from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
@@ -197,7 +197,7 @@ class BaseEntity:
         return self._write(data={}, clear=True, **kwargs)
 
     def _write(self, data: dict | None = None, summary: str | None = None, login: _Login | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
-               clear: bool = False, as_new: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict[str, Any]:
+               clear: bool = False, as_new: bool = False, is_bot: bool | None = None, fields_to_update: list | None | EntityField = None, **kwargs: Any) -> dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
 
@@ -209,13 +209,49 @@ class BaseEntity:
         :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
         :param as_new: Write the entity as a new one
         :param is_bot: Add the bot flag to the query
+        :param field_to_update: A list or a single EntityField to update. If not set, all fields will be updated.
         :param kwargs: More arguments for Python requests
         :return: A dictionary representation of the edited Entity
         """
 
         data = data or {}
 
-        if limit_claims:
+        if fields_to_update is not None:
+            if not isinstance(fields_to_update, list):
+                fields_to_update = [fields_to_update]
+
+            if EntityField.ALIASES not in fields_to_update and 'aliases' in data:
+                del data['aliases']
+
+            if EntityField.CLAIMS not in fields_to_update and 'claims' in data:
+                del data['claims']
+
+            if EntityField.DESCRIPTIONS not in fields_to_update and 'descriptions' in data:
+                del data['descriptions']
+
+            if EntityField.LABELS not in fields_to_update and 'labels' in data:
+                del data['labels']
+
+            if EntityField.SITELINKS not in fields_to_update and 'sitelinks' in data:
+                del data['sitelinks']
+
+            # Lexeme-specific fields
+            if EntityField.LEMMAS not in fields_to_update and 'lemmas' in data:
+                del data['lemmas']
+
+            if EntityField.LEXICAL_CATEGORY not in fields_to_update and 'lexicalCategory' in data:
+                del data['lexicalCategory']
+
+            if EntityField.LANGUAGE not in fields_to_update and 'language' in data:
+                del data['language']
+
+            if EntityField.FORMS not in fields_to_update and 'forms' in data:
+                del data['forms']
+
+            if EntityField.SENSES not in fields_to_update and 'senses' in data:
+                del data['senses']
+
+        if limit_claims and 'claims' in data:
             new_claims = {}
 
             if not isinstance(limit_claims, list):
