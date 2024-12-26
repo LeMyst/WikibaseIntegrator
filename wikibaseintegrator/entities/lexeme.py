@@ -140,11 +140,16 @@ class LexemeEntity(BaseEntity):
     def from_json(self, json_data: dict[str, Any]) -> LexemeEntity:
         super().from_json(json_data=json_data)
 
-        self.lemmas = Lemmas().from_json(json_data['lemmas'])
-        self.lexical_category = str(json_data['lexicalCategory'])
-        self.language = str(json_data['language'])
-        self.forms = Forms().from_json(json_data['forms'])
-        self.senses = Senses().from_json(json_data['senses'])
+        if 'lemmas' in json_data:
+            self.lemmas = Lemmas().from_json(json_data['lemmas'])
+        if 'lexicalCategory' in json_data:
+            self.lexical_category = str(json_data['lexicalCategory'])
+        if 'language' in json_data:
+            self.language = str(json_data['language'])
+        if 'forms' in json_data:
+            self.forms = Forms().from_json(json_data['forms'])
+        if 'senses' in json_data:
+            self.senses = Senses().from_json(json_data['senses'])
 
         return self
 

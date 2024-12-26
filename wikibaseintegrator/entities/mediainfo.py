@@ -139,9 +139,12 @@ class MediaInfoEntity(BaseEntity):
     def from_json(self, json_data: dict[str, Any]) -> MediaInfoEntity:
         super().from_json(json_data=json_data)
 
-        self.labels = Labels().from_json(json_data['labels'])
-        self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        self.claims = Claims().from_json(json_data['statements'])
+        if 'labels' in json_data:
+            self.labels = Labels().from_json(json_data['labels'])
+        if 'descriptions' in json_data:
+            self.descriptions = Descriptions().from_json(json_data['descriptions'])
+        if 'aliases' in json_data:
+            self.claims = Claims().from_json(json_data['statements'])
 
         return self
 
