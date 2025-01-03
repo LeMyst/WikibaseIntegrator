@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.externalid
-=======================================
+wikibaseintegrator.datatypes.externalid module
+==============================================
 
 .. automodule:: wikibaseintegrator.datatypes.externalid
    :members:

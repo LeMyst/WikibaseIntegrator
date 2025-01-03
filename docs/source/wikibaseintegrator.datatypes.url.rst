@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.url
-================================
+wikibaseintegrator.datatypes.url module
+=======================================
 
 .. automodule:: wikibaseintegrator.datatypes.url
    :members:

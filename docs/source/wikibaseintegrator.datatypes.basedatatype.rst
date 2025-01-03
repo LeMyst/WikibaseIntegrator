@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.basedatatype
-=========================================
+wikibaseintegrator.datatypes.basedatatype module
+================================================
 
 .. automodule:: wikibaseintegrator.datatypes.basedatatype
    :members:

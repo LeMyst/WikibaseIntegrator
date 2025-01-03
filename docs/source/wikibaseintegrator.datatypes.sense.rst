@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.sense
-==================================
+wikibaseintegrator.datatypes.sense module
+=========================================
 
 .. automodule:: wikibaseintegrator.datatypes.sense
    :members:

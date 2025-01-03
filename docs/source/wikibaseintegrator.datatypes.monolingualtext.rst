@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.monolingualtext
-============================================
+wikibaseintegrator.datatypes.monolingualtext module
+===================================================
 
 .. automodule:: wikibaseintegrator.datatypes.monolingualtext
    :members:

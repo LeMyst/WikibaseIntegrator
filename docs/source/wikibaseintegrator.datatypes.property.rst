@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.property
-=====================================
+wikibaseintegrator.datatypes.property module
+============================================
 
 .. automodule:: wikibaseintegrator.datatypes.property
    :members:

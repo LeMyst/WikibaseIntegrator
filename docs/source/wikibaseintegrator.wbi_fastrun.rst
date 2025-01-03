@@ -1,5 +1,5 @@
-wikibaseintegrator.wbi\_fastrun
-===============================
+wikibaseintegrator.wbi\_fastrun module
+======================================
 
 .. automodule:: wikibaseintegrator.wbi_fastrun
    :members:

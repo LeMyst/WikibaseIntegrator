@@ -1,5 +1,5 @@
-wikibaseintegrator.models.references
-====================================
+wikibaseintegrator.models.references module
+===========================================
 
 .. automodule:: wikibaseintegrator.models.references
    :members:

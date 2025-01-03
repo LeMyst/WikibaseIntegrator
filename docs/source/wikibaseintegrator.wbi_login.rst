@@ -1,5 +1,5 @@
-wikibaseintegrator.wbi\_login
-=============================
+wikibaseintegrator.wbi\_login module
+====================================
 
 .. automodule:: wikibaseintegrator.wbi_login
    :members:

@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.entityschema
-=========================================
+wikibaseintegrator.datatypes.entityschema module
+================================================
 
 .. automodule:: wikibaseintegrator.datatypes.entityschema
    :members:

@@ -1,5 +1,5 @@
-wikibaseintegrator.models.lemmas
-================================
+wikibaseintegrator.models.lemmas module
+=======================================
 
 .. automodule:: wikibaseintegrator.models.lemmas
    :members:
