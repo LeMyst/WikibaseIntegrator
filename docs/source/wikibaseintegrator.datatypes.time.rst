@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.time
-=================================
+wikibaseintegrator.datatypes.time module
+========================================
 
 .. automodule:: wikibaseintegrator.datatypes.time
    :members:

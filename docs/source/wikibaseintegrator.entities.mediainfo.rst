@@ -1,5 +1,5 @@
-wikibaseintegrator.entities.mediainfo
-=====================================
+wikibaseintegrator.entities.mediainfo module
+============================================
 
 .. automodule:: wikibaseintegrator.entities.mediainfo
    :members:

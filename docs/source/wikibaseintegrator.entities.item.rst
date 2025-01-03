@@ -1,5 +1,5 @@
-wikibaseintegrator.entities.item
-================================
+wikibaseintegrator.entities.item module
+=======================================
 
 .. automodule:: wikibaseintegrator.entities.item
    :members:

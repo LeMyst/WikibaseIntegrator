@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.tabulardata
-========================================
+wikibaseintegrator.datatypes.tabulardata module
+===============================================
 
 .. automodule:: wikibaseintegrator.datatypes.tabulardata
    :members:

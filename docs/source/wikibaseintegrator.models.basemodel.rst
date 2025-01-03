@@ -1,5 +1,5 @@
-wikibaseintegrator.models.basemodel
-===================================
+wikibaseintegrator.models.basemodel module
+==========================================
 
 .. automodule:: wikibaseintegrator.models.basemodel
    :members:

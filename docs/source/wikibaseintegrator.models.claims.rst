@@ -1,5 +1,5 @@
-wikibaseintegrator.models.claims
-================================
+wikibaseintegrator.models.claims module
+=======================================
 
 .. automodule:: wikibaseintegrator.models.claims
    :members:

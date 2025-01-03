@@ -1,5 +1,5 @@
-wikibaseintegrator.wbi\_helpers
-===============================
+wikibaseintegrator.wbi\_helpers module
+======================================
 
 .. automodule:: wikibaseintegrator.wbi_helpers
    :members:

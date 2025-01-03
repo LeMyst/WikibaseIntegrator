@@ -1,5 +1,5 @@
-wikibaseintegrator.entities.lexeme
-==================================
+wikibaseintegrator.entities.lexeme module
+=========================================
 
 .. automodule:: wikibaseintegrator.entities.lexeme
    :members:

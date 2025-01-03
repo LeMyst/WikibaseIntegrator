@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.globecoordinate
-============================================
+wikibaseintegrator.datatypes.globecoordinate module
+===================================================
 
 .. automodule:: wikibaseintegrator.datatypes.globecoordinate
    :members:

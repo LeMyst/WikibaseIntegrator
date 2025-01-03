@@ -1,5 +1,5 @@
-wikibaseintegrator.models.snaks
-===============================
+wikibaseintegrator.models.snaks module
+======================================
 
 .. automodule:: wikibaseintegrator.models.snaks
    :members:

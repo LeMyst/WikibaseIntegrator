@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.item
-=================================
+wikibaseintegrator.datatypes.item module
+========================================
 
 .. automodule:: wikibaseintegrator.datatypes.item
    :members:

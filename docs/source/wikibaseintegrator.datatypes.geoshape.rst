@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.geoshape
-=====================================
+wikibaseintegrator.datatypes.geoshape module
+============================================
 
 .. automodule:: wikibaseintegrator.datatypes.geoshape
    :members:

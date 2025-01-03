@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.form
-=================================
+wikibaseintegrator.datatypes.form module
+========================================
 
 .. automodule:: wikibaseintegrator.datatypes.form
    :members:

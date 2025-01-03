@@ -1,6 +1,8 @@
-wikibaseintegrator.models
-=========================
+wikibaseintegrator.models package
+=================================
 
+Submodules
+----------
 
 .. toctree::
    :maxdepth: 4
@@ -18,3 +20,11 @@ wikibaseintegrator.models
    wikibaseintegrator.models.senses
    wikibaseintegrator.models.sitelinks
    wikibaseintegrator.models.snaks
+
+Module contents
+---------------
+
+.. automodule:: wikibaseintegrator.models
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.extra.edtf
-=======================================
+wikibaseintegrator.datatypes.extra.edtf module
+==============================================
 
 .. automodule:: wikibaseintegrator.datatypes.extra.edtf
    :members:

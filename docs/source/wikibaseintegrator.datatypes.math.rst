@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.math
-=================================
+wikibaseintegrator.datatypes.math module
+========================================
 
 .. automodule:: wikibaseintegrator.datatypes.math
    :members:

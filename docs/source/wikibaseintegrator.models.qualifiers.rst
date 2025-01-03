@@ -1,5 +1,5 @@
-wikibaseintegrator.models.qualifiers
-====================================
+wikibaseintegrator.models.qualifiers module
+===========================================
 
 .. automodule:: wikibaseintegrator.models.qualifiers
    :members:

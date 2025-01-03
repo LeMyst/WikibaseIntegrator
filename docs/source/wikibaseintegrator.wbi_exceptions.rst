@@ -1,5 +1,5 @@
-wikibaseintegrator.wbi\_exceptions
-==================================
+wikibaseintegrator.wbi\_exceptions module
+=========================================
 
 .. automodule:: wikibaseintegrator.wbi_exceptions
    :members:

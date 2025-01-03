@@ -1,5 +1,5 @@
-wikibaseintegrator.models.senses
-================================
+wikibaseintegrator.models.senses module
+=======================================
 
 .. automodule:: wikibaseintegrator.models.senses
    :members:

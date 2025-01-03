@@ -1,5 +1,5 @@
-wikibaseintegrator.models.aliases
-=================================
+wikibaseintegrator.models.aliases module
+========================================
 
 .. automodule:: wikibaseintegrator.models.aliases
    :members:

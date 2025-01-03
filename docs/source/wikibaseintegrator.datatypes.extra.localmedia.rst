@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.extra.localmedia
-=============================================
+wikibaseintegrator.datatypes.extra.localmedia module
+====================================================
 
 .. automodule:: wikibaseintegrator.datatypes.extra.localmedia
    :members:

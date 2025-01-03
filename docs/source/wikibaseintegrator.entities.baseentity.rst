@@ -1,5 +1,5 @@
-wikibaseintegrator.entities.baseentity
-======================================
+wikibaseintegrator.entities.baseentity module
+=============================================
 
 .. automodule:: wikibaseintegrator.entities.baseentity
    :members:

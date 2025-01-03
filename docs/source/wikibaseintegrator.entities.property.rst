@@ -1,5 +1,5 @@
-wikibaseintegrator.entities.property
-====================================
+wikibaseintegrator.entities.property module
+===========================================
 
 .. automodule:: wikibaseintegrator.entities.property
    :members:
