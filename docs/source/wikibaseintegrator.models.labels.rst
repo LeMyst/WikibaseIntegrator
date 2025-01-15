@@ -1,5 +1,5 @@
-wikibaseintegrator.models.labels
-================================
+wikibaseintegrator.models.labels module
+=======================================
 
 .. automodule:: wikibaseintegrator.models.labels
    :members:

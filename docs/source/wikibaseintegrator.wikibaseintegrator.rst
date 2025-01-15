@@ -1,5 +1,5 @@
-wikibaseintegrator.wikibaseintegrator
-=====================================
+wikibaseintegrator.wikibaseintegrator module
+============================================
 
 .. automodule:: wikibaseintegrator.wikibaseintegrator
    :members:

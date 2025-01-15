@@ -1,5 +1,5 @@
-wikibaseintegrator.models.language\_values
-==========================================
+wikibaseintegrator.models.language\_values module
+=================================================
 
 .. automodule:: wikibaseintegrator.models.language_values
    :members:

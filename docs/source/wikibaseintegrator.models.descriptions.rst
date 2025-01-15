@@ -1,5 +1,5 @@
-wikibaseintegrator.models.descriptions
-======================================
+wikibaseintegrator.models.descriptions module
+=============================================
 
 .. automodule:: wikibaseintegrator.models.descriptions
    :members:

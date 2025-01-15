@@ -1,5 +1,5 @@
-wikibaseintegrator.models.forms
-===============================
+wikibaseintegrator.models.forms module
+======================================
 
 .. automodule:: wikibaseintegrator.models.forms
    :members:

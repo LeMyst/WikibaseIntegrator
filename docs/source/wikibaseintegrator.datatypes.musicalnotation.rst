@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.musicalnotation
-============================================
+wikibaseintegrator.datatypes.musicalnotation module
+===================================================
 
 .. automodule:: wikibaseintegrator.datatypes.musicalnotation
    :members:

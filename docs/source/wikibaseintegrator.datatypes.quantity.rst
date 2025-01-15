@@ -1,5 +1,5 @@
-wikibaseintegrator.datatypes.quantity
-=====================================
+wikibaseintegrator.datatypes.quantity module
+============================================
 
 .. automodule:: wikibaseintegrator.datatypes.quantity
    :members:

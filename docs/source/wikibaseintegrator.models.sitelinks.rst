@@ -1,5 +1,5 @@
-wikibaseintegrator.models.sitelinks
-===================================
+wikibaseintegrator.models.sitelinks module
+==========================================
 
 .. automodule:: wikibaseintegrator.models.sitelinks
    :members:
