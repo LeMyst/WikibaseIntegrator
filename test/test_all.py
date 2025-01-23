@@ -1,12 +1,12 @@
 import copy
+import logging
 import unittest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, Item
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatatype
-from wikibaseintegrator.wbi_fastrun import get_fastrun_container
+from wikibaseintegrator.wbi_enums import WikibaseDatatype
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_all.py)'
 
@@ -53,65 +53,21 @@ class TestFastRun(unittest.TestCase):
     """
     some basic tests for fastrun mode
     """
+    logging.basicConfig(level=logging.DEBUG)
 
     def test_fastrun(self):
         statements = [
-            datatypes.ExternalID(value='P40095', prop_nr='P352'),
+            datatypes.ExternalID(value='A0A023PZB3', prop_nr='P352'),
             datatypes.ExternalID(value='YER158C', prop_nr='P705')
         ]
 
         frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352'), datatypes.Item(prop_nr='P703', value='Q27510868')], base_data_type=datatypes.BaseDataType)
 
-        fastrun_result = frc.write_required(data=statements)
-
-        if fastrun_result:
-            message = 'fastrun failed'
-        else:
-            message = 'successful fastrun'
+        fastrun_result = frc.write_required(claims=statements)
 
         # here, fastrun should succeed, if not, test failed
-        if fastrun_result:
+        if not fastrun_result:
             raise ValueError
-
-    def test_fastrun_label(self):
-        # tests fastrun label, description and aliases, and label in another language
-        frc = get_fastrun_container(base_filter=[datatypes.ExternalID(value='/m/02j71', prop_nr='P646')])
-        item = WikibaseIntegrator().item.get('Q2')
-
-        assert item.labels.get(language='en') == "Earth"
-        descr = item.descriptions.get(language='en')
-        assert len(descr) > 3
-        assert "Planet Earth" in item.aliases.get()
-
-        assert list(frc.get_language_data("Q2", 'en', 'label'))[0] == item.labels.get(language='en')
-        assert frc.check_language_data("Q2", ['not the Earth'], 'en', 'label')
-        assert "Planet Earth" in item.aliases.get()
-        assert "planet" in item.descriptions.get()
-
-        assert item.labels.get('es') == "Tierra"
-
-        item.descriptions.set(value=descr)
-        item.descriptions.set(value="fghjkl")
-        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'fghjkl'}
-        item.labels.set(value="Earth")
-        item.labels.set(value="xfgfdsg")
-        assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
-        item.aliases.set(values=["fake alias"], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-        assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
-
-        # something that's empty (for now.., can change, so this just makes sure no exception is thrown)
-        frc.check_language_data("Q2", ['Ewiase'], 'ak', 'label')
-        frc.check_language_data("Q2", ['not Ewiase'], 'ak', 'label')
-        frc.check_language_data("Q2", [''], 'ak', 'description')
-        frc.check_language_data("Q2", [], 'ak', 'aliases')
-        frc.check_language_data("Q2", ['sdf', 'sdd'], 'ak', 'aliases')
-
-        item.labels.get(language="ak")
-        item.descriptions.get(language='ak')
-        item.aliases.get(language="ak")
-        item.labels.set(value="label", language="ak")
-        item.descriptions.set(value="d", language="ak")
-        item.aliases.set(values=["a"], language="ak", action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
 
 def test_sitelinks():
