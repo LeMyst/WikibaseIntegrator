@@ -30,7 +30,8 @@ class URL(BaseDataType):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
-            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            # pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^\"\x00-\x20\x7F])+$')
             matches = pattern.match(value)
 
             if not matches:
