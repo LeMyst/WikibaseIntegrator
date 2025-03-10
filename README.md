@@ -577,6 +577,11 @@ type instances for references and qualifiers.
 
 WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.
 
+> [!IMPORTANT]
+> To ease the compatibility between Wikidata and Wikimedia Commons, the MediaInfo entity use the "claims" field instead of the "statements" from the API.
+> When you read a MediaInfo entity, the "claims" field will be filled with the data from the "statements" field.
+> When you write a MediaInfo entity, the "claims" field will be replaced by the "statements" field.
+
 ### Retrieve data ###
 
 ```python
