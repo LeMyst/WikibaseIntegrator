@@ -2,6 +2,8 @@ import re
 from typing import Any, Optional
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class Form(BaseDataType):
@@ -9,6 +11,7 @@ class Form(BaseDataType):
     Implements the Wikibase data type 'wikibase-form'
     """
     DTYPE = 'wikibase-form'
+    PTYPE = 'http://wikiba.se/ontology#WikibaseForm'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -55,8 +58,14 @@ class Form(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']['id']
+    # TODO: add from_sparql_value()
+
+    def get_sparql_value(self, **kwargs: Any) -> Optional[str]:
+        if self.mainsnak.snaktype == WikibaseSnakType.KNOWN_VALUE:
+            wikibase_url = str(kwargs['wikibase_url'] if 'wikibase_url' in kwargs else config['WIKIBASE_URL'])
+            return f'<{wikibase_url}/entity/' + self.mainsnak.datavalue['value']['id'] + '>'
+
+        return None
 
     def get_lexeme_id(self) -> str:
         """
