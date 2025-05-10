@@ -2822,20 +2822,20 @@ testing = ["covdefaults (>=2.3)", "coverage (>=7.6.12)", "defusedxml (>=0.7.1)",
 
 [[package]]
 name = "sphinx-github-changelog"
-version = "1.4.0"
+version = "1.6.1"
 description = "Build a sphinx changelog from GitHub Releases"
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = "~=3.8"
 groups = ["docs"]
 files = [
-    {file = "sphinx_github_changelog-1.4.0-py3-none-any.whl", hash = "sha256:cdf2099ea3e4587ae8637be7ba609738bfdeca4bd80c5df6fc45046735ae5c2f"},
-    {file = "sphinx_github_changelog-1.4.0.tar.gz", hash = "sha256:204745e93a1f280e4664977b5fee526b0a011c92ca19c304bd01fd641ddb6393"},
+    {file = "sphinx_github_changelog-1.6.1-py3-none-any.whl", hash = "sha256:d28412976d5581383677452958d7a85fae847fa8238a9b0743777217bef9c66e"},
+    {file = "sphinx_github_changelog-1.6.1.tar.gz", hash = "sha256:6437fd910ff863e8809bfe709979bfbf87244d9e8d774aa95040250cb7030428"},
 ]
 
 [package.dependencies]
 docutils = "*"
 requests = "*"
-Sphinx = "*"
+sphinx = "*"
 
 [[package]]
 name = "sphinx-rtd-theme"
