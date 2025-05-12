@@ -2822,14 +2822,14 @@ testing = ["covdefaults (>=2.3)", "coverage (>=7.6.12)", "defusedxml (>=0.7.1)",
 
 [[package]]
 name = "sphinx-github-changelog"
-version = "1.6.1"
+version = "1.7.1"
 description = "Build a sphinx changelog from GitHub Releases"
 optional = false
-python-versions = "~=3.8"
+python-versions = ">=3.9"
 groups = ["docs"]
 files = [
-    {file = "sphinx_github_changelog-1.6.1-py3-none-any.whl", hash = "sha256:d28412976d5581383677452958d7a85fae847fa8238a9b0743777217bef9c66e"},
-    {file = "sphinx_github_changelog-1.6.1.tar.gz", hash = "sha256:6437fd910ff863e8809bfe709979bfbf87244d9e8d774aa95040250cb7030428"},
+    {file = "sphinx_github_changelog-1.7.1-py3-none-any.whl", hash = "sha256:5accdbdbd900287c2d6a737c322381e3f2b02053b67029006f335519a8025314"},
+    {file = "sphinx_github_changelog-1.7.1.tar.gz", hash = "sha256:2ec5a716fbd21edcb4f549f8e4503a7ab08a285585aaf291a7e97d79cd6467ab"},
 ]
 
 [package.dependencies]
