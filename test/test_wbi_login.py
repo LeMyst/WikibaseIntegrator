@@ -3,6 +3,7 @@ import sys
 import unittest
 
 import pytest
+import requests
 
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
@@ -35,6 +36,14 @@ def test_login():
         assert wbi_login.Login(user=WDUSER, password=WDPASS)
     else:
         print("no WDUSER or WDPASS found in environment variables", file=sys.stderr)
+
+
+def test_verify():
+    with unittest.TestCase().assertRaises(requests.exceptions.SSLError):
+        wbi_login.Clientlogin(user='wrong', password='wrong', mediawiki_api_url='https://self-signed.badssl.com/', verify=True)
+
+    with unittest.TestCase().assertRaises(requests.exceptions.JSONDecodeError):
+        wbi_login.Clientlogin(user='wrong', password='wrong', mediawiki_api_url='https://self-signed.badssl.com/', verify=False)
 
 
 def test_oauth1():

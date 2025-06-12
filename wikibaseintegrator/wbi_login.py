@@ -4,7 +4,7 @@ Login class for Wikidata. Takes authentication parameters and stores the session
 import logging
 import time
 import webbrowser
-from typing import Optional
+from typing import Any, Optional
 
 from mwoauth import ConsumerToken, Handshaker, OAuthException
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
@@ -199,7 +199,7 @@ class OAuth1(_Login):
 
 class Login(_Login):
     @wbi_backoff()
-    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None):
+    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None, **kwargs: Any):
         """
         This class is used to log in with a bot password
 
@@ -208,6 +208,7 @@ class Login(_Login):
         :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :param user_agent: UA string to use for API requests.
+        :param kwargs: Additional parameters to pass to the requests.sessions.Session.post method, such as headers or proxies.
         """
 
         mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
@@ -221,7 +222,7 @@ class Login(_Login):
         }
 
         # get login token
-        login_token = session.post(mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
+        login_token = session.post(mediawiki_api_url, data=params_login, **kwargs).json()['query']['tokens']['logintoken']
 
         params = {
             'action': 'login',
@@ -231,7 +232,7 @@ class Login(_Login):
             'format': 'json'
         }
 
-        login_result = session.post(mediawiki_api_url, data=params).json()
+        login_result = session.post(mediawiki_api_url, data=params, **kwargs).json()
 
         if 'login' in login_result and login_result['login']['result'] == 'Success':
             log.info("Successfully logged in as %s", login_result['login']['lgusername'])
@@ -248,7 +249,7 @@ class Login(_Login):
 
 class Clientlogin(_Login):
     @wbi_backoff()
-    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None):
+    def __init__(self, user: Optional[str] = None, password: Optional[str] = None, mediawiki_api_url: Optional[str] = None, token_renew_period: int = 1800, user_agent: Optional[str] = None, **kwargs: Any):
         """
         This class is used to log in with a user account
 
@@ -257,6 +258,7 @@ class Clientlogin(_Login):
         :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :param user_agent: UA string to use for API requests.
+        :param kwargs: Additional parameters to pass to the requests.sessions.Session.post method, such as headers or proxies.
         """
 
         mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
@@ -270,7 +272,7 @@ class Clientlogin(_Login):
         }
 
         # get login token
-        login_token = session.post(mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
+        login_token = session.post(mediawiki_api_url, data=params_login, **kwargs).json()['query']['tokens']['logintoken']
 
         params = {
             'action': 'clientlogin',
@@ -281,7 +283,7 @@ class Clientlogin(_Login):
             'format': 'json'
         }
 
-        login_result = session.post(mediawiki_api_url, data=params).json()
+        login_result = session.post(mediawiki_api_url, data=params, **kwargs).json()
 
         log.debug(login_result)
 
