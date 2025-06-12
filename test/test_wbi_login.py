@@ -23,11 +23,11 @@ OAUTH2_CONSUMER_SECRET = os.getenv("OAUTH2_CONSUMER_SECRET")
 
 
 def test_login():
-    with unittest.TestCase().assertRaises(LoginError):
+    with pytest.raises(LoginError):
         login = wbi_login.Clientlogin(user='wrong', password='wrong')
         login.generate_edit_credentials()
 
-    with unittest.TestCase().assertRaises(LoginError):
+    with pytest.raises(LoginError):
         login = wbi_login.Login(user='wrong', password='wrong')
         login.generate_edit_credentials()
 
@@ -39,15 +39,15 @@ def test_login():
 
 
 def test_verify():
-    with unittest.TestCase().assertRaises(requests.exceptions.SSLError):
+    with pytest.raises(requests.exceptions.SSLError):
         wbi_login.Clientlogin(user='wrong', password='wrong', mediawiki_api_url='https://self-signed.badssl.com/', verify=True)
 
-    with unittest.TestCase().assertRaises(requests.exceptions.JSONDecodeError):
+    with pytest.raises(requests.exceptions.JSONDecodeError):
         wbi_login.Clientlogin(user='wrong', password='wrong', mediawiki_api_url='https://self-signed.badssl.com/', verify=False)
 
 
 def test_oauth1():
-    with unittest.TestCase().assertRaises(LoginError):
+    with pytest.raises(LoginError):
         login = wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong')
         login.generate_edit_credentials()
 
@@ -58,7 +58,7 @@ def test_oauth1():
 
 
 def test_oauth1_access():
-    with unittest.TestCase().assertRaises(LoginError):
+    with pytest.raises(LoginError):
         login = wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong', access_token='wrong', access_secret='wrong')
         login.generate_edit_credentials()
 
@@ -70,7 +70,7 @@ def test_oauth1_access():
 
 
 def test_oauth2():
-    with unittest.TestCase().assertRaises(LoginError):
+    with pytest.raises(LoginError):
         login = wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
         login.generate_edit_credentials()
 
