@@ -352,6 +352,14 @@ python -m pip install --upgrade pip setuptools
 python -m pip install .
 ```
 
+If you want to install a specific branch or tag from the repository, you can use the following command:
+
+```bash
+python -m pip install git+https://github.com/LeMyst/WikibaseIntegrator.git@v0.12.9
+```
+
+where `v0.12.9` is the tag or branch you want to install.
+
 You can also use Poetry:
 
 ```bash
