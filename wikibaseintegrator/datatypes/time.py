@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import re
 from functools import total_ordering
@@ -5,7 +7,7 @@ from typing import Any, Optional, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseTimePrecision
+from wikibaseintegrator.wbi_enums import WikibaseSnakType, WikibaseTimePrecision
 
 
 @total_ordering
@@ -14,6 +16,7 @@ class Time(BaseDataType):
     Implements the Wikibase data type with date and time values
     """
     DTYPE = 'time'
+    PTYPE = 'http://wikiba.se/ontology#Time'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -102,8 +105,8 @@ class Time(BaseDataType):
                 'type': 'time'
             }
 
-    def get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']['time']
+    def get_sparql_value(self, **kwargs: Any) -> str:
+        return '"' + self.mainsnak.datavalue['value']['time'] + '"^^xsd:dateTime'
 
     def get_year(self) -> int:
         return int(self.mainsnak.datavalue['value']['time'][0:5])
@@ -118,3 +121,27 @@ class Time(BaseDataType):
         return (self.get_year() < other.get_year()) or \
             (self.get_year() == other.get_year() and self.get_month() < other.get_month()) or \
             (self.get_year() == other.get_year() and self.get_month() == other.get_month() and self.get_day() < other.get_day())
+
+    def from_sparql_value(self, sparql_value: dict) -> Time:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        datatype = sparql_value['datatype']
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if datatype != 'http://www.w3.org/2001/XMLSchema#dateTime':
+            raise ValueError('Wrong SPARQL datatype')
+
+        if type != 'literal':
+            raise ValueError('Wrong SPARQL type')
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            self.set_value(time=value)
+
+        return self
