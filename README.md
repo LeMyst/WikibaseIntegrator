@@ -451,7 +451,7 @@ Features:
 ## wbi_login ##
 
 `wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
-every MediaWiki edit requires an edit token). There is multiple methods to login:
+every MediaWiki edit requires an edit token). There are multiple methods to login:
 
 * `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
 * `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
