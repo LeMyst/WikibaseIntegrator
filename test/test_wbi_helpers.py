@@ -2,6 +2,7 @@ import logging
 import os
 import unittest
 
+import pytest
 import requests
 
 from wikibaseintegrator.wbi_config import config as wbi_config
@@ -15,22 +16,22 @@ def test_connection():
 
     mediawiki_api_call_helper(data=data, max_retries=2, retry_after=1, allow_anonymous=True)
 
-    with unittest.TestCase().assertRaises(MaxRetriesReachedException):
+    with pytest.raises(MaxRetriesReachedException):
         mediawiki_api_call_helper(data=data, mediawiki_api_url="https://www.wikidataaaaaaa.org", max_retries=2, retry_after=1, allow_anonymous=True)
 
-    with unittest.TestCase().assertRaises(MaxRetriesReachedException):
+    with pytest.raises(MaxRetriesReachedException):
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/500", max_retries=2, retry_after=1, allow_anonymous=True)
 
-    with unittest.TestCase().assertRaises(MaxRetriesReachedException):
+    with pytest.raises(MaxRetriesReachedException):
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/502", max_retries=2, retry_after=1, allow_anonymous=True)
 
-    with unittest.TestCase().assertRaises(MaxRetriesReachedException):
+    with pytest.raises(MaxRetriesReachedException):
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/503", max_retries=2, retry_after=1, allow_anonymous=True)
 
-    with unittest.TestCase().assertRaises(MaxRetriesReachedException):
+    with pytest.raises(MaxRetriesReachedException):
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/504", max_retries=2, retry_after=1, allow_anonymous=True)
 
-    with unittest.TestCase().assertRaises(requests.HTTPError):
+    with pytest.raises(requests.HTTPError):
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/400", max_retries=2, retry_after=1, allow_anonymous=True)
 
 
@@ -56,7 +57,7 @@ def test_user_agent(caplog):
 def test_allow_anonymous():
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     # Test there is a warning because of allow_anonymous
-    with unittest.TestCase().assertRaises(ValueError):
+    with pytest.raises(ValueError):
         mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, user_agent='MyWikibaseBot/0.5')
 
     # Test there is no warning because of allow_anonymous
@@ -84,7 +85,7 @@ def test_format2wbi():
     assert isinstance(format2wbi('property', '{}'), PropertyEntity)
     assert isinstance(format2wbi('lexeme', '{}'), LexemeEntity)
     assert isinstance(format2wbi('mediainfo', '{}'), MediaInfoEntity)
-    with unittest.TestCase().assertRaises(ValueError):
+    with pytest.raises(ValueError):
         format2wbi('unknown', '{}')
 
     result = format2wbi('item', '''{
