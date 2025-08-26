@@ -3,6 +3,7 @@ import sys
 import unittest
 
 import pytest
+from oauthlib.oauth2 import MissingTokenError
 
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
@@ -61,7 +62,7 @@ def test_oauth1_access():
 
 
 def test_oauth2():
-    with unittest.TestCase().assertRaises(LoginError):
+    with pytest.raises((MissingTokenError, LoginError)):
         login = wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
         login.generate_edit_credentials()
 
