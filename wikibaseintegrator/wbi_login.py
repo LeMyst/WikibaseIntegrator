@@ -211,6 +211,7 @@ class Login(_Login):
         """
 
         mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+        user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
         session = Session()
 
         params_login = {
@@ -220,8 +221,12 @@ class Login(_Login):
             'format': 'json'
         }
 
+        headers = {
+            'User-Agent': get_user_agent(user_agent)
+        }
+
         # get login token
-        login_token = session.post(mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
+        login_token = session.post(mediawiki_api_url, data=params_login, headers=headers).json()['query']['tokens']['logintoken']
 
         params = {
             'action': 'login',
@@ -231,7 +236,7 @@ class Login(_Login):
             'format': 'json'
         }
 
-        login_result = session.post(mediawiki_api_url, data=params).json()
+        login_result = session.post(mediawiki_api_url, data=params, headers=headers).json()
 
         if 'login' in login_result and login_result['login']['result'] == 'Success':
             log.info("Successfully logged in as %s", login_result['login']['lgusername'])
@@ -260,6 +265,7 @@ class Clientlogin(_Login):
         """
 
         mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+        user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
         session = Session()
 
         params_login = {
@@ -269,8 +275,12 @@ class Clientlogin(_Login):
             'format': 'json'
         }
 
+        headers = {
+            'User-Agent': get_user_agent(user_agent)
+        }
+
         # get login token
-        login_token = session.post(mediawiki_api_url, data=params_login).json()['query']['tokens']['logintoken']
+        login_token = session.post(mediawiki_api_url, data=params_login, headers=headers).json()['query']['tokens']['logintoken']
 
         params = {
             'action': 'clientlogin',
@@ -281,7 +291,7 @@ class Clientlogin(_Login):
             'format': 'json'
         }
 
-        login_result = session.post(mediawiki_api_url, data=params).json()
+        login_result = session.post(mediawiki_api_url, data=params, headers=headers).json()
 
         log.debug(login_result)
 
