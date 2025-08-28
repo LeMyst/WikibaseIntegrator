@@ -152,7 +152,7 @@ wikibaseintegrator/
 - Known issue: `wikibaseintegrator/datatypes/string.py:27` has typo "ine" -> should be "line"
 - **Current Status**: This is an existing issue in the codebase
 
-### MyPy First Run:
+### mypy First Run:
 - First mypy run downloads type stubs for `requests` and `ujson`
 - **Always use**: `--install-types --non-interactive` flags
 
