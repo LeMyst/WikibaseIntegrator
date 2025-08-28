@@ -222,8 +222,12 @@ class Login(_Login):
         }
 
         # get login token
-        login_token = session.post(mediawiki_api_url, data=params_login, **kwargs).json()['query']['tokens']['logintoken']
+        allowed_kwargs = {'headers', 'proxies', 'timeout'}
+        filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
+        if len(filtered_kwargs) < len(kwargs):
+            log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
 
+        login_token = session.post(mediawiki_api_url, data=params_login, **filtered_kwargs).json()['query']['tokens']['logintoken']
         params = {
             'action': 'login',
             'lgname': user,
