@@ -149,7 +149,7 @@ wikibaseintegrator/
 - **Workaround**: Use `python -m poetry run python -c "from wikibaseintegrator import WikibaseIntegrator; print('Import successful')"` to test basic functionality
 
 ### Codespell Errors:
-- Known issue: `wikibaseintegrator/datatypes/string.py:27` has typo "ine" → should be "line"
+- Known issue: `wikibaseintegrator/datatypes/string.py:27` has typo "ine" -> should be "line"
 - **Current Status**: This is an existing issue in the codebase
 
 ### MyPy First Run:
