@@ -85,7 +85,7 @@ python -m poetry run pytest --cov=wikibaseintegrator
 - **Full test suite**: 5-10 minutes (network dependent)  
 - **Individual test files**: 30 seconds - 2 minutes
 - **Linting commands**: 10-30 seconds each
-- **MyPy first run**: 1-2 minutes (downloads type stubs)
+- **mypy first run**: 1-2 minutes (downloads type stubs)
 
 ### Documentation Building
 
