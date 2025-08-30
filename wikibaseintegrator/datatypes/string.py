@@ -24,7 +24,7 @@ class String(BaseDataType):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value and ('\n' in value or '\r' in value):
-            raise ValueError("String value must not contain new line character")
+            raise ValueError("String value must not contain newline character")
 
         if value:
             self.mainsnak.datavalue = {
