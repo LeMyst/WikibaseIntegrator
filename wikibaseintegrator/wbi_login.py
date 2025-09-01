@@ -226,12 +226,12 @@ class Login(_Login):
             'User-Agent': get_user_agent(user_agent)
         }
 
-        # get login token
-        allowed_kwargs = {'headers', 'proxies', 'timeout'}
+        allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
         filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
         if len(filtered_kwargs) < len(kwargs):
             log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
 
+        # get login token
         login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
         params = {
             'action': 'login',
@@ -241,7 +241,7 @@ class Login(_Login):
             'format': 'json'
         }
 
-        login_result = session.post(mediawiki_api_url, data=params, headers=headers, **kwargs).json()
+        login_result = session.post(mediawiki_api_url, data=params, headers=headers, **filtered_kwargs).json()
 
         if 'login' in login_result and login_result['login']['result'] == 'Success':
             log.info("Successfully logged in as %s", login_result['login']['lgusername'])
@@ -285,8 +285,13 @@ class Clientlogin(_Login):
             'User-Agent': get_user_agent(user_agent)
         }
 
+        allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
+        filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
+        if len(filtered_kwargs) < len(kwargs):
+            log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
+
         # get login token
-        login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **kwargs).json()['query']['tokens']['logintoken']
+        login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
 
         params = {
             'action': 'clientlogin',
@@ -297,7 +302,7 @@ class Clientlogin(_Login):
             'format': 'json'
         }
 
-        login_result = session.post(mediawiki_api_url, data=params, headers=headers, **kwargs).json()
+        login_result = session.post(mediawiki_api_url, data=params, headers=headers, **filtered_kwargs).json()
 
         log.debug(login_result)
 
