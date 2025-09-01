@@ -121,20 +121,23 @@ class MediaInfoEntity(BaseEntity):
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
     def get_json(self) -> dict[str, str | dict]:
-        return {
+        json_data = {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             **super().get_json()
         }
 
-        # if 'claims' in json_data:  # MediaInfo change name of 'claims' to 'statements'
-        #     json_data['statements'] = json_data.pop('claims')
+        if 'claims' in json_data:  # MediaInfo change name of 'claims' to 'statements'
+            json_data['statements'] = json_data.pop('claims')
 
-        # if 'statements' in json_data:
-        #     for prop_nr in json_data['statements']:
-        #         for statement in json_data['statements'][prop_nr]:
-        #             if 'mainsnak' in statement and 'datatype' in statement['mainsnak']:
-        #                 del statement['mainsnak']['datatype']
+        if isinstance(json_data, dict) and 'statements' in json_data and isinstance(json_data['statements'], dict):
+            for prop_nr, statements in json_data['statements'].items():
+                for statement in statements:
+                    if isinstance(statement, dict) and 'mainsnak' in statement:
+                        if isinstance(statement['mainsnak'], dict) and 'datatype' in statement['mainsnak']:
+                            del statement['mainsnak']['datatype']
+
+        return json_data
 
     def from_json(self, json_data: dict[str, Any]) -> MediaInfoEntity:
         super().from_json(json_data=json_data)
@@ -143,7 +146,7 @@ class MediaInfoEntity(BaseEntity):
             self.labels = Labels().from_json(json_data['labels'])
         if 'descriptions' in json_data:
             self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        if 'aliases' in json_data:
+        if 'statements' in json_data:
             self.claims = Claims().from_json(json_data['statements'])
 
         return self

@@ -451,7 +451,7 @@ Features:
 ## wbi_login ##
 
 `wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
-every MediaWiki edit requires an edit token). There is multiple methods to login:
+every MediaWiki edit requires an edit token). There are multiple methods to login:
 
 * `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
 * `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
@@ -576,6 +576,11 @@ type instances for references and qualifiers.
 ## Structured Data on Commons ##
 
 WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.
+
+> [!IMPORTANT]
+> To ease the compatibility between Wikidata and Wikimedia Commons, the MediaInfo entity use the "claims" field instead of the "statements" from the API.
+> When you read a MediaInfo entity, the "claims" field will be filled with the data from the "statements" field.
+> When you write a MediaInfo entity, the "claims" field will be replaced by the "statements" field.
 
 ### Retrieve data ###
 
