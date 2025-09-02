@@ -53,7 +53,7 @@ class Time(BaseDataType):
 
         if time:
             if time == "now":
-                time = datetime.datetime.utcnow().strftime("+%Y-%m-%dT00:00:00Z")
+                time = datetime.datetime.now(datetime.timezone.utc).strftime("+%Y-%m-%dT00:00:00Z")
 
             if not (time.startswith("+") or time.startswith("-")):
                 time = "+" + time

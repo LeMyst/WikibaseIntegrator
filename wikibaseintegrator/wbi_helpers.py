@@ -94,7 +94,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             # rate limiting
             if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
-                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
+                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.now(datetime.timezone.utc), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
@@ -107,7 +107,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
+                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.now(datetime.timezone.utc), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
