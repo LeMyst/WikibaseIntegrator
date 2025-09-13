@@ -7,10 +7,10 @@
 ### High-Level Details
 
 - **Project Type**: Python library package
-- **Languages**: Python 3.9+ (tested up to Python 3.14-dev)
+- **Languages**: Python 3.10+ (tested up to Python 3.15-dev)
 - **Package Manager**: Poetry (pyproject.toml-based)
 - **Framework**: Object-oriented design with entity-specific classes
-- **Target Runtime**: Python 3.9-3.13 in production
+- **Target Runtime**: Python 3.10-3.14 in production
 - **Repository Size**: ~1000+ Python files across core library and tests
 - **Key Features**: Two execution modes (normal and "fast run"), comprehensive data type support, OAuth authentication, SPARQL query support
 
@@ -166,7 +166,7 @@ wikibaseintegrator/
 
 Located in `.github/workflows/`:
 
-1. **`python-pytest.yaml`** - Tests on Python 3.9-3.14-dev, Ubuntu + httpbin service
+1. **`python-pytest.yaml`** - Tests on Python 3.10-3.15-dev, Ubuntu + httpbin service
 2. **`python-lint.yaml`** - Code quality checks (isort, mypy, pylint, codespell, flynt) 
 3. **`codeql.yml`** - Security scanning
 4. **`publish-to-pypi.yaml`** - Package publishing
