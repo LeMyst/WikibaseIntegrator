@@ -75,6 +75,7 @@ class WikibaseTimePrecision(Enum):
     HUNDRED_MILLION_YEARS = 1
     BILLION_YEARS = 0
 
+
 class EntityField(Enum):
     """
     The different fields of an entity.

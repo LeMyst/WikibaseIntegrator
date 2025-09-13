@@ -22,10 +22,10 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
-      - name: Set up Python 3.13
+      - name: Set up Python 3.14
         uses: actions/setup-python@v6.0.0
         with:
-          python-version: '3.13'
+          python-version: '3.14'
           cache: 'poetry'
 
       # Need to install poetry again in the new python version

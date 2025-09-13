@@ -86,7 +86,7 @@ The main differences between these two libraries are :
 * A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data
   validation and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property entities
-* Python 3.9 to 3.13 support, validated with unit tests
+* Python 3.10 to 3.14 support, validated with unit tests
 * Type hints implementation for arguments and return, checked with mypy static type checker
 * Add OAuth 2.0 login method
 * Add logging module support
@@ -334,7 +334,7 @@ Here is a list of different projects that use the library:
 # Installation #
 
 The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
-3.9 and above. If Python 2 is installed, `pip` will lead to an error indicating missing dependencies.
+3.10 and above. If Python 2 is installed, `pip` will lead to an error indicating missing dependencies.
 
 ```bash
 python -m pip install wikibaseintegrator
