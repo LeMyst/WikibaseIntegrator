@@ -1,7 +1,7 @@
 import datetime
 import re
 from functools import total_ordering
-from typing import Any, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -21,8 +21,8 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseTimePrecision, None] = None, timezone: int = 0,
-                 calendarmodel: Optional[str] = None, wikibase_url: Optional[str] = None, **kwargs: Any):
+    def __init__(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
+                 calendarmodel: str | None = None, wikibase_url: str | None = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -41,8 +41,8 @@ class Time(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
-    def set_value(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseTimePrecision, None] = None, timezone: int = 0,
-                  calendarmodel: Optional[str] = None, wikibase_url: Optional[str] = None):
+    def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
+                  calendarmodel: str | None = None, wikibase_url: str | None = None):
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
