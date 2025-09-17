@@ -444,7 +444,6 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
         'search': search_string,
         'language': language,
         'type': search_type,
-        'limit': 50,
         'format': 'json'
     }
 
@@ -455,7 +454,8 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
     results = []
 
     while True:
-        params.update({'continue': cont_count})
+        max_page_results = min(50, max_results - cont_count)
+        params.update({'continue': cont_count, 'limit': max_page_results})
 
         search_results = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
 
