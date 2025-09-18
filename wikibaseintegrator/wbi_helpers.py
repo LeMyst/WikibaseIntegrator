@@ -439,7 +439,7 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
 
     language = str(language or config['DEFAULT_LANGUAGE'])
 
-    params = {
+    params: dict[str, str | int] = {
         'action': 'wbsearchentities',
         'search': search_string,
         'language': language,
