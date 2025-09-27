@@ -1,5 +1,3 @@
-from typing import Optional
-
 from wikibaseintegrator.datatypes.string import String
 
 
@@ -9,7 +7,7 @@ class MusicalNotation(String):
     """
     DTYPE = 'musical-notation'
 
-    def set_value(self, value: Optional[str] = None):
+    def set_value(self, value: str | None = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
