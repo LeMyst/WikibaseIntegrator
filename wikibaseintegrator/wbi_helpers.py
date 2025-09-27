@@ -739,9 +739,9 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
 
     entity_instances = []
+    from wikibaseintegrator import WikibaseIntegrator
+    wbi = WikibaseIntegrator(login=kwargs.get('login', None))
     for qid, v in reply['entities'].items():
-        from wikibaseintegrator import WikibaseIntegrator
-        wbi = WikibaseIntegrator()
         f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
         ii = f(api=wbi).from_json(v)
         entity_instances.append((qid, ii))
@@ -1034,3 +1034,4 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
 #     # It's really the good way to solve this?
 #     from wikibaseintegrator import wikibaseintegrator
 #     return wikibaseintegrator.wbi_helpers
+
