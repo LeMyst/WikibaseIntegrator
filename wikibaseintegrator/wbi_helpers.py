@@ -740,8 +740,8 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
 
     entity_instances = []
     from wikibaseintegrator import WikibaseIntegrator
-    wbi = WikibaseIntegrator(login=kwargs.get('login', None))
     for qid, v in reply['entities'].items():
+        wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
         f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
         ii = f(api=wbi).from_json(v)
         entity_instances.append((qid, ii))
