@@ -223,7 +223,7 @@ class Login(_Login):
         }
 
         headers = {
-            'User-Agent': get_user_agent(user_agent)
+            'User-Agent': get_user_agent(user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None))
         }
 
         allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
@@ -282,7 +282,7 @@ class Clientlogin(_Login):
         }
 
         headers = {
-            'User-Agent': get_user_agent(user_agent)
+            'User-Agent': get_user_agent(user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None))
         }
 
         allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
