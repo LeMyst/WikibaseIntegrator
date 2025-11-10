@@ -120,9 +120,13 @@ class OAuth2(_Login):
 
         mediawiki_rest_url = str(mediawiki_rest_url or config['MEDIAWIKI_REST_URL'])
 
+        headers = {
+            'User-Agent': get_user_agent(user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None))
+        }
+
         session = OAuth2Session(client=BackendApplicationClient(client_id=consumer_token))
         try:
-            session.fetch_token(token_url=mediawiki_rest_url + '/oauth2/access_token', client_id=consumer_token, client_secret=consumer_secret)
+            session.fetch_token(token_url=mediawiki_rest_url + '/oauth2/access_token', client_id=consumer_token, client_secret=consumer_secret, headers=headers)
         except InvalidClientError as err:
             raise LoginError(err) from err
         super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
