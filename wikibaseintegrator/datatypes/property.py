@@ -2,6 +2,8 @@ import re
 from typing import Any, Optional, Union
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class Property(BaseDataType):
@@ -9,6 +11,7 @@ class Property(BaseDataType):
     Implements the Wikibase data type 'property'
     """
     DTYPE = 'wikibase-property'
+    PTYPE = 'http://wikiba.se/ontology#Property'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -49,5 +52,9 @@ class Property(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']['id']
+    def get_sparql_value(self, **kwargs: Any) -> Optional[str]:
+        if self.mainsnak.snaktype == WikibaseSnakType.KNOWN_VALUE:
+            wikibase_url = str(kwargs['wikibase_url'] if 'wikibase_url' in kwargs else config['WIKIBASE_URL'])
+            return f'<{wikibase_url}/entity/' + self.mainsnak.datavalue['value']['id'] + '>'
+
+        return None

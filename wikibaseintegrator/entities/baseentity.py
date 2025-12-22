@@ -104,9 +104,13 @@ class BaseEntity:
         return self.__claims
 
     @claims.setter
-    def claims(self, value: Claims):
-        if not isinstance(value, Claims):
+    def claims(self, value: Claim | Claims):
+        if not isinstance(value, Claims) and not isinstance(value, Claim):
             raise TypeError
+
+        if isinstance(value, Claim):
+            value = Claims().add(claims=value)
+
         self.__claims = value
 
     def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> BaseEntity:
@@ -203,6 +207,21 @@ class BaseEntity:
         :return: A dictionary representation of the edited Entity
         """
         return self._write(data={}, clear=True, **kwargs)
+
+    def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any):
+        params = {
+            'action': 'wbgetclaims',
+            'entity': self.id,
+            'property': property,
+            'format': 'json'
+        }
+
+        login = login or self.api.login
+        is_bot = is_bot if is_bot is not None else self.api.is_bot
+
+        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        self.claims.from_json(json_data['claims'])
+        return self
 
     def _write(self, data: dict | None = None, summary: str | None = None, login: _Login | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
                clear: bool = False, as_new: bool = False, is_bot: bool | None = None, fields_to_update: list | None | EntityField = None, **kwargs: Any) -> dict[str, Any]:
@@ -319,21 +338,19 @@ class BaseEntity:
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]] | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL,
-                       **kwargs: Any) -> bool:
+    def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
-        if base_filter is None:
-            base_filter = []
-
-        claims_to_check = []
+        pfilter: set = set()
         for claim in self.claims:
             if claim.mainsnak.property_number in base_filter:
-                claims_to_check.append(claim)
+                pfilter.add(claim.mainsnak.property_number)
+
+        property_filter: list[str] = list(pfilter)
 
         # TODO: Add check_language_data
 
-        return fastrun_container.write_required(data=claims_to_check, cqid=self.id, action_if_exists=action_if_exists)
+        return fastrun_container.write_required(claims=self.claims, property_filter=property_filter)
 
     def get_entity_url(self, wikibase_url: str | None = None) -> str:
         from wikibaseintegrator.wbi_config import config
