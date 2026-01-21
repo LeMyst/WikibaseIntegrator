@@ -4,10 +4,11 @@ import re
 from typing import Any
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models.forms import Forms
+from wikibaseintegrator.models.forms import Form, Forms
 from wikibaseintegrator.models.lemmas import Lemmas
-from wikibaseintegrator.models.senses import Senses
+from wikibaseintegrator.models.senses import Sense, Senses
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense
 
 
 class LexemeEntity(BaseEntity):
@@ -168,3 +169,27 @@ class LexemeEntity(BaseEntity):
         """
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)
+
+    def write_form(self, form: Form) -> str:
+        if not self.id:
+            raise Exception('You must set a Lexeme id before writing a Form.')
+        return lexeme_add_form(lexeme_id=self.id, data=form.get_json())['form']['id']
+
+    def write_forms(self) -> list[str]:
+        ids: list = []
+        for form in self.forms:
+            ids.append(self.write_form(form))
+
+        return ids
+
+    def write_sense(self, sense: Sense) -> str:
+        if not self.id:
+            raise Exception('You must set a Lexeme id before writing a Sense.')
+        return lexeme_add_sense(lexeme_id=self.id, data=sense.get_json())['sense']['id']
+
+    def write_senses(self) -> list[str]:
+        ids: list = []
+        for sense in self.senses:
+            ids.append(self.write_sense(sense))
+
+        return ids
