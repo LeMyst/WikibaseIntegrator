@@ -43,11 +43,11 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
+    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Claims:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
-        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists. Defaults to REPLACE_ALL.
+        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists. Defaults to APPEND_OR_REPLACE.
             KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
             APPEND_OR_REPLACE: The new claim will be added only if the new one is different (by comparing values)
             FORCE_APPEND: The new claim will be added even if already exists
