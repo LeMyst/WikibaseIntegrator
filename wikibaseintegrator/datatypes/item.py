@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Union
+from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 
@@ -16,7 +16,7 @@ class Item(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: Optional[Union[str, int]] = None, **kwargs: Any):
+    def __init__(self, value: str | int | None = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -26,7 +26,7 @@ class Item(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: Optional[Union[str, int]] = None):
+    def set_value(self, value: str | int | None = None):
         assert isinstance(value, (str, int)) or value is None, f'Expected str or int, found {type(value)} ({value})'
 
         if value:
