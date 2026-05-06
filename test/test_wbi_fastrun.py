@@ -1,12 +1,18 @@
 from collections import defaultdict
 from typing import Any
 
+import pytest
+
+from test.wikibase_test_config import configure_endpoints_from_env
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_fastrun.py)'
+configure_endpoints_from_env()
+
+pytestmark = [pytest.mark.external_network, pytest.mark.wikibase_integration, pytest.mark.requires_sparql]
 
 wbi = WikibaseIntegrator()
 

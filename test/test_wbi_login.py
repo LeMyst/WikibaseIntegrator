@@ -1,6 +1,5 @@
 import os
 import sys
-import unittest
 
 import pytest
 import requests
@@ -10,6 +9,8 @@ from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 # look for environment variables. if none set, don't do anything
 from wikibaseintegrator.wbi_login import LoginError
+
+pytestmark = [pytest.mark.external_network, pytest.mark.wikibase_integration]
 
 WDUSER = os.getenv("WDUSER")
 WDPASS = os.getenv("WDPASS")
