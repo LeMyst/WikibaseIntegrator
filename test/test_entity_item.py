@@ -1,6 +1,6 @@
-import os
 import unittest
 from copy import deepcopy
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -15,7 +15,168 @@ wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_item.py)'
 wbi = WikibaseIntegrator()
 
 
+def _build_q582_entity(props=None):
+    full_entity = {
+        'id': 'Q582',
+        'type': 'item',
+        'lastrevid': 1,
+        'labels': {
+            'fr': {
+                'language': 'fr',
+                'value': 'Villeurbanne'
+            }
+        },
+        'descriptions': {
+            'fr': {
+                'language': 'fr',
+                'value': 'commune francaise'
+            }
+        },
+        'aliases': {
+            'fr': [
+                {
+                    'language': 'fr',
+                    'value': 'Villeur'
+                }
+            ]
+        },
+        'sitelinks': {
+            'frwiki': {
+                'site': 'frwiki',
+                'title': 'Villeurbanne',
+                'badges': []
+            }
+        },
+        'claims': {
+            'P443': [
+                {
+                    'mainsnak': {
+                        'snaktype': 'value',
+                        'property': 'P443',
+                        'datatype': 'string',
+                        'datavalue': {
+                            'value': 'audio.ogg',
+                            'type': 'string'
+                        }
+                    },
+                    'type': 'statement',
+                    'id': 'Q582$P443-1',
+                    'rank': 'normal',
+                    'qualifiers': {
+                        'P407': [
+                            {
+                                'snaktype': 'value',
+                                'property': 'P407',
+                                'datatype': 'wikibase-item',
+                                'datavalue': {
+                                    'value': {
+                                        'entity-type': 'item',
+                                        'numeric-id': 150,
+                                        'id': 'Q150'
+                                    },
+                                    'type': 'wikibase-entityid'
+                                }
+                            }
+                        ]
+                    },
+                    'qualifiers-order': ['P407']
+                }
+            ],
+            'P2581': [
+                {
+                    'mainsnak': {
+                        'snaktype': 'value',
+                        'property': 'P2581',
+                        'datatype': 'string',
+                        'datavalue': {
+                            'value': '98765',
+                            'type': 'string'
+                        }
+                    },
+                    'type': 'statement',
+                    'id': 'Q582$P2581-1',
+                    'rank': 'normal',
+                    'references': [
+                        {
+                            'hash': 'deadbeef',
+                            'snaks': {
+                                'P854': [
+                                    {
+                                        'snaktype': 'value',
+                                        'property': 'P854',
+                                        'datatype': 'string',
+                                        'datavalue': {
+                                            'value': 'https://example.org/source',
+                                            'type': 'string'
+                                        }
+                                    }
+                                ]
+                            },
+                            'snaks-order': ['P854']
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    if props:
+        if isinstance(props, str):
+            requested_props = {p for p in props.split('|') if p and p != 'info'}
+        else:
+            requested_props = set(props)
+        entity = {k: full_entity[k] for k in ('id', 'type', 'lastrevid')}
+        for prop in requested_props:
+            if prop in full_entity:
+                entity[prop] = full_entity[prop]
+        return entity
+
+    return full_entity
+
+
+def _fake_get(self, entity_id, props=None, **kwargs):
+    if entity_id == 'Q99999999999999':
+        raise NonExistentEntityError({'code': 'no-such-entity'})
+    return {'entities': {'Q582': _build_q582_entity(props=props)}}
+
+
+def _fake_edit_entity(*args, **kwargs):
+    raise requests.exceptions.JSONDecodeError('mocked json decode error', 'mocked', 0)
+
+
+class _FakeFastRunContainer:
+    def write_required(self, data, cqid=None, action_if_exists=None):
+        if not data:
+            return False
+
+        for claim in data:
+            if claim.mainsnak.property_number == 'P1791':
+                return True
+            if claim.mainsnak.property_number == 'P2581' and len(claim.references) == 0:
+                return True
+
+        return False
+
+
+def _fake_get_fastrun_container(*args, **kwargs):
+    return _FakeFastRunContainer()
+
+
 class TestEntityItem(unittest.TestCase):
+
+    def setUp(self):
+        self.get_patcher = patch('wikibaseintegrator.entities.baseentity.BaseEntity._get', new=_fake_get)
+        self.write_patcher = patch('wikibaseintegrator.entities.baseentity.edit_entity', new=_fake_edit_entity)
+        self.fastrun_patcher = patch('wikibaseintegrator.entities.baseentity.wbi_fastrun.get_fastrun_container', new=_fake_get_fastrun_container)
+
+        self.get_patcher.start()
+        self.write_patcher.start()
+        self.fastrun_patcher.start()
+
+    def tearDown(self):
+        self.fastrun_patcher.stop()
+        self.write_patcher.stop()
+        self.get_patcher.stop()
 
     def test_get(self):
         # Test with complete id
@@ -46,7 +207,7 @@ class TestEntityItem(unittest.TestCase):
 
     def test_write(self):
         with self.assertRaises(requests.exceptions.JSONDecodeError):
-            wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/200")
+            wbi.item.get('Q582').write(allow_anonymous=True)
 
     def test_write_not_required(self):
         assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P1791')])
@@ -85,8 +246,6 @@ class TestEntityItem(unittest.TestCase):
 
         # remove()
         item = deepcopy(item_original)
-        from pprint import pprint
-        pprint(item.claims.get('P443')[0].qualifiers)
         assert len(item.claims.get('P443')[0].qualifiers.remove(Item(prop_nr='P407', value='Q150'))) == 0
 
         # common

@@ -48,6 +48,17 @@ class BColors:
 default_session = requests.Session()
 
 
+def _is_wikimedia_hostname(hostname: str | None) -> bool:
+    """Return True only for exact Wikimedia hosts or their dot-subdomains."""
+    if not hostname:
+        return False
+
+    hostname = hostname.lower()
+    wikimedia_hosts = ('wikidata.org', 'wikipedia.org', 'wikimedia.org')
+
+    return any(hostname == domain or hostname.endswith(f'.{domain}') for domain in wikimedia_hosts)
+
+
 def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
@@ -167,7 +178,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     hostname = urlparse(mediawiki_api_url).hostname
-    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+    if _is_wikimedia_hostname(hostname) and user_agent is None:
         log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
         log.warning('More information in the README.md and https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy')
 
@@ -240,7 +251,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     hostname = urlparse(sparql_endpoint_url).hostname
-    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
+    if _is_wikimedia_hostname(hostname) and user_agent is None:
         log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
         log.warning('More information in the README.md and https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy')
 
@@ -1034,4 +1045,3 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
 #     # It's really the good way to solve this?
 #     from wikibaseintegrator import wikibaseintegrator
 #     return wikibaseintegrator.wbi_helpers
-
