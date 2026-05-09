@@ -13,7 +13,13 @@ def is_ready() -> bool:
     response = requests.get(f'{API_URL}?{query}', timeout=10)
     if response.status_code != 200:
         return False
-    payload = response.json()
+
+    try:
+        payload = response.json()
+    except ValueError:
+        # MediaWiki may briefly return non-JSON (e.g. HTML) while starting.
+        return False
+
     return 'query' in payload and 'general' in payload['query']
 
 
@@ -33,4 +39,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
