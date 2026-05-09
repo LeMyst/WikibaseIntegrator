@@ -61,9 +61,8 @@ def test_connection(monkeypatch):
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/400", max_retries=2, retry_after=1, allow_anonymous=True)
 
 
-def test_user_agent(caplog):
-    from wikibaseintegrator import wbi_helpers
-    wbi_helpers.mediawiki_api_call = lambda *args, **kwargs: {'success': 1}
+def test_user_agent(caplog, monkeypatch):
+    monkeypatch.setattr('wikibaseintegrator.wbi_helpers.mediawiki_api_call', lambda *args, **kwargs: {'success': 1})
 
     wbi_config['MEDIAWIKI_API_URL'] = 'https://www.wikidata.org/w/api.php'
     wbi_config['USER_AGENT'] = None  # Reset user agent
@@ -95,9 +94,8 @@ def test_user_agent(caplog):
     assert 'WikibaseIntegrator' in new_user_agent
 
 
-def test_allow_anonymous():
-    from wikibaseintegrator import wbi_helpers
-    wbi_helpers.mediawiki_api_call = lambda *args, **kwargs: {'success': 1}
+def test_allow_anonymous(monkeypatch):
+    monkeypatch.setattr('wikibaseintegrator.wbi_helpers.mediawiki_api_call', lambda *args, **kwargs: {'success': 1})
 
     wbi_config['MEDIAWIKI_API_URL'] = 'https://www.wikidata.org/w/api.php'
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
