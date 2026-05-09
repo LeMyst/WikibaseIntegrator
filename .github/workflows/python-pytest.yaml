@@ -31,12 +31,6 @@ jobs:
       httpstatus:
         image: kennethreitz/httpbin
         ports:
-        - 80:80
-
-    services:
-      httpstatus:
-        image: kennethreitz/httpbin
-        ports:
         - 8080:80
 
     strategy:
