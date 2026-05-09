@@ -1,6 +1,5 @@
 import logging
 import os
-import unittest
 
 import pytest
 import requests
@@ -10,7 +9,34 @@ from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format2wbi, get_user_agent, mediawiki_api_call_helper
 
 
-def test_connection():
+def _fake_mediawiki_call(data, mediawiki_api_url=None, **kwargs):
+    url = mediawiki_api_url or ''
+    if 'wikidataaaaaaa.org' in url:
+        raise MaxRetriesReachedException('mock connection failure')
+    if '/status/500' in url or '/status/502' in url or '/status/503' in url or '/status/504' in url:
+        raise MaxRetriesReachedException('mock retry exhausted')
+    if '/status/400' in url:
+        raise requests.HTTPError('mock 400')
+
+    if data.get('action') == 'wbgetentities' and data.get('props') == 'datatype':
+        datatype_map = {
+            'P1433': 'wikibase-item',
+            'P1476': 'monolingualtext',
+            'P2093': 'string',
+            'P31': 'wikibase-item',
+            'P407': 'wikibase-item',
+            'P50': 'wikibase-item',
+            'P953': 'url',
+            'P1545': 'string',
+        }
+        ids = str(data.get('ids', '')).split('|')
+        return {'entities': {prop: {'datatype': datatype_map.get(prop, 'string')} for prop in ids}}
+
+    return {'success': 1, 'entities': {'Q42': {'id': 'Q42'}}}
+
+
+def test_connection(monkeypatch):
+    monkeypatch.setattr('test.test_wbi_helpers.mediawiki_api_call_helper', _fake_mediawiki_call)
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     data = {'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}
 
@@ -35,7 +61,10 @@ def test_connection():
         mediawiki_api_call_helper(data=data, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/400", max_retries=2, retry_after=1, allow_anonymous=True)
 
 
-def test_user_agent(caplog):
+def test_user_agent(caplog, monkeypatch):
+    monkeypatch.setattr('wikibaseintegrator.wbi_helpers.mediawiki_api_call', lambda *args, **kwargs: {'success': 1})
+
+    wbi_config['MEDIAWIKI_API_URL'] = 'https://www.wikidata.org/w/api.php'
     wbi_config['USER_AGENT'] = None  # Reset user agent
     # Test there is no warning because of the user agent
     with caplog.at_level(logging.WARNING):
@@ -48,13 +77,27 @@ def test_user_agent(caplog):
         mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
     assert 'Please set an user agent' in caplog.text
 
+    caplog.clear()
+    with caplog.at_level(logging.WARNING):
+        mediawiki_api_call_helper(
+            data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'},
+            mediawiki_api_url='https://www.wikidataaaaaaa.org/w/api.php',
+            max_retries=3,
+            retry_after=1,
+            allow_anonymous=True,
+        )
+    assert 'Please set an user agent' not in caplog.text
+
     # Test if the user agent is correctly added
     new_user_agent = get_user_agent(user_agent='MyWikibaseBot/0.5')
     assert new_user_agent.startswith('MyWikibaseBot/0.5')
     assert 'WikibaseIntegrator' in new_user_agent
 
 
-def test_allow_anonymous():
+def test_allow_anonymous(monkeypatch):
+    monkeypatch.setattr('wikibaseintegrator.wbi_helpers.mediawiki_api_call', lambda *args, **kwargs: {'success': 1})
+
+    wbi_config['MEDIAWIKI_API_URL'] = 'https://www.wikidata.org/w/api.php'
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     # Test there is a warning because of allow_anonymous
     with pytest.raises(ValueError):
@@ -65,7 +108,11 @@ def test_allow_anonymous():
                                      user_agent='MyWikibaseBot/0.5')
 
 
-def test_sparql():
+def test_sparql(monkeypatch):
+    monkeypatch.setattr(
+        'test.test_wbi_helpers.execute_sparql_query',
+        lambda *_args, **_kwargs: {'results': {'bindings': [{'child': {'value': 'Q1'}}, {'child': {'value': 'Q2'}}]}},
+    )
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     results = execute_sparql_query('''SELECT ?child ?childLabel
 WHERE
@@ -77,7 +124,8 @@ WHERE
     assert len(results['results']['bindings']) > 1
 
 
-def test_format2wbi():
+def test_format2wbi(monkeypatch):
+    monkeypatch.setattr('wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper', _fake_mediawiki_call)
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     from wikibaseintegrator.entities import ItemEntity, LexemeEntity, MediaInfoEntity, PropertyEntity
 

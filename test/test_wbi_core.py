@@ -17,7 +17,8 @@ wbi = WikibaseIntegrator()
 
 
 class TestWbiCore(unittest.TestCase):
-    common_item = wbi.item.new().get('Q2')
+    def setUp(self):
+        self.common_item = wbi.item.new().get('Q2')
 
     def test_item_engine(self):
         ItemEntity(api=wbi)
