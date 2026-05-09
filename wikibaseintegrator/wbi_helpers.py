@@ -222,7 +222,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 1000, retry_after: int = 60) -> dict[
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, retry_after: int = 60) -> dict[
     str, dict]:
     """
     Static method which can be used to execute any SPARQL query
@@ -231,7 +231,6 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-    :param max_retries: The number time this function should retry in case of header reports.
     :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
     :return: The results of the query are returned in JSON format
     """
@@ -260,30 +259,27 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     log.debug("%s%s%s", BColors.WARNING, params['query'], BColors.ENDC)
 
-    for _ in range(max_retries):
-        try:
-            response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
-        except requests.exceptions.ConnectionError as e:
-            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
+    
+    try:
+        response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
+    except BaseException as e:
+        if config['BACKOFF_MAX_TRIES'] > 1:
             sleep(retry_after)
-            continue
+        raise e
+    else:
         if response.status_code in (500, 502, 503, 504):
             log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
             sleep(retry_after)
-            continue
+            raise Exception("Service unavailable (HTTP Code %d)." % (response.status_code))
         if response.status_code == 429:
             if 'retry-after' in response.headers.keys():
                 retry_after = int(response.headers['retry-after'])
             log.error("Too Many Requests (429). Sleeping for %d seconds", retry_after)
             sleep(retry_after)
-            continue
-        response.raise_for_status()
+            raise Exception("Too Many Requests (429).")
         results = response.json()
 
         return results
-
-    raise Exception(f"No result after {max_retries} retries.")
-
 
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
                 tags: list[str] | None = None, site: str | None = None, title: str | None = None, **kwargs: Any) -> dict:
