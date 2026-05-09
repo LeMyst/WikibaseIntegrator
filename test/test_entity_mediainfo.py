@@ -1,8 +1,8 @@
 import unittest
+from test.wikibase_test_config import MEDIAINFO_MAIN_ID
 
 import pytest
 
-from test.wikibase_test_config import MEDIAINFO_MAIN_ID
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.wbi_config import config as wbi_config
 

@@ -1,11 +1,11 @@
 import os
 import unittest
 from copy import deepcopy
+from test.wikibase_test_config import ITEM_CITY_ID, configure_endpoints_from_env
 
 import pytest
 import requests
 
-from test.wikibase_test_config import ITEM_CITY_ID, configure_endpoints_from_env
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import BaseDataType, Item, MonolingualText, String
 from wikibaseintegrator.wbi_config import config as wbi_config

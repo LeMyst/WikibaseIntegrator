@@ -1,8 +1,7 @@
 import os
+from test.wikibase_test_config import configure_endpoints_from_env
 
 import pytest
-
-from test.wikibase_test_config import configure_endpoints_from_env
 
 
 def pytest_configure(config):

@@ -1,9 +1,9 @@
 import copy
 import unittest
+from test.wikibase_test_config import configure_endpoints_from_env
 
 import pytest
 
-from test.wikibase_test_config import configure_endpoints_from_env
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, Item
 from wikibaseintegrator.entities import ItemEntity

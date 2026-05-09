@@ -1,9 +1,9 @@
 import unittest
 from copy import deepcopy
+from test.wikibase_test_config import configure_endpoints_from_env
 
 import pytest
 
-from test.wikibase_test_config import configure_endpoints_from_env
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
                                           Sense, String, TabularData, Time)

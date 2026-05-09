@@ -1,9 +1,9 @@
 from collections import defaultdict
+from test.wikibase_test_config import configure_endpoints_from_env
 from typing import Any
 
 import pytest
 
-from test.wikibase_test_config import configure_endpoints_from_env
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
 from wikibaseintegrator.wbi_config import config as wbi_config

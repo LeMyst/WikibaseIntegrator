@@ -1,10 +1,10 @@
 import logging
 import os
+from test.wikibase_test_config import ITEM_CITY_ID, configure_endpoints_from_env
 
 import pytest
 import requests
 
-from test.wikibase_test_config import ITEM_CITY_ID, configure_endpoints_from_env
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format2wbi, get_user_agent, mediawiki_api_call_helper

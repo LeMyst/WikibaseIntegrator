@@ -1,8 +1,8 @@
 import unittest
+from test.wikibase_test_config import LEXEME_MAIN_ID, configure_endpoints_from_env
 
 import pytest
 
-from test.wikibase_test_config import LEXEME_MAIN_ID, configure_endpoints_from_env
 from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.models import Form
 from wikibaseintegrator.wbi_config import config as wbi_config
