@@ -1,5 +1,8 @@
 import unittest
 from copy import deepcopy
+from test.wikibase_test_config import configure_endpoints_from_env
+
+import pytest
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import (URL, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText, MusicalNotation, Property, Quantity,
@@ -12,6 +15,9 @@ from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseS
 from wikibaseintegrator.wbi_helpers import generate_entity_instances, search_entities
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_core.py)'
+configure_endpoints_from_env()
+
+pytestmark = [pytest.mark.external_network, pytest.mark.wikibase_integration]
 
 wbi = WikibaseIntegrator()
 

@@ -1,9 +1,14 @@
 import unittest
+from test.wikibase_test_config import MEDIAINFO_MAIN_ID
+
+import pytest
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.wbi_config import config as wbi_config
 
 wbi = WikibaseIntegrator()
+
+pytestmark = [pytest.mark.external_network, pytest.mark.wikibase_integration, pytest.mark.requires_commons]
 
 
 class TestEntityMediaInfo(unittest.TestCase):
@@ -34,12 +39,13 @@ class TestEntityMediaInfo(unittest.TestCase):
             wbi_config.pop('MEDIAWIKI_API_URL', None)
 
     def test_get(self):
+        mediainfo_numeric_id = int(MEDIAINFO_MAIN_ID.lstrip('M'))
         # Test with complete id
-        assert wbi.mediainfo.get('M75908279').id == 'M75908279'
+        assert wbi.mediainfo.get(MEDIAINFO_MAIN_ID).id == MEDIAINFO_MAIN_ID
         # Test with numeric id as string
-        assert wbi.mediainfo.get('75908279').id == 'M75908279'
+        assert wbi.mediainfo.get(str(mediainfo_numeric_id)).id == MEDIAINFO_MAIN_ID
         # Test with numeric id as int
-        assert wbi.mediainfo.get(75908279).id == 'M75908279'
+        assert wbi.mediainfo.get(mediainfo_numeric_id).id == MEDIAINFO_MAIN_ID
 
         # Test with invalid id
         with self.assertRaises(ValueError):
@@ -54,19 +60,21 @@ class TestEntityMediaInfo(unittest.TestCase):
             wbi.mediainfo.get(-1)
 
     def test_get_json(self):
-        assert wbi.mediainfo.get('M75908279').get_json()
+        assert wbi.mediainfo.get(MEDIAINFO_MAIN_ID).get_json()
 
     def test_entity_url(self):
-        assert wbi.mediainfo.new(id='M75908279').get_entity_url() == 'https://commons.wikimedia.org/entity/M75908279'
-        assert wbi.mediainfo.new(id='75908279').get_entity_url() == 'https://commons.wikimedia.org/entity/M75908279'
-        assert wbi.mediainfo.new(id=75908279).get_entity_url() == 'https://commons.wikimedia.org/entity/M75908279'
+        mediainfo_numeric_id = int(MEDIAINFO_MAIN_ID.lstrip('M'))
+        expected_url = f"https://commons.wikimedia.org/entity/{MEDIAINFO_MAIN_ID}"
+        assert wbi.mediainfo.new(id=MEDIAINFO_MAIN_ID).get_entity_url() == expected_url
+        assert wbi.mediainfo.new(id=str(mediainfo_numeric_id)).get_entity_url() == expected_url
+        assert wbi.mediainfo.new(id=mediainfo_numeric_id).get_entity_url() == expected_url
 
     # Test if we can read the claims/statements of the entity
     def test_entity_claims(self):
-        media = wbi.mediainfo.get('M75908279')
+        media = wbi.mediainfo.get(MEDIAINFO_MAIN_ID)
         assert media.claims
 
     # Test if we can have the statements field in the json
     def test_get_statements(self):
-        media = wbi.mediainfo.get('M75908279')
+        media = wbi.mediainfo.get(MEDIAINFO_MAIN_ID)
         assert media.get_json()['statements']

@@ -1,5 +1,8 @@
 import copy
 import unittest
+from test.wikibase_test_config import configure_endpoints_from_env
+
+import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, Item
@@ -9,6 +12,9 @@ from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseDatatype
 from wikibaseintegrator.wbi_fastrun import get_fastrun_container
 
 wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_all.py)'
+configure_endpoints_from_env()
+
+pytestmark = [pytest.mark.external_network, pytest.mark.wikibase_integration]
 
 wbi = WikibaseIntegrator()
 

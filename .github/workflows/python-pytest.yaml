@@ -5,21 +5,25 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'wikibaseintegrator/**.py'
-      - 'test/**.py'
-      - 'pyproject.toml'
-      - 'poetry.lock'
+    - 'wikibaseintegrator/**.py'
+    - 'test/**.py'
+    - '.github/wikibase-ci/**'
+    - '.github/workflows/python-pytest.yaml'
+    - 'pyproject.toml'
+    - 'poetry.lock'
   pull_request:
     branches: [ '**' ]
     paths:
-      - 'wikibaseintegrator/**.py'
-      - 'test/**.py'
-      - 'pyproject.toml'
-      - 'poetry.lock'
+    - 'wikibaseintegrator/**.py'
+    - 'test/**.py'
+    - '.github/wikibase-ci/**'
+    - '.github/workflows/python-pytest.yaml'
+    - 'pyproject.toml'
+    - 'poetry.lock'
 
 jobs:
-  build:
-    name: pytest ${{ matrix.python-version }}
+  unit:
+    name: pytest unit ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     container: ubuntu:24.04
 
@@ -27,44 +31,102 @@ jobs:
       httpstatus:
         image: kennethreitz/httpbin
         ports:
-          - 80:80
+        - 8080:80
 
     strategy:
       matrix:
         python-version: [ '3.10', '3.11', '3.12', '3.13', '3.14', '3.15-dev' ]
 
     steps:
-      - uses: actions/checkout@v6
+    - uses: actions/checkout@v6
 
-      - name: Install pipx
-        run: apt update && apt install -y pipx && pipx ensurepath
+    - name: Bootstrap python3 in container
+      run: |
+        apt-get update
+        apt-get install -y python3 python3-pip
 
-      - name: Install dependencies for Python 3.15-dev
-        if: matrix.python-version == '3.15-dev'
-        run: apt install -y build-essential libffi-dev
+    - name: Install poetry for cache discovery
+      run: python3 -m pip install poetry
 
-      - name: Update path
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v6.2.0
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'poetry'
 
-      - name: Install poetry
-        run: pipx install poetry
+    - name: Install poetry
+      run: python -m pip install poetry
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
+    - name: Install dependencies
+      run: |
+        python -m poetry install --with dev
 
-      # Need to install poetry again in the new python version
-      - name: Install poetry
-        run: python -m pip install poetry
+    - name: Test with pytest
+      run: |
+        python -m poetry run pytest -m "not external_network"
+      env:
+        HTTPSTATUS_SERVICE: http://127.0.0.1:8080
 
-      - name: Install dependencies
-        run: |
-          python -m poetry install --with dev
+  wikibase-local:
+    name: pytest local wikibase
+    runs-on: ubuntu-latest
 
-      - name: Test with pytest
-        run: |
-          python -m poetry run pytest
-        env:
-          HTTPSTATUS_SERVICE: "http://httpstatus"
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Bootstrap python3 in container
+      run: |
+        apt-get update
+        apt-get install -y python3 python3-pip
+
+    - name: Install poetry for cache discovery
+      run: python -m pip install poetry
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v6.2.0
+      with:
+        python-version: '3.13'
+        cache: 'poetry'
+
+    - name: Install poetry
+      run: python -m pip install poetry
+
+    - name: Install dependencies
+      run: python -m poetry install --with dev
+
+    - name: Start local Wikibase stack
+      run: docker compose -f .github/wikibase-ci/docker-compose.yml up -d
+
+    - name: Wait for MediaWiki API
+      run: python .github/wikibase-ci/wait_for_api.py
+      env:
+        WBI_MEDIAWIKI_API_URL: http://127.0.0.1:8181/w/api.php
+
+    - name: Seed local Wikibase data
+      run: python .github/wikibase-ci/seed_local_wikibase.py
+      env:
+        WBI_MEDIAWIKI_API_URL: http://127.0.0.1:8181/w/api.php
+        WBI_WIKIBASE_URL: http://127.0.0.1:8181
+        WBI_TEST_USERNAME: Admin
+        WBI_TEST_PASSWORD: adminpass
+
+    - name: Test integration suite against local Wikibase
+      run: |
+        python -m poetry run pytest test/test_entity_item.py::TestEntityItem::test_get test/test_entity_item.py::TestEntityItem::test_get_json test/test_entity_item.py::TestEntityItem::test_long_item_id test/test_entity_item.py::TestEntityItem::test_entity_url test/test_entity_item.py::TestEntityItem::test_get_limited_props test/test_entity_property.py test/test_entity_lexeme.py::TestEntityLexeme::test_get test/test_entity_lexeme.py::TestEntityLexeme::test_get_json test/test_entity_lexeme.py::TestEntityLexeme::test_long_item_id test/test_entity_lexeme.py::TestEntityLexeme::test_entity_url -m "wikibase_integration and not requires_sparql and not requires_commons"
+      env:
+        WBI_RUN_EXTERNAL_NETWORK_TESTS: '1'
+        WBI_MEDIAWIKI_API_URL: http://127.0.0.1:8181/w/api.php
+        WBI_MEDIAWIKI_INDEX_URL: http://127.0.0.1:8181/w/index.php
+        WBI_MEDIAWIKI_REST_URL: http://127.0.0.1:8181/w/rest.php
+        WBI_WIKIBASE_URL: http://127.0.0.1:8181
+        WBI_TEST_ITEM_CITY_ID: Q1
+        WBI_TEST_PROPERTY_AUTHOR_ID: P1
+        WBI_TEST_LEXEME_MAIN_ID: L1
+
+    - name: Dump Wikibase container logs on failure
+      if: failure()
+      run: docker compose -f .github/wikibase-ci/docker-compose.yml logs --tail=200
+
+    - name: Stop local Wikibase stack
+      if: always()
+      run: docker compose -f .github/wikibase-ci/docker-compose.yml down -v

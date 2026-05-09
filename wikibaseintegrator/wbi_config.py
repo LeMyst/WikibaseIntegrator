@@ -12,6 +12,8 @@ USER_AGENT:        Complementary user agent string used for http requests. Both 
                    See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
 """
 
+import os
+
 config: dict[str, str | int | None | bool] = {
     'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
@@ -20,11 +22,11 @@ config: dict[str, str | int | None | bool] = {
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',
     'COORDINATE_GLOBE_QID': 'http://www.wikidata.org/entity/Q2',
     'CALENDAR_MODEL_QID': 'http://www.wikidata.org/entity/Q1985727',
-    'MEDIAWIKI_API_URL': 'https://www.wikidata.org/w/api.php',
-    'MEDIAWIKI_INDEX_URL': 'https://www.wikidata.org/w/index.php',
-    'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
-    'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
-    'WIKIBASE_URL': 'http://www.wikidata.org',
+    'MEDIAWIKI_API_URL': os.getenv('WBI_MEDIAWIKI_API_URL', 'https://www.wikidata.org/w/api.php'),
+    'MEDIAWIKI_INDEX_URL': os.getenv('WBI_MEDIAWIKI_INDEX_URL', 'https://www.wikidata.org/w/index.php'),
+    'MEDIAWIKI_REST_URL': os.getenv('WBI_MEDIAWIKI_REST_URL', 'https://www.wikidata.org/w/rest.php'),
+    'SPARQL_ENDPOINT_URL': os.getenv('WBI_SPARQL_ENDPOINT_URL', 'https://query.wikidata.org/sparql'),
+    'WIKIBASE_URL': os.getenv('WBI_WIKIBASE_URL', 'http://www.wikidata.org'),
     'DEFAULT_LANGUAGE': 'en',
     'DEFAULT_LEXEME_LANGUAGE': 'Q1860'
 }

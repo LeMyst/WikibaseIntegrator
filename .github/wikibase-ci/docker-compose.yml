@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  wikibase:
+    image: wikibase/wikibase:1.39-bundle
+    container_name: wbi-local-wikibase
+    ports:
+      - "8181:80"
+    environment:
+      MEDIAWIKI_SITE_SERVER: "http://127.0.0.1:8181"
+      WB_ADMIN_NAME: "Admin"
+      WB_ADMIN_PASS: "adminpass"
+

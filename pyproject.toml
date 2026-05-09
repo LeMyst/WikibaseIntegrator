@@ -116,3 +116,9 @@ disable = [
 
 [tool.pytest.ini_options]
 log_cli = true
+markers = [
+    "external_network: tests that call external network services",
+    "wikibase_integration: tests that require a Wikibase API endpoint",
+    "requires_sparql: tests that require a SPARQL endpoint",
+    "requires_commons: tests that require Wikimedia Commons MediaInfo"
+]

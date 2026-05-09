@@ -1,6 +1,6 @@
 import logging
 import os
-import unittest
+from test.wikibase_test_config import ITEM_CITY_ID, configure_endpoints_from_env
 
 import pytest
 import requests
@@ -9,10 +9,14 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException
 from wikibaseintegrator.wbi_helpers import execute_sparql_query, format2wbi, get_user_agent, mediawiki_api_call_helper
 
+configure_endpoints_from_env()
+
+pytestmark = [pytest.mark.external_network, pytest.mark.wikibase_integration]
+
 
 def test_connection():
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
-    data = {'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}
+    data = {'format': 'json', 'action': 'wbgetentities', 'ids': ITEM_CITY_ID}
 
     mediawiki_api_call_helper(data=data, max_retries=2, retry_after=1, allow_anonymous=True)
 
@@ -39,13 +43,13 @@ def test_user_agent(caplog):
     wbi_config['USER_AGENT'] = None  # Reset user agent
     # Test there is no warning because of the user agent
     with caplog.at_level(logging.WARNING):
-        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True,
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': ITEM_CITY_ID}, max_retries=3, retry_after=1, allow_anonymous=True,
                                   user_agent='MyWikibaseBot/0.5')
     assert 'WARNING' not in caplog.text
 
     # Test there is a warning
     with caplog.at_level(logging.WARNING):
-        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True)
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': ITEM_CITY_ID}, max_retries=3, retry_after=1, allow_anonymous=True)
     assert 'Please set an user agent' in caplog.text
 
     # Test if the user agent is correctly added
@@ -58,13 +62,14 @@ def test_allow_anonymous():
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     # Test there is a warning because of allow_anonymous
     with pytest.raises(ValueError):
-        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, user_agent='MyWikibaseBot/0.5')
+        mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': ITEM_CITY_ID}, max_retries=3, retry_after=1, user_agent='MyWikibaseBot/0.5')
 
     # Test there is no warning because of allow_anonymous
-    assert mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=3, retry_after=1, allow_anonymous=True,
+    assert mediawiki_api_call_helper(data={'format': 'json', 'action': 'wbgetentities', 'ids': ITEM_CITY_ID}, max_retries=3, retry_after=1, allow_anonymous=True,
                                      user_agent='MyWikibaseBot/0.5')
 
 
+@pytest.mark.requires_sparql
 def test_sparql():
     wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_helpers.py)'
     results = execute_sparql_query('''SELECT ?child ?childLabel
