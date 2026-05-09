@@ -40,8 +40,6 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - name: Install poetry for cache discovery
-      run: python -m pip install poetry
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
