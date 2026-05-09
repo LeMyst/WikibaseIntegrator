@@ -21,7 +21,7 @@ jobs:
   build:
     name: pytest ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    container: ubuntu
+    container: ubuntu:24.04
 
     services:
       httpstatus:
