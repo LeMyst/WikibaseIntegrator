@@ -17,7 +17,7 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError
+from wikibaseintegrator.wbi_exceptions import AnonymousEditError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -201,8 +201,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
                     data.update({'assert': 'user'})
 
             if 'token' in data and data['token'] == '+\\':
-                raise Exception("Anonymous edit are not allowed by default. "
-                                "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
+                raise AnonymousEditError("Anonymous edit are not allowed by default. "
+                                         "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         else:
             if 'assert' not in data and login is None:
                 # Assert anon if allow_anonymous is True and no Login instance
@@ -282,7 +282,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
         return results
 
-    raise Exception(f"No result after {max_retries} retries.")
+    raise MaxRetriesReachedException(f"No result after {max_retries} retries.")
 
 
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
