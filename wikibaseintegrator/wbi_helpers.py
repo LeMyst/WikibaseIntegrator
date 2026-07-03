@@ -26,9 +26,6 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-helpers_session = requests.Session()
-
-
 class BColors:
     """
     Default colors for pretty outputs.
@@ -42,10 +39,6 @@ class BColors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
-
-# Session used for all anonymous requests
-default_session = requests.Session()
 
 
 def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> dict:
@@ -72,7 +65,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
 
     response = None
-    session = session if session else default_session
+    session = session or requests.Session()
     for n in range(max_retries):
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
@@ -260,9 +253,10 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     log.debug("%s%s%s", BColors.WARNING, params['query'], BColors.ENDC)
 
+    session = requests.Session()
     for _ in range(max_retries):
         try:
-            response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
+            response = session.post(sparql_endpoint_url, data=body, headers=headers)
         except requests.exceptions.ConnectionError as e:
             log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
@@ -1022,7 +1016,7 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
         'User-Agent': get_user_agent(user_agent)
     }
 
-    response = helpers_session.get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers)
+    response = requests.Session().get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers)
     response.raise_for_status()
     results = response.text
 
