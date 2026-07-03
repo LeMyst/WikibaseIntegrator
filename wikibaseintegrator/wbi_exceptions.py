@@ -99,3 +99,8 @@ class MissingEntityException(Exception):
 
 class SearchError(Exception):
     pass
+
+
+class AnonymousEditError(Exception):
+    """Raised when an anonymous edit is attempted but allow_anonymous is False"""
+    pass
