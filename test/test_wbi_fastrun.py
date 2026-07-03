@@ -1,98 +1,180 @@
+"""
+Tests for the fastrun container. The SPARQL endpoint and the property
+datatype lookups are served by the simulated Wikibase instance, so the whole
+pipeline (query -> reverse lookup -> statement reconstruction -> comparison)
+runs offline and deterministically.
+"""
 from collections import defaultdict
 from typing import Any
 
+import pytest
+
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
-from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
-wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_wbi_fastrun.py)'
+from .conftest import literal, load_fixture, uri
 
 wbi = WikibaseIntegrator()
 
 
-def test_query_data():
-    """
-    test_fastrun.test_query_data
-    This hits live wikidata and may change !!
-
-    This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
-    without getting references
-    """
-    frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P699')], base_data_type=BaseDataType)
-    # get a string value
-    frc._query_data('P699')
-    # wikidata-item value
-    frc._query_data('P828')
-    # uri value
-    frc._query_data('P2888')
-
-    # https://www.wikidata.org/wiki/Q10874
-    assert 'Q10874' in frc.prop_data
-    assert 'P699' in frc.prop_data['Q10874']
-    # the ID may change, so retrieve it
-    statement_id = list(frc.prop_data['Q10874']['P699'].keys())[0]
-    d = frc.prop_data['Q10874']['P699'][statement_id]
-    # d looks like: {'qual': set(), 'ref': {}, 'v': 'DOID:1432'}
-    assert all(x in d for x in {'qual', 'ref', 'v'})
-    assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('"DOID:')
-
-    # item
-    assert list(frc.prop_data['Q10874']['P828'].values())[0]['v'] == "Q18228398"
-
-    # uri
-    v = {x['v'] for x in frc.prop_data['Q10874']['P2888'].values()}
-    assert all(y.startswith("<http") for y in v)
+def statement_bindings(wikibase, item_qid: str, prop_nr: str, values: list[dict], refs: dict | None = None) -> list[dict]:
+    """Build SPARQL bindings shaped like the ones of wbi_fastrun._query_data."""
+    bindings = []
+    for index, value in enumerate(values):
+        binding = {
+            'sid': uri(f'{wikibase.base_url}/entity/statement/{item_qid}-{prop_nr}-{index}'),
+            'item': uri(f'{wikibase.base_url}/entity/{item_qid}'),
+            'v': value,
+        }
+        if refs:
+            for ref_prop, ref_value in refs.items():
+                bindings.append({
+                    **binding,
+                    'ref': uri(f'{wikibase.base_url}/reference/deadbeef{index}'),
+                    'pr': uri(f'{wikibase.base_url}/prop/reference/{ref_prop}'),
+                    'rval': ref_value,
+                })
+        else:
+            bindings.append(binding)
+    return bindings
 
 
-# # Fail too often
-# def test_query_data_unit():
-#     """
-#     test_fastrun.test_query_data_unit
-#     This hits live wikidata and may change !!
-#     """
-#     frc = wbi_fastrun.FastRunContainer(base_filter={'P2044': '', 'P30': 'Q46', 'P31': 'Q5119'}, base_data_type=BaseDataType)
-#     # get a quantity value
-#     frc._query_data('P2044', use_units=True)
-#
-#     assert 'Q90' in frc.prop_data
-#     assert 'P2044' in frc.prop_data['Q90']
-#     statement_id = list(frc.prop_data['Q90']['P2044'].keys())[0]
-#     assert frc.prop_data['Q90']['P2044'][statement_id]['unit'] == 'Q11573'
+class TestQueryData:
+    def test_query_data(self, wikibase):
+        """The container must query the SPARQL endpoint and store the data in its internal format."""
+        wikibase.add_property('P352', 'external-id')
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType)
+
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q99', 'P352', [literal('P40095')])
+        frc._query_data('P352')
+
+        assert 'Q99' in frc.prop_data
+        assert 'P352' in frc.prop_data['Q99']
+
+        statement_id = list(frc.prop_data['Q99']['P352'].keys())[0]
+        statement_data = frc.prop_data['Q99']['P352'][statement_id]
+        assert all(key in statement_data for key in ('qual', 'ref', 'v'))
+        assert statement_data['v'] == '"P40095"'
+        assert frc.rev_lookup['"P40095"'] == {'Q99'}
+
+    def test_query_data_item_and_uri_values(self, wikibase):
+        wikibase.add_property('P828', 'wikibase-item')
+        wikibase.add_property('P2888', 'url')
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P828')], base_data_type=BaseDataType)
+
+        # wikibase-item value: the entity URI is reduced to its ID
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q99', 'P828', [uri(f'{wikibase.base_url}/entity/Q18228398')])
+        frc._query_data('P828')
+        assert list(frc.prop_data['Q99']['P828'].values())[0]['v'] == 'Q18228398'
+
+        # url value: kept as an URI
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q99', 'P2888', [uri('http://purl.obolibrary.org/obo/DOID_1432')])
+        frc._query_data('P2888')
+        values = {statement['v'] for statement in frc.prop_data['Q99']['P2888'].values()}
+        assert all(value.startswith('<http') for value in values)
+
+    def test_query_data_ref(self, wikibase):
+        wikibase.add_property('P352', 'external-id')
+        wikibase.add_property('P248', 'wikibase-item')
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType, use_refs=True)
+
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q99', 'P352', [literal('P40095')], refs={'P248': uri(f'{wikibase.base_url}/entity/Q1234')})
+        frc._query_data('P352')
+
+        statement_id = list(frc.prop_data['Q99']['P352'].keys())[0]
+        statement_data = frc.prop_data['Q99']['P352'][statement_id]
+        assert len(statement_data['ref']) == 1
+        reference = list(statement_data['ref'].values())[0]
+        assert ('P248', 'Q1234') in reference
 
 
-def test_query_data_ref():
-    """
-    test_fastrun.test_query_data_ref
-    This hits live wikidata and may change !!
+class TestWriteRequiredEndToEnd:
+    """Full fastrun pipeline: SPARQL query, reconstruction and comparison."""
 
-    This tests that the fast run container correctly queries data from wikidata and stores it in the appropriate format
-    WITH getting references
-    """
-    frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P699')], base_data_type=BaseDataType, use_refs=True)
-    frc._query_data('P699')
+    @pytest.fixture
+    def frc(self, wikibase):
+        # According to the SPARQL endpoint, Q582 already holds P352 = 'P40095'.
+        wikibase.add_property('P352', 'external-id')
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q582', 'P352', [literal('P40095')])
+        return wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q27510868')], base_data_type=BaseDataType)
 
-    # https://www.wikidata.org/wiki/Q10874
-    assert 'Q10874' in frc.prop_data
-    assert 'P699' in frc.prop_data['Q10874']
-    # the ID may change, so retrieve it
-    statement_id = list(frc.prop_data['Q10874']['P699'].keys())[0]
-    d = frc.prop_data['Q10874']['P699'][statement_id]
-    # d looks like:
-    """
-    {'qual': set(),
-     'ref': {'16c138dfc51df49853f1a9d79f31e2234853842c': {('P248', 'Q30988716'),
-            ('P699', 'DOID:1432'),
-            ('P813', '+2017-07-05T00:00:00Z')}},
-      'v': 'DOID:1432'}
-    """
-    assert all(x in d for x in {'qual', 'ref', 'v'})
-    assert frc.prop_data['Q10874']['P699'][statement_id]['v'].startswith('"DOID:')
-    assert len(d['ref']) > 0
-    ref_id = list(d['ref'].keys())[0]
-    ref = d['ref'][ref_id]
-    assert len(ref) > 1
+    def test_write_not_required_when_data_matches(self, frc):
+        assert frc.write_required(data=[ExternalID(value='P40095', prop_nr='P352')]) is False
 
+    def test_write_required_when_value_differs(self, frc):
+        assert frc.write_required(data=[ExternalID(value='DIFFERENT', prop_nr='P352')]) is True
+
+    def test_write_required_via_entity(self, wikibase, frc, item_q582):
+        """BaseEntity.write_required goes through the shared fastrun store."""
+        wbi_fastrun.fastrun_store.append(frc)
+
+        item = ItemEntity().from_json(load_fixture('item_Q582'))
+        item.claims.add(ExternalID(value='P40095', prop_nr='P352'))
+        assert item.write_required(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q27510868')]) is False
+
+        item.claims.add(ExternalID(value='CHANGED', prop_nr='P352'))
+        assert item.write_required(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q27510868')]) is True
+
+
+class TestLanguageData:
+    def test_language_data_and_check(self, wikibase):
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType)
+
+        wikibase.sparql_bindings = [
+            {'item': uri(f'{wikibase.base_url}/entity/Q99'), 'label': literal('Earth', lang='en')},
+        ]
+
+        assert list(frc.get_language_data('Q99', 'en', 'label')) == ['Earth']
+        # Same language data: no write required
+        assert frc.check_language_data('Q99', ['Earth'], 'en', 'label') is False
+        # Different language data: write required
+        assert frc.check_language_data('Q99', ['not the Earth'], 'en', 'label') is True
+
+    def test_empty_language_data(self, wikibase):
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType)
+        wikibase.sparql_bindings = []
+
+        assert frc.get_language_data('Q99', 'ak', 'label') == ['']
+        assert frc.get_language_data('Q99', 'ak', 'description') == ['']
+        assert frc.get_language_data('Q99', 'ak', 'aliases') == []
+        assert frc.check_language_data('Q99', [''], 'ak', 'description') is False
+        assert frc.check_language_data('Q99', [], 'ak', 'aliases') is False
+
+
+class TestFastrunStore:
+    def test_container_is_reused(self, wikibase):
+        base_filter = [BaseDataType(prop_nr='P352')]
+        first = wbi_fastrun.get_fastrun_container(base_filter=base_filter)
+        second = wbi_fastrun.get_fastrun_container(base_filter=base_filter)
+        assert first is second
+
+    def test_different_parameters_create_new_container(self, wikibase):
+        base_filter = [BaseDataType(prop_nr='P352')]
+        first = wbi_fastrun.get_fastrun_container(base_filter=base_filter)
+        second = wbi_fastrun.get_fastrun_container(base_filter=base_filter, use_refs=True)
+        assert first is not second
+
+
+class TestBaseFilters:
+    def test_invalid_base_filter(self):
+        with pytest.raises(ValueError):
+            wbi_fastrun.FastRunContainer(base_filter=['not a datatype'], base_data_type=BaseDataType)
+
+    def test_base_filter_string(self, wikibase):
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q27510868')], base_data_type=BaseDataType)
+        assert f'?item <{wikibase.base_url}/prop/direct/P352> ?zzP352 .' in frc.base_filter_string
+        assert f'?item <{wikibase.base_url}/prop/direct/P703>' in frc.base_filter_string
+
+
+# --------------------------------------------------------------------- #
+# Offline tests based on hand-crafted container contents. They validate
+# the write_required comparison logic itself.
+# --------------------------------------------------------------------- #
 
 class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
     def __init__(self, *args: Any, **kwargs: Any):
@@ -102,10 +184,8 @@ class FastRunContainerFakeQueryDataEnsembl(wbi_fastrun.FastRunContainer):
             'fake statement id': {
                 'qual': set(),
                 'ref': {'fake ref id': {
-                    ('P248',
-                     'Q106833387'),
-                    ('P594',
-                     'ENSG00000123374')}},
+                    ('P248', 'Q106833387'),
+                    ('P594', 'ENSG00000123374')}},
                 'unit': '1',
                 'v': '"ENSG00000123374"'}}}
         self.rev_lookup = defaultdict(set)
@@ -134,23 +214,23 @@ def test_fastrun_ref_ensembl():
     assert frc.write_required(data=statements)
 
     # statement has the same ref
-    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q106833387", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594")]])]
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item('Q106833387', prop_nr='P248'), ExternalID('ENSG00000123374', prop_nr='P594')]])]
     assert not frc.write_required(data=statements)
 
-    # new statement has an different stated in
-    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q99999999999", prop_nr="P248"), ExternalID("ENSG00000123374", prop_nr="P594", )]])]
+    # new statement has a different stated in
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item('Q99999999999', prop_nr='P248'), ExternalID('ENSG00000123374', prop_nr='P594')]])]
     assert frc.write_required(data=statements)
 
-    # fastrun don't check references, statement has no reference,
+    # fastrun doesn't check references, statement has no reference
     frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter=[BaseDataType(prop_nr='P594'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType,
                                                     use_refs=False)
     statements = [ExternalID(value='ENSG00000123374', prop_nr='P594')]
     assert not frc.write_required(data=statements)
 
-    # fastrun don't check references, statement has reference,
+    # fastrun doesn't check references, statement has a reference
     frc = FastRunContainerFakeQueryDataEnsemblNoRef(base_filter=[BaseDataType(prop_nr='P594'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType,
                                                     use_refs=False)
-    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item("Q123", prop_nr="P31")]])]
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594', references=[[Item('Q123', prop_nr='P31')]])]
     assert not frc.write_required(data=statements)
 
 
@@ -187,7 +267,6 @@ class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
 
 def test_append_props():
     qid = 'Q3402672'
-    # https://www.wikidata.org/wiki/Q3402672#P527
 
     # don't consider refs
     frc = FakeQueryDataAppendProps(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType)

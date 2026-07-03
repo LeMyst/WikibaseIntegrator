@@ -1,0 +1,74 @@
+{
+    "pageid": 75908279,
+    "ns": 6,
+    "title": "File:2018-07-05-budapest-buda-hill.jpg",
+    "lastrevid": 725401355,
+    "modified": "2025-01-01T00:00:00Z",
+    "type": "mediainfo",
+    "id": "M75908279",
+    "labels": {
+        "en": {
+            "language": "en",
+            "value": "Panorama of Budapest, with Buda on the left, Pest right & the Danube separating them."
+        }
+    },
+    "descriptions": {},
+    "statements": {
+        "P180": [
+            {
+                "mainsnak": {
+                    "snaktype": "value",
+                    "property": "P180",
+                    "hash": "06125247b93426abf500f7d3a52b7083f9fa57f5",
+                    "datavalue": {
+                        "value": {
+                            "entity-type": "item",
+                            "numeric-id": 1653,
+                            "id": "Q1653"
+                        },
+                        "type": "wikibase-entityid"
+                    }
+                },
+                "type": "statement",
+                "qualifiers": {
+                    "P462": [
+                        {
+                            "snaktype": "value",
+                            "property": "P462",
+                            "hash": "21c25d5d1bd2aacb5ea30ad25819f704a2d2adea",
+                            "datavalue": {
+                                "value": {
+                                    "entity-type": "item",
+                                    "numeric-id": 1088,
+                                    "id": "Q1088"
+                                },
+                                "type": "wikibase-entityid"
+                            }
+                        }
+                    ],
+                    "P1419": [
+                        {
+                            "snaktype": "value",
+                            "property": "P1419",
+                            "hash": "c1e17d6a79cf822e6f7a676ad07d21e0fa8caaf3",
+                            "datavalue": {
+                                "value": {
+                                    "entity-type": "item",
+                                    "numeric-id": 161973,
+                                    "id": "Q161973"
+                                },
+                                "type": "wikibase-entityid"
+                            }
+                        }
+                    ]
+                },
+                "qualifiers-order": [
+                    "P462",
+                    "P1419"
+                ],
+                "id": "M75908279$0bd22397-44bb-cb0e-d94d-dbd23b2e921a",
+                "rank": "preferred"
+            }
+        ]
+    }
+}

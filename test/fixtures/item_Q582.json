@@ -1,0 +1,204 @@
+{
+    "pageid": 856,
+    "ns": 0,
+    "title": "Q582",
+    "lastrevid": 2211855070,
+    "modified": "2025-01-01T00:00:00Z",
+    "type": "item",
+    "id": "Q582",
+    "labels": {
+        "en": {
+            "language": "en",
+            "value": "Villeurbanne"
+        },
+        "fr": {
+            "language": "fr",
+            "value": "Villeurbanne"
+        },
+        "es": {
+            "language": "es",
+            "value": "Villeurbanne"
+        }
+    },
+    "descriptions": {
+        "en": {
+            "language": "en",
+            "value": "commune in the metropolis of Lyon, France"
+        },
+        "fr": {
+            "language": "fr",
+            "value": "commune française de la métropole de Lyon"
+        }
+    },
+    "aliases": {
+        "fr": [
+            {
+                "language": "fr",
+                "value": "Villeurbanne (Rhône)"
+            }
+        ],
+        "en": [
+            {
+                "language": "en",
+                "value": "Villeurbanne, France"
+            }
+        ]
+    },
+    "claims": {
+        "P31": [
+            {
+                "mainsnak": {
+                    "snaktype": "value",
+                    "property": "P31",
+                    "hash": "3041443888781d9fe3945eb1e821e351bb836e86",
+                    "datavalue": {
+                        "value": {
+                            "entity-type": "item",
+                            "numeric-id": 484170,
+                            "id": "Q484170"
+                        },
+                        "type": "wikibase-entityid"
+                    },
+                    "datatype": "wikibase-item"
+                },
+                "type": "statement",
+                "id": "Q582$F7F18824-9A1F-4FE2-BCB0-56EA3A32FFF3",
+                "rank": "normal"
+            },
+            {
+                "mainsnak": {
+                    "snaktype": "value",
+                    "property": "P31",
+                    "hash": "1af62c39c83b583e317a43f838058583f06f38aa",
+                    "datavalue": {
+                        "value": {
+                            "entity-type": "item",
+                            "numeric-id": 1549591,
+                            "id": "Q1549591"
+                        },
+                        "type": "wikibase-entityid"
+                    },
+                    "datatype": "wikibase-item"
+                },
+                "type": "statement",
+                "id": "Q582$c47bcb33-440e-189b-e4ec-7e76f21a4972",
+                "rank": "normal"
+            }
+        ],
+        "P443": [
+            {
+                "mainsnak": {
+                    "snaktype": "value",
+                    "property": "P443",
+                    "hash": "fd98b3d471696c741c6e94a23a28f9b82cf4dffb",
+                    "datavalue": {
+                        "value": "LL-Q150 (fra)-Sebleouf-Villeurbanne.wav",
+                        "type": "string"
+                    },
+                    "datatype": "commonsMedia"
+                },
+                "type": "statement",
+                "qualifiers": {
+                    "P407": [
+                        {
+                            "snaktype": "value",
+                            "property": "P407",
+                            "hash": "d197d0a5efa4b4c23a302a829dd3ef43684fe002",
+                            "datavalue": {
+                                "value": {
+                                    "entity-type": "item",
+                                    "numeric-id": 150,
+                                    "id": "Q150"
+                                },
+                                "type": "wikibase-entityid"
+                            },
+                            "datatype": "wikibase-item"
+                        }
+                    ]
+                },
+                "qualifiers-order": [
+                    "P407"
+                ],
+                "id": "Q582$1994ce1c-4a92-48b3-ab76-7947fe7a88a4",
+                "rank": "normal",
+                "references": [
+                    {
+                        "hash": "eb00b1101dce304ebdcef5bc63ed747b85507f67",
+                        "snaks": {
+                            "P854": [
+                                {
+                                    "snaktype": "value",
+                                    "property": "P854",
+                                    "hash": "fc193f02950fc5431bd177a61414efd1cef5b6cc",
+                                    "datavalue": {
+                                        "value": "https://lingualibre.fr/wiki/Q59755",
+                                        "type": "string"
+                                    },
+                                    "datatype": "url"
+                                }
+                            ]
+                        },
+                        "snaks-order": [
+                            "P854"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "P2581": [
+            {
+                "mainsnak": {
+                    "snaktype": "value",
+                    "property": "P2581",
+                    "hash": "e58a4ab4a7e4bdc602e77fc088479d432031df2f",
+                    "datavalue": {
+                        "value": "03389132n",
+                        "type": "string"
+                    },
+                    "datatype": "external-id"
+                },
+                "type": "statement",
+                "id": "Q582$D55546D1-253A-4E65-BEFB-F495DB129B7C",
+                "rank": "normal",
+                "references": [
+                    {
+                        "hash": "248ac337a217a5f5eed7139a82a4e60931611af0",
+                        "snaks": {
+                            "P248": [
+                                {
+                                    "snaktype": "value",
+                                    "property": "P248",
+                                    "hash": "25b816aab41db18565946259c950aed6de05dd1e",
+                                    "datavalue": {
+                                        "value": {
+                                            "entity-type": "item",
+                                            "numeric-id": 4837690,
+                                            "id": "Q4837690"
+                                        },
+                                        "type": "wikibase-entityid"
+                                    },
+                                    "datatype": "wikibase-item"
+                                }
+                            ]
+                        },
+                        "snaks-order": [
+                            "P248"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "sitelinks": {
+        "enwiki": {
+            "site": "enwiki",
+            "title": "Villeurbanne",
+            "badges": []
+        },
+        "frwiki": {
+            "site": "frwiki",
+            "title": "Villeurbanne",
+            "badges": []
+        }
+    }
+}

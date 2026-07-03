@@ -1,0 +1,74 @@
+name: Update test fixtures
+
+# Refreshes the JSON fixtures in test/fixtures/ from the live Wikidata /
+# Wikimedia Commons APIs (scripts/update_test_fixtures.py) and opens a pull
+# request when something changed.
+#
+# Note: pull requests created with the default GITHUB_TOKEN do not trigger
+# the other workflows (pytest/lint). The offline test suite is therefore run
+# in this workflow and its result is reported in the pull request body. To
+# get the full CI on the pull request, close and reopen it, or push an empty
+# commit to its branch.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # First day of every month at 04:00 UTC
+    - cron: '0 4 1 * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-fixtures:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.13'
+          cache: 'poetry'
+
+      - name: Install poetry
+        run: python -m pip install poetry
+
+      - name: Install dependencies
+        run: python -m poetry install --with dev
+
+      - name: Refresh fixtures from live APIs
+        run: python -m poetry run python scripts/update_test_fixtures.py
+
+      - name: Run the offline test suite against the refreshed fixtures
+        id: pytest
+        continue-on-error: true
+        run: python -m poetry run pytest
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/update-test-fixtures
+          commit-message: Update test fixtures from live Wikidata/Commons data
+          title: Update test fixtures
+          labels: tests
+          body: |
+            Automated refresh of the JSON fixtures in `test/fixtures/` from the live
+            Wikidata / Wikimedia Commons APIs (`scripts/update_test_fixtures.py`).
+
+            **Offline test suite result on the refreshed fixtures: `${{ steps.pytest.outcome }}`**
+
+            - If the tests failed, the upstream entities changed in a way that breaks a
+              test assertion: fix the test together with this fixture update.
+            - This pull request was created with the default `GITHUB_TOKEN`, so the
+              regular CI workflows did not run. Close and reopen the pull request (or
+              push to its branch) to trigger them.
+
+      - name: Fail the job if the refreshed fixtures break the test suite
+        if: steps.pytest.outcome == 'failure'
+        run: exit 1

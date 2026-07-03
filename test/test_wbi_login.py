@@ -1,90 +1,90 @@
-import os
-import sys
-import unittest
-
+"""
+Tests for the login flows (bot password, clientlogin, OAuth) against the
+simulated MediaWiki API. Both the happy paths and the failure paths are
+covered, without any real credentials or network access.
+"""
 import pytest
-import requests
-from oauthlib.oauth2 import MissingTokenError
 
 from wikibaseintegrator import wbi_login
-from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
-# look for environment variables. if none set, don't do anything
 from wikibaseintegrator.wbi_login import LoginError
 
-WDUSER = os.getenv("WDUSER")
-WDPASS = os.getenv("WDPASS")
-OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY = os.getenv("OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY")
-OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY = os.getenv("OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY")
-OAUTH1_CONSUMER_TOKEN = os.getenv("OAUTH1_CONSUMER_TOKEN")
-OAUTH1_CONSUMER_SECRET = os.getenv("OAUTH1_CONSUMER_SECRET")
-OAUTH1_ACCESS_TOKEN = os.getenv("OAUTH1_ACCESS_TOKEN")
-OAUTH1_ACCESS_SECRET = os.getenv("OAUTH1_ACCESS_SECRET")
-OAUTH2_CONSUMER_TOKEN = os.getenv("OAUTH2_CONSUMER_TOKEN")
-OAUTH2_CONSUMER_SECRET = os.getenv("OAUTH2_CONSUMER_SECRET")
+
+@pytest.fixture
+def credentials(wikibase):
+    wikibase.valid_credentials['TestUser@bot'] = 'botpassword'
+    wikibase.valid_credentials['TestUser'] = 'password'
+    return wikibase
 
 
-def test_login():
-    with pytest.raises(LoginError):
-        login = wbi_login.Clientlogin(user='wrong', password='wrong')
-        login.generate_edit_credentials()
+class TestBotPasswordLogin:
+    def test_successful_login(self, credentials):
+        login = wbi_login.Login(user='TestUser@bot', password='botpassword')
 
-    with pytest.raises(LoginError):
-        login = wbi_login.Login(user='wrong', password='wrong')
-        login.generate_edit_credentials()
+        assert login.get_edit_token() == credentials.csrf_token
+        assert login.mediawiki_api_url == credentials.mediawiki_api_url
 
-    if WDUSER and WDPASS:
-        assert wbi_login.Clientlogin(user=WDUSER, password=WDPASS)
-        assert wbi_login.Login(user=WDUSER, password=WDPASS)
-    else:
-        print("no WDUSER or WDPASS found in environment variables", file=sys.stderr)
+        # The login flow must be: login token request, login, csrf token request.
+        actions = [request.get('action') or request.get('meta') for request in credentials.requests]
+        assert actions == ['query', 'login', 'query']
+        assert credentials.requests[1]['lgname'] == 'TestUser@bot'
+        assert credentials.requests[1]['lgtoken'] == credentials.login_token
 
+    def test_wrong_credentials(self, credentials):
+        with pytest.raises(LoginError):
+            wbi_login.Login(user='wrong', password='wrong')
 
-def test_verify():
-    with pytest.raises(requests.exceptions.SSLError):
-        wbi_login.Clientlogin(user='wrong', password='wrong', mediawiki_api_url='https://self-signed.badssl.com/', verify=True)
+    def test_edit_token_renewal(self, credentials):
+        login = wbi_login.Login(user='TestUser@bot', password='botpassword', token_renew_period=0)
+        first_token_requests = len(credentials.requests)
 
-    with pytest.raises(requests.exceptions.JSONDecodeError):
-        wbi_login.Clientlogin(user='wrong', password='wrong', mediawiki_api_url='https://self-signed.badssl.com/', verify=False)
+        # With a 0 renew period, asking for the token triggers a new csrf request.
+        assert login.get_edit_token() == credentials.csrf_token
+        assert len(credentials.requests) > first_token_requests
 
-
-def test_oauth1():
-    with pytest.raises(LoginError):
-        login = wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong')
-        login.generate_edit_credentials()
-
-    if OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY and OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY:
-        wbi_login.OAuth1(consumer_token=OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY, consumer_secret=OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY)
-    else:
-        print("no OAUTH1_CONSUMER_TOKEN_NOT_OWNER_ONLY or OAUTH1_CONSUMER_SECRET_NOT_OWNER_ONLY found in environment variables", file=sys.stderr)
+    def test_get_edit_cookie(self, credentials):
+        login = wbi_login.Login(user='TestUser@bot', password='botpassword')
+        assert login.get_edit_cookie() is login.get_session().cookies
 
 
-def test_oauth1_access():
-    with pytest.raises(LoginError):
-        login = wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong', access_token='wrong', access_secret='wrong')
-        login.generate_edit_credentials()
+class TestClientLogin:
+    def test_successful_login(self, credentials):
+        login = wbi_login.Clientlogin(user='TestUser', password='password')
+        assert login.get_edit_token() == credentials.csrf_token
 
-    if OAUTH1_CONSUMER_TOKEN and OAUTH1_CONSUMER_SECRET and OAUTH1_ACCESS_TOKEN and OAUTH1_ACCESS_SECRET:
-        login = wbi_login.OAuth1(consumer_token=OAUTH1_CONSUMER_TOKEN, consumer_secret=OAUTH1_CONSUMER_SECRET, access_token=OAUTH1_ACCESS_TOKEN, access_secret=OAUTH1_ACCESS_SECRET)
-        login.generate_edit_credentials()
-    else:
-        print("no OAUTH1_CONSUMER_TOKEN or OAUTH1_CONSUMER_SECRET or OAUTH1_ACCESS_TOKEN or OAUTH1_ACCESS_SECRET found in environment variables", file=sys.stderr)
+    def test_wrong_credentials(self, credentials):
+        with pytest.raises(LoginError):
+            wbi_login.Clientlogin(user='wrong', password='wrong')
 
 
-def test_oauth2():
-    with pytest.raises((MissingTokenError, LoginError)):
-        login = wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
-        login.generate_edit_credentials()
-
-    if OAUTH2_CONSUMER_TOKEN and OAUTH2_CONSUMER_SECRET:
-        login = wbi_login.OAuth2(consumer_token=OAUTH2_CONSUMER_TOKEN, consumer_secret=OAUTH2_CONSUMER_SECRET)
-        login.generate_edit_credentials()
-    else:
-        print("no OAUTH2_CONSUMER_TOKEN or CLIENT_SECRET found in environment variables", file=sys.stderr)
+class TestAnonymousToken:
+    def test_anonymous_csrf_token_is_rejected(self, credentials):
+        # If the instance replies with the anonymous token '+\', login must fail.
+        credentials.csrf_token = '+\\'
+        with pytest.raises(LoginError):
+            wbi_login.Login(user='TestUser@bot', password='botpassword')
 
 
-def test_mismatch_api_url():
-    if WDUSER and WDPASS:
-        login = wbi_login.Login(user=WDUSER, password=WDPASS)
-        login.generate_edit_credentials()
-        with pytest.raises(ValueError):
-            mediawiki_api_call_helper(data={}, login=login, mediawiki_api_url='https://unsdfdskfjljzkerezr.org/w/api.php')
+class TestOAuth1:
+    def test_owner_only_flow(self, credentials):
+        # With access token/secret provided, the login goes straight to the csrf request.
+        login = wbi_login.OAuth1(consumer_token='consumer-token', consumer_secret='consumer-secret', access_token='access-token', access_secret='access-secret')
+        assert login.get_edit_token() == credentials.csrf_token
+
+    def test_csrf_error_raises_login_error(self, credentials):
+        credentials.fail_next(code='mwoauth-invalid-authorization', info='The authorization headers in your request are not valid.')
+        with pytest.raises(LoginError):
+            wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong', access_token='wrong', access_secret='wrong')
+
+
+class TestOAuth2:
+    def test_successful_flow(self, credentials, requests_mock):
+        requests_mock.post(credentials.mediawiki_rest_url + '/oauth2/access_token', json={'access_token': 'oauth2-access-token', 'token_type': 'Bearer', 'expires_in': 14400})
+
+        login = wbi_login.OAuth2(consumer_token='consumer-token', consumer_secret='consumer-secret')
+        assert login.get_edit_token() == credentials.csrf_token
+
+    def test_invalid_client(self, credentials, requests_mock):
+        requests_mock.post(credentials.mediawiki_rest_url + '/oauth2/access_token', status_code=401, json={'error': 'invalid_client', 'error_description': 'Client authentication failed'})
+
+        with pytest.raises(LoginError):
+            wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
