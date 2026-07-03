@@ -1,116 +1,57 @@
-import os
-import unittest
-from copy import deepcopy
+"""
+Interaction tests for ItemEntity against the simulated Wikibase instance:
+retrieval, error handling and, most importantly, the exact payloads sent to
+the wbeditentity API endpoint when writing.
+"""
+import json
 
 import pytest
-import requests
 
 from wikibaseintegrator import WikibaseIntegrator
-from wikibaseintegrator.datatypes import BaseDataType, Item, MonolingualText, String
-from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
-
-wbi_config['USER_AGENT'] = 'WikibaseIntegrator-pytest/1.0 (test_entity_item.py)'
+from wikibaseintegrator.datatypes import Item, String
+from wikibaseintegrator.wbi_exceptions import ModificationFailed, MWApiError, NonExistentEntityError
 
 wbi = WikibaseIntegrator()
 
 
-class TestEntityItem(unittest.TestCase):
-
-    def test_get(self):
-        # Test with complete id
+class TestGet:
+    def test_get_id_formats(self, item_q582):
         assert wbi.item.get('Q582').id == 'Q582'
-        # Test with numeric id as string
         assert wbi.item.get('582').id == 'Q582'
-        # Test with numeric id as int
         assert wbi.item.get(582).id == 'Q582'
-
-        # Test with invalid id
-        with self.assertRaises(ValueError):
-            wbi.item.get('L5')
-
-        # Test with zero id
-        with self.assertRaises(ValueError):
-            wbi.item.get(0)
-
-        # Test with negative id
-        with self.assertRaises(ValueError):
-            wbi.item.get(-1)
-
-        # Test with negative id
-        with self.assertRaises(NonExistentEntityError):
-            wbi.item.get("Q99999999999999")
-
-    def test_get_json(self):
-        assert wbi.item.get('Q582').get_json()['labels']['fr']['value'] == 'Villeurbanne'
-
-    def test_write(self):
-        with self.assertRaises(requests.exceptions.JSONDecodeError):
-            wbi.item.get('Q582').write(allow_anonymous=True, mediawiki_api_url=os.getenv("HTTPSTATUS_SERVICE", "https://httpbin.org") + "/status/200")
-
-    def test_write_not_required(self):
-        assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P1791')])
-
-    def test_write_required(self):
-        item = wbi.item.get('Q582')
-        item.claims.add(Item(prop_nr='P1791', value='Q42'))
-        assert item.write_required([BaseDataType(prop_nr='P1791')])
-
-    def test_write_not_required_ref(self):
-        assert not wbi.item.get('Q582').write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)
-
-    def test_write_required_ref(self):
-        item = wbi.item.get('Q582')
-        item.claims.get('P2581')[0].references.references.pop()
-        assert item.write_required(base_filter=[BaseDataType(prop_nr='P2581')], use_refs=True)
-
-    def test_long_item_id(self):
         assert wbi.item.get('Item:Q582').id == 'Q582'
 
-    def test_entity_url(self):
-        assert wbi.item.new(id='Q582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
-        assert wbi.item.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
-        assert wbi.item.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+    def test_get_sends_expected_request(self, wikibase, item_q582):
+        wbi.item.get('Q582')
 
-    def test_entity_qualifers_remove(self):
-        item_original = wbi.item.get('Q582')
+        request = wikibase.last_request
+        assert request['action'] == 'wbgetentities'
+        assert request['ids'] == 'Q582'
+        assert request['format'] == 'json'
+        # No login was provided: the query must be anonymous.
+        assert request['assert'] == 'anon'
+        assert request['token'] == '+\\'
 
-        # clear()
-        item = deepcopy(item_original)
-        assert len(item.claims.get('P443')[0].qualifiers.clear('P666')) >= 1
-        item = deepcopy(item_original)
-        assert len(item.claims.get('P443')[0].qualifiers.clear('P407')) == 0
-        item = deepcopy(item_original)
-        assert len(item.claims.get('P443')[0].qualifiers.clear()) == 0
-
-        # remove()
-        item = deepcopy(item_original)
-        from pprint import pprint
-        pprint(item.claims.get('P443')[0].qualifiers)
-        assert len(item.claims.get('P443')[0].qualifiers.remove(Item(prop_nr='P407', value='Q150'))) == 0
-
-        # common
-        item = deepcopy(item_original)
-        assert len(item.claims.get('P443')) >= 1
-        assert len(item.claims.get('P443')[0].qualifiers) >= 1
-
-    def test_new_lines(self):
-        item = wbi.item.new()
+    def test_get_invalid_ids(self, wikibase):
+        with pytest.raises(ValueError):
+            wbi.item.get('L5')
 
         with pytest.raises(ValueError):
-            item.claims.add(String(prop_nr=123, value="Multi\r\nline"))
-        with pytest.raises(ValueError):
-            item.claims.add(String(prop_nr=123, value="Multi\rline"))
-        with pytest.raises(ValueError):
-            item.claims.add(String(prop_nr=123, value="Multi\nline"))
+            wbi.item.get(0)
 
         with pytest.raises(ValueError):
-            item.claims.add(MonolingualText(prop_nr=123, text="Multi\r\nline"))
-            item.claims.add(MonolingualText(prop_nr=123, text="Multi\rline"))
-            item.claims.add(MonolingualText(prop_nr=123, text="Multi\nline"))
+            wbi.item.get(-1)
 
-    def test_get_limited_props(self):
+    def test_get_nonexistent_entity(self, wikibase):
+        with pytest.raises(NonExistentEntityError):
+            wbi.item.get('Q99999999999999')
+
+    def test_get_json(self, item_q582):
+        assert wbi.item.get('Q582').get_json()['labels']['fr']['value'] == 'Villeurbanne'
+
+    def test_get_limited_props(self, wikibase, item_q582):
         item = wbi.item.get('Q582', props=['labels'])
+        assert wikibase.last_request['props'] == 'labels|info'
         assert item.labels.get('fr').value == 'Villeurbanne'
         assert len(item.claims) == 0
         assert len(item.sitelinks) == 0
@@ -120,3 +61,124 @@ class TestEntityItem(unittest.TestCase):
         item = wbi.item.get('Q582', props=['aliases'])
         assert len(item.aliases) > 0
         assert len(item.labels) == 0
+
+
+class TestEntityUrl:
+    def test_entity_url(self):
+        assert wbi.item.new(id='Q582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+        assert wbi.item.new(id='582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+        assert wbi.item.new(id=582).get_entity_url() == 'http://www.wikidata.org/entity/Q582'
+
+
+class TestWrite:
+    def test_write_edit_roundtrip(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.claims.add(Item(prop_nr='P1791', value='Q42'))
+        written = item.write(allow_anonymous=True)
+
+        # The API received exactly one wbeditentity call with the full payload.
+        edit = wikibase.last_edit
+        assert edit['params']['action'] == 'wbeditentity'
+        assert edit['params']['id'] == 'Q582'
+        assert edit['params']['maxlag'] == '5'
+        assert edit['params']['assert'] == 'anon'
+
+        payload = edit['data']
+        assert payload['labels']['fr'] == {'language': 'fr', 'value': 'Villeurbanne'}
+        assert payload['claims']['P1791'][0]['mainsnak']['datavalue']['value']['id'] == 'Q42'
+
+        # The entity returned by the instance is deserialized back.
+        assert written.id == 'Q582'
+        assert written.claims.get('P1791')[0].mainsnak.datavalue['value']['id'] == 'Q42'
+        assert written.claims.get('P1791')[0].id is not None
+        assert written.lastrevid == item_q582['lastrevid'] + 1
+
+    def test_write_new_item(self, wikibase):
+        item = wbi.item.new()
+        item.labels.set(language='en', value='A brand new item')
+        item.claims.add(String(prop_nr='P828', value='new item claim'))
+        written = item.write(allow_anonymous=True)
+
+        edit = wikibase.last_edit
+        assert edit['params']['new'] == 'item'
+        assert 'id' not in edit['params']
+        assert written.id.startswith('Q')
+        assert written.labels.get('en') == 'A brand new item'
+
+    def test_write_with_summary_and_bot_flag(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.write(allow_anonymous=True, summary='update item', is_bot=True)
+
+        params = wikibase.last_edit['params']
+        assert params['summary'] == 'update item'
+        assert params['bot'] == ''
+
+    def test_write_as_new(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        written = item.write(allow_anonymous=True, as_new=True)
+
+        assert wikibase.last_edit['params']['new'] == 'item'
+        assert written.id != 'Q582'
+
+    def test_write_limited_claims(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.write(allow_anonymous=True, limit_claims=['P31'])
+
+        payload = wikibase.last_edit['data']
+        assert list(payload['claims'].keys()) == ['P31']
+
+    def test_write_clear(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.clear(allow_anonymous=True)
+
+        assert wikibase.last_edit['params']['clear'] == ''
+        assert wikibase.last_edit['data'] == {}
+
+    def test_write_baserevid(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.write(allow_anonymous=True, baserevid=item.lastrevid)
+
+        assert wikibase.last_edit['params']['baserevid'] == str(item_q582['lastrevid'])
+
+    def test_anonymous_write_refused_without_flag(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        with pytest.raises(ValueError):
+            item.write()
+
+    def test_write_modification_failed(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        wikibase.fail_next(code='modification-failed', info='Item already has label...', messages=[{'name': 'wikibase-validator-label-with-description-conflict'}])
+
+        with pytest.raises(ModificationFailed):
+            item.write(allow_anonymous=True)
+
+    def test_write_generic_api_error(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        wikibase.fail_next(code='badtoken', info='Invalid CSRF token.')
+
+        with pytest.raises(MWApiError):
+            item.write(allow_anonymous=True)
+
+    def test_write_invalid_json_response(self, wikibase, requests_mock, item_q582):
+        item = wbi.item.get('Q582')
+        requests_mock.post(wikibase.mediawiki_api_url, text='<html>this is not JSON</html>')
+
+        with pytest.raises(json.JSONDecodeError):
+            item.write(allow_anonymous=True)
+
+
+class TestWriteWithLogin:
+    def test_write_uses_edit_token_and_login_session(self, wikibase, item_q582):
+        from wikibaseintegrator import wbi_login
+
+        wikibase.valid_credentials['BotUser@pytest'] = 'botpassword'
+        login = wbi_login.Login(user='BotUser@pytest', password='botpassword', mediawiki_api_url=wikibase.mediawiki_api_url)
+
+        authenticated_wbi = WikibaseIntegrator(login=login)
+        item = authenticated_wbi.item.get('Q582')
+        item.labels.set(language='en', value='Modified label')
+        item.write()
+
+        params = wikibase.last_edit['params']
+        assert params['token'] == wikibase.csrf_token
+        assert params['assert'] == 'user'

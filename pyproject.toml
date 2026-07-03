@@ -10,7 +10,7 @@ authors = [
 license = "MIT"
 readme = "README.md"
 packages = [{ include = "wikibaseintegrator" }]
-include = [{ path = "tests", format = "sdist" }]
+include = [{ path = "test", format = "sdist" }]
 homepage = "https://github.com/LeMyst/WikibaseIntegrator"
 repository = "https://github.com/LeMyst/WikibaseIntegrator"
 documentation = "https://wikibaseintegrator.readthedocs.io"
@@ -52,6 +52,7 @@ optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
+requests-mock = "*"
 pylint = "*"
 pylint-exit = "*"
 mypy = "*"
@@ -87,6 +88,10 @@ pytest-cov = "*"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.codespell]
+# 'Buda' appears in the live Wikimedia Commons caption stored in test/fixtures/mediainfo_M75908279.json
+ignore-words-list = "buda"
+
 [tool.isort]
 line_length = 179
 
@@ -116,3 +121,8 @@ disable = [
 
 [tool.pytest.ini_options]
 log_cli = true
+testpaths = ["test"]
+markers = [
+    "integration: tests running against a real Wikibase instance (deselected by default, see test/integration/README.md)"
+]
+addopts = "-m 'not integration'"

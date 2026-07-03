@@ -1,0 +1,55 @@
+{
+    "pageid": 3922790,
+    "ns": 120,
+    "title": "Property:P50",
+    "lastrevid": 2183770174,
+    "modified": "2025-01-01T00:00:00Z",
+    "type": "property",
+    "datatype": "wikibase-item",
+    "id": "P50",
+    "labels": {
+        "fr": {
+            "language": "fr",
+            "value": "auteur ou autrice"
+        },
+        "en": {
+            "language": "en",
+            "value": "author"
+        }
+    },
+    "descriptions": {
+        "en": {
+            "language": "en",
+            "value": "main creator(s) of a written work (use on works, not humans); use P2093 (author name string) when Wikidata item is unknown or does not exist"
+        }
+    },
+    "aliases": {
+        "en": [
+            {
+                "language": "en",
+                "value": "written by"
+            },
+            {
+                "language": "en",
+                "value": "writer"
+            },
+            {
+                "language": "en",
+                "value": "creator"
+            },
+            {
+                "language": "en",
+                "value": "playwright"
+            },
+            {
+                "language": "en",
+                "value": "poet"
+            },
+            {
+                "language": "en",
+                "value": "maker"
+            }
+        ]
+    },
+    "claims": {}
+}

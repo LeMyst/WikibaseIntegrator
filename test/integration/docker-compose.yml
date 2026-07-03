@@ -1,0 +1,41 @@
+# Minimal Wikibase instance for the WikibaseIntegrator integration tests.
+#
+#   docker compose -f test/integration/docker-compose.yml up -d
+#   # wait for http://localhost:8880 to answer, then:
+#   WBI_INTEGRATION_MEDIAWIKI_API_URL=http://localhost:8880/w/api.php \
+#   WBI_INTEGRATION_USER=WikibaseAdmin \
+#   WBI_INTEGRATION_PASSWORD=WikibaseDockerAdminPass \
+#   pytest -m integration
+#
+# Based on the Wikibase release pipeline images:
+# https://github.com/wmde/wikibase-release-pipeline
+services:
+  wikibase:
+    image: wikibase/wikibase
+    ports:
+      - "8880:80"
+    environment:
+      MW_ADMIN_NAME: WikibaseAdmin
+      MW_ADMIN_PASS: WikibaseDockerAdminPass
+      MW_ADMIN_EMAIL: admin@wikibase.example
+      MW_WG_SERVER: http://localhost:8880
+      DB_SERVER: mysql:3306
+      DB_NAME: wikibase
+      DB_USER: wikibase
+      DB_PASS: wikibase
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mariadb:10.11
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: wikibase
+      MYSQL_USER: wikibase
+      MYSQL_PASSWORD: wikibase
+    healthcheck:
+      test: healthcheck.sh --connect --innodb_initialized
+      start_period: 30s
+      interval: 5s
+      retries: 20
