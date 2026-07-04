@@ -7,6 +7,7 @@ import datetime
 import json
 import logging
 import re
+import warnings
 from time import sleep
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -17,7 +18,8 @@ from requests import Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed,
+                                               SearchError)
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -32,6 +34,9 @@ helpers_session = requests.Session()
 class BColors:
     """
     Default colors for pretty outputs.
+
+    .. deprecated::
+        Kept for backward compatibility only. The library no longer emits ANSI color codes in its logs.
     """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -70,6 +75,10 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             kwargs['data'].update({'format': 'json'})
         elif kwargs['data']['format'] != 'json':
             raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
+
+    # Apply a default timeout to avoid an unresponsive server blocking the process indefinitely (user can override).
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = config['TIMEOUT']
 
     response = None
     session = session if session else default_session
@@ -146,7 +155,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
 
 
 def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
-                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
+                              max_retries: int = 100, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
@@ -201,8 +210,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
                     data.update({'assert': 'user'})
 
             if 'token' in data and data['token'] == '+\\':
-                raise Exception("Anonymous edit are not allowed by default. "
-                                "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
+                raise AnonymousEditNotAllowedError("Anonymous edit are not allowed by default. "
+                                                   "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         else:
             if 'assert' not in data and login is None:
                 # Assert anon if allow_anonymous is True and no Login instance
@@ -222,7 +231,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 1000, retry_after: int = 60) -> dict[
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 100, retry_after: int = 60) -> dict[
     str, dict]:
     """
     Static method which can be used to execute any SPARQL query
@@ -252,17 +261,19 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
         'format': 'json'
     }
 
+    # Send the query in the request body (application/x-www-form-urlencoded, set automatically by requests for data=).
+    # The previous 'multipart/form-data' Content-Type was incorrect (no multipart body was ever sent) and could be
+    # rejected by stricter endpoints. Using the body also avoids URL length limits with large queries.
     headers = {
         'Accept': 'application/sparql-results+json',
-        'User-Agent': get_user_agent(user_agent),
-        'Content-Type': 'multipart/form-data'
+        'User-Agent': get_user_agent(user_agent)
     }
 
-    log.debug("%s%s%s", BColors.WARNING, params['query'], BColors.ENDC)
+    log.debug("SPARQL query:\n%s", params['query'])
 
     for _ in range(max_retries):
         try:
-            response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
+            response = helpers_session.post(sparql_endpoint_url, data=params, headers=headers, timeout=config['TIMEOUT'])
         except requests.exceptions.ConnectionError as e:
             log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
@@ -282,7 +293,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
         return results
 
-    raise Exception(f"No result after {max_retries} retries.")
+    raise MaxRetriesReachedException(f"No result after {max_retries} retries.")
 
 
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
@@ -327,7 +338,8 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
             'title': title
         })
     else:
-        assert type
+        if not type:
+            raise ValueError("The 'type' parameter is mandatory when creating a new entity (no id, site or title given).")
         params.update({'new': type})
 
     if clear:
@@ -432,7 +444,8 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
                      You can see the list of languages for Wikidata at https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all (Use the WMF code)
     :param strict_language: Whether to disable language fallback. Default is 'False'.
     :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense, mediainfo
-    :param max_results: The maximum number of search results returned. The value must be between 0 and 50. Default is 50
+    :param max_results: The maximum number of search results returned. Default is 50. A single API call is limited to 50
+                        results; higher values trigger additional paginated calls and the returned list is truncated to this length.
     :param dict_result: Return the results as a detailed dictionary instead of a list of IDs.
     :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
     """
@@ -444,12 +457,12 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
         'search': search_string,
         'language': language,
         'type': search_type,
-        'limit': 50,
+        'limit': min(max_results, 50),
         'format': 'json'
     }
 
     if strict_language:
-        params.update({'strict_language': ''})
+        params.update({'strictlanguage': ''})
 
     cont_count = 0
     results = []
@@ -476,15 +489,14 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
             else:
                 results.append(i['id'])
 
-        if 'search-continue' not in search_results:
+        # Stop once there is no more page or we gathered enough results
+        if 'search-continue' not in search_results or len(results) >= max_results:
             break
 
         cont_count = search_results['search-continue']
 
-        if cont_count >= max_results:
-            break
-
-    return results
+    # A page holds up to 50 results, so the last page can overshoot max_results: truncate to the requested length
+    return results[:max_results]
 
 
 def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
@@ -657,7 +669,7 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: l
 
     params = {
         'action': 'wbleditsenseelements',
-        'formId': sense_id,
+        'senseId': sense_id,
         'data': ujson.dumps(data),
         'format': 'json'
     }
@@ -676,7 +688,7 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: l
 
 def lexeme_remove_sense(sense_id: str, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
-    Adds Form to Lexeme
+    Removes Sense from Lexeme
 
     :param sense_id: ID of the Sense, e.g. L10-S20
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
@@ -742,7 +754,9 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     from wikibaseintegrator import WikibaseIntegrator
     for qid, v in reply['entities'].items():
         wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
-        f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
+        # Use the recursive subclass registry (not __subclasses__(), which only returns direct subclasses) so that
+        # entities inheriting through an intermediate base (Item/Property/MediaInfo via TermsEntity) are found.
+        f = [x for x in BaseEntity.subclasses if x.ETYPE == v['type']][0]
         ii = f(api=wbi).from_json(v)
         entity_instances.append((qid, ii))
 
@@ -861,6 +875,16 @@ properties_dt: dict = {}
 
 
 def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs) -> BaseEntity:
+    """
+    Build a WikibaseIntegrator entity from a raw Wikibase JSON string.
+
+    .. warning::
+        **Experimental.** This function (and its helper :func:`_json2datatype`) is incomplete (references are not
+        attached, several data types are unsupported, it relies on a mutable module-level cache and has no test
+        coverage). Its API and behaviour may change or be removed without notice.
+    """
+    warnings.warn("format2wbi() is experimental and may change or be removed without notice.", stacklevel=2)
+
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
     json_decoded = json.loads(json_raw)
     # pprint(json_decoded)
@@ -945,6 +969,9 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
 
 
 def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous=True, **kwargs) -> BaseDataType:
+    """
+    Experimental helper for :func:`format2wbi`. See its docstring for caveats. May change or be removed without notice.
+    """
     from wikibaseintegrator.datatypes.basedatatype import BaseDataType
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
 
@@ -1022,7 +1049,7 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
         'User-Agent': get_user_agent(user_agent)
     }
 
-    response = helpers_session.get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers)
+    response = helpers_session.get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers, timeout=config['TIMEOUT'])
     response.raise_for_status()
     results = response.text
 

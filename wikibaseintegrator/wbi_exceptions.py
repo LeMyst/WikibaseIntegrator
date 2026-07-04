@@ -99,3 +99,12 @@ class MissingEntityException(Exception):
 
 class SearchError(Exception):
     pass
+
+
+class AnonymousEditNotAllowedError(Exception):
+    """
+    Raised when an anonymous edit is attempted while it is not explicitly allowed.
+
+    Set ``allow_anonymous=True`` or provide a valid ``login`` object to edit the MediaWiki instance.
+    """
+    pass

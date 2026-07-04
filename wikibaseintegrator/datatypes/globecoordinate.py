@@ -61,19 +61,17 @@ class GlobeCoordinate(BaseDataType):
             }
 
     def __eq__(self, other):
-        if isinstance(other, Claim) and other.mainsnak.datavalue['type'] == 'globecoordinate':
-            tmp_datavalue_self = self.mainsnak.datavalue
-            tmp_datavalue_other = other.mainsnak.datavalue
+        if isinstance(other, Claim) and self.mainsnak.datavalue.get('type') == 'globecoordinate' and other.mainsnak.datavalue.get('type') == 'globecoordinate':
+            # Compare rounded copies to ignore precision noise without mutating the claims
+            def rounded(datavalue: dict) -> dict:
+                value = dict(datavalue['value'])
+                value['latitude'] = round(value['latitude'], 6)
+                value['longitude'] = round(value['longitude'], 6)
+                value['precision'] = round(value['precision'], 17)
+                return {**datavalue, 'value': value}
 
-            tmp_datavalue_self['value']['latitude'] = round(tmp_datavalue_self['value']['latitude'], 6)
-            tmp_datavalue_self['value']['longitude'] = round(tmp_datavalue_self['value']['longitude'], 6)
-            tmp_datavalue_self['value']['precision'] = round(tmp_datavalue_self['value']['precision'], 17)
-
-            tmp_datavalue_other['value']['latitude'] = round(tmp_datavalue_other['value']['latitude'], 6)
-            tmp_datavalue_other['value']['longitude'] = round(tmp_datavalue_other['value']['longitude'], 6)
-            tmp_datavalue_other['value']['precision'] = round(tmp_datavalue_other['value']['precision'], 17)
-
-            return tmp_datavalue_self == tmp_datavalue_other and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
+            return rounded(self.mainsnak.datavalue) == rounded(other.mainsnak.datavalue) and self.mainsnak.property_number == other.mainsnak.property_number \
+                and self.has_equal_qualifiers(other)
 
         return super().__eq__(other)
 

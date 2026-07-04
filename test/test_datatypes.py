@@ -43,6 +43,23 @@ class TestGeoShape:
         assert dt_json['mainsnak']['datavalue']['type'] == 'string'
 
 
+class TestGlobeCoordinate:
+    def test_equality_does_not_mutate_values(self):
+        latitude = 1.234567891
+        coordinate1 = GlobeCoordinate(latitude=latitude, longitude=2.3456789, precision=1e-9, prop_nr='P10')
+        coordinate2 = GlobeCoordinate(latitude=latitude, longitude=2.3456789, precision=1e-9, prop_nr='P10')
+
+        # Equality is checked on rounded values, but the claims themselves must keep their full precision
+        assert coordinate1 == coordinate2
+        assert coordinate1.mainsnak.datavalue['value']['latitude'] == latitude
+
+    def test_equality_with_valueless_claim(self):
+        coordinate = GlobeCoordinate(latitude=1.5, longitude=2.5, prop_nr='P10')
+
+        assert coordinate != GlobeCoordinate(prop_nr='P10')
+        assert coordinate != Item(value='Q123', prop_nr='P10')
+
+
 class TestTime:
     def test_accessors(self):
         time = Time(time='-2023-12-31T00:00:00Z', before=1, after=2, precision=3, timezone=4, prop_nr='P5')
@@ -59,6 +76,16 @@ class TestTime:
         assert time < time2
         assert time <= time2
         assert time != time2
+
+    def test_large_year_parsing(self):
+        # Years with more than 4 digits must be parsed correctly instead of being sliced at fixed positions
+        time = Time(time='+10000-01-02T00:00:00Z', prop_nr='P5')
+        assert time.get_year() == 10000
+        assert time.get_month() == 1
+        assert time.get_day() == 2
+
+        # Ordering keeps working across the 4/5-digit boundary
+        assert Time(time='+9999-01-01T00:00:00Z', prop_nr='P5') < time
 
 
 class TestRank:

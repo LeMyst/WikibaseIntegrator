@@ -159,6 +159,9 @@ class MockWikibase:
 
     def _handle_sparql(self, request: Any, context: Any) -> dict:
         params = parse_qs(urlparse(request.url).query, keep_blank_values=True)
+        # The query is sent in the request body (form-encoded), fall back to the URL query string for robustness.
+        if request.method == 'POST' and request.text:
+            params.update(parse_qs(request.text, keep_blank_values=True))
         query = params.get('query', [''])[0]
         self.sparql_queries.append(query)
 

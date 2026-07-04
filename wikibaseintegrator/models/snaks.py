@@ -147,4 +147,7 @@ class Snak(BaseModel):
         return json_data
 
     def __eq__(self, other):
+        if not isinstance(other, Snak):
+            return NotImplemented
+
         return self.snaktype == other.snaktype and self.property_number == other.property_number and self.datatype == other.datatype and self.datavalue == other.datavalue

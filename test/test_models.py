@@ -11,8 +11,8 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import Item, MonolingualText, String
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.models import Descriptions, Form, Qualifiers
-from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.models import Claims, Descriptions, Form, Qualifiers
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
 
 from .conftest import load_fixture
 
@@ -80,6 +80,15 @@ class TestLabels:
     def test_set_label_in_new_language(self, item):
         item.labels.set(value='label', language='ak')
         assert item.labels.get('ak') == 'label'
+
+    def test_language_value_none_guards(self):
+        from wikibaseintegrator.models.language_values import LanguageValue
+
+        # A LanguageValue with no value must not crash on str/len/in (regression: these raised TypeError on None)
+        empty = LanguageValue(language='en', value=None)
+        assert str(empty) == ''
+        assert len(empty) == 0
+        assert ('anything' in empty) is False
 
 
 class TestDescriptions:
@@ -194,6 +203,48 @@ class TestClaims:
         claim.reset_id()
         assert claim.id is None
 
+    def test_len_counts_properties_while_count_counts_claims(self):
+        claims = Claims()
+        claims.add([String(prop_nr='P1', value='a'), String(prop_nr='P1', value='b'), String(prop_nr='P2', value='c')], action_if_exists=ActionIfExists.FORCE_APPEND)
+
+        # len() is the number of distinct properties, count() the number of individual claims
+        assert len(claims) == 2
+        assert claims.count() == 3
+
+    def test_claim_comparison_with_unrelated_types(self):
+        claim = String(prop_nr='P1', value='foo')
+
+        # Comparing a claim with an unrelated type must return False, not raise
+        assert claim != 5
+        assert (claim == {'mainsnak': {}}) is False
+
+    def test_remove_unsaved_claims(self):
+        claims = Claims()
+        claims.add([String(prop_nr='P1', value='a'), String(prop_nr='P1', value='b')], action_if_exists=ActionIfExists.FORCE_APPEND)
+
+        claims.remove('P1')
+        assert claims.get('P1') == []
+
+    def test_merge_refs_or_append_with_valueless_snak(self):
+        # A no-value snak has no datavalue: MERGE_REFS_OR_APPEND must not raise a KeyError on it.
+        claims = Claims()
+        claims.add(String(prop_nr='P1', snaktype=WikibaseSnakType.NO_VALUE), action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+        claims.add(String(prop_nr='P1', snaktype=WikibaseSnakType.NO_VALUE), action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+
+        # The two identical no-value statements are recognized as equal, so only one is kept
+        assert len(claims.get('P1')) == 1
+
+    def test_merge_refs_or_append_merges_references(self):
+        claims = Claims()
+        claims.add(Item(value='Q1', prop_nr='P1', references=[datatypes.ExternalID(value='ref1', prop_nr='P352')]),
+                   action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+        # Same value but a new reference block: the reference is merged into the existing claim, no new claim is added
+        claims.add(Item(value='Q1', prop_nr='P1', references=[datatypes.ExternalID(value='ref2', prop_nr='P352')]),
+                   action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+
+        assert len(claims.get('P1')) == 1
+        assert len(claims.get('P1')[0].references) == 2
+
     def test_multiline_string_values_rejected(self):
         item = ItemEntity()
 
@@ -216,6 +267,14 @@ class TestQualifiers:
     def test_remove(self, item):
         removed = copy.deepcopy(item)
         assert len(removed.claims.get('P443')[0].qualifiers.remove(Item(prop_nr='P407', value='Q150'))) == 0
+
+    def test_count(self):
+        claim = Item(prop_nr='P1')
+        claim.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2'), Item(prop_nr='P3', value='Q3')])
+
+        # len() is the number of distinct qualifier properties, count() the number of individual snaks
+        assert len(claim.qualifiers) == 2
+        assert claim.qualifiers.count() == 3
 
     def test_equality(self):
         claim1 = Item(prop_nr='P1')
@@ -264,6 +323,17 @@ class TestReferences:
         olditem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
         assert olditem.equals(newitem, include_ref=True)
 
+    def test_reference_removal(self):
+        claim = datatypes.Item(value='Q123', prop_nr='P123', references=[datatypes.ExternalID(value='P58742', prop_nr='P352')])
+
+        # Removing a reference that is not present returns False
+        assert claim.references.remove(datatypes.ExternalID(value='unknown', prop_nr='P352')) is False
+        assert len(claim.references) == 1
+
+        # An equivalent reference built from a claim is found and removed
+        assert claim.references.remove(datatypes.ExternalID(value='P58742', prop_nr='P352')) is True
+        assert len(claim.references) == 0
+
 
 class TestForms:
     def test_get_forms(self):
@@ -280,6 +350,46 @@ class TestForms:
         assert not lexeme.forms.get('L5-F3')
         assert lexeme.forms.get('L5-F4') and lexeme.forms.get('L5-F5')
         assert len(lexeme.forms) == 4
+
+    def test_grammatical_features_setter(self):
+        # int is normalized to a Q-id, str/list are wrapped/kept as a list
+        assert Form(grammatical_features=123).grammatical_features == ['Q123']
+        assert Form(grammatical_features='Q123').grammatical_features == ['Q123']
+        assert Form(grammatical_features=['Q1', 'Q2']).grammatical_features == ['Q1', 'Q2']
+        assert Form().grammatical_features == []
+
+        # The setter replaces the value instead of accumulating on each assignment
+        form = Form()
+        form.grammatical_features = 5
+        form.grammatical_features = 6
+        assert form.grammatical_features == ['Q6']
+
+        with pytest.raises(TypeError):
+            Form(grammatical_features=1.5)
+        with pytest.raises(TypeError):
+            Form(grammatical_features=True)
+
+
+class TestTermsEntity:
+    def test_term_setters_validate_type_across_entities(self):
+        from wikibaseintegrator.entities import ItemEntity, MediaInfoEntity, PropertyEntity
+
+        # The shared labels/descriptions/aliases setters (now on the TermsEntity base) still validate their type
+        for entity_cls in (ItemEntity, PropertyEntity, MediaInfoEntity):
+            with pytest.raises(TypeError):
+                entity_cls(labels='not a Labels object')
+
+    def test_mediainfo_reads_aliases_from_json(self):
+        from wikibaseintegrator.entities import MediaInfoEntity
+
+        media = MediaInfoEntity().from_json({
+            'id': 'M1', 'type': 'mediainfo', 'lastrevid': 1,
+            'labels': {'en': {'language': 'en', 'value': 'a caption'}},
+            'descriptions': {},
+            'aliases': {'en': [{'language': 'en', 'value': 'an alias'}]},
+        })
+        assert media.labels.get('en') == 'a caption'
+        assert 'an alias' in [alias.value for alias in media.aliases.get('en')]
 
 
 class TestWikibaseIntegratorApi:

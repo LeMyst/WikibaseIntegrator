@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING, Any
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
+from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.claims import Claim, Claims
+from wikibaseintegrator.models.descriptions import Descriptions
+from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
@@ -279,7 +282,8 @@ class BaseEntity:
 
         if as_new:
             entity_id = None
-            data['id'] = None
+            # Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API.
+            data.pop('id', None)
         else:
             entity_id = self.id
 
@@ -326,9 +330,18 @@ class BaseEntity:
         if base_filter is None:
             base_filter = []
 
+        # Collect the property numbers targeted by the base_filter. It supports both the simple form (a
+        # BaseDataType) and the property-path form (a list of two BaseDataType), whose anchor is the first property.
+        base_filter_props = set()
+        for prop in base_filter:
+            if isinstance(prop, BaseDataType):
+                base_filter_props.add(prop.mainsnak.property_number)
+            elif isinstance(prop, list) and prop and isinstance(prop[0], BaseDataType):
+                base_filter_props.add(prop[0].mainsnak.property_number)
+
         claims_to_check = []
         for claim in self.claims:
-            if claim.mainsnak.property_number in base_filter:
+            if claim.mainsnak.property_number in base_filter_props:
                 claims_to_check.append(claim)
 
         # TODO: Add check_language_data
@@ -357,3 +370,60 @@ class BaseEntity:
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
+
+
+class TermsEntity(BaseEntity):
+    """
+    Base class for the entities that share the labels/descriptions/aliases "terms": Item, Property and MediaInfo.
+    """
+
+    def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+
+        self.labels = labels or Labels()
+        self.descriptions = descriptions or Descriptions()
+        self.aliases = aliases or Aliases()
+
+    @property
+    def labels(self) -> Labels:
+        return self.__labels
+
+    @labels.setter
+    def labels(self, labels: Labels):
+        if not isinstance(labels, Labels):
+            raise TypeError
+        self.__labels = labels
+
+    @property
+    def descriptions(self) -> Descriptions:
+        return self.__descriptions
+
+    @descriptions.setter
+    def descriptions(self, descriptions: Descriptions):
+        if not isinstance(descriptions, Descriptions):
+            raise TypeError
+        self.__descriptions = descriptions
+
+    @property
+    def aliases(self) -> Aliases:
+        return self.__aliases
+
+    @aliases.setter
+    def aliases(self, aliases: Aliases):
+        if not isinstance(aliases, Aliases):
+            raise TypeError
+        self.__aliases = aliases
+
+    def _terms_from_json(self, json_data: dict[str, Any]) -> None:
+        """
+        Deserialize the labels/descriptions/aliases blocks.
+
+        Only the terms present in ``json_data`` are set, so this is safe to call on entities that never carry some
+        of them (e.g. a MediaInfo entity usually has no aliases).
+        """
+        if 'labels' in json_data:
+            self.labels = Labels().from_json(json_data['labels'])
+        if 'descriptions' in json_data:
+            self.descriptions = Descriptions().from_json(json_data['descriptions'])
+        if 'aliases' in json_data:
+            self.aliases = Aliases().from_json(json_data['aliases'])

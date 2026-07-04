@@ -88,3 +88,14 @@ class TestOAuth2:
 
         with pytest.raises(LoginError):
             wbi_login.OAuth2(consumer_token='wrong', consumer_secret='wrong')
+
+    def test_access_token_is_refreshed_on_renewal(self, credentials, requests_mock):
+        token_matcher = requests_mock.post(credentials.mediawiki_rest_url + '/oauth2/access_token',
+                                           json={'access_token': 'oauth2-access-token', 'token_type': 'Bearer', 'expires_in': 14400})
+
+        login = wbi_login.OAuth2(consumer_token='consumer-token', consumer_secret='consumer-secret', token_renew_period=0)
+        calls_after_init = token_matcher.call_count
+
+        # The short-lived access token has no refresh token, so renewing the credentials must re-fetch it (not only the CSRF token).
+        login.get_edit_token()
+        assert token_matcher.call_count > calls_after_init
