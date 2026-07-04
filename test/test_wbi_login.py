@@ -6,6 +6,7 @@ covered, without any real credentials or network access.
 import pytest
 
 from wikibaseintegrator import wbi_login
+from wikibaseintegrator.wbi_helpers import edit_entity
 from wikibaseintegrator.wbi_login import LoginError
 
 
@@ -45,6 +46,29 @@ class TestBotPasswordLogin:
         login = wbi_login.Login(user='TestUser@bot', password='botpassword')
         assert login.get_edit_cookie() is login.get_session().cookies
 
+    def test_reauthenticate_redoes_full_login(self, credentials):
+        # generate_edit_credentials() alone can't recover a session the server already dropped (#902):
+        # reauthenticate() must redo the login-token + login round trip, not just fetch a new csrf token.
+        login = wbi_login.Login(user='TestUser@bot', password='botpassword')
+        requests_before = len(credentials.requests)
+
+        login.reauthenticate()
+
+        actions = [request.get('action') or request.get('meta') for request in credentials.requests[requests_before:]]
+        assert actions == ['query', 'login', 'query']
+        assert login.get_edit_token() == credentials.csrf_token
+
+    def test_session_loss_is_recovered_on_write(self, credentials):
+        # Simulate the server having invalidated the session mid-run: the very next write must
+        # transparently re-login and retry instead of raising MWApiError.
+        login = wbi_login.Login(user='TestUser@bot', password='botpassword')
+        credentials.fail_next(code='assertbotfailed', info='You do not have the "bot" right, so the action could not be completed.')
+
+        result = edit_entity(data={}, id='Q1', login=login, is_bot=True)
+
+        assert result['success'] == 1
+        assert login.get_edit_token() == credentials.csrf_token
+
 
 class TestClientLogin:
     def test_successful_login(self, credentials):
@@ -54,6 +78,25 @@ class TestClientLogin:
     def test_wrong_credentials(self, credentials):
         with pytest.raises(LoginError):
             wbi_login.Clientlogin(user='wrong', password='wrong')
+
+    def test_reauthenticate_redoes_full_login(self, credentials):
+        login = wbi_login.Clientlogin(user='TestUser', password='password')
+        requests_before = len(credentials.requests)
+
+        login.reauthenticate()
+
+        actions = [request.get('action') or request.get('meta') for request in credentials.requests[requests_before:]]
+        assert actions == ['query', 'clientlogin', 'query']
+        assert login.get_edit_token() == credentials.csrf_token
+
+    def test_session_loss_is_recovered_on_write(self, credentials):
+        login = wbi_login.Clientlogin(user='TestUser', password='password')
+        credentials.fail_next(code='assertuserfailed', info='You are no longer logged in, so the action could not be completed.')
+
+        result = edit_entity(data={}, id='Q1', login=login)
+
+        assert result['success'] == 1
+        assert login.get_edit_token() == credentials.csrf_token
 
 
 class TestAnonymousToken:

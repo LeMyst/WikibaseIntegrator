@@ -104,6 +104,21 @@ class _Login:
         """
         return self.session
 
+    def reauthenticate(self) -> None:
+        """
+        Recover from a session that the server has invalidated (e.g. MediaWiki returning
+        'assertuserfailed'/'assertbotfailed'/'notloggedin' on an otherwise well-formed request, see #902).
+
+        Simply asking for a new CSRF token via generate_edit_credentials() cannot resurrect a session the
+        server has already dropped, since that call is itself authenticated by the same (now invalid)
+        session cookies. This default implementation is only adequate for auth methods where
+        generate_edit_credentials() actually re-establishes the underlying credentials (OAuth2, which
+        refreshes its access token first) or where authentication is per-request rather than session-based
+        (OAuth1). Login and Clientlogin override this to redo the full username/password login.
+        """
+        self.generate_edit_credentials()
+        self.instantiation_time = time.time()
+
 
 class OAuth2(_Login):
     @wbi_backoff()
@@ -264,15 +279,24 @@ class Login(_Login):
         user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
         session = Session()
 
+        # Kept so reauthenticate() can redo this same flow after the server invalidates the session (#902).
+        self._user = user
+        self._password = password
+        self._login_kwargs = kwargs
+
+        headers = {
+            'User-Agent': get_user_agent(user_agent)
+        }
+        self._perform_login(session=session, mediawiki_api_url=mediawiki_api_url, headers=headers, **kwargs)
+
+        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
+
+    def _perform_login(self, session: Session, mediawiki_api_url: str, headers: dict[str, str], **kwargs: Any) -> None:
         params_login = {
             'action': 'query',
             'meta': 'tokens',
             'type': 'login',
             'format': 'json'
-        }
-
-        headers = {
-            'User-Agent': get_user_agent(user_agent)
         }
 
         allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
@@ -285,8 +309,8 @@ class Login(_Login):
         login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
         params = {
             'action': 'login',
-            'lgname': user,
-            'lgpassword': password,
+            'lgname': self._user,
+            'lgpassword': self._password,
             'lgtoken': login_token,
             'format': 'json'
         }
@@ -305,7 +329,16 @@ class Login(_Login):
             for message in login_result['warnings']:
                 log.warning(f"* {message}: {login_result['warnings'][message]['*']}")
 
-        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
+    def reauthenticate(self) -> None:
+        """
+        Redo the full bot-password login flow on the existing session, then refresh the CSRF token.
+        See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
+        """
+        log.warning("Session no longer valid, re-authenticating as %s", self._user)
+        headers = {'User-Agent': self.session.headers.get('User-Agent', get_user_agent())}
+        self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
+        self.generate_edit_credentials()
+        self.instantiation_time = time.time()
 
 
 class Clientlogin(_Login):
@@ -326,15 +359,24 @@ class Clientlogin(_Login):
         user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
         session = Session()
 
+        # Kept so reauthenticate() can redo this same flow after the server invalidates the session (#902).
+        self._user = user
+        self._password = password
+        self._login_kwargs = kwargs
+
+        headers = {
+            'User-Agent': get_user_agent(user_agent)
+        }
+        self._perform_login(session=session, mediawiki_api_url=mediawiki_api_url, headers=headers, **kwargs)
+
+        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
+
+    def _perform_login(self, session: Session, mediawiki_api_url: str, headers: dict[str, str], **kwargs: Any) -> None:
         params_login = {
             'action': 'query',
             'meta': 'tokens',
             'type': 'login',
             'format': 'json'
-        }
-
-        headers = {
-            'User-Agent': get_user_agent(user_agent)
         }
 
         allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
@@ -348,8 +390,8 @@ class Clientlogin(_Login):
 
         params = {
             'action': 'clientlogin',
-            'username': user,
-            'password': password,
+            'username': self._user,
+            'password': self._password,
             'logintoken': login_token,
             'loginreturnurl': 'https://example.org/',
             'format': 'json'
@@ -376,7 +418,16 @@ class Clientlogin(_Login):
             for message in login_result['warnings']:
                 log.warning(f"* {message}: {login_result['warnings'][message]['*']}")
 
-        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
+    def reauthenticate(self) -> None:
+        """
+        Redo the full clientlogin flow on the existing session, then refresh the CSRF token.
+        See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
+        """
+        log.warning("Session no longer valid, re-authenticating as %s", self._user)
+        headers = {'User-Agent': self.session.headers.get('User-Agent', get_user_agent())}
+        self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
+        self.generate_edit_credentials()
+        self.instantiation_time = time.time()
 
 
 class LoginError(Exception):

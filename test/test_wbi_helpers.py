@@ -21,12 +21,17 @@ class FakeLogin:
         self.mediawiki_api_url = mediawiki_api_url
         self.edit_token = edit_token
         self.session = requests.Session()
+        self.reauthenticate_calls = 0
 
     def get_edit_token(self):
         return self.edit_token
 
     def get_session(self):
         return self.session
+
+    def reauthenticate(self):
+        self.reauthenticate_calls += 1
+        self.edit_token = 'renewed-token+\\'
 
 
 class TestRetryBehaviour:
@@ -132,6 +137,32 @@ class TestErrorMapping:
         wikibase.fail_next(code='badtoken', info='Invalid CSRF token.')
         with pytest.raises(MWApiError):
             mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json'}, allow_anonymous=True)
+
+
+@pytest.mark.parametrize('error_code', ['assertuserfailed', 'assertbotfailed', 'notloggedin'])
+class TestSessionRecovery:
+    """
+    A CSRF token can look fresh yet the server has already dropped the underlying session (#902).
+    On assertuserfailed/assertbotfailed/notloggedin, the login object must be asked to fully
+    re-authenticate and the call retried, instead of failing outright.
+    """
+
+    def test_session_loss_triggers_reauthentication_and_retry(self, wikibase, error_code):
+        wikibase.fail_next(code=error_code, info='You are no longer logged in, so the action could not be completed.')
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+
+        result = mediawiki_api_call_helper(data={'action': 'query', 'format': 'json'}, login=login, mediawiki_api_url=wikibase.mediawiki_api_url)
+
+        assert result == {'batchcomplete': ''}
+        assert login.reauthenticate_calls == 1
+        # The retried request must carry the token obtained after re-authenticating, not the stale one.
+        assert wikibase.last_request['token'] == 'renewed-token+\\'
+
+    def test_session_loss_without_login_is_not_retried(self, wikibase, error_code):
+        # Without a login object there is nothing to re-authenticate with, so the error must surface as-is.
+        wikibase.fail_next(code=error_code, info='You are no longer logged in, so the action could not be completed.')
+        with pytest.raises(MWApiError):
+            mediawiki_api_call_helper(data={'action': 'query', 'format': 'json'}, allow_anonymous=True)
 
 
 class TestAuthenticationGuards:
