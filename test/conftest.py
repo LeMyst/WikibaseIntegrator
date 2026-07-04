@@ -79,6 +79,7 @@ class MockWikibase:
         self.search_results: list[dict] = []  # wbsearchentities results
         self.fulltext_results: list[dict] = []  # list=search results
         self.sparql_bindings: list[dict] = []  # bindings returned by the SPARQL endpoint
+        self.constraint_results: dict[str, list[dict]] = {}  # wbcheckconstraints results, keyed by entity id
         self.valid_credentials: dict[str, str] = {}  # user -> password accepted by (client)login
         self.login_token = 'aabbccddeeff+\\'
         self.csrf_token = '0123456789abcdef+\\'
@@ -367,6 +368,11 @@ class MockWikibase:
 
     def _action_delete(self, params: dict[str, str]) -> dict:
         return {'delete': {'title': params.get('title', ''), 'reason': params.get('reason', 'mock deletion'), 'logid': 1}}
+
+    def _action_wbcheckconstraints(self, params: dict[str, str]) -> dict:
+        requested_ids = params['id'].split('|') if 'id' in params else list(self.constraint_results.keys())
+        claims = {entity_id: deepcopy(self.constraint_results[entity_id]) for entity_id in requested_ids if entity_id in self.constraint_results}
+        return {'claims': claims, 'success': 1}
 
 
 # ---------------------------------------------------------------------- #
