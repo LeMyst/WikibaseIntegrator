@@ -1898,27 +1898,6 @@ files = [
 typing-extensions = {version = "*", markers = "python_version < \"3.11\""}
 
 [[package]]
-name = "mwoauth"
-version = "0.4.0"
-description = "A generic MediaWiki OAuth handshake helper."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "mwoauth-0.4.0-py3-none-any.whl", hash = "sha256:fed9bc7d6bbabb5f691b918af0ac844e13c9b75d5fa51a898f36d54d798b5fe1"},
-    {file = "mwoauth-0.4.0.tar.gz", hash = "sha256:22e3403e748e70146f8eccc1430fe542c9f9c4ff677eff424a52e644f6d8f7c5"},
-]
-
-[package.dependencies]
-oauthlib = "*"
-PyJWT = ">=1.0.1"
-requests = "*"
-requests-oauthlib = "*"
-
-[package.extras]
-flask = ["flask"]
-
-[[package]]
 name = "mypy"
 version = "2.1.0"
 description = "Optional static typing for Python"
@@ -2420,24 +2399,6 @@ files = [
 
 [package.extras]
 windows-terminal = ["colorama (>=0.4.6)"]
-
-[[package]]
-name = "pyjwt"
-version = "2.13.0"
-description = "JSON Web Token implementation in Python"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "pyjwt-2.13.0-py3-none-any.whl", hash = "sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728"},
-    {file = "pyjwt-2.13.0.tar.gz", hash = "sha256:41571c89ca91598c79e8ef18a2d07367d4810fbbd6f637794879baf1b7703423"},
-]
-
-[package.dependencies]
-typing_extensions = {version = ">=4.0", markers = "python_version < \"3.11\""}
-
-[package.extras]
-crypto = ["cryptography (>=3.4.0)"]
 
 [[package]]
 name = "pylint"
@@ -3758,12 +3719,12 @@ version = "4.16.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "coverage", "dev", "docs", "notebooks"]
+groups = ["coverage", "dev", "docs", "notebooks"]
 files = [
     {file = "typing_extensions-4.16.0-py3-none-any.whl", hash = "sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"},
     {file = "typing_extensions-4.16.0.tar.gz", hash = "sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5"},
 ]
-markers = {main = "python_version == \"3.10\"", coverage = "python_version == \"3.10\"", docs = "python_version >= \"3.11\" and python_version < \"3.13\""}
+markers = {coverage = "python_version == \"3.10\"", docs = "python_version >= \"3.11\" and python_version < \"3.13\""}
 
 [[package]]
 name = "tzdata"
@@ -3981,4 +3942,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "505ee90d158ed8020002f7f485cdc68fa0d5d0f7520267948cf8210d1c5983cb"
+content-hash = "3c3710f79630363e3c72c5cde954e2b7833f78db41fc4e10dbd8d9e9ddd90f57"
