@@ -11,7 +11,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
 from wikibaseintegrator.wbi_helpers import (download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances, get_user_agent,
                                             lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, remove_claims,
-                                            search_entities)
+                                            search_entities, check_constraints)
 
 
 class FakeLogin:
@@ -252,6 +252,39 @@ class TestSearchEntities:
         assert 'strictlanguage' in wikibase.last_request
         assert wikibase.last_request['limit'] == '10'
         assert len(results) == 10
+
+
+class TestCheckConstraints:
+    def test_requires_entity_id_or_claim_id(self):
+        with pytest.raises(ValueError):
+            check_constraints()
+
+    def test_check_by_entity_id(self, wikibase):
+        wikibase.constraint_results = {
+            'Q582': [{'id': 'Q582$1', 'results': [{'status': 'violation', 'property': 'P17'}]}]
+        }
+
+        result = check_constraints(entity_id='Q582')
+        assert wikibase.last_request['action'] == 'wbcheckconstraints'
+        assert wikibase.last_request['id'] == 'Q582'
+        assert result['claims']['Q582'][0]['results'][0]['status'] == 'violation'
+
+    def test_check_by_multiple_entity_ids(self, wikibase):
+        wikibase.constraint_results = {
+            'Q582': [{'id': 'Q582$1', 'results': []}],
+            'Q1': [{'id': 'Q1$1', 'results': []}],
+        }
+
+        check_constraints(entity_id=['Q582', 'Q1'])
+        assert wikibase.last_request['id'] == 'Q582|Q1'
+
+    def test_check_by_claim_id(self, wikibase):
+        check_constraints(claim_id='Q582$1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a')
+        assert wikibase.last_request['claimid'] == 'Q582$1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a'
+
+    def test_check_with_status_filter(self, wikibase):
+        check_constraints(entity_id='Q582', status=['violation', 'warning'])
+        assert wikibase.last_request['status'] == 'violation|warning'
 
 
 class TestFulltextSearch:

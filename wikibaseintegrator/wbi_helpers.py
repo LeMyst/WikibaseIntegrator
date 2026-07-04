@@ -433,6 +433,44 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
+def check_constraints(entity_id: str | list[str] | None = None, claim_id: str | list[str] | None = None, status: list[str] | None = None, allow_anonymous: bool = True,
+                      **kwargs: Any) -> dict:
+    """
+    Check the constraint violations of one or more entities or claims, using the target Wikibase instance's own constraint checker
+    (the ``wbcheckconstraints`` API module provided by the `WikibaseQualityConstraints
+    <https://www.mediawiki.org/wiki/Extension:WikibaseQualityConstraints>`_ extension).
+
+    This relies entirely on the constraints configured on the Wikibase instance being queried (e.g. on Wikidata itself), rather than
+    on a hardcoded or Wikidata-specific set of rules, so it works the same way against any Wikibase instance that has the extension
+    installed. If the extension isn't installed, the underlying API call will fail with a :class:`~wikibaseintegrator.wbi_exceptions.MWApiError`.
+
+    :param entity_id: One or more entity IDs (item, property, lexeme, etc.) whose claims should be checked.
+    :param claim_id: One or more claim GUIDs to check, instead of checking whole entities.
+    :param status: Only return results with one of these statuses, e.g. ``['violation']``. By default, the API returns every status.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default since this is a read-only action.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper()
+    :return: The data returned by the API as a dictionary
+    """
+    if not entity_id and not claim_id:
+        raise ValueError("You must provide either 'entity_id' or 'claim_id'.")
+
+    params: dict[str, Any] = {
+        'action': 'wbcheckconstraints',
+        'format': 'json'
+    }
+
+    if entity_id:
+        params.update({'id': '|'.join(entity_id) if isinstance(entity_id, list) else entity_id})
+
+    if claim_id:
+        params.update({'claimid': '|'.join(claim_id) if isinstance(claim_id, list) else claim_id})
+
+    if status:
+        params.update({'status': '|'.join(status)})
+
+    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+
+
 def search_entities(search_string: str, language: str | None = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
                     allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
     """
