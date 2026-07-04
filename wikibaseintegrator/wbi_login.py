@@ -5,11 +5,13 @@ import logging
 import time
 import webbrowser
 from typing import Any, cast
+from urllib.parse import parse_qs, urlencode
 
-from mwoauth import ConsumerToken, Handshaker, OAuthException
+import requests
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
 from requests import Session
 from requests.cookies import RequestsCookieJar
+from requests_oauthlib import OAuth1 as OAuth1Auth
 from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
@@ -176,19 +178,35 @@ class OAuth1(_Login):
             super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
         else:
             # Oauth procedure, based on https://www.mediawiki.org/wiki/OAuth/For_Developers
-            # Construct a "consumer" from the key/secret provided by MediaWiki
-            self.oauth1_consumer_token = ConsumerToken(consumer_token, consumer_secret)
+            self.consumer_token = consumer_token
+            self.consumer_secret = consumer_secret
+            self.mediawiki_index_url = mediawiki_index_url
+            self.mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+            self.token_renew_period = token_renew_period
+            self.user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
-            # Construct handshaker with wiki URI and consumer
-            self.handshaker = Handshaker(mw_uri=mediawiki_index_url, consumer_token=self.oauth1_consumer_token, callback=callback_url,
-                                         user_agent=get_user_agent(user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)))
+            # Step 1: Initiate -- ask MediaWiki for a temporary key/secret for the user
+            auth = OAuth1Auth(consumer_token, client_secret=consumer_secret, callback_uri=callback_url)
+            response = requests.post(url=mediawiki_index_url, params={'title': "Special:OAuth/initiate"}, auth=auth, headers={'User-Agent': get_user_agent(self.user_agent)}, timeout=config['TIMEOUT'])
 
-            # Step 1: Initialize -- ask MediaWiki for a temp key/secret for user
+            request_token = self._parse_token_response(response.text)
+            self.request_token_key = request_token['oauth_token']
+            self.request_token_secret = request_token['oauth_token_secret']
+
             # redirect -> authorization -> callback url
-            try:
-                self.redirect, self.request_token = self.handshaker.initiate(callback=callback_url)
-            except OAuthException as err:
-                raise LoginError(err) from err
+            params = {'title': "Special:OAuth/authenticate", 'oauth_token': self.request_token_key, 'oauth_consumer_key': consumer_token}
+            self.redirect = mediawiki_index_url + '?' + urlencode(params)
+
+    @staticmethod
+    def _parse_token_response(content: str) -> dict[str, str]:
+        if content.startswith("Error: "):
+            raise LoginError(content[len("Error: "):])
+
+        credentials = parse_qs(content)
+        if not credentials or 'oauth_token' not in credentials or 'oauth_token_secret' not in credentials:
+            raise LoginError(f"MediaWiki response lacks token information: {content!r}")
+
+        return {'oauth_token': credentials['oauth_token'][0], 'oauth_token_secret': credentials['oauth_token_secret'][0]}
 
     def continue_oauth(self, oauth_callback_data: str | None = None) -> None:
         """
@@ -205,17 +223,27 @@ class OAuth1(_Login):
 
         # input the url from redirect after authorization
         response_qs = oauth_callback_data.split('?')[-1]
+        callback_data = parse_qs(response_qs)
+
+        if not callback_data or 'oauth_token' not in callback_data or 'oauth_verifier' not in callback_data:
+            raise LoginError(f"Query string lacks token information: {callback_data!r}")
+
+        request_token_key = callback_data['oauth_token'][0]
+        verifier = callback_data['oauth_verifier'][0]
+
+        if self.request_token_key != request_token_key:
+            raise LoginError(f"Unexpected request token key {request_token_key!r}, expected {self.request_token_key!r}.")
 
         # Step 3: Complete -- obtain authorized key/secret for "resource owner"
-        access_token = self.handshaker.complete(self.request_token, response_qs)
+        auth = OAuth1Auth(self.consumer_token, client_secret=self.consumer_secret, resource_owner_key=self.request_token_key, resource_owner_secret=self.request_token_secret, verifier=verifier)
+        response = requests.post(url=self.mediawiki_index_url, params={'title': "Special:OAuth/token"}, auth=auth, headers={'User-Agent': get_user_agent(self.user_agent)}, timeout=config['TIMEOUT'])
 
-        if self.oauth1_consumer_token is None:
-            raise ValueError("oauth1_consumer_token can't be None")
+        access_token = self._parse_token_response(response.text)
 
         # input the access token to return a csrf (edit) token
-        self.session = OAuth1Session(client_key=self.oauth1_consumer_token.key, client_secret=self.oauth1_consumer_token.secret, resource_owner_key=access_token.key,
-                                     resource_owner_secret=access_token.secret)
-        self.generate_edit_credentials()
+        session = OAuth1Session(client_key=self.consumer_token, client_secret=self.consumer_secret, resource_owner_key=access_token['oauth_token'],
+                                resource_owner_secret=access_token['oauth_token_secret'])
+        super().__init__(session=session, token_renew_period=self.token_renew_period, user_agent=self.user_agent, mediawiki_api_url=self.mediawiki_api_url)
 
 
 class Login(_Login):

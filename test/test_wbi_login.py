@@ -75,6 +75,27 @@ class TestOAuth1:
         with pytest.raises(LoginError):
             wbi_login.OAuth1(consumer_token='wrong', consumer_secret='wrong', access_token='wrong', access_secret='wrong')
 
+    def test_three_legged_flow(self, credentials, requests_mock):
+        # Step 1 (initiate) and step 3 (token) both post to Special:OAuth on the index endpoint.
+        requests_mock.post(credentials.mediawiki_index_url, [
+            {'text': 'oauth_token=request-key&oauth_token_secret=request-secret'},
+            {'text': 'oauth_token=access-key&oauth_token_secret=access-secret'},
+        ])
+
+        login = wbi_login.OAuth1(consumer_token='consumer-token', consumer_secret='consumer-secret')
+        assert 'oauth_token=request-key' in login.redirect
+        assert login.request_token_key == 'request-key'
+
+        login.continue_oauth('https://example.org/callback?oauth_token=request-key&oauth_verifier=some-verifier')
+        assert login.get_edit_token() == credentials.csrf_token
+
+    def test_three_legged_flow_wrong_request_token(self, credentials, requests_mock):
+        requests_mock.post(credentials.mediawiki_index_url, text='oauth_token=request-key&oauth_token_secret=request-secret')
+
+        login = wbi_login.OAuth1(consumer_token='consumer-token', consumer_secret='consumer-secret')
+        with pytest.raises(LoginError):
+            login.continue_oauth('https://example.org/callback?oauth_token=unexpected-key&oauth_verifier=some-verifier')
+
 
 class TestOAuth2:
     def test_successful_flow(self, credentials, requests_mock):

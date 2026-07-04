@@ -41,7 +41,6 @@ Changelog = "https://github.com/LeMyst/WikibaseIntegrator/releases"
 [tool.poetry.dependencies]
 python = "^3.10"
 backoff = "^2.2.1"
-mwoauth = "^0.4.0"
 oauthlib = "^3.2.2"
 requests = "^2.32.3"
 requests-oauthlib = "^2.0.0"
