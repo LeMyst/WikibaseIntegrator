@@ -118,6 +118,8 @@ class TestWrite:
         written = item.write(allow_anonymous=True, as_new=True)
 
         assert wikibase.last_edit['params']['new'] == 'item'
+        # A new entity must not carry an id in its data payload (regression: 'id': null was sent)
+        assert 'id' not in wikibase.last_edit['data']
         assert written.id != 'Q582'
 
     def test_write_limited_claims(self, wikibase, item_q582):

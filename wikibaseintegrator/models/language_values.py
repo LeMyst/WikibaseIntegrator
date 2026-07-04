@@ -170,7 +170,7 @@ class LanguageValue(BaseModel):
         return json_data
 
     def __contains__(self, item):
-        return item in self.value
+        return item in (self.value or '')
 
     def __eq__(self, other):
         if isinstance(other, LanguageValue):
@@ -179,7 +179,7 @@ class LanguageValue(BaseModel):
         return self.value == other
 
     def __len__(self):
-        return len(self.value)
+        return len(self.value or '')
 
     def __str__(self):
-        return self.value
+        return self.value or ''

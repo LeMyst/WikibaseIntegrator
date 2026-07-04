@@ -151,3 +151,10 @@ class Reference(BaseModel):
 
     def __len__(self):
         return len(self.snaks)
+
+    def __eq__(self, other):
+        if not isinstance(other, Reference):
+            return NotImplemented
+
+        # The hash is only known server-side, so two references are considered equal when they hold the same snaks
+        return self.snaks.get_json() == other.snaks.get_json()

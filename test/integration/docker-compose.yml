@@ -1,17 +1,28 @@
 # Minimal Wikibase instance for the WikibaseIntegrator integration tests.
 #
 #   docker compose -f test/integration/docker-compose.yml up -d
-#   # wait for http://localhost:8880 to answer, then:
+#   # wait for http://localhost:8880 to answer (first boot runs the MediaWiki
+#   # installer and can take a minute), then:
 #   WBI_INTEGRATION_MEDIAWIKI_API_URL=http://localhost:8880/w/api.php \
 #   WBI_INTEGRATION_USER=WikibaseAdmin \
 #   WBI_INTEGRATION_PASSWORD=WikibaseDockerAdminPass \
 #   pytest -m integration
 #
-# Based on the Wikibase release pipeline images:
+#   # to reset to a clean instance (wipes the generated config and the database):
+#   docker compose -f test/integration/docker-compose.yml down -v
+#
+# Based on the Wikibase Suite (release pipeline) images:
 # https://github.com/wmde/wikibase-release-pipeline
+#
+# Note: the wikibase/wikibase image requires a volume mounted at /config. On
+# first boot, with an empty volume, its entrypoint generates LocalSettings.php
+# and the wiki secret key there from the environment variables below. Because
+# that generated config is persisted, the database is persisted with the same
+# lifecycle so both stay in sync (use `down -v` to reset both together).
+# Elasticsearch/CirrusSearch stay disabled as long as ELASTICSEARCH_HOST is unset.
 services:
   wikibase:
-    image: wikibase/wikibase
+    image: wikibase/wikibase:7
     ports:
       - "8880:80"
     environment:
@@ -19,10 +30,17 @@ services:
       MW_ADMIN_PASS: WikibaseDockerAdminPass
       MW_ADMIN_EMAIL: admin@wikibase.example
       MW_WG_SERVER: http://localhost:8880
+      # The image forces an explicit opt-in/opt-out for the WMDE metadata pingback;
+      # leaving it unset makes the container exit. Disabled for a local test instance.
+      # (quoted so compose passes the literal string "false", not a YAML boolean)
+      METADATA_CALLBACK: "false"
       DB_SERVER: mysql:3306
       DB_NAME: wikibase
       DB_USER: wikibase
       DB_PASS: wikibase
+    volumes:
+      - wikibase-config:/config
+      - wikibase-image-data:/var/www/html/images
     depends_on:
       mysql:
         condition: service_healthy
@@ -34,8 +52,15 @@ services:
       MYSQL_DATABASE: wikibase
       MYSQL_USER: wikibase
       MYSQL_PASSWORD: wikibase
+    volumes:
+      - mysql-data:/var/lib/mysql
     healthcheck:
       test: healthcheck.sh --connect --innodb_initialized
       start_period: 30s
       interval: 5s
       retries: 20
+
+volumes:
+  wikibase-config:
+  wikibase-image-data:
+  mysql-data:

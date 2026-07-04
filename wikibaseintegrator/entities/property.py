@@ -3,26 +3,21 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from wikibaseintegrator.entities.baseentity import BaseEntity
+from wikibaseintegrator.entities.baseentity import BaseEntity, TermsEntity
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import WikibaseDatatype
 
 
-class PropertyEntity(BaseEntity):
+class PropertyEntity(TermsEntity):
     ETYPE = 'property'
 
     def __init__(self, datatype: str | WikibaseDatatype | None = None, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any):
-        super().__init__(**kwargs)
+        super().__init__(labels=labels, descriptions=descriptions, aliases=aliases, **kwargs)
 
         # Property specific
         self.datatype = datatype
-
-        # Item, Property and MediaInfo specific
-        self.labels: Labels = labels or Labels()
-        self.descriptions: Descriptions = descriptions or Descriptions()
-        self.aliases = aliases or Aliases()
 
     @BaseEntity.id.setter  # type: ignore
     def id(self, value: None | str | int):
@@ -53,36 +48,6 @@ class PropertyEntity(BaseEntity):
             self.__datatype: str | WikibaseDatatype | None = WikibaseDatatype(value)
         else:
             self.__datatype = value
-
-    @property
-    def labels(self) -> Labels:
-        return self.__labels
-
-    @labels.setter
-    def labels(self, labels: Labels):
-        if not isinstance(labels, Labels):
-            raise TypeError
-        self.__labels = labels
-
-    @property
-    def descriptions(self) -> Descriptions:
-        return self.__descriptions
-
-    @descriptions.setter
-    def descriptions(self, descriptions: Descriptions):
-        if not isinstance(descriptions, Descriptions):
-            raise TypeError
-        self.__descriptions = descriptions
-
-    @property
-    def aliases(self) -> Aliases:
-        return self.__aliases
-
-    @aliases.setter
-    def aliases(self, aliases: Aliases):
-        if not isinstance(aliases, Aliases):
-            raise TypeError
-        self.__aliases = aliases
 
     def new(self, **kwargs: Any) -> PropertyEntity:
         return PropertyEntity(api=self.api, **kwargs)
@@ -119,15 +84,10 @@ class PropertyEntity(BaseEntity):
 
     def from_json(self, json_data: dict[str, Any]) -> PropertyEntity:
         super().from_json(json_data=json_data)
+        super()._terms_from_json(json_data=json_data)
 
         if 'datatype' in json_data:
             self.datatype = json_data['datatype']
-        if 'labels' in json_data:
-            self.labels = Labels().from_json(json_data['labels'])
-        if 'descriptions' in json_data:
-            self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        if 'aliases' in json_data:
-            self.aliases = Aliases().from_json(json_data['aliases'])
 
         return self
 

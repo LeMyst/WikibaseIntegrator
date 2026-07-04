@@ -4,7 +4,6 @@ import collections
 import copy
 import logging
 from collections import defaultdict
-from functools import lru_cache
 from itertools import chain
 from typing import TYPE_CHECKING
 
@@ -32,7 +31,7 @@ class FastRunContainer:
         self.loaded_langs: dict[str, dict] = {}
         self.base_filter: list[BaseDataType | list[BaseDataType]] = []
         self.base_filter_string = ''
-        self.prop_dt_map: dict[str, str] = {}
+        self.prop_dt_map: dict[str, str | None] = {}
 
         self.base_data_type: type[BaseDataType] = base_data_type
         self.mediawiki_api_url: str = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
@@ -611,15 +610,18 @@ class FastRunContainer:
                 data[qid].add(r['label']['value'])
         return data
 
-    @lru_cache(maxsize=100000)
-    def get_prop_datatype(self, prop_nr: str) -> str | None:  # pylint: disable=no-self-use
-        from wikibaseintegrator import WikibaseIntegrator
-        wbi = WikibaseIntegrator()
-        property = wbi.property.get(prop_nr)
-        datatype = property.datatype
-        if isinstance(datatype, WikibaseDatatype):
-            return datatype.value
-        return datatype
+    def get_prop_datatype(self, prop_nr: str) -> str | None:
+        # Memoize in the per-instance prop_dt_map: this is tied to the container's lifetime (no global cache keeping
+        # containers alive), avoids re-instantiating WikibaseIntegrator and re-querying the API on cache hits, and is
+        # invalidated by clear().
+        if prop_nr not in self.prop_dt_map:
+            from wikibaseintegrator import WikibaseIntegrator
+            wbi = WikibaseIntegrator()
+            datatype = wbi.property.get(prop_nr).datatype
+            if isinstance(datatype, WikibaseDatatype):
+                datatype = datatype.value
+            self.prop_dt_map[prop_nr] = datatype
+        return self.prop_dt_map[prop_nr]
 
     def clear(self) -> None:
         """

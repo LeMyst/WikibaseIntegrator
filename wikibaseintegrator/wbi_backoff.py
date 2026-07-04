@@ -16,7 +16,8 @@ log = logging.getLogger(__name__)
 
 def wbi_backoff_backoff_hdlr(details):
     exc_type, exc_value, _ = sys.exc_info()
-    if exc_type == JSONDecodeError:
+    # requests.exceptions.JSONDecodeError subclasses json.JSONDecodeError, so use issubclass to catch both.
+    if exc_type is not None and issubclass(exc_type, JSONDecodeError):
         log.error(exc_value.doc)  # pragma: no cover
     log.error("Backing off %0.1f seconds afters %s tries calling function with args %r and kwargs %r", details['wait'], details['tries'], details['args'], details['kwargs'])
 

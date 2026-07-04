@@ -4,7 +4,7 @@ Login class for Wikidata. Takes authentication parameters and stores the session
 import logging
 import time
 import webbrowser
-from typing import Any
+from typing import Any, cast
 
 from mwoauth import ConsumerToken, Handshaker, OAuthException
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
@@ -61,7 +61,7 @@ class _Login:
             'type': 'csrf',
             'format': 'json'
         }
-        response = self.session.get(url=self.mediawiki_api_url, params=params).json()
+        response = self.session.get(url=self.mediawiki_api_url, params=params, timeout=config['TIMEOUT']).json()
         if 'error' in response:
             raise LoginError(f"Login failed ({response['error']['code']}). Message: '{response['error']['info']}'")
         if response['query']['tokens']['csrftoken'] == '+\\':
@@ -120,16 +120,33 @@ class OAuth2(_Login):
 
         mediawiki_rest_url = str(mediawiki_rest_url or config['MEDIAWIKI_REST_URL'])
 
-        headers = {
-            'User-Agent': get_user_agent(user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None))
-        }
+        self.consumer_token = consumer_token
+        self.consumer_secret = consumer_secret
+        self.access_token_url = mediawiki_rest_url + '/oauth2/access_token'
 
         session = OAuth2Session(client=BackendApplicationClient(client_id=consumer_token))
+        # The access token is fetched (and later refreshed) by generate_edit_credentials(), invoked by the parent __init__.
+        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
+
+    def _fetch_access_token(self) -> None:
+        """
+        (Re)fetch the OAuth2 access token.
+
+        The client-credentials grant used here does not issue a refresh token, so the short-lived access token
+        (~4h on Wikimedia) is simply re-fetched. Called on every credentials renewal to keep long-running bots alive.
+        """
+        headers = {'User-Agent': self.session.headers.get('User-Agent', get_user_agent())}
         try:
-            session.fetch_token(token_url=mediawiki_rest_url + '/oauth2/access_token', client_id=consumer_token, client_secret=consumer_secret, headers=headers)
+            cast(OAuth2Session, self.session).fetch_token(token_url=self.access_token_url, client_id=self.consumer_token, client_secret=self.consumer_secret, headers=headers,
+                                                          timeout=config['TIMEOUT'])
         except InvalidClientError as err:
             raise LoginError(err) from err
-        super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
+
+    def generate_edit_credentials(self) -> RequestsCookieJar:
+        # Refresh the access token before requesting the CSRF token: the parent renews credentials every
+        # token_renew_period seconds, so this keeps the OAuth2 session authenticated past the token expiry.
+        self._fetch_access_token()
+        return super().generate_edit_credentials()
 
 
 class OAuth1(_Login):
@@ -234,6 +251,7 @@ class Login(_Login):
         filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
         if len(filtered_kwargs) < len(kwargs):
             log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
+        filtered_kwargs.setdefault('timeout', config['TIMEOUT'])
 
         # get login token
         login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
@@ -249,8 +267,10 @@ class Login(_Login):
 
         if 'login' in login_result and login_result['login']['result'] == 'Success':
             log.info("Successfully logged in as %s", login_result['login']['lgusername'])
+        elif 'login' in login_result:
+            raise LoginError(f"Login failed. Reason: '{login_result['login'].get('reason', login_result['login']['result'])}'")
         else:
-            raise LoginError(f"Login failed. Reason: '{login_result['login']['reason']}'")
+            raise LoginError(f"Login failed. Unexpected API response: {login_result.get('error', login_result)}")
 
         if 'warnings' in login_result:
             log.warning("MediaWiki login warnings messages:")
@@ -293,6 +313,7 @@ class Clientlogin(_Login):
         filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
         if len(filtered_kwargs) < len(kwargs):
             log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
+        filtered_kwargs.setdefault('timeout', config['TIMEOUT'])
 
         # get login token
         login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
@@ -317,8 +338,10 @@ class Clientlogin(_Login):
                 raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
 
             log.info("Successfully logged in as %s", clientlogin['username'])
-        else:
+        elif 'error' in login_result:
             raise LoginError(f"Login failed ({login_result['error']['code']}). Message: '{login_result['error']['info']}'")
+        else:
+            raise LoginError(f"Login failed. Unexpected API response: {login_result}")
 
         if 'warnings' in login_result:
             log.warning("MediaWiki login warnings messages:")

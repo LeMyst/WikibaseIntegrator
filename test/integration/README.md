@@ -12,13 +12,39 @@ enabled with the `integration` marker plus a few environment variables.
 
 ```bash
 docker compose -f test/integration/docker-compose.yml up -d
-# wait until http://localhost:8880 answers
+# first boot runs the MediaWiki installer; wait until http://localhost:8880 answers
+```
 
+Then set the environment variables and run the tests. The variables must be set
+**in the same shell** that launches pytest (they are read when the tests are
+collected); if they are missing, every integration test is silently **skipped**
+and never contacts the instance.
+
+Bash / zsh:
+
+```bash
 WBI_INTEGRATION_MEDIAWIKI_API_URL=http://localhost:8880/w/api.php \
 WBI_INTEGRATION_USER=WikibaseAdmin \
 WBI_INTEGRATION_PASSWORD=WikibaseDockerAdminPass \
 pytest -m integration
 ```
+
+PowerShell (Windows) — the inline `VAR=value cmd` syntax above does **not** work
+here, assign `$env:` variables first:
+
+```powershell
+$env:WBI_INTEGRATION_MEDIAWIKI_API_URL = "http://localhost:8880/w/api.php"
+$env:WBI_INTEGRATION_USER = "WikibaseAdmin"
+$env:WBI_INTEGRATION_PASSWORD = "WikibaseDockerAdminPass"
+poetry run pytest -m integration -v -rs
+```
+
+Expect `PASSED` lines. If you see `SKIPPED ... is not set`, the variables did not
+reach pytest (wrong shell syntax, or set in a different window).
+
+The generated wiki config and the database are kept in named volumes. To reset
+to a clean instance, tear it down with `docker compose -f
+test/integration/docker-compose.yml down -v` (the `-v` wipes both volumes).
 
 ## Running against another instance
 

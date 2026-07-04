@@ -12,7 +12,8 @@ import uuid
 import pytest
 
 from wikibaseintegrator.datatypes import Item, String
-from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
+from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import search_entities
 
 pytestmark = pytest.mark.integration
@@ -53,8 +54,10 @@ class TestItemLifecycle:
         assert fetched.lastrevid == written.lastrevid
 
         # Update: label + a second claim
+        # Claims.add() defaults to ActionIfExists.REPLACE_ALL, which would replace (remove)
+        # the existing claim for this property instead of adding a second one.
         fetched.labels.set(language='en', value=label + ' (updated)')
-        fetched.claims.add(String(prop_nr=string_property.id, value='second value'))
+        fetched.claims.add(String(prop_nr=string_property.id, value='second value'), action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
         updated = fetched.write(summary='WikibaseIntegrator integration test: update')
 
         assert updated.labels.get('en') == label + ' (updated)'
@@ -65,7 +68,11 @@ class TestItemLifecycle:
         updated.delete(reason='WikibaseIntegrator integration test cleanup')
 
     def test_get_nonexistent_item(self, wbi):
-        with pytest.raises(NonExistentEntityError):
+        # A well-formed but non-existent numeric ID doesn't trigger an API-level error: wbgetentities
+        # replies 200 with the entity marked 'missing', which BaseEntity.from_json turns into
+        # MissingEntityException. NonExistentEntityError is for the separate no-such-entity/missingtitle
+        # API error path (e.g. an invalid site+title lookup).
+        with pytest.raises(MissingEntityException):
             wbi.item.get('Q999999999')
 
 

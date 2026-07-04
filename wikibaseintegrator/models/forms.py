@@ -78,14 +78,16 @@ class Form(BaseModel):
         return self.__grammatical_features
 
     @grammatical_features.setter
-    def grammatical_features(self, value: str | int | list[str]):
-        if not hasattr(self, '__grammatical_features') or value is None:
-            self.__grammatical_features = []
-
-        if isinstance(value, int):
-            self.__grammatical_features.append('Q' + str(value))
+    def grammatical_features(self, value: str | int | list[str] | None):
+        if value is None:
+            self.__grammatical_features: list[str] = []
+        elif isinstance(value, bool):
+            # bool is a subclass of int, reject it explicitly
+            raise TypeError(f"value must be a str, an int or a list of strings, got '{type(value)}'")
+        elif isinstance(value, int):
+            self.__grammatical_features = ['Q' + str(value)]
         elif isinstance(value, str):
-            self.__grammatical_features.append(value)
+            self.__grammatical_features = [value]
         elif isinstance(value, list):
             self.__grammatical_features = value
         else:

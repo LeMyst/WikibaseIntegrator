@@ -8,9 +8,10 @@ import pytest
 import requests
 
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
+from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
 from wikibaseintegrator.wbi_helpers import (download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances, get_user_agent,
-                                            lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, remove_claims, search_entities)
+                                            lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, remove_claims,
+                                            search_entities)
 
 
 class FakeLogin:
@@ -82,6 +83,26 @@ class TestRetryBehaviour:
     def test_format_must_be_json(self):
         with pytest.raises(ValueError):
             mediawiki_api_call('POST', mediawiki_api_url='https://example.org/w/api.php', data={'format': 'xml'})
+
+
+class TestTimeout:
+    def test_default_timeout_is_applied(self, wikibase, requests_mock):
+        wbi_config['TIMEOUT'] = (3, 33)
+        mediawiki_api_call('POST', mediawiki_api_url=wikibase.mediawiki_api_url, data={'action': 'wbsearchentities', 'search': 'x', 'language': 'en', 'format': 'json'})
+        assert requests_mock.last_request.timeout == (3, 33)
+
+    def test_explicit_timeout_is_not_overridden(self, wikibase, requests_mock):
+        wbi_config['TIMEOUT'] = (3, 33)
+        mediawiki_api_call('POST', mediawiki_api_url=wikibase.mediawiki_api_url, data={'action': 'wbsearchentities', 'search': 'x', 'language': 'en', 'format': 'json'}, timeout=7)
+        assert requests_mock.last_request.timeout == 7
+
+
+class TestAnonymousEdit:
+    def test_anonymous_edit_not_allowed_raises_dedicated_error(self, wikibase):
+        # A login object that only yields the anonymous token must trigger the dedicated exception, not a bare Exception.
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url, edit_token='+\\')
+        with pytest.raises(AnonymousEditNotAllowedError):
+            mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json'}, login=login, mediawiki_api_url=wikibase.mediawiki_api_url)
 
 
 class TestErrorMapping:
@@ -196,6 +217,18 @@ class TestSearchEntities:
         search_requests = [r for r in wikibase.requests if r.get('action') == 'wbsearchentities']
         assert len(search_requests) == 1
 
+    def test_search_truncates_to_max_results(self, wikibase):
+        # A page holds up to 50 results, so a max_results that is not a multiple of 50 would overshoot without truncation
+        wikibase.search_results = [{'id': f'Q{i}', 'label': f'result {i}', 'match': {}} for i in range(200)]
+
+        results = search_entities('rivaroxaban', max_results=60)
+        assert len(results) == 60
+        assert results[-1] == 'Q59'
+
+        # Only the pages needed to reach 60 results are fetched (2 x 50), not the whole dataset
+        search_requests = [r for r in wikibase.requests if r.get('action') == 'wbsearchentities']
+        assert len(search_requests) == 2
+
     def test_search_dict_result(self, wikibase):
         wikibase.search_results = [{'id': 'Q1', 'label': 'result', 'match': {}, 'description': 'a description', 'aliases': ['alias']}]
 
@@ -211,6 +244,14 @@ class TestSearchEntities:
 
         search_entities('anything')
         assert wikibase.last_request['language'] == str(wbi_config['DEFAULT_LANGUAGE'])
+
+    def test_search_strict_language_and_limit_parameters(self, wikibase):
+        wikibase.search_results = [{'id': f'Q{i}', 'label': f'result {i}', 'match': {}} for i in range(20)]
+
+        results = search_entities('anything', strict_language=True, max_results=10)
+        assert 'strictlanguage' in wikibase.last_request
+        assert wikibase.last_request['limit'] == '10'
+        assert len(results) == 10
 
 
 class TestFulltextSearch:
@@ -248,6 +289,15 @@ class TestEditHelpers:
 
         with pytest.raises(ValueError):
             lexeme_remove_sense('invalid-sense-id')
+
+    def test_lexeme_edit_sense_sends_sense_id(self, wikibase):
+        # The mock doesn't implement wbleditsenseelements, so the call fails, but the request parameters are still recorded
+        with pytest.raises(MWApiError):
+            lexeme_edit_sense('L10-S2', data={}, allow_anonymous=True)
+
+        request = wikibase.last_request
+        assert request['action'] == 'wbleditsenseelements'
+        assert request['senseId'] == 'L10-S2'
 
 
 class TestGenerateEntityInstances:
@@ -293,6 +343,15 @@ class TestSparql:
         execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', prefix=prefix)
         assert prefix in wikibase.sparql_queries[-1]
 
+    def test_query_is_sent_in_request_body(self, wikibase, requests_mock):
+        wikibase.sparql_bindings = []
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }')
+
+        last = requests_mock.last_request
+        # The query travels in the form-encoded request body (not the URL), without the previous bogus multipart header
+        assert 'query=' in (last.text or '')
+        assert last.headers.get('Content-Type', '').startswith('application/x-www-form-urlencoded')
+
     def test_sparql_retry_on_429(self, wikibase, requests_mock):
         url = 'https://throttled.example.org/sparql'
         requests_mock.post(url, [
@@ -322,6 +381,7 @@ class TestPureHelpers:
         assert format_amount(0) == '+0'
 
 
+@pytest.mark.filterwarnings("ignore:format2wbi.. is experimental:UserWarning")
 class TestFormat2Wbi:
     def test_entity_types(self, wikibase):
         from wikibaseintegrator.entities import ItemEntity, LexemeEntity, MediaInfoEntity, PropertyEntity

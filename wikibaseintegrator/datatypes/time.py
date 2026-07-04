@@ -105,16 +105,26 @@ class Time(BaseDataType):
     def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['time']
 
+    def _time_parts(self) -> tuple[int, int, int]:
+        """
+        Split the timestamp into (year, month, day).
+
+        The year can be signed and hold more than 4 digits (up to 16), so it can't be sliced at fixed positions.
+        """
+        time = self.mainsnak.datavalue['value']['time']
+        matches = re.match(r'^([+-]?[0-9]+)-([0-9]{2})-([0-9]{2})T', time)
+        if not matches:
+            raise ValueError(f"Unable to parse time value '{time}'")
+        return int(matches.group(1)), int(matches.group(2)), int(matches.group(3))
+
     def get_year(self) -> int:
-        return int(self.mainsnak.datavalue['value']['time'][0:5])
+        return self._time_parts()[0]
 
     def get_month(self) -> int:
-        return int(self.mainsnak.datavalue['value']['time'][6:8])
+        return self._time_parts()[1]
 
     def get_day(self) -> int:
-        return int(self.mainsnak.datavalue['value']['time'][9:11])
+        return self._time_parts()[2]
 
     def __lt__(self, other):
-        return (self.get_year() < other.get_year()) or \
-            (self.get_year() == other.get_year() and self.get_month() < other.get_month()) or \
-            (self.get_year() == other.get_year() and self.get_month() == other.get_month() and self.get_day() < other.get_day())
+        return self._time_parts() < other._time_parts()

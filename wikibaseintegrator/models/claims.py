@@ -36,7 +36,7 @@ class Claims(BaseModel):
 
     def remove(self, property: str | None = None) -> None:
         if property in self.claims:
-            for prop in self.claims[property]:
+            for prop in list(self.claims[property]):
                 if prop.id:
                     prop.remove()
                 else:
@@ -102,11 +102,9 @@ class Claims(BaseModel):
                 elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
                     claim_exists = False
                     for existing_claim in self.claims[property]:
-                        existing_claim_json = existing_claim.get_json()
-                        claim_to_add_json = claim.get_json()
-
-                        # Check if the values match, including qualifiers
-                        if (claim_to_add_json["mainsnak"]["datavalue"]["value"] == existing_claim_json["mainsnak"]["datavalue"]["value"]) and claim.quals_equal(claim, existing_claim):
+                        # Compare the main snaks (which also handles no-value/some-value snaks that have no
+                        # datavalue) and the qualifiers to decide if the statement already exists.
+                        if claim.mainsnak == existing_claim.mainsnak and claim.quals_equal(claim, existing_claim):
                             claim_exists = True
 
                             # Check if current reference block is present on references
@@ -145,6 +143,15 @@ class Claims(BaseModel):
                 del json_data[property]
         return json_data
 
+    def count(self) -> int:
+        """
+        Return the total number of individual claims, across every property.
+
+        Note: ``len(claims)`` returns the number of distinct properties, while iterating (``for claim in claims``)
+        yields the individual claims. Use this method when you need the claim count.
+        """
+        return sum(len(claim_list) for claim_list in self.claims.values())
+
     def __iter__(self):
         iterate = []
         for claim in self.claims.values():
@@ -152,6 +159,7 @@ class Claims(BaseModel):
         return iter(iterate)
 
     def __len__(self):
+        # Returns the number of distinct properties. See count() for the total number of individual claims.
         return len(self.claims)
 
 
@@ -351,7 +359,7 @@ class Claim(BaseModel):
         if isinstance(item, str):
             return self.mainsnak.datavalue == item
 
-        return super().__contains__(item)
+        return False
 
     def __eq__(self, other):
         if isinstance(other, Claim):
@@ -360,7 +368,7 @@ class Claim(BaseModel):
         if isinstance(other, str):
             return self.mainsnak.property_number == other
 
-        raise super().__eq__(other)
+        return NotImplemented
 
     def equals(self, that: Claim, include_ref: bool = False, fref: Callable | None = None) -> bool:
         """

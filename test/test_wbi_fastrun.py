@@ -120,6 +120,43 @@ class TestWriteRequiredEndToEnd:
         item.claims.add(ExternalID(value='CHANGED', prop_nr='P352'))
         assert item.write_required(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q27510868')]) is True
 
+    def test_write_required_with_property_path_base_filter(self, wikibase, item_q582):
+        """
+        A property-path base_filter (a list of BaseDataType) must still select the matching claims.
+
+        Regression: the anchor property (here P352) was never matched, so a write was always wrongly reported.
+        """
+        wikibase.add_property('P352', 'external-id')
+        wikibase.add_property('P703', 'wikibase-item')
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q582', 'P352', [literal('P40095')])
+
+        base_filter = [[BaseDataType(prop_nr='P352'), BaseDataType(prop_nr='P703')]]
+        wbi_fastrun.fastrun_store.append(wbi_fastrun.FastRunContainer(base_filter=base_filter, base_data_type=BaseDataType))
+
+        item = ItemEntity().from_json(load_fixture('item_Q582'))
+        item.claims.add(ExternalID(value='P40095', prop_nr='P352'))
+        assert item.write_required(base_filter=base_filter) is False
+
+        item.claims.add(ExternalID(value='CHANGED', prop_nr='P352'))
+        assert item.write_required(base_filter=base_filter) is True
+
+
+class TestPropDatatype:
+    def test_get_prop_datatype_is_cached(self, wikibase):
+        wikibase.add_property('P352', 'external-id')
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType)
+
+        assert frc.get_prop_datatype('P352') == 'external-id'
+        calls = len([r for r in wikibase.requests if r.get('action') == 'wbgetentities'])
+
+        # A second lookup must be served from the per-instance cache, without any additional API request
+        assert frc.get_prop_datatype('P352') == 'external-id'
+        assert len([r for r in wikibase.requests if r.get('action') == 'wbgetentities']) == calls
+
+        # clear() invalidates the cache
+        frc.clear()
+        assert 'P352' not in frc.prop_dt_map
+
 
 class TestLanguageData:
     def test_language_data_and_check(self, wikibase):
