@@ -53,13 +53,23 @@ class BColors:
 default_session = requests.Session()
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> dict:
+# MediaWiki error codes meaning the server no longer considers the current session authenticated
+# (e.g. its session store evicted/expired the session, see #902). A CSRF token fetched right before the
+# failing call can still look valid, since generate_edit_credentials() reads it off the very session
+# cookies that are now rejected; recovering requires a full re-login instead.
+SESSION_LOST_ERROR_CODES = {'assertuserfailed', 'assertbotfailed', 'notloggedin'}
+
+
+def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 100, retry_after: int = 60,
+                       **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
 
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
     :param session: If a session is passed, it will be used. Otherwise, a new requests session is created
+    :param login: If provided and the API reports that the session is no longer authenticated (see
+                  SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying.
     :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
     :param retry_after: Number of seconds to wait before retrying request (see max_retries)
     :param kwargs: Any additional keyword arguments to pass to requests.request
@@ -124,6 +134,14 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
                 log.error("The Wikibase instance is currently in readonly mode, waiting for %s seconds", retry_after)
                 sleep(retry_after)
+                continue
+
+            # session no longer valid: re-authenticate and retry instead of failing outright (#902)
+            if 'code' in json_data['error'] and json_data['error']['code'] in SESSION_LOST_ERROR_CODES and login is not None:
+                log.warning("%s: session no longer valid (%s). Re-authenticating and retrying.", datetime.datetime.now(datetime.timezone.utc), json_data['error']['code'])
+                login.reauthenticate()
+                if 'data' in kwargs and kwargs['data'] and 'token' in kwargs['data']:
+                    kwargs['data']['token'] = login.get_edit_token()
                 continue
 
             # non-existent error
@@ -227,7 +245,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
     log.debug(data)
 
-    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
+    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, login=login, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
 
 
 @wbi_backoff()
