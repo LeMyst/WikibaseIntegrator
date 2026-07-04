@@ -9,9 +9,9 @@ import requests
 
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
-from wikibaseintegrator.wbi_helpers import (download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances, get_user_agent,
-                                            lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, remove_claims,
-                                            search_entities, check_constraints)
+from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances,
+                                            get_user_agent, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items,
+                                            remove_claims, search_entities)
 
 
 class FakeLogin:
