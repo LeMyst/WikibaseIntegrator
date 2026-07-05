@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item
+from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item, Quantity
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -119,6 +119,21 @@ class TestWriteRequiredEndToEnd:
 
         item.claims.add(ExternalID(value='CHANGED', prop_nr='P352'))
         assert item.write_required(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q27510868')]) is True
+
+    def test_write_required_quantity(self, wikibase):
+        """
+        Quantity values must round-trip between the SPARQL results and the value lookup.
+
+        Regression: get_items looked up the full SPARQL literal ('"+42"^^xsd:decimal') while the
+        reverse lookup stored plain amounts ('+42'), so a write was always wrongly reported.
+        """
+        wikibase.add_property('P2067', 'quantity')
+        wikibase.sparql_bindings = statement_bindings(wikibase, 'Q42', 'P2067', [literal('42', datatype='http://www.w3.org/2001/XMLSchema#decimal')])
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P2067')], base_data_type=BaseDataType)
+
+        assert frc.write_required(data=[Quantity(amount=42, prop_nr='P2067')]) is False
+        assert frc.write_required(data=[Quantity(amount=43, prop_nr='P2067')]) is True
 
     def test_write_required_with_property_path_base_filter(self, wikibase, item_q582):
         """
@@ -271,6 +286,62 @@ def test_fastrun_ref_ensembl():
     assert not frc.write_required(data=statements)
 
 
+def test_get_items_skips_value_less_claims():
+    """
+    Claims without a value (e.g. deletion objects) must be ignored by the value lookup.
+
+    Regression: they were only skipped when the datatype was also missing, and crashed with a
+    KeyError in get_sparql_value() otherwise.
+    """
+    frc = FastRunContainerFakeQueryDataEnsembl(base_filter=[BaseDataType(prop_nr='P594')], base_data_type=BaseDataType)
+
+    # a value-less claim alone matches nothing
+    assert frc.get_items(claims=[ExternalID(prop_nr='P594')]) is None
+
+    # mixed with a valued claim, the valued claim still matches
+    statements = [ExternalID(value='ENSG00000123374', prop_nr='P594'), ExternalID(prop_nr='P594')]
+    assert frc.get_items(claims=statements) == {'Q14911732'}
+
+
+class FastRunContainerFakeQueryDataCaseInsensitive(wbi_fastrun.FastRunContainer):
+    # an item with a lowercase external identifier
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.prop_dt_map = {'P352': 'external-id'}
+        self.prop_data['Q7758678'] = {'P352': {
+            'fake statement id': {
+                'qual': set(),
+                'ref': {},
+                'unit': '1',
+                'v': '"q9umx9"'}}}
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['"q9umx9"'].add('Q7758678')
+        self.rev_lookup_ci = defaultdict(set)
+        self.rev_lookup_ci['"q9umx9"'].add('Q7758678')
+
+
+def test_write_required_case_insensitive():
+    """
+    Regression: with case_insensitive enabled, comparing a statement crashed with an
+    AttributeError (datavalue is a dict) and never matched values differing only by case.
+    """
+    frc = FastRunContainerFakeQueryDataCaseInsensitive(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType, case_insensitive=True)
+
+    # same value with a different case: no write required
+    assert frc.write_required(data=[ExternalID(value='Q9UMX9', prop_nr='P352')]) is False
+    # identical value: no write required
+    assert frc.write_required(data=[ExternalID(value='q9umx9', prop_nr='P352')]) is False
+    # different value: write required
+    assert frc.write_required(data=[ExternalID(value='DIFFERENT', prop_nr='P352')]) is True
+
+
+def test_write_required_case_sensitive_by_default():
+    frc = FastRunContainerFakeQueryDataCaseInsensitive(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType)
+
+    assert frc.write_required(data=[ExternalID(value='Q9UMX9', prop_nr='P352')]) is True
+    assert frc.write_required(data=[ExternalID(value='q9umx9', prop_nr='P352')]) is False
+
+
 class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
     # an item with three values for the same property
     def __init__(self, *args: Any, **kwargs: Any):
@@ -325,3 +396,44 @@ def test_append_props():
     # without append
     statements = [Item(value='Q24784025', prop_nr='P527')]
     assert frc.write_required(data=statements, cqid=qid) is True
+
+
+def test_force_append_always_requires_write():
+    """
+    Regression: when all the submitted statements already existed on the item, FORCE_APPEND wrongly
+    reported that no write was required, so the forced duplicates were never written.
+    """
+    frc = FakeQueryDataAppendProps(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType)
+
+    statements = [Item(value='Q24784025', prop_nr='P527'), Item(value='Q24743729', prop_nr='P527'), Item(value='Q24782625', prop_nr='P527')]
+    assert frc.write_required(data=statements, action_if_exists=ActionIfExists.FORCE_APPEND, cqid='Q3402672') is True
+
+
+class FakeQueryDataDuplicateStatements(wbi_fastrun.FastRunContainer):
+    # an item holding twice the same value for P527, in two distinct statements
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.prop_dt_map = {'P527': 'wikibase-item'}
+
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['Q24784025'].add('Q3402672')
+
+        self.prop_data['Q3402672'] = {'P527': {
+            'Q3402672-11BA231B-857B-498B-AC4F-91D71EE007FD': {'qual': set(), 'ref': {}, 'v': 'Q24784025'},
+            'Q3402672-15F54AFF-7DCC-4DF6-A32F-73C48619B0B2': {'qual': set(), 'ref': {}, 'v': 'Q24784025'}}}
+
+
+def test_append_with_duplicate_statements():
+    """
+    Regression: a new value missing from the item was masked by another value matching two duplicate
+    statements, so the append wrongly reported that no write was required.
+    """
+    frc = FakeQueryDataDuplicateStatements(base_filter=[BaseDataType(prop_nr='P352'), Item(prop_nr='P703', value='Q15978631')], base_data_type=BaseDataType)
+
+    # both values already exist (one of them twice): no write required
+    statements = [Item(value='Q24784025', prop_nr='P527')]
+    assert frc.write_required(data=statements, action_if_exists=ActionIfExists.APPEND_OR_REPLACE, cqid='Q3402672') is False
+
+    # one value exists twice, the other is new: a write is required
+    statements = [Item(value='Q24784025', prop_nr='P527'), Item(value='Q99999999', prop_nr='P527')]
+    assert frc.write_required(data=statements, action_if_exists=ActionIfExists.APPEND_OR_REPLACE, cqid='Q3402672') is True
