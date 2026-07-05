@@ -20,6 +20,10 @@ log = logging.getLogger(__name__)
 
 fastrun_store: list[FastRunContainer] = []
 
+# The RDF export of a Wikibase instance always represents a quantity without a unit ('1' in the JSON representation)
+# with the Wikidata entity Q199 (the number one), whatever the instance.
+UNITLESS_UNIT_URI = 'http://www.wikidata.org/entity/Q199'
+
 
 class FastRunContainer:
     def __init__(self, base_data_type: type[BaseDataType], mediawiki_api_url: str | None = None, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None,
@@ -73,6 +77,20 @@ class FastRunContainer:
                 return subclass
         raise ValueError(f"No data type class found for datatype '{datatype}'")
 
+    def _reconstruct_snak_datatype(self, prop_nr: str, value: str, unit: str = '1') -> BaseDataType:
+        """
+        Rebuild a datatype object from the raw SPARQL value stored in prop_data, used for qualifiers and references.
+
+        :param prop_nr: The property number of the snak
+        :param value: The raw SPARQL value
+        :param unit: The unit entity ID if the value is a quantity
+        :exception ValueError: if the value can't be parsed by the datatype class
+        """
+        datatype = self._get_datatype_class(self.prop_dt_map[prop_nr])(prop_nr=prop_nr)
+        if not datatype.parse_sparql_value(value=value, unit=unit):
+            raise ValueError(f"Can't parse the value '{value}' of property {prop_nr} with parse_sparql_value()")
+        return datatype
+
     def reconstruct_statements(self, qid: str) -> list[BaseDataType]:
         reconstructed_statements: list[BaseDataType] = []
 
@@ -89,32 +107,20 @@ class FastRunContainer:
                 if prop not in self.prop_dt_map:
                     self.prop_dt_map.update({prop: self.get_prop_datatype(prop)})
             # reconstruct statements from frc (including unit, qualifiers, and refs)
+            # Note: attributes missing from the SPARQL simple values (time precision, globe coordinate precision,
+            # quantity bounds...) are rebuilt with their default value, so statements using non-default attributes
+            # are always reported as requiring a write.
             for _, d in dt.items():
-                qualifiers = []
-                for q in d['qual']:
-                    f = self._get_datatype_class(self.prop_dt_map[q[0]])
-                    # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
-                    if self.prop_dt_map[q[0]] == 'quantity':
-                        qualifiers.append(f(value=q[1], prop_nr=q[0], unit=q[2]))
-                    else:
-                        qualifiers.append(f(value=q[1], prop_nr=q[0]))
+                qualifiers = [self._reconstruct_snak_datatype(prop_nr=q[0], value=q[1], unit=q[2]) for q in d['qual']]
 
                 references = []
                 for _, refs in d['ref'].items():
-                    this_ref = []
-                    for ref in refs:
-                        f = self._get_datatype_class(self.prop_dt_map[ref[0]])
-                        this_ref.append(f(value=ref[1], prop_nr=ref[0]))
-                    references.append(this_ref)
+                    references.append([self._reconstruct_snak_datatype(prop_nr=ref[0], value=ref[1]) for ref in refs])
 
                 f = self._get_datatype_class(self.prop_dt_map[prop_nr])
-                # TODO: Add support for more data type
-                if self.prop_dt_map[prop_nr] == 'quantity':
-                    datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit'])
-                    datatype.parse_sparql_value(value=d['v'], unit=d['unit'])
-                else:
-                    datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references)
-                    datatype.parse_sparql_value(value=d['v'])
+                datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references)
+                if not datatype.parse_sparql_value(value=d['v'], unit=d.get('unit', '1')):
+                    raise ValueError(f"Can't parse the value '{d['v']}' of property {prop_nr} with parse_sparql_value()")
                 reconstructed_statements.append(datatype)
 
         # this isn't used. done for debugging purposes
@@ -376,6 +382,20 @@ class FastRunContainer:
     def get_all_data(self) -> dict[str, dict]:
         return self.prop_data
 
+    def _normalize_unit(self, unit_uri: str) -> str:
+        """
+        Normalize a unit URI from the SPARQL results to the format used in the JSON representation: the entity ID for
+        the units local to the instance, and '1' for unitless quantities, which the RDF export always represents with
+        the Wikidata entity Q199, whatever the Wikibase instance.
+
+        :param unit_uri: The unit URI from the SPARQL results
+        """
+        if unit_uri == UNITLESS_UNIT_URI:
+            return '1'
+        if unit_uri.startswith(self.wikibase_url):
+            return unit_uri.split('/')[-1]
+        return unit_uri
+
     def format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
@@ -395,16 +415,17 @@ class FastRunContainer:
         """
         prop_dt = self.get_prop_datatype(prop_nr)
         for i in r:
-            for value in ['item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit']:
+            for value in ['item', 'sid', 'pq', 'pr', 'ref']:
                 if value in i:
                     if i[value]['value'].startswith(self.wikibase_url):
                         i[value] = i[value]['value'].split('/')[-1]
                     else:
-                        # TODO: Dirty fix. If we are not on wikidata, we force unitless (Q199) to '1'
-                        if i[value]['value'] == 'http://www.wikidata.org/entity/Q199':
-                            i[value] = '1'
-                        else:
-                            i[value] = i[value]['value']
+                        i[value] = i[value]['value']
+
+            # normalize the unit URIs to entity IDs and the unitless unit to '1'
+            for value in ['unit', 'qunit']:
+                if value in i:
+                    i[value] = self._normalize_unit(i[value]['value'])
 
             # make sure datetimes are formatted correctly.
             # the correct format is '+%Y-%m-%dT%H:%M:%SZ', but is sometimes missing the plus??
@@ -445,6 +466,9 @@ class FastRunContainer:
                     i['qval'] = i['qval']['value'].split('/')[-1]
                 elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
                     i['qval'] = format_amount(i['qval']['value'])
+                elif i['qval']['type'] == 'literal' and qual_prop_dt == 'monolingualtext' and 'xml:lang' in i['qval']:
+                    # keep the language, it is needed to reconstruct the qualifier
+                    i['qval'] = self._get_datatype_class(qual_prop_dt)(prop_nr=i['pq'], text=i['qval']['value'], language=i['qval']['xml:lang']).get_sparql_value()
                 else:
                     i['qval'] = i['qval']['value']
 
@@ -455,6 +479,9 @@ class FastRunContainer:
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 elif i['rval']['type'] == 'literal' and ref_prop_dt == 'quantity':
                     i['rval'] = format_amount(i['rval']['value'])
+                elif i['rval']['type'] == 'literal' and ref_prop_dt == 'monolingualtext' and 'xml:lang' in i['rval']:
+                    # keep the language, it is needed to reconstruct the reference
+                    i['rval'] = self._get_datatype_class(ref_prop_dt)(prop_nr=i['pr'], text=i['rval']['value'], language=i['rval']['xml:lang']).get_sparql_value()
                 else:
                     i['rval'] = i['rval']['value']
 

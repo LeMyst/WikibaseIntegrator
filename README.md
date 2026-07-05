@@ -936,8 +936,9 @@ frc.check_language_data(qid=qid, lang_data=['CDK7'], lang='en', lang_data_type='
   until the next run.
 * The whole data corpus selected by the base filter is loaded in memory. Choose a base filter that selects a reasonably
   sized subset of the instance.
-* Some datatypes are only partially supported when used as qualifiers or references (e.g. Time, GlobeCoordinate,
-  MonolingualText): entities using them may always be reported as requiring a write.
+* The statement attributes that are not exposed in the SPARQL simple values (time precision, globe coordinate
+  precision, quantity bounds...) are reconstructed with their default values: statements using non-default values for
+  these attributes are always reported as requiring a write.
 
 # Debugging #
 

@@ -87,6 +87,22 @@ class TestTime:
         # Ordering keeps working across the 4/5-digit boundary
         assert Time(time='+9999-01-01T00:00:00Z', prop_nr='P5') < time
 
+    def test_parse_sparql_value(self):
+        # A bare RDF timestamp: the missing '+' is added and the precision is inferred
+        time = Time(prop_nr='P5')
+        assert time.parse_sparql_value('2020-02-08T00:00:00Z') is True
+        assert time.mainsnak.datavalue['value']['time'] == '+2020-02-08T00:00:00Z'
+        assert time.mainsnak.datavalue['value']['precision'] == WikibaseTimePrecision.DAY.value
+
+        # A quoted literal with its datatype suffix
+        time = Time(prop_nr='P5')
+        assert time.parse_sparql_value('"+2020-02-00T00:00:00Z"^^xsd:dateTime') is True
+        assert time.mainsnak.datavalue['value']['precision'] == WikibaseTimePrecision.MONTH.value
+
+        # A timestamp with a time part can't be represented, its precision can't be inferred
+        assert Time(prop_nr='P5').parse_sparql_value('2020-02-08T12:34:56Z') is False
+        assert Time(prop_nr='P5').parse_sparql_value('not a timestamp') is False
+
 
 class TestRank:
     def test_rank_parsing(self):

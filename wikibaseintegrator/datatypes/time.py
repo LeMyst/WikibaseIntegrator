@@ -105,6 +105,21 @@ class Time(BaseDataType):
     def get_sparql_value(self) -> str:
         return self.mainsnak.datavalue['value']['time']
 
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+        pattern = re.compile(r'^"?([+-]?[0-9]{1,16}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)"?(?:\^\^xsd:dateTime)?$')
+        matches = pattern.match(value)
+        if not matches:
+            return False
+
+        try:
+            # The RDF value does not carry the precision, set_value() infers it from the timestamp
+            self.set_value(time=matches.group(1))
+        except ValueError:
+            # The precision cannot be inferred (e.g. a timestamp with a time part), set_value() cannot represent it
+            return False
+
+        return True
+
     def _time_parts(self) -> tuple[int, int, int]:
         """
         Split the timestamp into (year, month, day).

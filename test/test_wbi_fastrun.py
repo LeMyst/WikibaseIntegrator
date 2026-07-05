@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item, Quantity
+from wikibaseintegrator.datatypes import BaseDataType, ExternalID, GlobeCoordinate, Item, MonolingualText, Quantity, Time
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -77,6 +77,47 @@ class TestQueryData:
         values = {statement['v'] for statement in frc.prop_data['Q99']['P2888'].values()}
         assert all(value.startswith('<http') for value in values)
 
+    def test_query_data_unit_normalization(self, wikibase):
+        """Unit URIs are reduced to entity IDs, and the unitless unit (always the Wikidata Q199 entity) to '1'."""
+        wikibase.add_property('P2067', 'quantity')
+        wikibase.add_property('P2068', 'quantity')
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P2067')], base_data_type=BaseDataType)
+
+        # unitless: the RDF always uses the Wikidata Q199 entity, even on another instance
+        bindings = statement_bindings(wikibase, 'Q99', 'P2067', [literal('42', datatype='http://www.w3.org/2001/XMLSchema#decimal')])
+        bindings[0]['unit'] = uri('http://www.wikidata.org/entity/Q199')
+        wikibase.sparql_bindings = bindings
+        frc._query_data('P2067', use_units=True)
+        assert list(frc.prop_data['Q99']['P2067'].values())[0]['unit'] == '1'
+
+        # a unit local to the instance is reduced to its entity ID
+        bindings = statement_bindings(wikibase, 'Q99', 'P2068', [literal('42', datatype='http://www.w3.org/2001/XMLSchema#decimal')])
+        bindings[0]['unit'] = uri(f'{wikibase.base_url}/entity/Q11573')
+        wikibase.sparql_bindings = bindings
+        frc._query_data('P2068', use_units=True)
+        assert list(frc.prop_data['Q99']['P2068'].values())[0]['unit'] == 'Q11573'
+
+    def test_query_data_monolingualtext_qualifier(self, wikibase):
+        """The language of monolingual text qualifiers must be kept, it is needed to reconstruct them."""
+        wikibase.add_property('P828', 'wikibase-item')
+        wikibase.add_property('P1476', 'monolingualtext')
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P828')], base_data_type=BaseDataType)
+
+        bindings = statement_bindings(wikibase, 'Q99', 'P828', [uri(f'{wikibase.base_url}/entity/Q2')])
+        bindings[0]['pq'] = uri(f'{wikibase.base_url}/prop/qualifier/P1476')
+        bindings[0]['qval'] = literal('Some title', lang='en')
+        wikibase.sparql_bindings = bindings
+        frc._query_data('P828')
+
+        statement = list(frc.prop_data['Q99']['P828'].values())[0]
+        assert ('P1476', '"Some title"@en', '1') in statement['qual']
+
+        # the reconstructed qualifier is comparable with a local MonolingualText qualifier
+        qualifier = MonolingualText(text='Some title', language='en', prop_nr='P1476')
+        assert frc.write_required(data=[Item(value='Q2', prop_nr='P828', qualifiers=[qualifier])]) is False
+
     def test_query_data_ref(self, wikibase):
         wikibase.add_property('P352', 'external-id')
         wikibase.add_property('P248', 'wikibase-item')
@@ -134,6 +175,21 @@ class TestWriteRequiredEndToEnd:
 
         assert frc.write_required(data=[Quantity(amount=42, prop_nr='P2067')]) is False
         assert frc.write_required(data=[Quantity(amount=43, prop_nr='P2067')]) is True
+
+    def test_write_required_quantity_unitless(self, wikibase):
+        """
+        Regression: the unitless unit URI (the Wikidata Q199 entity) was stored as-is instead of being normalized
+        to '1', so unitless quantities never matched the local claims and a write was always wrongly reported.
+        """
+        wikibase.add_property('P2067', 'quantity')
+        bindings = statement_bindings(wikibase, 'Q42', 'P2067', [literal('42', datatype='http://www.w3.org/2001/XMLSchema#decimal')])
+        bindings[0]['unit'] = uri('http://www.wikidata.org/entity/Q199')
+        wikibase.sparql_bindings = bindings
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P2067')], base_data_type=BaseDataType)
+
+        assert frc.write_required(data=[Quantity(amount=42, prop_nr='P2067')]) is False
+        assert frc.write_required(data=[Quantity(amount=42, unit='Q11573', prop_nr='P2067')]) is True
 
     def test_write_required_with_property_path_base_filter(self, wikibase, item_q582):
         """
@@ -340,6 +396,58 @@ def test_write_required_case_sensitive_by_default():
 
     assert frc.write_required(data=[ExternalID(value='Q9UMX9', prop_nr='P352')]) is True
     assert frc.write_required(data=[ExternalID(value='q9umx9', prop_nr='P352')]) is False
+
+
+def test_normalize_unit():
+    frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType, wikibase_url='http://www.wikidata.org')
+
+    # the unitless unit is always the Wikidata Q199 entity, even when it is local to the instance
+    assert frc._normalize_unit('http://www.wikidata.org/entity/Q199') == '1'
+    # a unit local to the instance is reduced to its entity ID
+    assert frc._normalize_unit('http://www.wikidata.org/entity/Q11573') == 'Q11573'
+    # a unit from another instance is kept as-is
+    assert frc._normalize_unit('https://wikibase.example.org/entity/Q5') == 'https://wikibase.example.org/entity/Q5'
+
+
+class FastRunContainerFakeQueryDataQualifiers(wbi_fastrun.FastRunContainer):
+    # an item with one statement carrying qualifiers of the datatypes needing a dedicated reconstruction
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.prop_dt_map = {'P527': 'wikibase-item', 'P1114': 'quantity', 'P585': 'time', 'P1476': 'monolingualtext', 'P625': 'globe-coordinate'}
+        self.rev_lookup = defaultdict(set)
+        self.rev_lookup['Q2'].add('Q1')
+        self.prop_data['Q1'] = {'P527': {
+            'fake statement id': {
+                'qual': {
+                    ('P1114', '+12', '1'),
+                    ('P585', '+2020-02-08T00:00:00Z', '1'),
+                    ('P1476', '"Some title"@en', '1'),
+                    ('P625', 'Point(2.35 48.85)', '1'),
+                },
+                'ref': {},
+                'unit': '1',
+                'v': 'Q2'}}}
+
+
+def test_write_required_with_qualifier_datatypes():
+    """
+    Regression: reconstructing quantity, time, monolingual text or globe coordinate qualifiers crashed with a
+    TypeError because those datatype constructors do not accept a generic 'value' parameter.
+    """
+    frc = FastRunContainerFakeQueryDataQualifiers(base_filter=[BaseDataType(prop_nr='P527')], base_data_type=BaseDataType)
+
+    qualifiers = [
+        Quantity(amount=12, prop_nr='P1114'),
+        Time(time='+2020-02-08T00:00:00Z', prop_nr='P585'),
+        MonolingualText(text='Some title', language='en', prop_nr='P1476'),
+        GlobeCoordinate(latitude=48.85, longitude=2.35, prop_nr='P625'),
+    ]
+    # same qualifiers: no write required
+    assert frc.write_required(data=[Item(value='Q2', prop_nr='P527', qualifiers=list(qualifiers))]) is False
+
+    # a differing qualifier value: write required
+    qualifiers[0] = Quantity(amount=13, prop_nr='P1114')
+    assert frc.write_required(data=[Item(value='Q2', prop_nr='P527', qualifiers=list(qualifiers))]) is True
 
 
 class FakeQueryDataAppendProps(wbi_fastrun.FastRunContainer):
