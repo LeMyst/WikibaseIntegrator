@@ -19,6 +19,10 @@ log = logging.getLogger(__name__)
 
 fastrun_store: list[FastRunContainer] = []
 
+# The RDF export of a Wikibase instance always represents a quantity without a unit ('1' in the JSON representation)
+# with the Wikidata entity Q199 (the number one), whatever the instance.
+UNITLESS_UNIT_URIS = ('1', 'http://www.wikidata.org/entity/Q199', 'https://www.wikidata.org/entity/Q199')
+
 
 class FastRunContainer:
     """
@@ -87,11 +91,32 @@ class FastRunContainer:
                 return subclass
         raise ValueError(f"No data type class found for the property type '{property_type}'")
 
+    @classmethod
+    def _normalize_unit(cls, unit: str) -> str:
+        """
+        Normalize a unit to the format used in the comparison keys: '1' for a unitless quantity (represented by the
+        Wikidata Q199 entity in the RDF export, whatever the instance) and the bare entity ID otherwise.
+
+        :param unit: A unit URI from the SPARQL results or from the JSON representation, or '1'
+        """
+        if unit in UNITLESS_UNIT_URIS:
+            return '1'
+        return cls._entity_id(unit)
+
     def _value_key(self, claim: Claim) -> str | None:
-        """The key indexing the value of the given claim in self.data, casefolded when case_insensitive is enabled."""
+        """
+        The key indexing the value of the given claim in self.data, casefolded when case_insensitive is enabled.
+        The normalized unit is part of the key for quantities: two amounts only differing by their unit must not
+        be considered equal.
+        """
         value = claim.get_sparql_value()
-        if value is not None and self.case_insensitive:
+        if value is None:
+            return None
+        if self.case_insensitive:
             value = value.casefold()
+        datavalue = claim.mainsnak.datavalue
+        if isinstance(datavalue, dict) and datavalue.get('type') == 'quantity':
+            value += '@' + self._normalize_unit(datavalue['value'].get('unit', '1'))
         return value
 
     def _base_filter_string(self, wb_url: str | None = None) -> str:
@@ -189,7 +214,7 @@ class FastRunContainer:
                 if partial_load:
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
-                    SELECT ?entity ?sid ?value ?property_type WHERE {{
+                    SELECT ?entity ?sid ?value ?property_type ?unit WHERE {{
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
@@ -197,6 +222,8 @@ class FastRunContainer:
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
                       ?sid <{wb_url}/prop/statement/{prop_nr}> {value}.
                       {qualifiers_filter_string}
+                      # The unit of a quantity value, only bound for quantities
+                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:quantityUnit ?unit ] . }}
                     }}
                     ORDER BY ?sid
                     OFFSET {offset}
@@ -209,12 +236,14 @@ class FastRunContainer:
                 else:
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
-                    SELECT ?entity ?sid ?value ?property_type WHERE {{
+                    SELECT ?entity ?sid ?value ?property_type ?unit WHERE {{
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
                       <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type.
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
+                      # The unit of a quantity value, only bound for quantities
+                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:quantityUnit ?unit ] . }}
                     }}
                     ORDER BY ?sid
                     OFFSET {offset}
@@ -246,11 +275,12 @@ class FastRunContainer:
                         log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the value", prop_nr)
                         continue
 
-                    sparql_value = f.get_sparql_value()
-                    if sparql_value is not None:
-                        if self.case_insensitive:
-                            sparql_value = sparql_value.casefold()
+                    # The simple value of a quantity does not carry the unit, set it from the value node
+                    if 'unit' in result and isinstance(f.mainsnak.datavalue, dict) and f.mainsnak.datavalue.get('type') == 'quantity':
+                        f.mainsnak.datavalue['value']['unit'] = result['unit']['value']
 
+                    sparql_value = self._value_key(f)
+                    if sparql_value is not None:
                         if sparql_value not in self.data[prop_nr]:
                             self.data[prop_nr][sparql_value] = []
 
