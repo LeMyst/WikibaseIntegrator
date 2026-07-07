@@ -363,7 +363,10 @@ class BaseEntity:
 
         # TODO: Add check_language_data
 
-        return fastrun_container.write_required(claims=self.claims, property_filter=property_filter)
+        # Restrict the check to the entity being edited, when it already has an ID
+        entity_filter = [self.id] if self.id else None
+
+        return fastrun_container.write_required(claims=self.claims, entity_filter=entity_filter, property_filter=property_filter, action_if_exists=action_if_exists)
 
     def get_entity_url(self, wikibase_url: str | None = None) -> str:
         from wikibaseintegrator.wbi_config import config
