@@ -8,7 +8,7 @@ import re
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item, String, Time
+from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item, Quantity, String, Time
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 from .conftest import literal, uri
@@ -17,9 +17,11 @@ wbi = WikibaseIntegrator()
 
 PTYPE_EXTERNAL_ID = 'http://wikiba.se/ontology#ExternalId'
 PTYPE_ITEM = 'http://wikiba.se/ontology#WikibaseItem'
+PTYPE_QUANTITY = 'http://wikiba.se/ontology#Quantity'
 PTYPE_STRING = 'http://wikiba.se/ontology#String'
 PTYPE_TIME = 'http://wikiba.se/ontology#Time'
 XSD_DATETIME = 'http://www.w3.org/2001/XMLSchema#dateTime'
+XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal'
 
 
 class SparqlData:
@@ -58,15 +60,18 @@ class SparqlData:
     def _sid(query: str) -> str:
         return re.search(r'VALUES \?sid \{ <([^>]+)> \}', query).group(1)
 
-    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0) -> str:
+    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None) -> str:
         """Register a statement binding and return its statement URI."""
         sid = f'{self.wikibase.base_url}/entity/statement/{entity_id}-{prop_nr}-{index}'
-        self.statements.setdefault(prop_nr, []).append({
+        binding = {
             'entity': uri(f'{self.wikibase.base_url}/entity/{entity_id}'),
             'sid': uri(sid),
             'value': value,
             'property_type': uri(property_type),
-        })
+        }
+        if unit is not None:
+            binding['unit'] = uri(unit)
+        self.statements.setdefault(prop_nr, []).append(binding)
         return sid
 
     def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str) -> None:
@@ -328,6 +333,30 @@ class TestWriteRequiredRank:
         sparql_data.rank(sid, 'PreferredRank')
 
         assert frc.write_required(claims=[ExternalID(value='P40095', prop_nr='P352')]) is False
+
+
+class TestWriteRequiredQuantityUnits:
+    def test_different_unit_requires_write(self, wikibase, sparql_data, frc):
+        """Two amounts only differing by their unit must not be considered equal."""
+        sparql_data.statement('Q99', 'P2046', literal('+42', datatype=XSD_DECIMAL), PTYPE_QUANTITY, unit=f'{wikibase.base_url}/entity/Q712226')
+
+        assert frc.write_required(claims=[Quantity(amount=42, prop_nr='P2046')]) is True
+        assert frc.write_required(claims=[Quantity(amount=42, unit='Q11573', prop_nr='P2046')]) is True
+        assert frc.write_required(claims=[Quantity(amount=42, unit='Q712226', prop_nr='P2046')]) is False
+
+    def test_unitless_quantity_q199_normalization(self, wikibase, sparql_data, frc):
+        """The RDF always represents a unitless quantity with the Wikidata Q199 entity, even on another instance."""
+        sparql_data.statement('Q99', 'P1082', literal('+1234', datatype=XSD_DECIMAL), PTYPE_QUANTITY, unit='http://www.wikidata.org/entity/Q199')
+
+        assert frc.write_required(claims=[Quantity(amount=1234, prop_nr='P1082')]) is False
+        assert frc.write_required(claims=[Quantity(amount=1234, unit='Q712226', prop_nr='P1082')]) is True
+
+    def test_get_entities_with_unit(self, wikibase, sparql_data, frc):
+        sparql_data.statement('Q99', 'P2046', literal('+42', datatype=XSD_DECIMAL), PTYPE_QUANTITY, unit=f'{wikibase.base_url}/entity/Q712226')
+        sparql_data.statement('Q100', 'P2046', literal('+42', datatype=XSD_DECIMAL), PTYPE_QUANTITY, index=1, unit='http://www.wikidata.org/entity/Q199')
+
+        assert frc.get_entities(claims=Quantity(amount=42, unit='Q712226', prop_nr='P2046')) == ['Q99']
+        assert frc.get_entities(claims=Quantity(amount=42, prop_nr='P2046')) == ['Q100']
 
 
 class TestCaseInsensitive:
