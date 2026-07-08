@@ -20,6 +20,10 @@ log = logging.getLogger(__name__)
 
 fastrun_store: list[FastRunContainer] = []
 
+# The RDF export of a Wikibase instance always represents a quantity without a unit ('1' in the JSON representation)
+# with the Wikidata entity Q199 (the number one), whatever the instance.
+UNITLESS_UNIT_URI = 'http://www.wikidata.org/entity/Q199'
+
 
 class FastRunContainer:
     def __init__(self, base_data_type: type[BaseDataType], mediawiki_api_url: str | None = None, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None,
@@ -61,6 +65,32 @@ class FastRunContainer:
                 else:
                     raise ValueError("base_filter must be an instance of BaseDataType or a list of instances of BaseDataType")
 
+    def _get_datatype_class(self, datatype: str | None) -> type[BaseDataType]:
+        """
+        Return the data type class implementing the given Wikibase datatype (e.g. 'external-id' -> ExternalID).
+
+        :param datatype: A Wikibase datatype name
+        :exception ValueError: if no class implements the given datatype
+        """
+        for subclass in self.base_data_type.subclasses:
+            if subclass.DTYPE == datatype:
+                return subclass
+        raise ValueError(f"No data type class found for datatype '{datatype}'")
+
+    def _reconstruct_snak_datatype(self, prop_nr: str, value: str, unit: str = '1') -> BaseDataType:
+        """
+        Rebuild a datatype object from the raw SPARQL value stored in prop_data, used for qualifiers and references.
+
+        :param prop_nr: The property number of the snak
+        :param value: The raw SPARQL value
+        :param unit: The unit entity ID if the value is a quantity
+        :exception ValueError: if the value can't be parsed by the datatype class
+        """
+        datatype = self._get_datatype_class(self.prop_dt_map[prop_nr])(prop_nr=prop_nr)
+        if not datatype.parse_sparql_value(value=value, unit=unit):
+            raise ValueError(f"Can't parse the value '{value}' of property {prop_nr} with parse_sparql_value()")
+        return datatype
+
     def reconstruct_statements(self, qid: str) -> list[BaseDataType]:
         reconstructed_statements: list[BaseDataType] = []
 
@@ -77,32 +107,20 @@ class FastRunContainer:
                 if prop not in self.prop_dt_map:
                     self.prop_dt_map.update({prop: self.get_prop_datatype(prop)})
             # reconstruct statements from frc (including unit, qualifiers, and refs)
+            # Note: attributes missing from the SPARQL simple values (time precision, globe coordinate precision,
+            # quantity bounds...) are rebuilt with their default value, so statements using non-default attributes
+            # are always reported as requiring a write.
             for _, d in dt.items():
-                qualifiers = []
-                for q in d['qual']:
-                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[q[0]]][0]
-                    # TODO: Add support for more data type (Time, MonolingualText, GlobeCoordinate)
-                    if self.prop_dt_map[q[0]] == 'quantity':
-                        qualifiers.append(f(value=q[1], prop_nr=q[0], unit=q[2]))
-                    else:
-                        qualifiers.append(f(value=q[1], prop_nr=q[0]))
+                qualifiers = [self._reconstruct_snak_datatype(prop_nr=q[0], value=q[1], unit=q[2]) for q in d['qual']]
 
                 references = []
                 for _, refs in d['ref'].items():
-                    this_ref = []
-                    for ref in refs:
-                        f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[ref[0]]][0]
-                        this_ref.append(f(value=ref[1], prop_nr=ref[0]))
-                    references.append(this_ref)
+                    references.append([self._reconstruct_snak_datatype(prop_nr=ref[0], value=ref[1]) for ref in refs])
 
-                f = [x for x in self.base_data_type.subclasses if x.DTYPE == self.prop_dt_map[prop_nr]][0]
-                # TODO: Add support for more data type
-                if self.prop_dt_map[prop_nr] == 'quantity':
-                    datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references, unit=d['unit'])
-                    datatype.parse_sparql_value(value=d['v'], unit=d['unit'])
-                else:
-                    datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references)
-                    datatype.parse_sparql_value(value=d['v'])
+                f = self._get_datatype_class(self.prop_dt_map[prop_nr])
+                datatype = f(prop_nr=prop_nr, qualifiers=qualifiers, references=references)
+                if not datatype.parse_sparql_value(value=d['v'], unit=d.get('unit', '1')):
+                    raise ValueError(f"Can't parse the value '{d['v']}' of property {prop_nr} with parse_sparql_value()")
                 reconstructed_statements.append(datatype)
 
         # this isn't used. done for debugging purposes
@@ -114,9 +132,8 @@ class FastRunContainer:
         Get items ID from a SPARQL endpoint
 
         :param claims: A list of claims the entities should have
-        :param cqid:
-        :return: a list of entity ID or None
-        :exception: if there is more than one claim
+        :param cqid: If given, this entity ID is returned instead of the IDs found by the value lookup
+        :return: a set of entity IDs or None if no entity matches the claims
         """
         match_sets = []
 
@@ -127,7 +144,7 @@ class FastRunContainer:
 
         for claim in claims:
             # skip to next if statement has no value or no data type defined, e.g. for deletion objects
-            if not claim.mainsnak.datavalue and not claim.mainsnak.datatype:
+            if not claim.mainsnak.datavalue or not claim.mainsnak.datatype:
                 continue
 
             prop_nr = claim.mainsnak.property_number
@@ -141,18 +158,16 @@ class FastRunContainer:
                     self.prop_dt_map.update({prop_nr: self.get_prop_datatype(prop_nr)})
                 self._query_data(prop_nr=prop_nr, use_units=self.prop_dt_map[prop_nr] == 'quantity')
 
-            # noinspection PyProtectedMember
-            current_value = claim.get_sparql_value()
-
+            # The value must be formatted the same way as the rev_lookup keys built in format_query_results()
             if self.prop_dt_map[prop_nr] == 'wikibase-item':
                 current_value = claim.mainsnak.datavalue['value']['id']
+            elif self.prop_dt_map[prop_nr] == 'quantity':
+                # rev_lookup stores plain amounts (e.g. '+42'), not the full SPARQL literal returned by get_sparql_value()
+                current_value = format_amount(claim.mainsnak.datavalue['value']['amount'])
+            else:
+                current_value = claim.get_sparql_value()
 
             log.debug(current_value)
-            # if self.case_insensitive:
-            #     log.debug("case insensitive enabled")
-            #     log.debug(self.rev_lookup_ci)
-            # else:
-            #     log.debug(self.rev_lookup)
 
             if current_value in self.rev_lookup:
                 # quick check for if the value has ever been seen before, if not, write required
@@ -202,11 +217,15 @@ class FastRunContainer:
         :param cqid:
         :return: Return True if the write is required
         """
-        del_props = set()
         data_props = set()
-        append_props = []
-        if action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
+        append_props: list[str] = []
+        if action_if_exists in (ActionIfExists.APPEND_OR_REPLACE, ActionIfExists.FORCE_APPEND):
             append_props = [x.mainsnak.property_number for x in data]
+
+        if append_props and action_if_exists == ActionIfExists.FORCE_APPEND:
+            # The new statements are always appended, so a write is always required
+            log.debug("force append: write required")
+            return True
 
         for x in data:
             if x.mainsnak.datavalue and x.mainsnak.datatype:
@@ -219,67 +238,48 @@ class FastRunContainer:
         reconstructed_statements = self.reconstruct_statements(qid)
         tmp_rs = copy.deepcopy(reconstructed_statements)
 
-        # handle append properties
-        for p in append_props:
+        # handle append properties: every new statement must already exist on the item with the same value
+        # (and the same references if use_refs is enabled), otherwise a write is required
+        for p in set(append_props):
             app_data = [x for x in data if x.mainsnak.property_number == p]  # new statements
             rec_app_data = [x for x in tmp_rs if x.mainsnak.property_number == p]  # orig statements
-            comp = []
-            for x in app_data:
-                for y in rec_app_data:
-                    if x.mainsnak.datavalue == y.mainsnak.datavalue:
-                        if y.equals(x, include_ref=self.use_refs) and action_if_exists != ActionIfExists.FORCE_APPEND:
-                            comp.append(True)
-
-            # comp = [True for x in app_data for y in rec_app_data if x.equals(y, include_ref=self.use_refs)]
-            if len(comp) != len(app_data):
-                log.debug("failed append: %s", p)
-                return True
+            for new_statement in app_data:
+                if not any(original.mainsnak.datavalue == new_statement.mainsnak.datavalue and original.equals(new_statement, include_ref=self.use_refs)
+                           for original in rec_app_data):
+                    log.debug("failed append: %s", p)
+                    return True
 
         tmp_rs = [x for x in tmp_rs if x.mainsnak.property_number not in append_props and x.mainsnak.property_number in data_props]
 
-        for date in data:
+        for statement in data:
             # ensure that statements meant for deletion get handled properly
             reconst_props = {x.mainsnak.property_number for x in tmp_rs}
-            if not date.mainsnak.datatype and date.mainsnak.property_number in reconst_props:
+            if not statement.mainsnak.datatype and statement.mainsnak.property_number in reconst_props:
                 log.debug("returned from delete prop handling")
                 return True
 
-            if not date.mainsnak.datavalue or not date.mainsnak.datatype:
+            if not statement.mainsnak.datavalue or not statement.mainsnak.datatype:
                 # Ignore the deletion statements which are not in the reconstructed statements.
                 continue
 
-            if date.mainsnak.property_number in append_props:
-                # TODO: check if value already exist and already have the same value
+            if statement.mainsnak.property_number in append_props:
                 continue
 
-            if not date.mainsnak.datavalue and not date.mainsnak.datatype:
-                del_props.add(date.mainsnak.property_number)
-
             # this is where the magic happens
-            # date is a new statement, proposed to be written
+            # statement is a new statement, proposed to be written
             # tmp_rs are the reconstructed statements == current state of the item
-            bool_vec = []
-            for x in tmp_rs:
-                if (x == date or (self.case_insensitive and x.mainsnak.datavalue.casefold() == date.mainsnak.datavalue.casefold())) and x.mainsnak.property_number not in del_props:
-                    bool_vec.append(x.equals(date, include_ref=self.use_refs))
-                else:
-                    bool_vec.append(False)
-            # bool_vec = [x.equals(date, include_ref=self.use_refs, fref=self.ref_comparison_f) and
-            # x.mainsnak.property_number not in del_props for x in tmp_rs]
+            bool_vec = [self._statements_equal(x, statement) for x in tmp_rs]
 
-            log.debug("bool_vec: %s", bool_vec)
-            log.debug("-----------------------------------")
-            for x in tmp_rs:
-                if x == date and x.mainsnak.property_number not in del_props:
-                    log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
-                    log.debug([date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers]])
-                elif x.mainsnak.property_number == date.mainsnak.property_number:
-                    log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
-                    log.debug([date.mainsnak.property_number, date.mainsnak.datavalue, [z.datavalue for z in date.qualifiers]])
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug("bool_vec: %s", bool_vec)
+                log.debug("-----------------------------------")
+                for x in tmp_rs:
+                    if x.mainsnak.property_number == statement.mainsnak.property_number:
+                        log.debug([x.mainsnak.property_number, x.mainsnak.datavalue, [z.datavalue for z in x.qualifiers]])
+                        log.debug([statement.mainsnak.property_number, statement.mainsnak.datavalue, [z.datavalue for z in statement.qualifiers]])
 
             if not any(bool_vec):
-                log.debug(len(bool_vec))
-                log.debug("fast run failed at %s", date.mainsnak.property_number)
+                log.debug("fast run failed at %s (%s candidate statements)", statement.mainsnak.property_number, len(bool_vec))
                 return True
 
             log.debug("fast run success")
@@ -293,6 +293,31 @@ class FastRunContainer:
             return True
 
         return False
+
+    def _statements_equal(self, statement: BaseDataType, new_statement: Claim) -> bool:
+        """
+        Compare a reconstructed statement with a new statement, including the references if use_refs is enabled.
+        When case_insensitive is enabled, string values differing only by case are considered equal.
+
+        :param statement: A statement reconstructed from the SPARQL data (the current state of the entity)
+        :param new_statement: The statement proposed to be written
+        :return: True if both statements are considered equal
+        """
+        if statement.equals(new_statement, include_ref=self.use_refs):
+            return True
+
+        if not self.case_insensitive or statement.mainsnak.property_number != new_statement.mainsnak.property_number:
+            return False
+
+        current_value = (statement.mainsnak.datavalue or {}).get('value')
+        new_value = (new_statement.mainsnak.datavalue or {}).get('value')
+        if not isinstance(current_value, str) or not isinstance(new_value, str) or current_value.casefold() != new_value.casefold():
+            return False
+
+        if not statement.has_equal_qualifiers(new_statement):
+            return False
+
+        return not self.use_refs or Claim.refs_equal(statement, new_statement)
 
     def init_language_data(self, lang: str, lang_data_type: str) -> None:
         """
@@ -357,6 +382,20 @@ class FastRunContainer:
     def get_all_data(self) -> dict[str, dict]:
         return self.prop_data
 
+    def _normalize_unit(self, unit_uri: str) -> str:
+        """
+        Normalize a unit URI from the SPARQL results to the format used in the JSON representation: the entity ID for
+        the units local to the instance, and '1' for unitless quantities, which the RDF export always represents with
+        the Wikidata entity Q199, whatever the Wikibase instance.
+
+        :param unit_uri: The unit URI from the SPARQL results
+        """
+        if unit_uri == UNITLESS_UNIT_URI:
+            return '1'
+        if unit_uri.startswith(self.wikibase_url):
+            return unit_uri.split('/')[-1]
+        return unit_uri
+
     def format_query_results(self, r: list, prop_nr: str) -> None:
         """
         `r` is the results of the sparql query in _query_data and is modified in place
@@ -376,16 +415,17 @@ class FastRunContainer:
         """
         prop_dt = self.get_prop_datatype(prop_nr)
         for i in r:
-            for value in ['item', 'sid', 'pq', 'pr', 'ref', 'unit', 'qunit']:
+            for value in ['item', 'sid', 'pq', 'pr', 'ref']:
                 if value in i:
                     if i[value]['value'].startswith(self.wikibase_url):
                         i[value] = i[value]['value'].split('/')[-1]
                     else:
-                        # TODO: Dirty fix. If we are not on wikidata, we force unitless (Q199) to '1'
-                        if i[value]['value'] == 'http://www.wikidata.org/entity/Q199':
-                            i[value] = '1'
-                        else:
-                            i[value] = i[value]['value']
+                        i[value] = i[value]['value']
+
+            # normalize the unit URIs to entity IDs and the unitless unit to '1'
+            for value in ['unit', 'qunit']:
+                if value in i:
+                    i[value] = self._normalize_unit(i[value]['value'])
 
             # make sure datetimes are formatted correctly.
             # the correct format is '+%Y-%m-%dT%H:%M:%SZ', but is sometimes missing the plus??
@@ -404,10 +444,10 @@ class FastRunContainer:
                 elif i['v']['type'] == 'literal' and prop_dt == 'quantity':
                     i['v'] = format_amount(i['v']['value'])
                 elif i['v']['type'] == 'literal' and prop_dt == 'monolingualtext':
-                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr, text=i['v']['value'], language=i['v']['xml:lang'])
+                    f = self._get_datatype_class(prop_dt)(prop_nr=prop_nr, text=i['v']['value'], language=i['v']['xml:lang'])
                     i['v'] = f.get_sparql_value()
                 else:
-                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == prop_dt][0](prop_nr=prop_nr)
+                    f = self._get_datatype_class(prop_dt)(prop_nr=prop_nr)
                     if not f.parse_sparql_value(value=i['v']['value'], type=i['v']['type']):
                         raise ValueError("Can't parse the value with parse_sparql_value()")
                     i['v'] = f.get_sparql_value()
@@ -426,6 +466,9 @@ class FastRunContainer:
                     i['qval'] = i['qval']['value'].split('/')[-1]
                 elif i['qval']['type'] == 'literal' and qual_prop_dt == 'quantity':
                     i['qval'] = format_amount(i['qval']['value'])
+                elif i['qval']['type'] == 'literal' and qual_prop_dt == 'monolingualtext' and 'xml:lang' in i['qval']:
+                    # keep the language, it is needed to reconstruct the qualifier
+                    i['qval'] = self._get_datatype_class(qual_prop_dt)(prop_nr=i['pq'], text=i['qval']['value'], language=i['qval']['xml:lang']).get_sparql_value()
                 else:
                     i['qval'] = i['qval']['value']
 
@@ -436,6 +479,9 @@ class FastRunContainer:
                     i['rval'] = i['rval']['value'].split('/')[-1]
                 elif i['rval']['type'] == 'literal' and ref_prop_dt == 'quantity':
                     i['rval'] = format_amount(i['rval']['value'])
+                elif i['rval']['type'] == 'literal' and ref_prop_dt == 'monolingualtext' and 'xml:lang' in i['rval']:
+                    # keep the language, it is needed to reconstruct the reference
+                    i['rval'] = self._get_datatype_class(ref_prop_dt)(prop_nr=i['pr'], text=i['rval']['value'], language=i['rval']['xml:lang']).get_sparql_value()
                 else:
                     i['rval'] = i['rval']['value']
 
@@ -570,7 +616,7 @@ class FastRunContainer:
             self.update_frc_from_query(results, prop_nr)
             page_count += 1
 
-            if len(results) == 0 or len(results) < page_size:
+            if len(results) < page_size:
                 break
 
     def _query_lang(self, lang: str, lang_data_type: str) -> list[dict[str, dict]] | None:
@@ -631,6 +677,7 @@ class FastRunContainer:
         self.prop_data = {}
         self.rev_lookup = defaultdict(set)
         self.rev_lookup_ci = defaultdict(set)
+        self.loaded_langs = {}
 
     def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
