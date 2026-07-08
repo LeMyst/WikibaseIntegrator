@@ -9,6 +9,7 @@ import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item, Quantity, String, Time
+from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
 from .conftest import literal, uri
@@ -52,13 +53,16 @@ class SparqlData:
         if 'wbi_fastrun._query_lang' in query:
             return self.labels
         if 'wbi_fastrun.load_statements' in query:
-            prop_nr = re.search(r'/prop/(P\d+)> \?sid', query).group(1)
-            return self.statements.get(prop_nr, [])
+            match = re.search(r'/prop/(P\d+)> \?sid', query)
+            assert match is not None
+            return self.statements.get(match.group(1), [])
         return []
 
     @staticmethod
     def _sid(query: str) -> str:
-        return re.search(r'VALUES \?sid \{ <([^>]+)> \}', query).group(1)
+        match = re.search(r'VALUES \?sid \{ <([^>]+)> \}', query)
+        assert match is not None
+        return match.group(1)
 
     def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None) -> str:
         """Register a statement binding and return its statement URI."""
@@ -377,7 +381,7 @@ class TestCaseInsensitive:
 class TestEntityWriteRequired:
     """write_required() through an entity: the check is restricted to the entity being edited."""
 
-    def _item(self, item_id: str | None, claims: list) -> 'ItemEntity':  # noqa: F821
+    def _item(self, item_id: str | None, claims: list) -> ItemEntity:
         item = wbi.item.new()
         if item_id:
             item.id = item_id
