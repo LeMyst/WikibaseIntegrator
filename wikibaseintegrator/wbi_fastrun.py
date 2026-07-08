@@ -345,7 +345,7 @@ class FastRunContainer:
                 try:
                     f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result['value'])
                 except ValueError as exception:
-                    # An unparseable qualifier can't be compared, leave it out so that the comparison fails safely
+                    # An unparsable qualifier can't be compared, leave it out so that the comparison fails safely
                     log.warning("Skipping a qualifier of statement '%s': %s", sid, exception)
                     continue
 
@@ -416,7 +416,7 @@ class FastRunContainer:
                 try:
                     f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result['ref_value'])
                 except ValueError as exception:
-                    # An unparseable reference snak can't be compared, leave it out so that the comparison fails safely
+                    # An unparsable reference snak can't be compared, leave it out so that the comparison fails safely
                     log.warning("Skipping a reference snak of statement '%s': %s", sid, exception)
                     continue
 
