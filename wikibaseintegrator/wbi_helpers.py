@@ -81,6 +81,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     # TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
 
     if 'data' in kwargs and kwargs['data']:
+        kwargs['data'] = dict(kwargs['data'])
         if 'format' not in kwargs['data']:
             kwargs['data'].update({'format': 'json'})
         elif kwargs['data']['format'] != 'json':
@@ -192,6 +193,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     """
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+    data = data.copy()
 
     hostname = urlparse(mediawiki_api_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
