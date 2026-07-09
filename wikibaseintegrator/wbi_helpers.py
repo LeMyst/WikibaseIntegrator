@@ -274,7 +274,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     if prefix:
         query = prefix + '\n' + query
 
-    params = {
+    body = {
         'query': '#Tool: WikibaseIntegrator wbi_functions.execute_sparql_query\n' + query,
         'format': 'json'
     }
@@ -287,11 +287,11 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
         'User-Agent': get_user_agent(user_agent)
     }
 
-    log.debug("SPARQL query:\n%s", params['query'])
+    log.debug("SPARQL query:\n%s", body['query'])
 
     for _ in range(max_retries):
         try:
-            response = helpers_session.post(sparql_endpoint_url, data=params, headers=headers, timeout=config['TIMEOUT'])
+            response = helpers_session.post(sparql_endpoint_url, data=body, headers=headers, timeout=config['TIMEOUT'])
         except requests.exceptions.ConnectionError as e:
             log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
