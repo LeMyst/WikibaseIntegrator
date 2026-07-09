@@ -46,6 +46,9 @@ class Forms(BaseModel):
 
         return json_data
 
+    def __iter__(self):
+        return self.forms
+
     def __len__(self):
         return len(self.forms)
 
