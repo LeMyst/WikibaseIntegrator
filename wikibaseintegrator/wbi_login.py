@@ -335,7 +335,8 @@ class Login(_Login):
         See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
         """
         log.warning("Session no longer valid, re-authenticating as %s", self._user)
-        headers = {'User-Agent': self.session.headers.get('User-Agent', get_user_agent())}
+        session_user_agent = self.session.headers.get('User-Agent')
+        headers = {'User-Agent': session_user_agent if isinstance(session_user_agent, str) else get_user_agent()}
         self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
         self.generate_edit_credentials()
         self.instantiation_time = time.time()
@@ -424,7 +425,8 @@ class Clientlogin(_Login):
         See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
         """
         log.warning("Session no longer valid, re-authenticating as %s", self._user)
-        headers = {'User-Agent': self.session.headers.get('User-Agent', get_user_agent())}
+        session_user_agent = self.session.headers.get('User-Agent')
+        headers = {'User-Agent': session_user_agent if isinstance(session_user_agent, str) else get_user_agent()}
         self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
         self.generate_edit_credentials()
         self.instantiation_time = time.time()
