@@ -10,7 +10,11 @@ authors = [
 license = "MIT"
 readme = "README.md"
 packages = [{ include = "wikibaseintegrator" }]
-include = [{ path = "test", format = "sdist" }]
+include = [
+    { path = "test", format = "sdist" },
+    # PEP 561 marker so downstream type checkers use the package's type hints
+    { path = "wikibaseintegrator/py.typed", format = ["sdist", "wheel"] }
+]
 homepage = "https://github.com/LeMyst/WikibaseIntegrator"
 repository = "https://github.com/LeMyst/WikibaseIntegrator"
 documentation = "https://wikibaseintegrator.readthedocs.io"
