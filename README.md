@@ -91,7 +91,8 @@ The main differences between these two libraries are :
 * Add OAuth 2.0 login method
 * Add logging module support
 
-But WikibaseIntegrator lack the "fastrun" functionality implemented in WikidataIntegrator.
+WikibaseIntegrator also provides a rewritten version of the "fast run" mode of WikidataIntegrator, which avoids
+unnecessary API writes (see [Examples (in "fast run" mode)](#examples-in-fast-run-mode)).
 
 # Documentation #
 
