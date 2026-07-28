@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import Any
 
@@ -58,7 +60,30 @@ class Form(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    # TODO: add from_sparql_value()
+    def from_sparql_value(self, sparql_value: dict) -> Form:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if type != 'uri':
+            raise ValueError(f"Wrong SPARQL type {type}")
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            pattern = re.compile(r'^.+/(L[0-9]+-F[0-9]+)$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError(f"Invalid SPARQL value {value}")
+
+            self.set_value(value=str(matches.group(1)))
+
+        return self
 
     def get_sparql_value(self, **kwargs: Any) -> str | None:
         if self.mainsnak.snaktype == WikibaseSnakType.KNOWN_VALUE:

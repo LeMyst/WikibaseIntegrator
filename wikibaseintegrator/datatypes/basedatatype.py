@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from wikibaseintegrator.models import Claim
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class BaseDataType(Claim):
@@ -70,5 +71,26 @@ class BaseDataType(Claim):
 
         return True
 
-    def from_sparql_value(self, sparql_value: dict) -> BaseDataType:  # type: ignore
-        pass
+    def from_sparql_value(self, sparql_value: dict) -> BaseDataType:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        This generic implementation covers the data types whose RDF representation is the literal value itself
+        (external identifiers, musical notation...). The data types backed by a URI (entities, media files) override
+        it to extract the value from that URI, since storing the raw URI would silently never match a local claim.
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if type != 'literal':
+            raise ValueError(f"Wrong SPARQL type {type}")
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            self.set_value(value=value)
+
+        return self

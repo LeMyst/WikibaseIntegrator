@@ -936,8 +936,8 @@ frc.check_language_data(qid=qids[0], lang_data=['CDK7'], lang='en', lang_data_ty
 * The attributes missing from the SPARQL simple values are rebuilt with their default value: the precision of a time
   value is inferred from the timestamp, the bounds of a quantity are not compared, etc. Statements using non-default
   attributes are always reported as requiring a write.
-* The datatypes that do not implement `from_sparql_value()` yet (e.g. Form, Sense, Property, Lexeme, GeoShape,
-  TabularData) cannot be compared: their statements are always reported as requiring a write.
+* EntitySchema has no `PTYPE` mapping to the Wikibase ontology, so its statements are never matched by the fastrun
+  data and are always reported as requiring a write. Every other datatype implements `from_sparql_value()`.
 * The qualifiers, references and ranks are loaded lazily with one SPARQL query per statement to check. This is fast
   when most entities are up to date, but can slow down the run when many entities hold the same values.
 
