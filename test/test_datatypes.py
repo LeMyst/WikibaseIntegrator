@@ -163,7 +163,7 @@ class TestClaimCreation:
             MonolingualText(text='xxx', language='fr', prop_nr='P7'),
             Quantity(amount=-5.04, prop_nr='P8'),
             Quantity(amount=5.06, upper_bound=9.99, lower_bound=-2.22, unit='Q11573', prop_nr='P8'),
-            CommonsMedia(value='xxx', prop_nr='P9'),
+            CommonsMedia(value='xxx.jpg', prop_nr='P9'),
             GlobeCoordinate(latitude=1.2345, longitude=-1.2345, precision=12, prop_nr='P10'),
             GeoShape(value='Data:xxx.map', prop_nr='P11'),
             Property(value='P123', prop_nr='P12'),
@@ -219,3 +219,58 @@ class TestLexemeSubIdentifiers:
     def test_get_lexeme_id(self):
         assert datatypes.Form(value='L123-F123', prop_nr='P16').get_lexeme_id() == 'L123'
         assert datatypes.Sense(value='L123-S123', prop_nr='P17').get_lexeme_id() == 'L123'
+
+
+class TestFromSparqlValue:
+    """
+    from_sparql_value() rebuilds a claim from the RDF representation returned by a SPARQL endpoint. Fastrun compares
+    the rebuilt claim with a local one through get_sparql_value(), so both must produce the very same value.
+    """
+
+    # (data type, SPARQL binding as returned by the endpoint, equivalent value of a local claim)
+    round_trips = [
+        (ExternalID, {'type': 'literal', 'value': '123-456'}, '123-456'),
+        (MusicalNotation, {'type': 'literal', 'value': '\\relative c { e f }'}, '\\relative c { e f }'),
+        (Property, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/P31'}, 'P31'),
+        (Lexeme, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/L5'}, 'L5'),
+        (Form, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/L252248-F2'}, 'L252248-F2'),
+        (Sense, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/L252248-S3'}, 'L252248-S3'),
+        (GeoShape, {'type': 'uri', 'value': 'http://commons.wikimedia.org/data/main/Data:Paris.map'}, 'Data:Paris.map'),
+        # The page title is percent-encoded in the URL and must be decoded to match the local claim
+        (TabularData, {'type': 'uri', 'value': 'http://commons.wikimedia.org/data/main/Data:Taipei%20Population.tab'}, 'Data:Taipei Population.tab'),
+        (CommonsMedia, {'type': 'uri', 'value': 'http://commons.wikimedia.org/wiki/Special:FilePath/Example%20file.jpg'}, 'Example file.jpg'),
+    ]
+
+    @pytest.mark.parametrize('datatype,sparql_value,local_value', round_trips, ids=[x[0].DTYPE for x in round_trips])
+    def test_round_trip(self, datatype, sparql_value, local_value):
+        parsed = datatype(prop_nr='P1').from_sparql_value(sparql_value)
+
+        assert parsed.get_sparql_value() == datatype(value=local_value, prop_nr='P1').get_sparql_value()
+
+    @pytest.mark.parametrize('datatype,sparql_value,local_value', round_trips, ids=[x[0].DTYPE for x in round_trips])
+    def test_unknown_value(self, datatype, sparql_value, local_value):
+        # A somevalue snak is exposed as a genid URI by the endpoint
+        sparql_value = dict(sparql_value, value='http://www.wikidata.org/.well-known/genid/deadbeef')
+
+        # The literal data types keep their own type, only the URI ones can carry a genid
+        if sparql_value['type'] != 'uri':
+            pytest.skip('literal data type')
+
+        assert datatype(prop_nr='P1').from_sparql_value(sparql_value).mainsnak.snaktype == WikibaseSnakType.UNKNOWN_VALUE
+
+    def test_wrong_type_is_rejected(self):
+        # An entity is always a URI, a literal must not be silently accepted
+        with pytest.raises(ValueError, match='Wrong SPARQL type'):
+            Property(prop_nr='P1').from_sparql_value({'type': 'literal', 'value': 'P31'})
+
+        # ExternalID is the other way around
+        with pytest.raises(ValueError, match='Wrong SPARQL type'):
+            ExternalID(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': 'http://example.org/123'})
+
+    def test_unparsable_value_is_rejected(self):
+        # The callers rely on a ValueError to skip the values they can't compare, rather than storing a wrong one
+        with pytest.raises(ValueError, match='Invalid SPARQL value'):
+            Form(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': 'http://www.wikidata.org/entity/L252248'})
+
+        with pytest.raises(ValueError, match='Invalid SPARQL value'):
+            GeoShape(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': 'http://commons.wikimedia.org/data/main/Data:Paris.tab'})

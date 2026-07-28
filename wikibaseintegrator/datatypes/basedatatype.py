@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from wikibaseintegrator.models import Claim
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class BaseDataType(Claim):
@@ -11,6 +12,7 @@ class BaseDataType(Claim):
     The base class for all Wikibase data types, they inherit from it
     """
     DTYPE = 'base-data-type'
+    PTYPE = 'property-data-type'
     subclasses: list[type[BaseDataType]] = []
     sparql_query: str = '''
         SELECT * WHERE {{
@@ -28,7 +30,14 @@ class BaseDataType(Claim):
 
         super().__init__(**kwargs)
 
-        self.mainsnak.property_number = prop_nr or None
+        if isinstance(prop_nr, str):
+            pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
+            matches = pattern.match(str(prop_nr))
+
+            if matches:
+                prop_nr = prop_nr.rsplit('/', 1)[-1]
+
+        self.mainsnak.property_number = prop_nr
         # self.subclasses.append(self)
 
     # Allow registration of subclasses of BaseDataType into BaseDataType.subclasses
@@ -39,7 +48,7 @@ class BaseDataType(Claim):
     def set_value(self, value: Any | None = None):
         pass
 
-    def get_sparql_value(self) -> str:
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
         return '"' + self.mainsnak.datavalue['value'] + '"'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
@@ -61,3 +70,27 @@ class BaseDataType(Claim):
             raise ValueError
 
         return True
+
+    def from_sparql_value(self, sparql_value: dict) -> BaseDataType:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        This generic implementation covers the data types whose RDF representation is the literal value itself
+        (external identifiers, musical notation...). The data types backed by a URI (entities, media files) override
+        it to extract the value from that URI, since storing the raw URI would silently never match a local claim.
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if type != 'literal':
+            raise ValueError(f"Wrong SPARQL type {type}")
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            self.set_value(value=value)
+
+        return self
