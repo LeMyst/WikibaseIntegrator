@@ -165,3 +165,6 @@ fabric.properties
 # Other stuff
 /drafts/
 /.run/
+
+# Local review notes, not to be pushed
+/TODO.md
