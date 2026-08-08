@@ -37,6 +37,9 @@ class Senses(BaseModel):
 
         return json_data
 
+    def __iter__(self):
+        return self.senses
+
     def __len__(self):
         return len(self.senses)
 
@@ -74,6 +77,9 @@ class Sense(BaseModel):
     def remove(self) -> Sense:
         self.removed = True
         return self
+
+    def __eq__(self, other):
+        return self.glosses == other.glosses and self.claims == other.glosses
 
 
 class Glosses(LanguageValues):
