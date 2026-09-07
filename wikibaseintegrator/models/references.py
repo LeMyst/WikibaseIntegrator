@@ -133,9 +133,9 @@ class Reference(BaseModel):
         return self
 
     def from_json(self, json_data: dict[str, Any]) -> Reference:
-        self.hash = json_data['hash']
-        self.snaks = Snaks().from_json(json_data['snaks'])
-        self.snaks_order = json_data['snaks-order']
+        self.hash = json_data.get('hash')
+        self.snaks = Snaks().from_json(json_data.get('snaks', {}))
+        self.snaks_order = json_data.get('snaks-order', [])
 
         return self
 
