@@ -680,6 +680,23 @@ user_agent). The latter is very useful to let the operators of the endpoint know
 many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email address,
 or the URL to your bot code repository.)
 
+If the SPARQL endpoint is protected, pass the credentials with `auth`, either a `(username, password)` tuple for HTTP
+Basic authentication or any `requests.auth.AuthBase` instance, or add your own HTTP headers with `headers`. To set the
+credentials once for every query, including the ones executed by the fast run mode, use `wbi_config['SPARQL_AUTH']`:
+
+```python
+from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+query = 'SELECT ?item WHERE { ?item ?p ?o . } LIMIT 1'
+
+wbi_helpers.execute_sparql_query(query, auth=('username', 'password'))
+wbi_helpers.execute_sparql_query(query, headers={'Authorization': 'Bearer <token>'})
+
+wbi_config['SPARQL_AUTH'] = ('username', 'password')
+wbi_helpers.execute_sparql_query(query)
+```
+
 ## Wikibase search entities ##
 
 The method `wbi_helpers.search_entities()` allows for string search in a Wikibase instance. This means that labels,

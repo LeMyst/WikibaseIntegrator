@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 import requests
 import ujson
 from requests import Session
+from requests.auth import AuthBase
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
@@ -249,8 +250,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 100, retry_after: int = 60) -> dict[
-    str, dict]:
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 100, retry_after: int = 60,
+                         auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -260,10 +261,14 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
     :param max_retries: The number time this function should retry in case of header reports.
     :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
+    :param auth: Authentication for a protected SPARQL endpoint: a (username, password) tuple for HTTP Basic auth or any
+                 requests.auth.AuthBase instance. Default is config['SPARQL_AUTH'].
+    :param headers: Additional HTTP headers sent with the query (e.g. {'Authorization': 'Bearer <token>'}). They override the default ones.
     :return: The results of the query are returned in JSON format
     """
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
+    auth = auth if auth is not None else config['SPARQL_AUTH']
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     hostname = urlparse(sparql_endpoint_url).hostname
@@ -282,16 +287,18 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     # Send the query in the request body (application/x-www-form-urlencoded, set automatically by requests for data=).
     # The previous 'multipart/form-data' Content-Type was incorrect (no multipart body was ever sent) and could be
     # rejected by stricter endpoints. Using the body also avoids URL length limits with large queries.
-    headers = {
+    request_headers = {
         'Accept': 'application/sparql-results+json',
         'User-Agent': get_user_agent(user_agent)
     }
+    if headers:
+        request_headers.update(headers)
 
     log.debug("SPARQL query:\n%s", params['query'])
 
     for _ in range(max_retries):
         try:
-            response = helpers_session.post(sparql_endpoint_url, data=params, headers=headers, timeout=config['TIMEOUT'])
+            response = helpers_session.post(sparql_endpoint_url, data=params, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
         except requests.exceptions.ConnectionError as e:
             log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
