@@ -6,7 +6,7 @@ import pytest
 import requests
 import ujson
 
-from wikibaseintegrator.wbi_backoff import wbi_backoff
+from wikibaseintegrator.wbi_backoff import wbi_backoff, wbi_backoff_backoff_hdlr
 from wikibaseintegrator.wbi_config import config
 
 
@@ -88,3 +88,13 @@ def test_malformed_json_gives_up_immediately():
 
     # A real parse error (not an empty payload) must not be retried.
     assert len(attempts) == 1
+
+
+def test_credentials_are_not_logged(caplog):
+    details = {'wait': 1.0, 'tries': 1, 'args': ('SELECT',), 'kwargs': {'auth': ('user', 'secret'), 'headers': {'Authorization': 'Bearer token'}, 'endpoint': 'https://example.org'}}
+
+    wbi_backoff_backoff_hdlr(details)
+
+    assert 'secret' not in caplog.text
+    assert 'Bearer token' not in caplog.text
+    assert 'https://example.org' in caplog.text

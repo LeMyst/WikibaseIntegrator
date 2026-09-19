@@ -426,6 +426,48 @@ class TestSparql:
         results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, max_retries=3, retry_after=1)
         assert results['results']['bindings'] == []
 
+    def test_sparql_basic_auth(self, requests_mock):
+        url = 'https://protected.example.org/sparql'
+        requests_mock.post(url, json={'results': {'bindings': []}})
+
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, auth=('user', 'secret'))
+        assert requests_mock.last_request.headers['Authorization'].startswith('Basic ')
+
+    def test_sparql_auth_from_config(self, requests_mock):
+        url = 'https://protected.example.org/sparql'
+        requests_mock.post(url, json={'results': {'bindings': []}})
+        wbi_config['SPARQL_AUTH'] = ('user', 'secret')
+
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert requests_mock.last_request.headers['Authorization'].startswith('Basic ')
+
+    def test_sparql_no_auth_by_default(self, requests_mock):
+        url = 'https://public.example.org/sparql'
+        requests_mock.post(url, json={'results': {'bindings': []}})
+
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert 'Authorization' not in requests_mock.last_request.headers
+
+    def test_sparql_extra_headers(self, requests_mock):
+        url = 'https://protected.example.org/sparql'
+        requests_mock.post(url, json={'results': {'bindings': []}})
+
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, headers={'Authorization': 'Bearer token'})
+        last = requests_mock.last_request
+        assert last.headers['Authorization'] == 'Bearer token'
+        # The default headers are kept
+        assert last.headers['Accept'] == 'application/sparql-results+json'
+        assert 'WikibaseIntegrator' in last.headers['User-Agent']
+
+    @pytest.mark.parametrize('status_code', [401, 403])
+    def test_sparql_auth_failure_is_not_retried(self, requests_mock, status_code):
+        url = 'https://protected.example.org/sparql'
+        requests_mock.post(url, status_code=status_code, text='Unauthorized')
+
+        with pytest.raises(requests.HTTPError):
+            execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, auth=('user', 'wrong'), retry_after=0)
+        assert requests_mock.call_count == 1
+
 
 class TestDownloadEntityTtl:
     def test_download(self, wikibase, requests_mock):
