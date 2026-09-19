@@ -71,11 +71,18 @@ wikibaseintegrator~=0.11.3
     - [Execute SPARQL queries](#execute-sparql-queries)
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
+    - [Other helpers](#other-helpers)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
     - [Create a new Item](#create-a-new-item)
     - [Modify an existing item](#modify-an-existing-item)
     - [A bot for Mass Import](#a-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
+    - [The base filter](#the-base-filter)
+    - [Checking if a write is required](#checking-if-a-write-is-required)
+    - [Options](#options)
+    - [Checking labels, descriptions and aliases](#checking-labels-descriptions-and-aliases)
+    - [Limitations](#limitations)
+    - [Performance statistics](#performance-statistics)
 - [Debugging](#debugging)
 
 # WikibaseIntegrator / WikidataIntegrator #
@@ -87,7 +94,7 @@ The main differences between these two libraries are :
 * A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data
   validation and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property entities
-* Python 3.10 to 3.14 support, validated with unit tests
+* Python 3.10 to 3.14 support (3.15 in preview), validated with unit tests
 * Type hints implementation for arguments and return, checked with mypy static type checker
 * Add OAuth 2.0 login method
 * Add logging module support
@@ -241,7 +248,7 @@ reference2.add(datatypes.String(prop_nr='P828', value='Another item string refer
 references.add(reference1)
 references.add(reference2)
 
-new_claim_string = datatypes.String(prop_nr='P31533', value='A String property', references=references)
+claim_string = datatypes.String(prop_nr='P31533', value='A String property', references=references)
 entity.claims.add(claim_string)
 ```
 
@@ -361,13 +368,13 @@ Here is a list of different projects that use the library:
 # Installation #
 
 The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
-3.10 and above. If Python 2 is installed, `pip` will lead to an error indicating missing dependencies.
+3.10 and above.
 
 ```bash
 python -m pip install wikibaseintegrator
 ```
 
-You can also clone the repo and run it with administrator rights or install it in a virtualenv.
+You can also clone the repository and install it, preferably in a virtualenv.
 
 ```bash
 git clone https://github.com/LeMyst/WikibaseIntegrator.git
@@ -415,6 +422,18 @@ The following commands will install the development environment with the necessa
 ```bash
 python -m poetry install --with dev,coverage
 ```
+
+The `docs` and `notebooks` groups are also available (`--with docs,notebooks`) to build the documentation and run the
+Jupyter notebooks.
+
+The unit tests run offline (the HTTP calls are mocked) with:
+
+```bash
+python -m pytest
+```
+
+The integration tests, running against a real Wikibase instance, are deselected by default and can be run with
+`python -m pytest -m integration` (see [test/integration/README.md](test/integration/README.md)).
 
 # Using a Wikibase instance #
 
@@ -525,9 +544,9 @@ login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer
 #### To impersonate a user (OAuth 1.0a) ####
 
 If WBI is to be used as a backend for a web application, the script must use OAuth for authentication, WBI supports
-this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. Unlike login by
+this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.OAuth1`. Unlike login by
 username and password, OAuth is a 2-step process, as manual confirmation of the user for the OAuth login is required.
-This means that the `wbi_login.OAuth1.continue_oauth()` method must be called after creating the `wbi_login.Login`
+This means that the `wbi_login.OAuth1.continue_oauth()` method must be called after creating the `wbi_login.OAuth1`
 instance.
 
 Example:
@@ -567,13 +586,14 @@ login_instance = wbi_login.Clientlogin(user='<user name>', password='<password>'
 
 ## Wikibase Data Types ##
 
-Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in
+Currently, Wikibase supports 18 different data types. The data types are represented as their own classes in
 wikibaseintegrator.datatypes. Each datatype has its own peculiarities, which means that some of them require special
-parameters (e.g. Globe Coordinates). They are available under the namespace `wikibase.datatypes`.
+parameters (e.g. Globe Coordinates). They are available under the namespace `wikibaseintegrator.datatypes`.
 
 The data types currently implemented:
 
 * CommonsMedia
+* EntitySchema
 * ExternalID
 * Form
 * GeoShape
@@ -699,28 +719,50 @@ wbi_helpers.execute_sparql_query(query)
 
 ## Wikibase search entities ##
 
-The method `wbi_helpers.search_entities()` allows for string search in a Wikibase instance. This means that labels,
-descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual search
-string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not Wikidata), an
-optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an option
-dict_id_label to return a dict of item id and label as a result.
+The method `wbi_helpers.search_entities()` allows for string search in a Wikibase instance, using the labels and aliases
+of the entities. It takes the search string (search_string) and optional parameters: the language of the search
+(language, default `wbi_config['DEFAULT_LANGUAGE']`), strict_language to disable the language fallback, the type of
+entity to search (search_type: item, property, lexeme, form, sense or mediainfo, default item), the maximum number of
+results (max_results, default 50, higher values trigger additional paginated calls) and dict_result to return detailed
+dictionaries instead of a list of IDs. Like the other helpers, it also accepts `mediawiki_api_url`, `login`, `user_agent`,
+etc.
+
+```python
+from wikibaseintegrator import wbi_helpers
+
+print(wbi_helpers.search_entities(search_string='Earth', max_results=5))
+```
 
 ## Merge Wikibase items ##
 
-Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_helpers.merge_items()` takes five arguments:
+Sometimes, Wikibase items need to be merged. An API call exists for that, and `wbi_helpers.merge_items()` implements it.
+It takes these arguments:
 
 * the QID of the item which should be merged into another item (from_id)
 * the QID of the item the first item should be merged into (to_id)
 * a login object of type wbi_login.Login to provide the API call with the required authentication information
+* a list of elements to ignore conflicts for (ignore_conflicts), which can contain `'description'`, `'sitelink'` and
+  `'statement'`. This will do a partial merge for the elements which do not conflict and should generally be avoided
+  because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts should be resolved first.
 * a boolean if the changes need to be marked as made by a bot (is_bot)
-* a flag for ignoring merge conflicts (ignore_conflicts), will do a partial merge for all statements which do not
-  conflict. This should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any
-  potential conflicts should be resolved first.
+
+## Other helpers ##
+
+`wbi_helpers` also provides:
+
+* `merge_lexemes()`: merge two lexemes.
+* `remove_claims()`: delete a claim from an entity by its claim ID.
+* `check_constraints()`: check the constraint violations of entities or claims with the WikibaseQualityConstraints
+  extension.
+* `fulltext_search()`: perform a fulltext search on the MediaWiki instance.
+* `delete_page()`: delete a page.
+* `download_entity_ttl()`: download the RDF (Turtle) representation of an entity.
+
+Some examples are available in the [wbi_helpers.ipynb](notebooks/wbi_helpers.ipynb) notebook.
 
 # Examples (in "normal" mode) #
 
-In order to create a minimal bot based on wbi_core, two things are required:
+In order to create a minimal bot based on WikibaseIntegrator, two things are required:
 
 * A datatype object containing a value.
 * An entity object (Item/Property/Lexeme/...) which takes the data, does the checks and performs write.
@@ -796,8 +838,8 @@ item.write()
 
 ## A bot for Mass Import ##
 
-An enhanced example of the previous bot just puts two of the three things into a 'for loop' and so allows mass creation,
-or modification of items.
+An enhanced example of the previous bot puts the creation of the data and the entity into a 'for loop' and so allows
+mass creation or modification of items.
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
