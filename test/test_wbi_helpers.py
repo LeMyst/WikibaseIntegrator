@@ -3,6 +3,7 @@ Tests for wbi_helpers: low-level API call machinery (retries, maxlag, error
 mapping), search, merge, SPARQL and the various pure helper functions.
 """
 import logging
+from types import MappingProxyType
 
 import pytest
 import requests
@@ -142,6 +143,46 @@ class TestAuthenticationGuards:
 
         mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': 'Q582', 'format': 'json'}, login=login, is_bot=True)
         assert wikibase.last_request['assert'] == 'bot'
+
+
+class TestRequestDataNotMutated:
+    """The caller's request payload must be left untouched by the API helpers."""
+
+    def test_helper_does_not_mutate_caller_data(self, wikibase, item_q582):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        data = {'action': 'wbgetentities', 'ids': 'Q582'}
+
+        mediawiki_api_call_helper(data=data, login=login, is_bot=True)
+
+        assert data == {'action': 'wbgetentities', 'ids': 'Q582'}
+        # The copy sent over the wire still gets the automatic parameters
+        assert wikibase.last_request['token'] == login.edit_token
+        assert wikibase.last_request['assert'] == 'bot'
+        assert wikibase.last_request['maxlag'] == '5'
+        assert wikibase.last_request['format'] == 'json'
+
+    def test_api_call_does_not_mutate_caller_data(self, requests_mock):
+        url = 'https://example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+        data = {'action': 'query'}
+
+        mediawiki_api_call('POST', mediawiki_api_url=url, data=data)
+
+        assert data == {'action': 'query'}
+        assert 'format=json' in requests_mock.last_request.text
+
+    def test_api_call_accepts_read_only_mapping(self, requests_mock):
+        url = 'https://example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+
+        assert mediawiki_api_call('POST', mediawiki_api_url=url, data=MappingProxyType({'action': 'query'})) == {'success': 1}
+        assert 'format=json' in requests_mock.last_request.text
+
+    def test_helper_accepts_none_data(self, requests_mock):
+        url = 'https://example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+
+        assert mediawiki_api_call_helper(data=None, mediawiki_api_url=url, allow_anonymous=True) == {'success': 1}
 
 
 class TestUserAgent:

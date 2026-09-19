@@ -166,7 +166,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     """
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
-    data = data.copy()
+    data = dict(data) if data is not None else None
 
     hostname = urlparse(mediawiki_api_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
