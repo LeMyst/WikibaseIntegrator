@@ -3,11 +3,13 @@ Tests for wbi_helpers: low-level API call machinery (retries, maxlag, error
 mapping), search, merge, SPARQL and the various pure helper functions.
 """
 import logging
+import threading
 from types import MappingProxyType
 
 import pytest
 import requests
 
+from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
 from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances,
@@ -89,6 +91,41 @@ class TestRetryBehaviour:
     def test_format_must_be_json(self):
         with pytest.raises(ValueError):
             mediawiki_api_call('POST', mediawiki_api_url='https://example.org/w/api.php', data={'format': 'xml'})
+
+
+class TestDefaultSession:
+    """Requests made without a Login share a session per thread, never across threads."""
+
+    def test_session_is_reused_within_a_thread(self):
+        assert wbi_helpers._get_default_session() is wbi_helpers._get_default_session()
+
+    def test_session_is_not_shared_across_threads(self):
+        sessions = []
+        thread = threading.Thread(target=lambda: sessions.append(wbi_helpers._get_default_session()))
+        thread.start()
+        thread.join()
+
+        assert sessions[0] is not wbi_helpers._get_default_session()
+
+    def test_anonymous_call_uses_default_session(self, requests_mock, monkeypatch):
+        url = 'https://example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+        session = requests.Session()
+        monkeypatch.setattr(wbi_helpers, '_get_default_session', lambda: session)
+        sent = []
+        monkeypatch.setattr(session, 'request', lambda **kwargs: sent.append(kwargs) or requests.Session.request(session, **kwargs))
+
+        mediawiki_api_call('POST', mediawiki_api_url=url, data={'action': 'query'})
+        assert len(sent) == 1
+
+    @pytest.mark.parametrize('name', ['default_session', 'helpers_session'])
+    def test_former_module_sessions_are_deprecated(self, name):
+        with pytest.warns(DeprecationWarning):
+            assert getattr(wbi_helpers, name) is wbi_helpers._get_default_session()
+
+    def test_unknown_attribute_still_raises(self):
+        with pytest.raises(AttributeError):
+            getattr(wbi_helpers, 'does_not_exist')
 
 
 class TestTimeout:
