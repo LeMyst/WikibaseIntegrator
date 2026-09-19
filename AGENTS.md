@@ -49,19 +49,21 @@ Key style rules (from [pyproject.toml](pyproject.toml)):
 ```
 wikibaseintegrator/
 ├── wikibaseintegrator.py   # Main WikibaseIntegrator class (entry point)
-├── wbi_login.py            # OAuth2 / OAuth1 / bot-password auth
+├── wbi_login.py            # OAuth2 / OAuth1 / bot-password / clientlogin auth
 ├── wbi_helpers.py          # Utility functions (search, merge, SPARQL, etc.)
 ├── wbi_config.py           # Global config (mediawiki_api_url, etc.)
 ├── wbi_fastrun.py          # Fast-run mode for bulk writes
 ├── wbi_backoff.py          # Retry/backoff decorator
 ├── wbi_enums.py            # Enumerations shared across modules
 ├── wbi_exceptions.py       # Custom exception hierarchy
-├── datatypes/              # One file per Wikibase data type (22 types)
+├── py.typed                # PEP 561 marker — keep it (ships type hints)
+├── datatypes/              # One file per Wikibase data type (18 types)
 │   └── extra/              # Optional extensions (EDTF, LocalMedia)
 ├── entities/               # Item, Property, Lexeme, MediaInfo, BaseEntity
 └── models/                 # Claims, Qualifiers, References, Labels, etc.
 test/                       # pytest test files (mirrors wikibaseintegrator/ loosely)
 docs/                       # Sphinx source
+scripts/                    # Maintenance scripts (test fixture refresh)
 notebooks/                  # Jupyter usage examples
 ```
 
@@ -85,10 +87,12 @@ notebooks/                  # Jupyter usage examples
 | `codeql.yml` | push/PR/schedule | Static security analysis |
 | `trivy-scan.yaml` | push/PR/schedule | Vulnerability scanning |
 | `publish-to-pypi.yaml` | GitHub release | Publish to PyPI |
+| `auto-assign-issue.yaml` | issue opened | Auto-assign new issues to the maintainer |
 
 ## Notes for agents
 
 - The virtual environment is at `.venv/`; Poetry manages it automatically.
+- Work in a dedicated git worktree under `.claude/worktrees/` (git-ignored; e.g. `git worktree add .claude/worktrees/<topic> -b <topic> master`) rather than switching branches in the main checkout, so the user's working copy is never disturbed. Each worktree needs its own environment (`poetry install --with dev`).
 - `wbi_config.py` holds the default `mediawiki_api_url` (`https://www.wikidata.org/w/api.php`). Unit tests must never hit a real API: use the `wikibase` fixture (MockWikibase) or `requests_mock` directly; real-instance scenarios belong in `test/integration/`.
 - The `fastrun` module caches entity data before bulk writes to avoid redundant API calls — changes there require careful testing to avoid stale cache issues.
 - `datatypes/extra/` contains optional extensions with their own dependencies; do not import them unconditionally from core modules.
