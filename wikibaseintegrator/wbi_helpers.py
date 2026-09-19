@@ -7,6 +7,7 @@ import datetime
 import json
 import logging
 import re
+import threading
 import warnings
 from time import sleep
 from typing import TYPE_CHECKING, Any
@@ -29,7 +30,27 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-helpers_session = requests.Session()
+# Sessions used for requests made without a Login instance, one per thread since requests.Session isn't thread-safe.
+_thread_local = threading.local()
+
+
+def _get_default_session() -> Session:
+    """
+    Return the session used for requests made without a Login instance, created on first use in each thread.
+    Connections are kept alive between calls in a same thread, but no state is shared across threads.
+    """
+    session = getattr(_thread_local, 'session', None)
+    if session is None:
+        session = _thread_local.session = requests.Session()
+    return session
+
+
+def __getattr__(name: str) -> Any:
+    # Backward compatibility for the former module-level sessions
+    if name in ('default_session', 'helpers_session'):
+        warnings.warn(f"wbi_helpers.{name} is deprecated, the session is now per-thread and private.", DeprecationWarning, stacklevel=2)
+        return _get_default_session()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class BColors:
@@ -50,9 +71,6 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-# Session used for all anonymous requests
-default_session = requests.Session()
-
 
 # MediaWiki error codes meaning the server no longer considers the current session authenticated
 # (e.g. its session store evicted/expired the session, see #902). A CSRF token fetched right before the
@@ -68,7 +86,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
 
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
-    :param session: If a session is passed, it will be used. Otherwise, a new requests session is created
+    :param session: If a session is passed, it will be used. Otherwise, the current thread's default session is used
     :param login: If provided and the API reports that the session is no longer authenticated (see
                   SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying.
     :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
@@ -93,7 +111,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         kwargs['timeout'] = config['TIMEOUT']
 
     response = None
-    session = session if session else default_session
+    session = session or _get_default_session()
     for n in range(max_retries):
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
@@ -300,7 +318,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     for _ in range(max_retries):
         try:
-            response = helpers_session.post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
+            response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
         except requests.exceptions.ConnectionError as e:
             log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
@@ -1114,7 +1132,7 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
         'User-Agent': get_user_agent(user_agent)
     }
 
-    response = helpers_session.get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers, timeout=config['TIMEOUT'])
+    response = _get_default_session().get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers, timeout=config['TIMEOUT'])
     response.raise_for_status()
     results = response.text
 
