@@ -11,7 +11,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import Item, MonolingualText, String
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.models import Claims, Descriptions, Form, Qualifiers
+from wikibaseintegrator.models import Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
 
 from .conftest import load_fixture
@@ -368,6 +368,85 @@ class TestForms:
             Form(grammatical_features=1.5)
         with pytest.raises(TypeError):
             Form(grammatical_features=True)
+
+    def test_forms_are_iterable(self):
+        forms = Forms()
+        forms.add(Form(form_id='L5-F1'))
+        forms.add(Form(form_id='L5-F2'))
+
+        assert [form.id for form in forms] == ['L5-F1', 'L5-F2']
+        # An iterator must be exhausted by the first loop, the container itself must not
+        assert [form.id for form in forms] == ['L5-F1', 'L5-F2']
+        assert list(iter(forms)) == forms.forms
+
+    def test_equality_compares_content(self):
+        def build_form(form_id=None, representation='pinos', feature='Q146786', value='a claim'):
+            form = Form(form_id=form_id, grammatical_features=feature)
+            form.representations.set(language='es', value=representation)
+            form.claims.add(datatypes.String(prop_nr='P828', value=value))
+            return form
+
+        # The id is assigned by the instance and isn't part of the comparison
+        assert build_form() == build_form(form_id='L5-F1')
+
+        assert build_form() != build_form(representation='pino')
+        assert build_form() != build_form(feature='Q110786')
+        assert build_form() != build_form(value='another claim')
+        assert Form() == Form()
+
+    def test_equality_with_unrelated_types(self):
+        assert Form() != 'L5-F1'
+        assert Form() != Sense()
+        assert Form().__eq__(None) is NotImplemented  # pylint: disable=unnecessary-dunder-call
+
+    def test_forms_are_hashable(self):
+        form = Form(grammatical_features='Q146786')
+        form.representations.set(language='es', value='pinos')
+        same_form = Form(form_id='L5-F1', grammatical_features='Q146786')
+        same_form.representations.set(language='es', value='pinos')
+
+        assert hash(form) == hash(same_form)
+        assert len({form, same_form, Form()}) == 2
+
+
+class TestSenses:
+    def test_senses_are_iterable(self):
+        senses = Senses()
+        senses.add(Sense(sense_id='L5-S1'))
+        senses.add(Sense(sense_id='L5-S2'))
+
+        assert [sense.id for sense in senses] == ['L5-S1', 'L5-S2']
+        assert [sense.id for sense in senses] == ['L5-S1', 'L5-S2']
+        assert list(iter(senses)) == senses.senses
+
+    def test_equality_compares_content(self):
+        def build_sense(sense_id=None, gloss='a gloss', value='a claim'):
+            sense = Sense(sense_id=sense_id)
+            sense.glosses.set(language='en', value=gloss)
+            sense.claims.add(datatypes.String(prop_nr='P828', value=value))
+            return sense
+
+        # The id is assigned by the instance and isn't part of the comparison
+        assert build_sense() == build_sense(sense_id='L5-S1')
+
+        assert build_sense() != build_sense(gloss='another gloss')
+        assert build_sense() != build_sense(value='another claim')
+        assert Sense() == Sense()
+
+    def test_equality_with_unrelated_types(self):
+        # Comparing with anything else must return False instead of raising
+        assert Sense() != 'L5-S1'
+        assert Sense() != Form()
+        assert Sense().__eq__(None) is NotImplemented  # pylint: disable=unnecessary-dunder-call
+
+    def test_senses_are_hashable(self):
+        sense = Sense()
+        sense.glosses.set(language='en', value='pine tree')
+        same_sense = Sense(sense_id='L5-S1')
+        same_sense.glosses.set(language='en', value='pine tree')
+
+        assert hash(sense) == hash(same_sense)
+        assert len({sense, same_sense, Sense()}) == 2
 
 
 class TestTermsEntity:

@@ -321,6 +321,35 @@ class MockWikibase:
 
         return result
 
+    def _action_wbladdform(self, params: dict[str, str]) -> dict:
+        return self._add_lexeme_sub_entity(params, section='forms', response_key='form', id_prefix='F',
+                                           defaults={'representations': {}, 'grammaticalFeatures': [], 'claims': {}})
+
+    def _action_wbladdsense(self, params: dict[str, str]) -> dict:
+        return self._add_lexeme_sub_entity(params, section='senses', response_key='sense', id_prefix='S',
+                                           defaults={'glosses': {}, 'claims': {}})
+
+    def _add_lexeme_sub_entity(self, params: dict[str, str], section: str, response_key: str, id_prefix: str, defaults: dict) -> dict:
+        """Shared implementation of the wbladdform and wbladdsense actions."""
+        data = json.loads(params['data'])
+        self.edits.append({'params': params, 'data': data})
+
+        lexeme_id = params['lexemeId']
+        if lexeme_id not in self.entities:
+            return {'error': {'code': 'not-found', 'info': f'Could not find an entity with the ID "{lexeme_id}".'}, 'servedby': 'mock'}
+
+        lexeme = self.entities[lexeme_id]
+        existing = lexeme.setdefault(section, [])
+
+        sub_entity = {**defaults, **deepcopy(data)}
+        # A real instance assigns the id, incrementing a counter never reused after a removal.
+        sub_entity['id'] = f'{lexeme_id}-{id_prefix}{len(existing) + 1}'
+        existing.append(sub_entity)
+
+        lexeme['lastrevid'] = lexeme.get('lastrevid', 0) + 1
+
+        return {response_key: deepcopy(sub_entity), 'lastrevid': lexeme['lastrevid'], 'success': 1}
+
     def _action_query(self, params: dict[str, str]) -> dict:
         if params.get('meta') == 'tokens':
             if params.get('type') == 'login':

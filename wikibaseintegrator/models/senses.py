@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -36,6 +37,9 @@ class Senses(BaseModel):
             json_data.append(sense.get_json())
 
         return json_data
+
+    def __iter__(self):
+        return iter(self.senses)
 
     def __len__(self):
         return len(self.senses)
@@ -74,6 +78,20 @@ class Sense(BaseModel):
     def remove(self) -> Sense:
         self.removed = True
         return self
+
+    def _content(self) -> str:
+        # The id is assigned by the Wikibase instance, so two senses are considered equal when they hold the same content
+        return json.dumps([self.glosses.get_json(), self.claims.get_json()], sort_keys=True)
+
+    def __eq__(self, other):
+        if not isinstance(other, Sense):
+            return NotImplemented
+
+        return self._content() == other._content()
+
+    def __hash__(self):
+        # Based on the content, like __eq__: a Sense modified after being added to a set or used as a dict key won't be found anymore
+        return hash(self._content())
 
 
 class Glosses(LanguageValues):
