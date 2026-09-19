@@ -91,10 +91,11 @@ def test_malformed_json_gives_up_immediately():
 
 
 def test_credentials_are_not_logged(caplog):
-    details = {'wait': 1.0, 'tries': 1, 'args': ('SELECT',), 'kwargs': {'auth': ('user', 'secret'), 'headers': {'Authorization': 'Bearer token'}, 'endpoint': 'https://example.org'}}
+    details = {'wait': 1.0, 'tries': 1, 'args': ('SELECT',), 'kwargs': {'auth': ('user', 'secret'), 'headers': {'Authorization': 'Bearer token'}, 'max_retries': 3}}
 
     wbi_backoff_backoff_hdlr(details)
 
     assert 'secret' not in caplog.text
     assert 'Bearer token' not in caplog.text
-    assert 'https://example.org' in caplog.text
+    # Non-sensitive kwargs are still logged
+    assert "'max_retries': 3" in caplog.text
