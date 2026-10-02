@@ -93,6 +93,17 @@ class TestWrite:
         assert written.claims.get('P1791')[0].id is not None
         assert written.lastrevid == item_q582['lastrevid'] + 1
 
+    def test_write_added_claim_keeps_existing_claims(self, wikibase, item_q582):
+        # Regression test for #922: the existing claims with the same property must survive the write
+        item = wbi.item.get('Q582')
+        original_claim_count = len(item.claims.get('P31'))
+        item.claims.add(Item(prop_nr='P31', value='Q1234'))
+        written = item.write(allow_anonymous=True)
+
+        assert not any('remove' in claim for claim in wikibase.last_edit['data']['claims']['P31'])
+        values = [claim.mainsnak.datavalue['value']['id'] for claim in written.claims.get('P31')]
+        assert len(values) == original_claim_count + 1 and 'Q1234' in values
+
     def test_write_new_item(self, wikibase):
         item = wbi.item.new()
         item.labels.set(language='en', value='A brand new item')

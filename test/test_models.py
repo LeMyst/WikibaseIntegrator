@@ -197,6 +197,28 @@ class TestClaims:
         # Old claims are marked as removed, only the new unique claim is kept
         assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == original_claim_count
 
+    def test_add_keeps_existing_claims_by_default(self, item):
+        # Regression test for #922: adding a claim must not remove the existing claims with the same property
+        original_claim_count = len(item.claims.get('P31'))
+
+        item.claims.add(Item(prop_nr='P31', value='Q1234'))
+        item.claims.add(Item(prop_nr='P31', value='Q1234'))  # add a second time, the identical claim is not duplicated
+
+        claims = item.claims.get('P31')
+        assert len(claims) == original_claim_count + 1
+        assert not any(claim.removed for claim in claims)
+        assert not any('remove' in claim for claim in item.claims.get_json()['P31'])
+
+    def test_add_replace_all_removes_existing_claims(self, item):
+        original_claim_count = len(item.claims.get('P31'))
+
+        item.claims.add(Item(prop_nr='P31', value='Q1234'), action_if_exists=ActionIfExists.REPLACE_ALL)
+
+        # The existing claims are sent with a 'remove' flag, only the new claim is kept
+        json_claims = item.claims.get_json()['P31']
+        assert len([claim for claim in json_claims if 'remove' in claim]) == original_claim_count
+        assert [claim['mainsnak']['datavalue']['value']['id'] for claim in json_claims if 'remove' not in claim] == ['Q1234']
+
     def test_claim_reset_id(self, item):
         claim = item.claims.get('P31')[0]
         assert claim.id is not None
