@@ -832,7 +832,12 @@ item.labels.set(language='en', value='An updated item', action_if_exists=ActionI
 # Set a French description and replace the existing one
 item.descriptions.set(language='fr', value='Une description un peu longue', action_if_exists=ActionIfExists.REPLACE_ALL)
 
+# Add the claims, the existing claims with the same property are kept
 item.claims.add(data)
+
+# To replace all the existing claims with the same property instead, use ActionIfExists.REPLACE_ALL
+# item.claims.add(data, action_if_exists=ActionIfExists.REPLACE_ALL)
+
 item.write()
 ```
 
