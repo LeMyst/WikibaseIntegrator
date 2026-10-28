@@ -1,0 +1,63 @@
+# pre-commit hooks mirroring the checks of .github/workflows/python-lint.yaml
+#
+# Setup (once per clone):
+#   poetry install --with dev
+#   pipx install pre-commit                  # or: uvx pre-commit ...
+#   pre-commit install                       # installs both the pre-commit and pre-push hooks
+#
+# The Python tools are "local" hooks running the versions installed by Poetry (poetry.lock), so they
+# always match CI. Commit/push from a shell where the project virtualenv is active (or use `poetry run git ...`).
+# Run everything by hand with: pre-commit run --all-files --hook-stage pre-push
+
+default_install_hook_types: [ pre-commit, pre-push ]
+default_stages: [ pre-commit ]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: local
+    hooks:
+      # Fast checks, on every commit, only on the staged files
+      - id: isort
+        name: isort
+        entry: isort
+        language: system
+        types: [ python ]
+        files: ^(wikibaseintegrator|test)/
+      - id: flynt
+        name: flynt
+        entry: flynt --fail-on-change
+        language: system
+        types: [ python ]
+        files: ^(wikibaseintegrator|test)/
+      - id: codespell
+        name: codespell
+        entry: codespell
+        language: system
+        types: [ python ]
+        files: ^(wikibaseintegrator|test)/
+
+      # Slower whole-project checks, on push only
+      - id: mypy
+        name: mypy
+        entry: mypy --install-types --non-interactive
+        language: system
+        pass_filenames: false
+        types: [ python ]
+        stages: [ pre-push, manual ]
+      - id: pylint
+        name: pylint
+        # Like `pylint-exit` in CI: only fatal messages (and usage errors) fail the hook
+        entry: pylint --fail-under=0 --fail-on=F wikibaseintegrator test
+        language: system
+        pass_filenames: false
+        types: [ python ]
+        stages: [ pre-push, manual ]

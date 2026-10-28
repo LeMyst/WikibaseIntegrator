@@ -38,6 +38,8 @@ poetry run codespell wikibaseintegrator test
 poetry run flynt -f wikibaseintegrator test
 ```
 
+The same checks are available as [pre-commit](https://pre-commit.com/) hooks ([.pre-commit-config.yaml](.pre-commit-config.yaml)): isort/flynt/codespell on commit, mypy/pylint on push. They are `local` hooks that run the Poetry-installed tools (so versions follow `poetry.lock`), which requires the project virtualenv to be active. Run them all with `pre-commit run --all-files --hook-stage pre-push`.
+
 Key style rules (from [pyproject.toml](pyproject.toml)):
 - Max line length: **179/180** characters (isort/pylint)
 - isort profile: `black` with `force_sort_within_sections = true`
