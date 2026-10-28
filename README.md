@@ -745,6 +745,21 @@ It takes these arguments:
   `'statement'`. This will do a partial merge for the elements which do not conflict and should generally be avoided
   because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts should be resolved first.
 * a boolean if the changes need to be marked as made by a bot (is_bot)
+* a list of change tags to apply to the revision (tags)
+
+Wikibase turns the emptied item into a redirect to the target item, so there is no need to create the redirect
+separately.
+
+To merge more than two items at once, `wbi_helpers.merge_multiple_items()` takes a list of QIDs and merges all of them
+into the one with the lowest numeric ID, which it returns. It accepts the same login, ignore_conflicts, is_bot and tags
+arguments. The merges are done one by one: if one fails, its exception is raised and the merges already done are kept.
+
+```python
+from wikibaseintegrator import wbi_helpers, wbi_login
+
+login = wbi_login.Login(user='<bot user name>', password='<bot password>')
+to_id = wbi_helpers.merge_multiple_items(['Q100', 'Q30', 'Q5'], login=login)  # Q30 and Q100 are merged into Q5
+```
 
 ## Other helpers ##
 
