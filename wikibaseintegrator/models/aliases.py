@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Self
+
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.language_values import LanguageValue
 from wikibaseintegrator.wbi_config import config
@@ -31,7 +33,7 @@ class Aliases(BaseModel):
 
         return None
 
-    def set(self, language: str | None = None, values: str | list | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Aliases:
+    def set(self, language: str | None = None, values: str | list | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
 
@@ -79,7 +81,7 @@ class Aliases(BaseModel):
                 json_data[language].append(alias.get_json())
         return json_data
 
-    def from_json(self, json_data: dict[str, list]) -> Aliases:
+    def from_json(self, json_data: dict[str, list]) -> Self:
         for language in json_data:
             for alias in json_data[language]:
                 self.set(alias['language'], alias['value'])

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class Qualifiers(BaseModel):
     def __init__(self) -> None:
-        self.qualifiers: dict[str, list[Snak]] = {}
+        self.qualifiers: dict[str, list[Snak | Claim]] = {}
 
     @property
     def qualifiers(self):
@@ -23,7 +23,7 @@ class Qualifiers(BaseModel):
         assert isinstance(value, dict)
         self.__qualifiers = value
 
-    def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Qualifiers:
+    def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Self:
         if isinstance(qualifiers, list) or isinstance(qualifiers, Qualifiers):
             for qualifier in qualifiers:
                 self.add(qualifier)
@@ -44,7 +44,7 @@ class Qualifiers(BaseModel):
         return []
 
     # TODO: implement action_if_exists
-    def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Qualifiers:
+    def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -61,7 +61,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def remove(self, qualifier: Snak | Claim) -> Qualifiers:
+    def remove(self, qualifier: Snak | Claim) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -77,7 +77,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def clear(self, property: str | int | None = None) -> Qualifiers:
+    def clear(self, property: str | int | None = None) -> Self:
         if isinstance(property, int):
             property = 'P' + str(property)
 
@@ -87,7 +87,7 @@ class Qualifiers(BaseModel):
             del self.qualifiers[property]
         return self
 
-    def from_json(self, json_data: dict[str, list]) -> Qualifiers:
+    def from_json(self, json_data: dict[str, list]) -> Self:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(qualifier=Snak().from_json(snak))
@@ -103,6 +103,15 @@ class Qualifiers(BaseModel):
                 json_data[property].append(qualifier.get_json())
         return json_data
 
+    def count(self) -> int:
+        """
+        Return the total number of individual qualifier snaks, across every property.
+
+        Note: ``len(qualifiers)`` returns the number of distinct properties, while iterating yields the individual
+        snaks. Use this method when you need the qualifier count.
+        """
+        return sum(len(snak_list) for snak_list in self.qualifiers.values())
+
     def __iter__(self):
         iterate = []
         for qualifier in self.qualifiers.values():
@@ -110,4 +119,5 @@ class Qualifiers(BaseModel):
         return iter(iterate)
 
     def __len__(self):
+        # Returns the number of distinct properties. See count() for the total number of individual snaks.
         return len(self.qualifiers)

@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import logging
 from copy import copy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
+from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.claims import Claim, Claims
+from wikibaseintegrator.models.descriptions import Descriptions
+from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
@@ -104,12 +107,16 @@ class BaseEntity:
         return self.__claims
 
     @claims.setter
-    def claims(self, value: Claims):
-        if not isinstance(value, Claims):
+    def claims(self, value: Claim | Claims):
+        if not isinstance(value, Claims) and not isinstance(value, Claim):
             raise TypeError
+
+        if isinstance(value, Claim):
+            value = Claims().add(claims=value)
+
         self.__claims = value
 
-    def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> BaseEntity:
+    def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -140,7 +147,7 @@ class BaseEntity:
 
         return json_data
 
-    def from_json(self, json_data: dict[str, Any]) -> BaseEntity:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         """
         Import a dictionary into BaseEntity attributes.
 
@@ -203,6 +210,21 @@ class BaseEntity:
         :return: A dictionary representation of the edited Entity
         """
         return self._write(data={}, clear=True, **kwargs)
+
+    def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
+        params = {
+            'action': 'wbgetclaims',
+            'entity': self.id,
+            'property': property,
+            'format': 'json'
+        }
+
+        login = login or self.api.login
+        is_bot = is_bot if is_bot is not None else self.api.is_bot
+
+        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        self.claims.from_json(json_data['claims'])
+        return self
 
     def _write(self, data: dict | None = None, summary: str | None = None, login: _Login | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
                clear: bool = False, as_new: bool = False, is_bot: bool | None = None, fields_to_update: list | None | EntityField = None, **kwargs: Any) -> dict[str, Any]:
@@ -279,7 +301,8 @@ class BaseEntity:
 
         if as_new:
             entity_id = None
-            data['id'] = None
+            # Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API.
+            data.pop('id', None)
         else:
             entity_id = self.id
 
@@ -319,21 +342,31 @@ class BaseEntity:
 
             return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
-    def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]] | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL,
-                       **kwargs: Any) -> bool:
+    def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
-        if base_filter is None:
-            base_filter = []
+        # Collect the property numbers targeted by the base_filter. It supports both the simple form (a
+        # BaseDataType) and the property-path form (a list of two BaseDataType), whose anchor is the first property.
+        base_filter_props = set()
+        for prop in base_filter:
+            if isinstance(prop, BaseDataType):
+                base_filter_props.add(prop.mainsnak.property_number)
+            elif isinstance(prop, list) and prop and isinstance(prop[0], BaseDataType):
+                base_filter_props.add(prop[0].mainsnak.property_number)
 
-        claims_to_check = []
+        pfilter: set = set()
         for claim in self.claims:
-            if claim.mainsnak.property_number in base_filter:
-                claims_to_check.append(claim)
+            if claim.mainsnak.property_number in base_filter_props:
+                pfilter.add(claim.mainsnak.property_number)
+
+        property_filter: list[str] = list(pfilter)
 
         # TODO: Add check_language_data
 
-        return fastrun_container.write_required(data=claims_to_check, cqid=self.id, action_if_exists=action_if_exists)
+        # Restrict the check to the entity being edited, when it already has an ID
+        entity_filter = [self.id] if self.id else None
+
+        return fastrun_container.write_required(claims=self.claims, entity_filter=entity_filter, property_filter=property_filter, action_if_exists=action_if_exists)
 
     def get_entity_url(self, wikibase_url: str | None = None) -> str:
         from wikibaseintegrator.wbi_config import config
@@ -357,3 +390,60 @@ class BaseEntity:
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
+
+
+class TermsEntity(BaseEntity):
+    """
+    Base class for the entities that share the labels/descriptions/aliases "terms": Item, Property and MediaInfo.
+    """
+
+    def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+
+        self.labels = labels or Labels()
+        self.descriptions = descriptions or Descriptions()
+        self.aliases = aliases or Aliases()
+
+    @property
+    def labels(self) -> Labels:
+        return self.__labels
+
+    @labels.setter
+    def labels(self, labels: Labels):
+        if not isinstance(labels, Labels):
+            raise TypeError
+        self.__labels = labels
+
+    @property
+    def descriptions(self) -> Descriptions:
+        return self.__descriptions
+
+    @descriptions.setter
+    def descriptions(self, descriptions: Descriptions):
+        if not isinstance(descriptions, Descriptions):
+            raise TypeError
+        self.__descriptions = descriptions
+
+    @property
+    def aliases(self) -> Aliases:
+        return self.__aliases
+
+    @aliases.setter
+    def aliases(self, aliases: Aliases):
+        if not isinstance(aliases, Aliases):
+            raise TypeError
+        self.__aliases = aliases
+
+    def _terms_from_json(self, json_data: dict[str, Any]) -> None:
+        """
+        Deserialize the labels/descriptions/aliases blocks.
+
+        Only the terms present in ``json_data`` are set, so this is safe to call on entities that never carry some
+        of them (e.g. a MediaInfo entity usually has no aliases).
+        """
+        if 'labels' in json_data:
+            self.labels = Labels().from_json(json_data['labels'])
+        if 'descriptions' in json_data:
+            self.descriptions = Descriptions().from_json(json_data['descriptions'])
+        if 'aliases' in json_data:
+            self.aliases = Aliases().from_json(json_data['aliases'])

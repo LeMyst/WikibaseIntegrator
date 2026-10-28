@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -20,7 +20,7 @@ class Snaks(BaseModel):
 
         return []
 
-    def add(self, snak: Snak) -> Snaks:
+    def add(self, snak: Snak) -> Self:
         property = snak.property_number
 
         if property not in self.snaks:
@@ -30,7 +30,7 @@ class Snaks(BaseModel):
 
         return self
 
-    def from_json(self, json_data: dict[str, list]) -> Snaks:
+    def from_json(self, json_data: dict[str, list]) -> Self:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(snak=Snak().from_json(snak))
@@ -45,6 +45,9 @@ class Snaks(BaseModel):
             for snak in snaks:
                 json_data[property].append(snak.get_json())
         return json_data
+
+    def __eq__(self, other):
+        return self.snaks == other.snaks
 
     def __iter__(self):
         iterate = []
@@ -118,7 +121,7 @@ class Snak(BaseModel):
     def datatype(self, value):
         self.__datatype = value
 
-    def from_json(self, json_data: dict[str, Any]) -> Snak:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
         self.property_number = json_data['property']
         if 'hash' in json_data:
@@ -147,4 +150,7 @@ class Snak(BaseModel):
         return json_data
 
     def __eq__(self, other):
+        if not isinstance(other, Snak):
+            return NotImplemented
+
         return self.snaktype == other.snaktype and self.property_number == other.property_number and self.datatype == other.datatype and self.datavalue == other.datavalue

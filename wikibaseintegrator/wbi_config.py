@@ -10,14 +10,21 @@ BACKOFF_MAX_VALUE: maximum number of seconds to wait before retrying. wait time 
                    Default: 3600 (one hour)
 USER_AGENT:        Complementary user agent string used for http requests. Both to Wikibase api, query service and others.
                    See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
+TIMEOUT:           Timeout (in seconds) passed to every HTTP request, either a single value or a (connect, read) tuple.
+                   Prevents a silent/unresponsive server from blocking the process indefinitely.
+                   Set to None to disable (wait forever). Default: (5, 300)
+SPARQL_AUTH:       Default authentication used by wbi_helpers.execute_sparql_query() (and so by the fast run mode) when the
+                   SPARQL endpoint is protected. Either a (username, password) tuple for HTTP Basic auth or any
+                   requests.auth.AuthBase instance. Default: None (no authentication)
 """
 
-from typing import Union
+from typing import Any
 
-config: dict[str, Union[str, int, None, bool]] = {
+config: dict[str, Any] = {
     'BACKOFF_MAX_TRIES': 5,
     'BACKOFF_MAX_VALUE': 3600,
     'USER_AGENT': None,
+    'TIMEOUT': (5, 300),
     'PROPERTY_CONSTRAINT_PID': 'P2302',
     'DISTINCT_VALUES_CONSTRAINT_QID': 'Q21502410',
     'COORDINATE_GLOBE_QID': 'http://www.wikidata.org/entity/Q2',
@@ -26,7 +33,9 @@ config: dict[str, Union[str, int, None, bool]] = {
     'MEDIAWIKI_INDEX_URL': 'https://www.wikidata.org/w/index.php',
     'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
+    'SPARQL_AUTH': None,
     'WIKIBASE_URL': 'http://www.wikidata.org',
     'DEFAULT_LANGUAGE': 'en',
-    'DEFAULT_LEXEME_LANGUAGE': 'Q1860'
+    'DEFAULT_LEXEME_LANGUAGE': 'Q1860',
+    'SPARQL_QUERY_LIMIT': 10000
 }

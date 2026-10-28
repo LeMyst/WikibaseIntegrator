@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
+import json
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -19,12 +20,12 @@ class Senses(BaseModel):
         return None
 
     # TODO: implement action_if_exists
-    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Senses:
+    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         self.senses.append(sense)
 
         return self
 
-    def from_json(self, json_data: list[dict]) -> Senses:
+    def from_json(self, json_data: list[dict]) -> Self:
         for sense in json_data:
             self.add(sense=Sense().from_json(sense))
 
@@ -37,6 +38,9 @@ class Senses(BaseModel):
 
         return json_data
 
+    def __iter__(self):
+        return iter(self.senses)
+
     def __len__(self):
         return len(self.senses)
 
@@ -48,7 +52,7 @@ class Sense(BaseModel):
         self.claims = claims or Claims()
         self.removed = False
 
-    def from_json(self, json_data: dict[str, Any]) -> Sense:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.id = json_data['id']
         self.glosses = Glosses().from_json(json_data['glosses'])
         self.claims = Claims().from_json(json_data['claims'])
@@ -71,9 +75,23 @@ class Sense(BaseModel):
 
         return json_data
 
-    def remove(self) -> Sense:
+    def remove(self) -> Self:
         self.removed = True
         return self
+
+    def _content(self) -> str:
+        # The id is assigned by the Wikibase instance, so two senses are considered equal when they hold the same content
+        return json.dumps([self.glosses.get_json(), self.claims.get_json()], sort_keys=True)
+
+    def __eq__(self, other):
+        if not isinstance(other, Sense):
+            return NotImplemented
+
+        return self._content() == other._content()
+
+    def __hash__(self):
+        # Based on the content, like __eq__: a Sense modified after being added to a set or used as a dict key won't be found anymore
+        return hash(self._content())
 
 
 class Glosses(LanguageValues):

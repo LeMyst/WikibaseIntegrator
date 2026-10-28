@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "WikibaseIntegrator"
-version = "0.12.15.dev0"
+version = "0.12.16.dev0"
 description = "Python package for reading from and writing to a Wikibase instance"
 authors = [
     "Myst",
@@ -10,19 +10,22 @@ authors = [
 license = "MIT"
 readme = "README.md"
 packages = [{ include = "wikibaseintegrator" }]
-include = [{ path = "tests", format = "sdist" }]
+include = [
+    { path = "test", format = "sdist" },
+    # PEP 561 marker so downstream type checkers use the package's type hints
+    { path = "wikibaseintegrator/py.typed", format = ["sdist", "wheel"] }
+]
 homepage = "https://github.com/LeMyst/WikibaseIntegrator"
 repository = "https://github.com/LeMyst/WikibaseIntegrator"
 documentation = "https://wikibaseintegrator.readthedocs.io"
 keywords = ["wikibase", "wikidata", "mediawiki", "sparql"]
 classifiers = [
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Development Status :: 4 - Beta",
     "Operating System :: POSIX",
     "Operating System :: MacOS :: MacOS X",
@@ -39,19 +42,19 @@ classifiers = [
 Changelog = "https://github.com/LeMyst/WikibaseIntegrator/releases"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 backoff = "^2.2.1"
-mwoauth = "^0.4.0"
-oauthlib = "^3.2.2"
+oauthlib = ">=3.2.2,<5.0.0"
 requests = "^2.32.3"
 requests-oauthlib = "^2.0.0"
-ujson = "^5.10.0"
+ujson = ">=5.10,<7.0"
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
+requests-mock = "*"
 pylint = "*"
 pylint-exit = "*"
 mypy = "*"
@@ -67,7 +70,6 @@ readthedocs-sphinx-ext = "*"
 sphinx-rtd-theme = "*"
 sphinx-github-changelog = "*"
 sphinx-autodoc-typehints = "*"
-toml = "*"
 
 [tool.poetry.group.notebooks]
 optional = true
@@ -76,6 +78,8 @@ optional = true
 jupyter = "*"
 # Force jupyterlab 4.2.5 to have the latest version of notebook
 jupyterlab = "^4.2.5"
+# Force nbconvert 7.17.2 to fix a path traversal vulnerability (GHSA-pjvx-prjx-h659)
+nbconvert = ">=7.17.2"
 
 [tool.poetry.group.coverage]
 optional = true
@@ -86,6 +90,10 @@ pytest-cov = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.codespell]
+# 'Buda' appears in the live Wikimedia Commons caption stored in test/fixtures/mediainfo_M75908279.json
+ignore-words-list = "buda"
 
 [tool.isort]
 line_length = 179
@@ -116,3 +124,9 @@ disable = [
 
 [tool.pytest.ini_options]
 log_cli = true
+log_cli_level = 'DEBUG'
+testpaths = ["test"]
+markers = [
+    "integration: tests running against a real Wikibase instance (deselected by default, see test/integration/README.md)"
+]
+addopts = "-m 'not integration'"

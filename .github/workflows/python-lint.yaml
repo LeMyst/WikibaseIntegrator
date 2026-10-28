@@ -6,26 +6,30 @@ on:
     paths:
       - 'wikibaseintegrator/**.py'
       - 'test/**.py'
+      - 'pyproject.toml'
+      - 'poetry.lock'
   pull_request:
     branches: [ '**' ]
     paths:
       - 'wikibaseintegrator/**.py'
       - 'test/**.py'
+      - 'pyproject.toml'
+      - 'poetry.lock'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install poetry
         run: pipx install poetry
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v6.0.0
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7.1.0
         with:
-          python-version: '3.13'
+          python-version: '3.14'
           cache: 'poetry'
 
       # Need to install poetry again in the new python version

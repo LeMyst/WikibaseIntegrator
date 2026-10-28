@@ -164,3 +164,10 @@ fabric.properties
 
 # Other stuff
 /drafts/
+/.run/
+
+# Local review notes, not to be pushed
+/TODO.md
+
+# Git worktrees used by agents (see AGENTS.md)
+/.claude/worktrees/

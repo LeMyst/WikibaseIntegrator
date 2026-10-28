@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
+import json
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -28,12 +29,12 @@ class Forms(BaseModel):
 
         return None
 
-    def add(self, form: Form) -> Forms:
+    def add(self, form: Form) -> Self:
         self.__forms.append(form)
 
         return self
 
-    def from_json(self, json_data: list[dict]) -> Forms:
+    def from_json(self, json_data: list[dict]) -> Self:
         for form in json_data:
             self.add(form=Form().from_json(form))
 
@@ -45,6 +46,9 @@ class Forms(BaseModel):
             json_data.append(form.get_json())
 
         return json_data
+
+    def __iter__(self):
+        return iter(self.forms)
 
     def __len__(self):
         return len(self.forms)
@@ -78,14 +82,16 @@ class Form(BaseModel):
         return self.__grammatical_features
 
     @grammatical_features.setter
-    def grammatical_features(self, value: str | int | list[str]):
-        if not hasattr(self, '__grammatical_features') or value is None:
-            self.__grammatical_features = []
-
-        if isinstance(value, int):
-            self.__grammatical_features.append('Q' + str(value))
+    def grammatical_features(self, value: str | int | list[str] | None):
+        if value is None:
+            self.__grammatical_features: list[str] = []
+        elif isinstance(value, bool):
+            # bool is a subclass of int, reject it explicitly
+            raise TypeError(f"value must be a str, an int or a list of strings, got '{type(value)}'")
+        elif isinstance(value, int):
+            self.__grammatical_features = ['Q' + str(value)]
         elif isinstance(value, str):
-            self.__grammatical_features.append(value)
+            self.__grammatical_features = [value]
         elif isinstance(value, list):
             self.__grammatical_features = value
         else:
@@ -99,7 +105,7 @@ class Form(BaseModel):
     def claims(self, value):
         self.__claims = value
 
-    def from_json(self, json_data: dict[str, Any]) -> Form:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.id = json_data['id']
         self.representations = Representations().from_json(json_data['representations'])
         self.grammatical_features = json_data['grammaticalFeatures']
@@ -120,6 +126,20 @@ class Form(BaseModel):
             del json_data['id']
 
         return json_data
+
+    def _content(self) -> str:
+        # The id is assigned by the Wikibase instance, so two forms are considered equal when they hold the same content
+        return json.dumps([self.representations.get_json(), self.grammatical_features, self.claims.get_json()], sort_keys=True)
+
+    def __eq__(self, other):
+        if not isinstance(other, Form):
+            return NotImplemented
+
+        return self._content() == other._content()
+
+    def __hash__(self):
+        # Based on the content, like __eq__: a Form modified after being added to a set or used as a dict key won't be found anymore
+        return hash(self._content())
 
 
 class Representations(LanguageValues):

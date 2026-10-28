@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import datetime
 import re
 from functools import total_ordering
-from typing import Any, Optional, Union
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseTimePrecision
+from wikibaseintegrator.wbi_enums import WikibaseSnakType, WikibaseTimePrecision
 
 
 @total_ordering
@@ -14,6 +16,7 @@ class Time(BaseDataType):
     Implements the Wikibase data type with date and time values
     """
     DTYPE = 'time'
+    PTYPE = 'http://wikiba.se/ontology#Time'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -21,8 +24,8 @@ class Time(BaseDataType):
         }}
     '''
 
-    def __init__(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseTimePrecision, None] = None, timezone: int = 0,
-                 calendarmodel: Optional[str] = None, wikibase_url: Optional[str] = None, **kwargs: Any):
+    def __init__(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
+                 calendarmodel: str | None = None, wikibase_url: str | None = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -41,8 +44,8 @@ class Time(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
-    def set_value(self, time: Optional[str] = None, before: int = 0, after: int = 0, precision: Union[int, WikibaseTimePrecision, None] = None, timezone: int = 0,
-                  calendarmodel: Optional[str] = None, wikibase_url: Optional[str] = None):
+    def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
+                  calendarmodel: str | None = None, wikibase_url: str | None = None):
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
@@ -53,7 +56,7 @@ class Time(BaseDataType):
 
         if time:
             if time == "now":
-                time = datetime.datetime.now(datetime.timezone.utc).strftime("+%Y-%m-%dT00:00:00Z")
+                time = datetime.datetime.now(datetime.UTC).strftime("+%Y-%m-%dT00:00:00Z")
 
             if not (time.startswith("+") or time.startswith("-")):
                 time = "+" + time
@@ -102,19 +105,53 @@ class Time(BaseDataType):
                 'type': 'time'
             }
 
-    def get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']['time']
+    def get_sparql_value(self, **kwargs: Any) -> str:
+        return '"' + self.mainsnak.datavalue['value']['time'] + '"^^xsd:dateTime'
+
+    def _time_parts(self) -> tuple[int, int, int]:
+        """
+        Split the timestamp into (year, month, day).
+
+        The year can be signed and hold more than 4 digits (up to 16), so it can't be sliced at fixed positions.
+        """
+        time = self.mainsnak.datavalue['value']['time']
+        matches = re.match(r'^([+-]?[0-9]+)-([0-9]{2})-([0-9]{2})T', time)
+        if not matches:
+            raise ValueError(f"Unable to parse time value '{time}'")
+        return int(matches.group(1)), int(matches.group(2)), int(matches.group(3))
 
     def get_year(self) -> int:
-        return int(self.mainsnak.datavalue['value']['time'][0:5])
+        return self._time_parts()[0]
 
     def get_month(self) -> int:
-        return int(self.mainsnak.datavalue['value']['time'][6:8])
+        return self._time_parts()[1]
 
     def get_day(self) -> int:
-        return int(self.mainsnak.datavalue['value']['time'][9:11])
+        return self._time_parts()[2]
 
     def __lt__(self, other):
-        return (self.get_year() < other.get_year()) or \
-            (self.get_year() == other.get_year() and self.get_month() < other.get_month()) or \
-            (self.get_year() == other.get_year() and self.get_month() == other.get_month() and self.get_day() < other.get_day())
+        return self._time_parts() < other._time_parts()
+
+    def from_sparql_value(self, sparql_value: dict) -> Self:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        datatype = sparql_value['datatype']
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if datatype != 'http://www.w3.org/2001/XMLSchema#dateTime':
+            raise ValueError('Wrong SPARQL datatype')
+
+        if type != 'literal':
+            raise ValueError('Wrong SPARQL type')
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            self.set_value(time=value)
+
+        return self
