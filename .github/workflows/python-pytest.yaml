@@ -25,17 +25,13 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ '3.11', '3.12', '3.13', '3.14', '3.15-dev' ]
+        python-version: [ '3.11', '3.12', '3.13', '3.14', '3.15' ]
 
     steps:
       - uses: actions/checkout@v7
 
       - name: Install pipx
         run: apt update && apt install -y pipx && pipx ensurepath
-
-      - name: Install dependencies for Python 3.15-dev
-        if: matrix.python-version == '3.15-dev'
-        run: apt install -y build-essential libffi-dev
 
       - name: Update path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
