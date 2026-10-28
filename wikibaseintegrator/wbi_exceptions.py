@@ -89,6 +89,23 @@ class NonExistentEntityError(MWApiError):
     pass
 
 
+class MissingExtensionError(NonExistentEntityError):
+    """
+    Raised when a request needs a MediaWiki extension the Wikibase instance doesn't provide, e.g. the lexemes of the
+    WikibaseLexeme extension. The extension is either not installed or installed without its repository part.
+
+    It inherits from NonExistentEntityError: the requested entity type doesn't exist on the instance.
+    """
+    extension: str
+
+    def __init__(self, error_dict: dict[str, Any], extension: str):
+        super().__init__(error_dict)
+        self.extension = extension
+        self.info = (f"This request needs the {extension} extension, which is not installed or not enabled on the Wikibase instance "
+                     f"(https://www.mediawiki.org/wiki/Extension:{extension}). API error: {error_dict.get('info', self.code)}")
+        self.args = (self.info,)
+
+
 class MaxRetriesReachedException(Exception):
     pass
 

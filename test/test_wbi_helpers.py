@@ -9,12 +9,13 @@ from types import MappingProxyType
 import pytest
 import requests
 
-from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator import WikibaseIntegrator, wbi_helpers
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
+                                               NonExistentEntityError, SaveFailed)
 from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances,
-                                            get_user_agent, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items,
-                                            merge_multiple_items, remove_claims, search_entities)
+                                            get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call,
+                                            mediawiki_api_call_helper, merge_items, merge_multiple_items, remove_claims, search_entities)
 
 
 class FakeLogin:
@@ -175,6 +176,93 @@ class TestErrorMapping:
         wikibase.fail_next(code='badtoken', info='Invalid CSRF token.')
         with pytest.raises(MWApiError):
             mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json'}, allow_anonymous=True)
+
+
+class TestMissingLexemeExtension:
+    """Lexeme requests sent to a Wikibase instance without WikibaseLexeme must raise a clear error (#500)."""
+
+    # Payloads returned by Wikimedia Commons, a Wikibase instance without lexeme support
+    UNKNOWN_ACTION = {'code': 'badvalue', 'info': 'Unrecognized value for parameter "action": wbladdform.'}
+    UNKNOWN_NEW = {'code': 'badvalue', 'info': 'Unrecognized value for parameter "new": lexeme.'}
+
+    @staticmethod
+    def _actions(wikibase):
+        return [request.get('action') for request in wikibase.requests]
+
+    def test_get_lexeme_without_lexeme_support(self, wikibase):
+        wikibase.entity_types = ['item', 'property']
+
+        with pytest.raises(MissingExtensionError) as excinfo:
+            WikibaseIntegrator().lexeme.get('L5')
+
+        assert excinfo.value.extension == 'WikibaseLexeme'
+        assert 'WikibaseLexeme' in str(excinfo.value)
+        assert 'Could not find an entity with the ID "L5".' in str(excinfo.value)
+        # Still a NonExistentEntityError, for the code already catching it
+        assert isinstance(excinfo.value, NonExistentEntityError)
+        assert self._actions(wikibase) == ['wbgetentities', 'paraminfo']
+
+    @pytest.mark.parametrize('entity_id', ['L5-F1', 'L5-S1', 'wd:L5'])
+    def test_get_form_sense_or_federated_lexeme_without_lexeme_support(self, wikibase, entity_id):
+        wikibase.entity_types = ['item', 'property']
+
+        with pytest.raises(MissingExtensionError):
+            mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': entity_id, 'format': 'json'}, allow_anonymous=True)
+
+    def test_missing_lexeme_with_lexeme_support(self, wikibase):
+        """The instance supports lexemes: the lexeme is really missing."""
+        with pytest.raises(NonExistentEntityError) as excinfo:
+            WikibaseIntegrator().lexeme.get('L5')
+
+        assert not isinstance(excinfo.value, MissingExtensionError)
+
+    def test_missing_item_does_not_check_lexeme_support(self, wikibase):
+        wikibase.entity_types = ['item', 'property']
+
+        with pytest.raises(NonExistentEntityError) as excinfo:
+            WikibaseIntegrator().item.get('Q5')
+
+        assert not isinstance(excinfo.value, MissingExtensionError)
+        assert 'paraminfo' not in self._actions(wikibase)
+
+    def test_unknown_lexeme_action(self, wikibase):
+        wikibase.fail_next(**self.UNKNOWN_ACTION)
+
+        with pytest.raises(MissingExtensionError) as excinfo:
+            lexeme_add_form('L5', data={}, allow_anonymous=True)
+
+        assert excinfo.value.code == 'badvalue'
+        assert 'paraminfo' not in self._actions(wikibase)
+
+    def test_unknown_lexeme_action_before_mediawiki_1_35(self, wikibase):
+        wikibase.fail_next(code='unknown_action', info='Unrecognized value for parameter "action": wbladdform.')
+
+        with pytest.raises(MissingExtensionError):
+            lexeme_add_form('L5', data={}, allow_anonymous=True)
+
+    def test_new_lexeme_without_lexeme_support(self, wikibase):
+        wikibase.fail_next(**self.UNKNOWN_NEW)
+
+        with pytest.raises(MissingExtensionError):
+            mediawiki_api_call_helper(data={'action': 'wbeditentity', 'new': 'lexeme', 'data': '{}', 'format': 'json'}, allow_anonymous=True)
+
+    def test_unrelated_bad_value(self, wikibase):
+        wikibase.fail_next(code='badvalue', info='Unrecognized value for parameter "props": foo.')
+
+        with pytest.raises(MWApiError) as excinfo:
+            mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': 'L5', 'props': 'foo', 'format': 'json'}, allow_anonymous=True)
+
+        assert not isinstance(excinfo.value, MissingExtensionError)
+
+    def test_failed_check_keeps_the_original_error(self, wikibase):
+        """The lexeme support can't be checked: the original error is raised."""
+        wikibase.fail_next(code='no-such-entity', info='Could not find an entity with the ID "L5".', id='L5')
+        wikibase.fail_next(code='internal_api_error_DBQueryError', info='A database query error has occurred.')
+
+        with pytest.raises(NonExistentEntityError) as excinfo:
+            WikibaseIntegrator().lexeme.get('L5')
+
+        assert not isinstance(excinfo.value, MissingExtensionError)
 
 
 @pytest.mark.parametrize('error_code', ['assertuserfailed', 'assertbotfailed', 'notloggedin'])
