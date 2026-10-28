@@ -27,6 +27,10 @@ v0.13 contains changes that are not backward compatible with v0.12:
 - **`Form` and `Sense` compare and hash by content** (representations or glosses, grammatical features, claims)
   instead of by identity, and ignore their id. Two distinct objects holding the same content are now equal, and a
   Form/Sense modified after being added to a `set` or used as a `dict` key can no longer be found there.
+- **`Claims.add()` appends by default**: its `action_if_exists` default is now `ActionIfExists.APPEND_OR_REPLACE`
+  instead of `REPLACE_ALL`, like `BaseEntity.add_claims()`. Adding a claim no longer removes the existing claims with
+  the same property. Pass `action_if_exists=ActionIfExists.REPLACE_ALL` to keep the previous behavior. Re-adding an
+  existing value now keeps its rank and references, unless the new claim sets them.
 - **HTTP requests have a default timeout** of 5 seconds to connect and 300 seconds to read. Change it with
   `wbi_config['TIMEOUT']`, or set it to `None` to wait forever as before.
 - **Fewer retries by default**: `max_retries` defaults to 100 instead of 1000 in `mediawiki_api_call_helper()` and
