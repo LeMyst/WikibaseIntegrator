@@ -10,6 +10,40 @@
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
 Wikidata).
 
+# Breaking changes in v0.13 #
+
+v0.13 contains changes that are not backward compatible with v0.12:
+
+- **Python 3.11 or newer is required.** Python 3.9 and 3.10 are no longer supported.
+- **The fast run mode has been rewritten** (see [Examples (in "fast run" mode)](#examples-in-fast-run-mode)). Code
+  using `wbi_fastrun` directly needs to be updated:
+    - `FastRunContainer.get_items()` is renamed `get_entities()`.
+    - `FastRunContainer()` takes `base_filter` as its first, mandatory argument and `base_data_type` is now optional.
+      `use_refs` is renamed `use_references`, and `use_qualifiers` (default `True`), `use_rank` and `cache` are added.
+    - `FastRunContainer.write_required()` drops `cqid` and gains `entity_filter` and `property_filter`.
+    - `BaseEntity.write_required()` now requires `base_filter`.
+    - Data types compared through SPARQL implement `from_sparql_value()`, which replaces `parse_sparql_value()` for
+      the fast run mode.
+- **`Form` and `Sense` compare and hash by content** (representations or glosses, grammatical features, claims)
+  instead of by identity, and ignore their id. Two distinct objects holding the same content are now equal, and a
+  Form/Sense modified after being added to a `set` or used as a `dict` key can no longer be found there.
+- **HTTP requests have a default timeout** of 5 seconds to connect and 300 seconds to read. Change it with
+  `wbi_config['TIMEOUT']`, or set it to `None` to wait forever as before.
+- **Fewer retries by default**: `max_retries` defaults to 100 instead of 1000 in `mediawiki_api_call_helper()` and
+  `execute_sparql_query()`.
+- **Anonymous edits** that are not explicitly allowed raise `AnonymousEditNotAllowedError` instead of a bare
+  `Exception`.
+- **`mwoauth` is no longer a dependency**: OAuth1 is implemented with `oauthlib` directly. Install `mwoauth` yourself
+  if your own code imports it.
+- **`wbi_helpers.default_session` and `wbi_helpers.helpers_session` are deprecated**: requests made without a login
+  now use a private session per thread. The old names still work but emit a `DeprecationWarning`.
+
+If you want to stay on v0.12.x, you can put this line in your requirements.txt:
+
+```
+wikibaseintegrator~=0.12.15
+```
+
 # Breaking changes in v0.12 #
 
 A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which has led to some important changes.
