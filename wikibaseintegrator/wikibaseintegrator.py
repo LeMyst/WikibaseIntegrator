@@ -31,4 +31,4 @@ class WikibaseIntegrator:
         self.item = ItemEntity(api=self)
         self.property = PropertyEntity(api=self)
         self.lexeme = LexemeEntity(api=self)
-        self.mediainfo = MediaInfoEntity(api=self)
+        self.mediainfo = MediaInfoEntity(api=self)  # Beta, see wikibaseintegrator.entities.mediainfo
