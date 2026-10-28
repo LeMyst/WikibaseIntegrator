@@ -12,7 +12,7 @@ poetry install --with dev,coverage # add coverage reporting
 poetry install --with docs         # add Sphinx doc dependencies
 ```
 
-Python 3.10–3.15 supported. CI tests all versions; lint runs on 3.14.
+Python 3.11–3.15 supported. CI tests all versions; lint runs on 3.14.
 
 ## Running tests
 
@@ -81,7 +81,7 @@ notebooks/                  # Jupyter usage examples
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `python-pytest.yaml` | push/PR to master | Matrix test on Python 3.10–3.15 |
+| `python-pytest.yaml` | push/PR to master | Matrix test on Python 3.11–3.15 |
 | `python-lint.yaml` | push/PR to master | isort, mypy, pylint, codespell, flynt |
 | `update-test-fixtures.yaml` | monthly / manual | Refresh `test/fixtures/` from live APIs (`scripts/update_test_fixtures.py`), open a PR if changed |
 | `codeql.yml` | push/PR/schedule | Static security analysis |

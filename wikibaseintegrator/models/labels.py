@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from typing import Self
+
 from wikibaseintegrator.models.language_values import LanguageValue, LanguageValues
 
 
 class Labels(LanguageValues):
-    def from_json(self, json_data: dict[str, dict]) -> Labels:
+    def from_json(self, json_data: dict[str, dict]) -> Self:
         """
         Create a new Labels object from a JSON/dict object.
 

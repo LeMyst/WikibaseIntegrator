@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -51,7 +51,7 @@ class MonolingualText(BaseDataType):
                 'type': 'monolingualtext'
             }
 
-    def from_sparql_value(self, sparql_value: dict) -> MonolingualText:
+    def from_sparql_value(self, sparql_value: dict) -> Self:
         """
         Parse data returned by a SPARQL endpoint and set the value to the object
 

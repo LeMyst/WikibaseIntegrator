@@ -133,7 +133,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             # rate limiting
             if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
-                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.now(datetime.timezone.utc), sleep_sec)
+                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.now(datetime.UTC), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
@@ -146,7 +146,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.now(datetime.timezone.utc), sleep_sec)
+                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.now(datetime.UTC), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
@@ -158,7 +158,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
 
             # session no longer valid: re-authenticate and retry instead of failing outright (#902)
             if 'code' in json_data['error'] and json_data['error']['code'] in SESSION_LOST_ERROR_CODES and login is not None:
-                log.warning("%s: session no longer valid (%s). Re-authenticating and retrying.", datetime.datetime.now(datetime.timezone.utc), json_data['error']['code'])
+                log.warning("%s: session no longer valid (%s). Re-authenticating and retrying.", datetime.datetime.now(datetime.UTC), json_data['error']['code'])
                 login.reauthenticate()
                 if 'data' in kwargs and kwargs['data'] and 'token' in kwargs['data']:
                     kwargs['data']['token'] = login.get_edit_token()

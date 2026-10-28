@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import urllib.parse
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -59,7 +59,7 @@ class GeoShape(BaseDataType):
                 'type': 'string'
             }
 
-    def from_sparql_value(self, sparql_value: dict) -> GeoShape:
+    def from_sparql_value(self, sparql_value: dict) -> Self:
         """
         Parse data returned by a SPARQL endpoint and set the value to the object
 

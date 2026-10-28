@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak
@@ -23,7 +23,7 @@ class Qualifiers(BaseModel):
         assert isinstance(value, dict)
         self.__qualifiers = value
 
-    def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Qualifiers:
+    def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Self:
         if isinstance(qualifiers, list) or isinstance(qualifiers, Qualifiers):
             for qualifier in qualifiers:
                 self.add(qualifier)
@@ -44,7 +44,7 @@ class Qualifiers(BaseModel):
         return []
 
     # TODO: implement action_if_exists
-    def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Qualifiers:
+    def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -61,7 +61,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def remove(self, qualifier: Snak | Claim) -> Qualifiers:
+    def remove(self, qualifier: Snak | Claim) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -77,7 +77,7 @@ class Qualifiers(BaseModel):
 
         return self
 
-    def clear(self, property: str | int | None = None) -> Qualifiers:
+    def clear(self, property: str | int | None = None) -> Self:
         if isinstance(property, int):
             property = 'P' + str(property)
 
@@ -87,7 +87,7 @@ class Qualifiers(BaseModel):
             del self.qualifiers[property]
         return self
 
-    def from_json(self, json_data: dict[str, list]) -> Qualifiers:
+    def from_json(self, json_data: dict[str, list]) -> Self:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(qualifier=Snak().from_json(snak))

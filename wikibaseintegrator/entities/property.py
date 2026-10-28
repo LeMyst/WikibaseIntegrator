@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.entities.baseentity import BaseEntity, TermsEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -82,7 +82,7 @@ class PropertyEntity(TermsEntity):
 
         return json
 
-    def from_json(self, json_data: dict[str, Any]) -> PropertyEntity:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         super().from_json(json_data=json_data)
         super()._terms_from_json(json_data=json_data)
 

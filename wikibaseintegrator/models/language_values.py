@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Self
+
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -20,7 +22,7 @@ class LanguageValues(BaseModel):
     def values(self, value: dict[str, LanguageValue]):
         self.__values = value
 
-    def add(self, language_value: LanguageValue) -> LanguageValues:
+    def add(self, language_value: LanguageValue) -> Self:
         """
         Add a LanguageValue object to the list
 
@@ -72,7 +74,7 @@ class LanguageValues(BaseModel):
 
         return self.get(language=language)
 
-    def from_json(self, json_data: dict[str, dict]) -> LanguageValues:
+    def from_json(self, json_data: dict[str, dict]) -> Self:
         """
         Create a new LanguageValues object from a JSON/dict object.
 
@@ -149,12 +151,12 @@ class LanguageValue(BaseModel):
     def removed(self, value: bool):
         self.__removed = value
 
-    def remove(self) -> LanguageValue:
+    def remove(self) -> Self:
         self.removed = True
 
         return self
 
-    def from_json(self, json_data: dict[str, str]) -> LanguageValue:
+    def from_json(self, json_data: dict[str, str]) -> Self:
         self.language = json_data['language']
         self.value = json_data['value']
 
