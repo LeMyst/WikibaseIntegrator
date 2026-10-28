@@ -1,12 +1,15 @@
 name: Publish Python 🐍 distributions 📦 to PyPI, TestPyPI and GitHub Release
 
+# Publishing a release on GitHub publishes the package: see "Releasing" in AGENTS.md.
+# The pushes and pull requests only build the package, as a check.
 on:
   workflow_dispatch:
   push:
     branches: [ master ]
-    tags: [ '**' ]
   pull_request:
     branches: [ '**' ]
+  release:
+    types: [ published ]
 
 jobs:
   build:
@@ -29,6 +32,18 @@ jobs:
       - name: Install poetry
         run: python -m pip install poetry
 
+      # Never publish a version that doesn't match the release, e.g. when the release is created before the version bump
+      - name: Check that the release tag matches the package version
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="$(python -m poetry version --short)"
+          if [ "${TAG#v}" != "${VERSION}" ]; then
+            echo "::error::The release tag ${TAG} doesn't match the version ${VERSION} of pyproject.toml"
+            exit 1
+          fi
+
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m
@@ -43,7 +58,7 @@ jobs:
 
   publish-to-testpypi:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
-    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    if: github.event_name == 'release'  # only publish when a release is published
     needs:
       - build
     runs-on: ubuntu-latest
@@ -68,7 +83,7 @@ jobs:
 
   publish-to-pypi:
     name: Publish Python 🐍 distribution 📦 to PyPI
-    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    if: github.event_name == 'release'  # only publish when a release is published
     needs:
       - build
       - publish-to-testpypi
@@ -93,14 +108,14 @@ jobs:
   github-release:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
-      and upload them to GitHub Release
-    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+      and upload them to the GitHub Release
+    if: github.event_name == 'release'  # only publish when a release is published
     needs:
       - publish-to-pypi
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # IMPORTANT: mandatory for making GitHub Releases
+      contents: write  # IMPORTANT: mandatory for uploading to GitHub Releases
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
@@ -115,21 +130,14 @@ jobs:
           inputs: >-
             ./dist/*.tar.gz
             ./dist/*.whl
-      - name: Create GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create
-          '${{ github.ref_name }}'
-          --repo '${{ github.repository }}'
-          --generate-notes
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        # Upload to GitHub Release using the `gh` CLI.
+          TAG: ${{ github.event.release.tag_name }}
+        # Upload to the published GitHub Release using the `gh` CLI.
         # `dist/` contains the built packages, and the
         # sigstore-produced signatures and certificates.
         run: >-
           gh release upload
-          '${{ github.ref_name }}' dist/**
+          "${TAG}" dist/**
           --repo '${{ github.repository }}'

@@ -89,8 +89,19 @@ notebooks/                  # Jupyter usage examples
 | `update-test-fixtures.yaml` | monthly / manual | Refresh `test/fixtures/` from live APIs (`scripts/update_test_fixtures.py`), open a PR if changed |
 | `codeql.yml` | push/PR/schedule | Static security analysis |
 | `trivy-scan.yaml` | push/PR/schedule | Vulnerability scanning |
-| `publish-to-pypi.yaml` | GitHub release | Publish to PyPI |
+| `publish-to-pypi.yaml` | GitHub release published / push / PR | Build the package; on a published release, publish it to TestPyPI and PyPI and attach the signed files to the release |
 | `auto-assign-issue.yaml` | issue opened | Auto-assign new issues to the maintainer |
+
+## Releasing
+
+Publishing a GitHub release publishes the package. Pushing a tag by hand doesn't.
+
+1. Label the PRs merged since the previous release. `.github/release.yml` groups the generated release notes by label: `breaking change` (matching the README "Breaking changes" section), `enhancement`, `bug`, `documentation`, `dependencies`. Unlabelled PRs go to "Other changes".
+2. Merge a PR setting the release version in `pyproject.toml` (e.g. `0.13.0`, dropping `.dev0`) and the tag of the README install example.
+3. On GitHub, draft a new release: create the tag `vX.Y.Z` on `master`, click "Generate release notes", review them, then publish. The `publish-to-pypi.yaml` workflow checks that the tag matches the version of `pyproject.toml`, publishes to TestPyPI then PyPI, and attaches the Sigstore-signed files to the release.
+4. Merge a PR bumping `pyproject.toml` to the next `.dev0` version (e.g. `0.13.1.dev0`).
+
+Publishing to PyPI can't be undone: leave step 3 to the maintainer.
 
 ## Notes for agents
 
