@@ -33,8 +33,12 @@ v0.13 contains changes that are not backward compatible with v0.12:
   existing value now keeps its rank and references, unless the new claim sets them.
 - **HTTP requests have a default timeout** of 5 seconds to connect and 300 seconds to read. Change it with
   `wbi_config['TIMEOUT']`, or set it to `None` to wait forever as before.
-- **Fewer retries by default**: `max_retries` defaults to 100 instead of 1000 in `mediawiki_api_call_helper()` and
-  `execute_sparql_query()`.
+- **Fewer retries by default**: `max_retries` defaults to 100 instead of 1000 in `mediawiki_api_call_helper()`.
+- **`execute_sparql_query()` retries through `wbi_backoff`**: its `max_retries` parameter is ignored (with a
+  `DeprecationWarning`). Failed queries are retried up to `wbi_config['BACKOFF_MAX_TRIES']` times (5 by default), with
+  an exponential wait capped by `wbi_config['BACKOFF_MAX_VALUE']`, instead of up to 1000 times every 60 seconds. Once
+  the retries are exhausted, the last error is raised (e.g. `requests.HTTPError`) instead of a bare `Exception`.
+  Authentication errors (HTTP 401/403) are not retried.
 - **Anonymous edits** that are not explicitly allowed raise `AnonymousEditNotAllowedError` instead of a bare
   `Exception`.
 - **The enums mirroring API values compare equal to them**: `WikibaseDatatype`, `WikibaseRank` and `WikibaseSnakType`
