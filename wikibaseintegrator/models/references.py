@@ -32,7 +32,7 @@ class References(BaseModel):
         return None
 
     # TODO: implement action_if_exists
-    def add(self, reference: Reference | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
+    def add(self, reference: Reference | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
 
@@ -120,7 +120,7 @@ class Reference(BaseModel):
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
-    def add(self, snak: Snak | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
+    def add(self, snak: Snak | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])
