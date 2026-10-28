@@ -3,14 +3,14 @@ from __future__ import annotations
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class String(BaseDataType):
     """
     Implements the Wikibase data type 'string'
     """
-    DTYPE = 'string'
+    DTYPE = WikibaseDatatype.STRING
     PTYPE = 'http://wikiba.se/ontology#String'
 
     def __init__(self, value: str | None = None, **kwargs: Any):

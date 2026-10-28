@@ -44,10 +44,8 @@ class PropertyEntity(TermsEntity):
 
     @datatype.setter
     def datatype(self, value: str | WikibaseDatatype | None):
-        if isinstance(value, str):
-            self.__datatype: str | WikibaseDatatype | None = WikibaseDatatype(value)
-        else:
-            self.__datatype = value
+        # A datatype unknown to WikibaseIntegrator (e.g. provided by a Wikibase extension) is kept as a string
+        self.__datatype: str | WikibaseDatatype | None = WikibaseDatatype.from_value(value)
 
     def new(self, **kwargs: Any) -> PropertyEntity:
         return PropertyEntity(api=self.api, **kwargs)
@@ -77,8 +75,8 @@ class PropertyEntity(TermsEntity):
             **super().get_json()
         }
 
-        if self.datatype and isinstance(self.datatype, WikibaseDatatype):
-            json.update({'datatype': self.datatype.value})
+        if self.datatype:
+            json.update({'datatype': str(self.datatype)})
 
         return json
 

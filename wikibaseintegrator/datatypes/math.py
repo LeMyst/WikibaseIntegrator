@@ -3,14 +3,14 @@ from __future__ import annotations
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.string import String
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Math(String):
     """
     Implements the Wikibase data type 'math' for mathematical formula in TEX format
     """
-    DTYPE = 'math'
+    DTYPE = WikibaseDatatype.MATH
     PTYPE = 'http://wikiba.se/ontology#Math'
 
     def from_sparql_value(self, sparql_value: dict) -> Self:

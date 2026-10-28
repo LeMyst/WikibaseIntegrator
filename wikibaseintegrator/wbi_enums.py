@@ -1,4 +1,6 @@
-from enum import Enum, auto
+from __future__ import annotations
+
+from enum import Enum, StrEnum, auto
 
 
 class ActionIfExists(Enum):
@@ -18,7 +20,11 @@ class ActionIfExists(Enum):
     MERGE_REFS_OR_APPEND = auto()
 
 
-class WikibaseDatatype(Enum):
+class WikibaseDatatype(StrEnum):
+    """
+    The datatypes of the properties, as named by the Wikibase API. A member is also a string equal to its value, so it
+    can be used, compared and serialized anywhere a datatype string is expected: WikibaseDatatype.ITEM == 'wikibase-item'.
+    """
     COMMONSMEDIA = 'commonsMedia'
     EDTF = 'edtf'
     ENTITYSCHEMA = 'entity-schema'
@@ -39,6 +45,22 @@ class WikibaseDatatype(Enum):
     TABULARDATA = 'tabular-data'
     TIME = 'time'
     URL = 'url'
+
+    @classmethod
+    def from_value(cls, value: str | None) -> WikibaseDatatype | str | None:
+        """
+        Return the member matching a datatype, or the datatype itself when WikibaseIntegrator doesn't know it (e.g. a
+        datatype provided by a Wikibase extension), instead of raising an error.
+
+        :param value: A datatype, as named by the Wikibase API
+        :return: The matching member, the value itself if unknown, or None
+        """
+        if value is None or isinstance(value, cls):
+            return value
+        try:
+            return cls(value)
+        except ValueError:
+            return value
 
 
 class WikibaseRank(Enum):

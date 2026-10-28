@@ -5,14 +5,14 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Sense(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-sense'
     """
-    DTYPE = 'wikibase-sense'
+    DTYPE = WikibaseDatatype.SENSE
     PTYPE = 'http://wikiba.se/ontology#WikibaseSense'
     sparql_query = '''
         SELECT * WHERE {{

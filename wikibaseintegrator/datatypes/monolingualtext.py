@@ -5,14 +5,14 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class MonolingualText(BaseDataType):
     """
     Implements the Wikibase data type for Monolingual Text strings
     """
-    DTYPE = 'monolingualtext'
+    DTYPE = WikibaseDatatype.MONOLINGUALTEXT
     PTYPE = 'http://wikiba.se/ontology#Monolingualtext'
 
     sparql_query = '''

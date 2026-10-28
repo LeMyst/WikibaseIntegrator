@@ -5,14 +5,14 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Property(BaseDataType):
     """
     Implements the Wikibase data type 'property'
     """
-    DTYPE = 'wikibase-property'
+    DTYPE = WikibaseDatatype.PROPERTY
     PTYPE = 'http://wikiba.se/ontology#Property'
     sparql_query = '''
         SELECT * WHERE {{

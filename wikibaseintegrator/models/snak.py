@@ -4,11 +4,12 @@ import re
 from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Snak(BaseModel):
-    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str | None = None, hash: str | None = None, datavalue: dict | None = None, datatype: str | None = None):
+    def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str | None = None, hash: str | None = None, datavalue: dict | None = None,
+                 datatype: str | WikibaseDatatype | None = None):
         self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash
@@ -62,12 +63,13 @@ class Snak(BaseModel):
         self.__datavalue = value
 
     @property
-    def datatype(self):
+    def datatype(self) -> WikibaseDatatype | str | None:
         return self.__datatype
 
     @datatype.setter
-    def datatype(self, value):
-        self.__datatype = value
+    def datatype(self, value: str | WikibaseDatatype | None):
+        # A known datatype is stored as a WikibaseDatatype member, which is also equal to its string value
+        self.__datatype = WikibaseDatatype.from_value(value)
 
     def from_json(self, json_data: dict[str, Any]) -> Self:
         self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
@@ -94,6 +96,9 @@ class Snak(BaseModel):
         # datatype can be null with MediaInfo
         if not self.datatype:
             del json_data['datatype']
+        else:
+            # A plain string in the JSON representation, not a WikibaseDatatype member
+            json_data['datatype'] = str(self.datatype)
 
         return json_data
 

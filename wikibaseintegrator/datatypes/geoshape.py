@@ -5,14 +5,14 @@ import urllib.parse
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class GeoShape(BaseDataType):
     """
     Implements the Wikibase data type 'geo-shape'
     """
-    DTYPE = 'geo-shape'
+    DTYPE = WikibaseDatatype.GEOSHAPE
     PTYPE = 'http://wikiba.se/ontology#GeoShape'
     sparql_query = '''
         SELECT * WHERE {{

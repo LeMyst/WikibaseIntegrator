@@ -4,7 +4,7 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import format_amount
 
 
@@ -12,7 +12,7 @@ class Quantity(BaseDataType):
     """
     Implements the Wikibase data type for quantities
     """
-    DTYPE = 'quantity'
+    DTYPE = WikibaseDatatype.QUANTITY
     PTYPE = 'http://wikiba.se/ontology#Quantity'
     sparql_query = '''
         SELECT * WHERE {{
