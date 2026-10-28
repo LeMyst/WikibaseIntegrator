@@ -78,6 +78,8 @@ optional = true
 jupyter = "*"
 # Force jupyterlab 4.2.5 to have the latest version of notebook
 jupyterlab = "^4.2.5"
+# Force nbconvert 7.17.2 to fix a path traversal vulnerability (GHSA-pjvx-prjx-h659)
+nbconvert = ">=7.17.2"
 
 [tool.poetry.group.coverage]
 optional = true
