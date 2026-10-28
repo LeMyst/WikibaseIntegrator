@@ -13,7 +13,6 @@ import pytest
 
 from wikibaseintegrator.datatypes import Item, String
 from wikibaseintegrator.models import Form, Sense
-from wikibaseintegrator.wbi_enums import ActionIfExists
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, search_entities
 
@@ -55,10 +54,9 @@ class TestItemLifecycle:
         assert fetched.lastrevid == written.lastrevid
 
         # Update: label + a second claim
-        # Claims.add() defaults to ActionIfExists.REPLACE_ALL, which would replace (remove)
-        # the existing claim for this property instead of adding a second one.
+        # Claims.add() defaults to ActionIfExists.APPEND_OR_REPLACE: the existing claim for this property is kept.
         fetched.labels.set(language='en', value=label + ' (updated)')
-        fetched.claims.add(String(prop_nr=string_property.id, value='second value'), action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+        fetched.claims.add(String(prop_nr=string_property.id, value='second value'))
         updated = fetched.write(summary='WikibaseIntegrator integration test: update')
 
         assert updated.labels.get('en') == label + ' (updated)'
