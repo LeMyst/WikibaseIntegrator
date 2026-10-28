@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.snaks import Snak, Snaks
@@ -32,7 +32,7 @@ class References(BaseModel):
         return None
 
     # TODO: implement action_if_exists
-    def add(self, reference: Reference | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> References:
+    def add(self, reference: Reference | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(reference, Claim):
 
@@ -52,7 +52,7 @@ class References(BaseModel):
 
         return self
 
-    def from_json(self, json_data: list[dict]) -> References:
+    def from_json(self, json_data: list[dict]) -> Self:
         for reference in json_data:
             self.add(reference=Reference().from_json(reference))
 
@@ -78,7 +78,7 @@ class References(BaseModel):
 
         return False
 
-    def clear(self) -> References:
+    def clear(self) -> Self:
         self.references = []
         return self
 
@@ -120,7 +120,7 @@ class Reference(BaseModel):
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
-    def add(self, snak: Snak | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Reference:
+    def add(self, snak: Snak | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         from wikibaseintegrator.models.claims import Claim
         if isinstance(snak, Claim):
             snak = Snak().from_json(snak.get_json()['mainsnak'])
@@ -132,7 +132,7 @@ class Reference(BaseModel):
 
         return self
 
-    def from_json(self, json_data: dict[str, Any]) -> Reference:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.hash = json_data['hash']
         self.snaks = Snaks().from_json(json_data['snaks'])
         self.snaks_order = json_data['snaks-order']
@@ -151,3 +151,10 @@ class Reference(BaseModel):
 
     def __len__(self):
         return len(self.snaks)
+
+    def __eq__(self, other):
+        if not isinstance(other, Reference):
+            return NotImplemented
+
+        # The hash is only known server-side, so two references are considered equal when they hold the same snaks
+        return self.snaks.get_json() == other.snaks.get_json()

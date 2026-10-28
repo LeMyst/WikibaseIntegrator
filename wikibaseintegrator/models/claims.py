@@ -3,7 +3,8 @@ from __future__ import annotations
 import copy
 import warnings
 from abc import abstractmethod
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
@@ -35,7 +36,7 @@ class Claims(BaseModel):
 
     def remove(self, property: str | None = None) -> None:
         if property in self.claims:
-            for prop in self.claims[property]:
+            for prop in list(self.claims[property]):
                 if prop.id:
                     prop.remove()
                 else:
@@ -43,7 +44,7 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Claims:
+    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -101,11 +102,9 @@ class Claims(BaseModel):
                 elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
                     claim_exists = False
                     for existing_claim in self.claims[property]:
-                        existing_claim_json = existing_claim.get_json()
-                        claim_to_add_json = claim.get_json()
-
-                        # Check if the values match, including qualifiers
-                        if (claim_to_add_json["mainsnak"]["datavalue"]["value"] == existing_claim_json["mainsnak"]["datavalue"]["value"]) and claim.quals_equal(claim, existing_claim):
+                        # Compare the main snaks (which also handles no-value/some-value snaks that have no
+                        # datavalue) and the qualifiers to decide if the statement already exists.
+                        if claim.mainsnak == existing_claim.mainsnak and claim.quals_equal(claim, existing_claim):
                             claim_exists = True
 
                             # Check if current reference block is present on references
@@ -120,7 +119,7 @@ class Claims(BaseModel):
                         self.claims[property].append(claim)
         return self
 
-    def from_json(self, json_data: dict[str, Any]) -> Claims:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         for property in json_data:
             for claim in json_data[property]:
                 from wikibaseintegrator.datatypes import BaseDataType
@@ -144,6 +143,15 @@ class Claims(BaseModel):
                 del json_data[property]
         return json_data
 
+    def count(self) -> int:
+        """
+        Return the total number of individual claims, across every property.
+
+        Note: ``len(claims)`` returns the number of distinct properties, while iterating (``for claim in claims``)
+        yields the individual claims. Use this method when you need the claim count.
+        """
+        return sum(len(claim_list) for claim_list in self.claims.values())
+
     def __iter__(self):
         iterate = []
         for claim in self.claims.values():
@@ -151,13 +159,22 @@ class Claims(BaseModel):
         return iter(iterate)
 
     def __len__(self):
+        # Returns the number of distinct properties. See count() for the total number of individual claims.
         return len(self.claims)
 
 
 class Claim(BaseModel):
+    """
+    extend :func:`wikibaseintegrator.models.basemodel.BaseModel`
+
+    :param qualifiers:
+    :param id:
+    :param rank:
+    :param references: A References object, a list of Claim object or a list of list of Claim object
+    """
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Qualifiers | None = None, rank: WikibaseRank | None = None, references: References | list[Claim | list[Claim]] | None = None,
+    def __init__(self, qualifiers: Qualifiers | None = None, id: str | None = None, rank: WikibaseRank | None = None, references: References | list[Claim | list[Claim]] | None = None,
                  snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
         """
 
@@ -170,7 +187,7 @@ class Claim(BaseModel):
         self.type = 'statement'
         self.qualifiers = qualifiers or Qualifiers()
         self.qualifiers_order = []
-        self.id = None
+        self.id = id
         self.rank = rank or WikibaseRank.NORMAL
         self.removed = False
 
@@ -273,7 +290,7 @@ class Claim(BaseModel):
         self.rank = claim.rank
         self.references = claim.references
 
-    def from_json(self, json_data: dict[str, Any]) -> Claim:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         """
 
         :param json_data: a JSON representation of a Claim
@@ -350,7 +367,7 @@ class Claim(BaseModel):
         if isinstance(item, str):
             return self.mainsnak.datavalue == item
 
-        return super().__contains__(item)
+        return False
 
     def __eq__(self, other):
         if isinstance(other, Claim):
@@ -359,7 +376,7 @@ class Claim(BaseModel):
         if isinstance(other, str):
             return self.mainsnak.property_number == other
 
-        raise super().__eq__(other)
+        return NotImplemented
 
     def equals(self, that: Claim, include_ref: bool = False, fref: Callable | None = None) -> bool:
         """
@@ -428,5 +445,5 @@ class Claim(BaseModel):
         return any(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
 
     @abstractmethod
-    def get_sparql_value(self) -> str:
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
         pass

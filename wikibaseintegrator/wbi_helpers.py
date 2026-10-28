@@ -7,6 +7,8 @@ import datetime
 import json
 import logging
 import re
+import threading
+import warnings
 from time import sleep
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -14,10 +16,12 @@ from urllib.parse import urlparse
 import requests
 import ujson
 from requests import Session
+from requests.auth import AuthBase
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed,
+                                               SearchError)
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -26,12 +30,35 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-helpers_session = requests.Session()
+# Sessions used for requests made without a Login instance, one per thread since requests.Session isn't thread-safe.
+_thread_local = threading.local()
+
+
+def _get_default_session() -> Session:
+    """
+    Return the session used for requests made without a Login instance, created on first use in each thread.
+    Connections are kept alive between calls in a same thread, but no state is shared across threads.
+    """
+    session = getattr(_thread_local, 'session', None)
+    if session is None:
+        session = _thread_local.session = requests.Session()
+    return session
+
+
+def __getattr__(name: str) -> Any:
+    # Backward compatibility for the former module-level sessions
+    if name in ('default_session', 'helpers_session'):
+        warnings.warn(f"wbi_helpers.{name} is deprecated, the session is now per-thread and private.", DeprecationWarning, stacklevel=2)
+        return _get_default_session()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class BColors:
     """
     Default colors for pretty outputs.
+
+    .. deprecated::
+        Kept for backward compatibility only. The library no longer emits ANSI color codes in its logs.
     """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -44,17 +71,24 @@ class BColors:
     UNDERLINE = '\033[4m'
 
 
-# Session used for all anonymous requests
-default_session = requests.Session()
+
+# MediaWiki error codes meaning the server no longer considers the current session authenticated
+# (e.g. its session store evicted/expired the session, see #902). A CSRF token fetched right before the
+# failing call can still look valid, since generate_edit_credentials() reads it off the very session
+# cookies that are now rejected; recovering requires a full re-login instead.
+SESSION_LOST_ERROR_CODES = {'assertuserfailed', 'assertbotfailed', 'notloggedin'}
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, max_retries: int = 100, retry_after: int = 60, **kwargs: Any) -> dict:
+def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 100, retry_after: int = 60,
+                       **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
 
     :param method: 'GET' or 'POST'
     :param mediawiki_api_url:
-    :param session: If a session is passed, it will be used. Otherwise, a new requests session is created
+    :param session: If a session is passed, it will be used. Otherwise, the current thread's default session is used
+    :param login: If provided and the API reports that the session is no longer authenticated (see
+                  SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying.
     :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
     :param retry_after: Number of seconds to wait before retrying request (see max_retries)
     :param kwargs: Any additional keyword arguments to pass to requests.request
@@ -66,13 +100,18 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     # TODO: Add support for 'multipart/form-data' when using POST (https://www.mediawiki.org/wiki/API:Edit#Large_edits)
 
     if 'data' in kwargs and kwargs['data']:
+        kwargs['data'] = dict(kwargs['data'])
         if 'format' not in kwargs['data']:
             kwargs['data'].update({'format': 'json'})
         elif kwargs['data']['format'] != 'json':
             raise ValueError("'format' can only be 'json' when using mediawiki_api_call()")
 
+    # Apply a default timeout to avoid an unresponsive server blocking the process indefinitely (user can override).
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = config['TIMEOUT']
+
     response = None
-    session = session if session else default_session
+    session = session or _get_default_session()
     for n in range(max_retries):
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
@@ -94,7 +133,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             # rate limiting
             if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:  # pragma: no cover
                 sleep_sec = int(response.headers.get('retry-after', retry_after))
-                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
+                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.now(datetime.UTC), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
@@ -107,7 +146,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
                 sleep_sec = min(sleep_sec, retry_after)
-                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.utcnow(), sleep_sec)
+                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.now(datetime.UTC), sleep_sec)
                 sleep(sleep_sec)
                 continue
 
@@ -115,6 +154,14 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
                 log.error("The Wikibase instance is currently in readonly mode, waiting for %s seconds", retry_after)
                 sleep(retry_after)
+                continue
+
+            # session no longer valid: re-authenticate and retry instead of failing outright (#902)
+            if 'code' in json_data['error'] and json_data['error']['code'] in SESSION_LOST_ERROR_CODES and login is not None:
+                log.warning("%s: session no longer valid (%s). Re-authenticating and retrying.", datetime.datetime.now(datetime.UTC), json_data['error']['code'])
+                login.reauthenticate()
+                if 'data' in kwargs and kwargs['data'] and 'token' in kwargs['data']:
+                    kwargs['data']['token'] = login.get_edit_token()
                 continue
 
             # non-existent error
@@ -146,7 +193,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
 
 
 def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
-                              max_retries: int = 1000, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
+                              max_retries: int = 100, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
@@ -165,6 +212,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     """
     mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+    data = dict(data) if data is not None else None
 
     hostname = urlparse(mediawiki_api_url).hostname
     if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
@@ -201,8 +249,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
                     data.update({'assert': 'user'})
 
             if 'token' in data and data['token'] == '+\\':
-                raise Exception("Anonymous edit are not allowed by default. "
-                                "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
+                raise AnonymousEditNotAllowedError("Anonymous edit are not allowed by default. "
+                                                   "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         else:
             if 'assert' not in data and login is None:
                 # Assert anon if allow_anonymous is True and no Login instance
@@ -218,12 +266,12 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
     log.debug(data)
 
-    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
+    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, login=login, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, retry_after: int = 60) -> dict[
-    str, dict]:
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 100, retry_after: int = 60,
+                         auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
 
@@ -231,11 +279,16 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
+    :param max_retries: The number time this function should retry in case of header reports.
     :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
+    :param auth: Authentication for a protected SPARQL endpoint: a (username, password) tuple for HTTP Basic auth or any
+                 requests.auth.AuthBase instance. Default is config['SPARQL_AUTH'].
+    :param headers: Additional HTTP headers sent with the query (e.g. {'Authorization': 'Bearer <token>'}). They override the default ones.
     :return: The results of the query are returned in JSON format
     """
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
+    auth = auth if auth is not None else config['SPARQL_AUTH']
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     hostname = urlparse(sparql_endpoint_url).hostname
@@ -246,40 +299,47 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     if prefix:
         query = prefix + '\n' + query
 
-    params = {
+    body = {
         'query': '#Tool: WikibaseIntegrator wbi_functions.execute_sparql_query\n' + query,
         'format': 'json'
     }
 
-    headers = {
+    # Send the query in the request body (application/x-www-form-urlencoded, set automatically by requests for data=).
+    # The previous 'multipart/form-data' Content-Type was incorrect (no multipart body was ever sent) and could be
+    # rejected by stricter endpoints. Using the body also avoids URL length limits with large queries.
+    request_headers = {
         'Accept': 'application/sparql-results+json',
-        'User-Agent': get_user_agent(user_agent),
-        'Content-Type': 'multipart/form-data'
+        'User-Agent': get_user_agent(user_agent)
     }
+    if headers:
+        request_headers.update(headers)
 
-    log.debug("%s%s%s", BColors.WARNING, params['query'], BColors.ENDC)
+    log.debug("SPARQL query:\n%s", body['query'])
 
-    
-    try:
-        response = helpers_session.post(sparql_endpoint_url, params=params, headers=headers)
-    except BaseException as e:
-        if config['BACKOFF_MAX_TRIES'] > 1:
+    for _ in range(max_retries):
+        try:
+            response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
+        except requests.exceptions.ConnectionError as e:
+            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
             sleep(retry_after)
-        raise e
-    else:
+            continue
         if response.status_code in (500, 502, 503, 504):
             log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
             sleep(retry_after)
-            raise Exception("Service unavailable (HTTP Code %d)." % (response.status_code))
+            continue
         if response.status_code == 429:
             if 'retry-after' in response.headers.keys():
                 retry_after = int(response.headers['retry-after'])
             log.error("Too Many Requests (429). Sleeping for %d seconds", retry_after)
             sleep(retry_after)
-            raise Exception("Too Many Requests (429).")
+            continue
+        response.raise_for_status()
         results = response.json()
 
         return results
+
+    raise MaxRetriesReachedException(f"No result after {max_retries} retries.")
+
 
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
                 tags: list[str] | None = None, site: str | None = None, title: str | None = None, **kwargs: Any) -> dict:
@@ -323,7 +383,8 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
             'title': title
         })
     else:
-        assert type
+        if not type:
+            raise ValueError("The 'type' parameter is mandatory when creating a new entity (no id, site or title given).")
         params.update({'new': type})
 
     if clear:
@@ -417,6 +478,44 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
+def check_constraints(entity_id: str | list[str] | None = None, claim_id: str | list[str] | None = None, status: list[str] | None = None, allow_anonymous: bool = True,
+                      **kwargs: Any) -> dict:
+    """
+    Check the constraint violations of one or more entities or claims, using the target Wikibase instance's own constraint checker
+    (the ``wbcheckconstraints`` API module provided by the `WikibaseQualityConstraints
+    <https://www.mediawiki.org/wiki/Extension:WikibaseQualityConstraints>`_ extension).
+
+    This relies entirely on the constraints configured on the Wikibase instance being queried (e.g. on Wikidata itself), rather than
+    on a hardcoded or Wikidata-specific set of rules, so it works the same way against any Wikibase instance that has the extension
+    installed. If the extension isn't installed, the underlying API call will fail with a :class:`~wikibaseintegrator.wbi_exceptions.MWApiError`.
+
+    :param entity_id: One or more entity IDs (item, property, lexeme, etc.) whose claims should be checked.
+    :param claim_id: One or more claim GUIDs to check, instead of checking whole entities.
+    :param status: Only return results with one of these statuses, e.g. ``['violation']``. By default, the API returns every status.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default since this is a read-only action.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper()
+    :return: The data returned by the API as a dictionary
+    """
+    if not entity_id and not claim_id:
+        raise ValueError("You must provide either 'entity_id' or 'claim_id'.")
+
+    params: dict[str, Any] = {
+        'action': 'wbcheckconstraints',
+        'format': 'json'
+    }
+
+    if entity_id:
+        params.update({'id': '|'.join(entity_id) if isinstance(entity_id, list) else entity_id})
+
+    if claim_id:
+        params.update({'claimid': '|'.join(claim_id) if isinstance(claim_id, list) else claim_id})
+
+    if status:
+        params.update({'status': '|'.join(status)})
+
+    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+
+
 def search_entities(search_string: str, language: str | None = None, strict_language: bool = False, search_type: str = 'item', max_results: int = 50, dict_result: bool = False,
                     allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
     """
@@ -428,7 +527,8 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
                      You can see the list of languages for Wikidata at https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all (Use the WMF code)
     :param strict_language: Whether to disable language fallback. Default is 'False'.
     :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense, mediainfo
-    :param max_results: The maximum number of search results returned. The value must be between 0 and 50. Default is 50
+    :param max_results: The maximum number of search results returned. Default is 50. A single API call is limited to 50
+                        results; higher values trigger additional paginated calls and the returned list is truncated to this length.
     :param dict_result: Return the results as a detailed dictionary instead of a list of IDs.
     :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
     """
@@ -440,12 +540,12 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
         'search': search_string,
         'language': language,
         'type': search_type,
-        'limit': 50,
+        'limit': min(max_results, 50),
         'format': 'json'
     }
 
     if strict_language:
-        params.update({'strict_language': ''})
+        params.update({'strictlanguage': ''})
 
     cont_count = 0
     results = []
@@ -472,15 +572,14 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
             else:
                 results.append(i['id'])
 
-        if 'search-continue' not in search_results:
+        # Stop once there is no more page or we gathered enough results
+        if 'search-continue' not in search_results or len(results) >= max_results:
             break
 
         cont_count = search_results['search-continue']
 
-        if cont_count >= max_results:
-            break
-
-    return results
+    # A page holds up to 50 results, so the last page can overshoot max_results: truncate to the requested length
+    return results[:max_results]
 
 
 def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
@@ -653,7 +752,7 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: l
 
     params = {
         'action': 'wbleditsenseelements',
-        'formId': sense_id,
+        'senseId': sense_id,
         'data': ujson.dumps(data),
         'format': 'json'
     }
@@ -672,7 +771,7 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: l
 
 def lexeme_remove_sense(sense_id: str, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
-    Adds Form to Lexeme
+    Removes Sense from Lexeme
 
     :param sense_id: ID of the Sense, e.g. L10-S20
     :param baserevid: Base Revision ID of the Lexeme, if edit conflict check is wanted.
@@ -735,10 +834,12 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
 
     entity_instances = []
+    from wikibaseintegrator import WikibaseIntegrator
     for qid, v in reply['entities'].items():
-        from wikibaseintegrator import WikibaseIntegrator
-        wbi = WikibaseIntegrator()
-        f = [x for x in BaseEntity.__subclasses__() if x.ETYPE == v['type']][0]
+        wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
+        # Use the recursive subclass registry (not __subclasses__(), which only returns direct subclasses) so that
+        # entities inheriting through an intermediate base (Item/Property/MediaInfo via TermsEntity) are found.
+        f = [x for x in BaseEntity.subclasses if x.ETYPE == v['type']][0]
         ii = f(api=wbi).from_json(v)
         entity_instances.append((qid, ii))
 
@@ -857,6 +958,16 @@ properties_dt: dict = {}
 
 
 def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs) -> BaseEntity:
+    """
+    Build a WikibaseIntegrator entity from a raw Wikibase JSON string.
+
+    .. warning::
+        **Experimental.** This function (and its helper :func:`_json2datatype`) is incomplete (references are not
+        attached, several data types are unsupported, it relies on a mutable module-level cache and has no test
+        coverage). Its API and behaviour may change or be removed without notice.
+    """
+    warnings.warn("format2wbi() is experimental and may change or be removed without notice.", stacklevel=2)
+
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
     json_decoded = json.loads(json_raw)
     # pprint(json_decoded)
@@ -941,6 +1052,9 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
 
 
 def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous=True, **kwargs) -> BaseDataType:
+    """
+    Experimental helper for :func:`format2wbi`. See its docstring for caveats. May change or be removed without notice.
+    """
     from wikibaseintegrator.datatypes.basedatatype import BaseDataType
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
 
@@ -1018,7 +1132,7 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
         'User-Agent': get_user_agent(user_agent)
     }
 
-    response = helpers_session.get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers)
+    response = _get_default_session().get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers, timeout=config['TIMEOUT'])
     response.raise_for_status()
     results = response.text
 
@@ -1030,3 +1144,4 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
 #     # It's really the good way to solve this?
 #     from wikibaseintegrator import wikibaseintegrator
 #     return wikibaseintegrator.wbi_helpers
+

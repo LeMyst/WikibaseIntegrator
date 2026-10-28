@@ -47,6 +47,7 @@ wikibaseintegrator~=0.11.3
             - [Set lemma on lexeme](#set-lemma-on-lexeme)
             - [Add gloss to a sense on lexeme](#add-gloss-to-a-sense-on-lexeme)
             - [Add form to a lexeme](#add-form-to-a-lexeme)
+            - [Add a form or a sense to an existing lexeme](#add-a-form-or-a-sense-to-an-existing-lexeme)
     - [Other projects](#other-projects)
 - [Installation](#installation)
 - [Installation of the development environment](#installation-of-the-development-environment)
@@ -70,11 +71,18 @@ wikibaseintegrator~=0.11.3
     - [Execute SPARQL queries](#execute-sparql-queries)
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
+    - [Other helpers](#other-helpers)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
     - [Create a new Item](#create-a-new-item)
     - [Modify an existing item](#modify-an-existing-item)
     - [A bot for Mass Import](#a-bot-for-mass-import)
 - [Examples (in "fast run" mode)](#examples-in-fast-run-mode)
+    - [The base filter](#the-base-filter)
+    - [Checking if a write is required](#checking-if-a-write-is-required)
+    - [Options](#options)
+    - [Checking labels, descriptions and aliases](#checking-labels-descriptions-and-aliases)
+    - [Limitations](#limitations)
+    - [Performance statistics](#performance-statistics)
 - [Debugging](#debugging)
 
 # WikibaseIntegrator / WikidataIntegrator #
@@ -86,12 +94,14 @@ The main differences between these two libraries are :
 * A complete rewrite of the library with a more object-oriented architecture allowing for easy interaction, data
   validation and extended functionality
 * Add support for reading and writing Lexeme, MediaInfo and Property entities
-* Python 3.9 to 3.13 support, validated with unit tests
+* Python 3.11 to 3.15 support, validated with unit tests
 * Type hints implementation for arguments and return, checked with mypy static type checker
 * Add OAuth 2.0 login method
 * Add logging module support
 
-But WikibaseIntegrator lack the "fastrun" functionality implemented in WikidataIntegrator.
+WikibaseIntegrator also provides a "fast run" mode, which compares the local data with the live data through the SPARQL
+endpoint and only writes to the Wikibase instance when something actually changed (see
+[Examples (in "fast run" mode)](#examples-in-fast-run-mode)).
 
 # Documentation #
 
@@ -238,7 +248,7 @@ reference2.add(datatypes.String(prop_nr='P828', value='Another item string refer
 references.add(reference1)
 references.add(reference2)
 
-new_claim_string = datatypes.String(prop_nr='P31533', value='A String property', references=references)
+claim_string = datatypes.String(prop_nr='P31533', value='A String property', references=references)
 entity.claims.add(claim_string)
 ```
 
@@ -311,6 +321,30 @@ form.claims.add(claim)
 lexeme.forms.add(form)
 ```
 
+#### Add a form or a sense to an existing lexeme
+
+Contrary to `write()`, `write_form()` and `write_sense()` only send the new Form or Sense to the Wikibase instance (with
+the `wbladdform` and `wbladdsense` actions), the rest of the lexeme is left untouched. They return the id assigned by the
+instance, which is also set on the object.
+
+`write_forms()` and `write_senses()` add every Form or Sense of the lexeme without an id, one request per Form or Sense.
+
+From [lexeme_write.ipynb](notebooks/lexeme_write.ipynb)
+
+```python
+lexeme = wbi.lexeme.get('L5')
+
+form = Form()
+form.representations.set(language='en', value='English form representation')
+form.grammatical_features = ['Q146786']
+lexeme.write_form(form)  # 'L5-F3'
+
+sense = Sense()
+sense.glosses.set(language='en', value='English gloss')
+lexeme.senses.add(sense)
+lexeme.write_senses()  # ['L5-S2']
+```
+
 ## Other projects ##
 
 Here is a list of different projects that use the library:
@@ -334,13 +368,13 @@ Here is a list of different projects that use the library:
 # Installation #
 
 The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
-3.9 and above. If Python 2 is installed, `pip` will lead to an error indicating missing dependencies.
+3.11 and above.
 
 ```bash
 python -m pip install wikibaseintegrator
 ```
 
-You can also clone the repo and run it with administrator rights or install it in a virtualenv.
+You can also clone the repository and install it, preferably in a virtualenv.
 
 ```bash
 git clone https://github.com/LeMyst/WikibaseIntegrator.git
@@ -351,6 +385,14 @@ python -m pip install --upgrade pip setuptools
 
 python -m pip install .
 ```
+
+If you want to install a specific branch or tag from the repository, you can use the following command:
+
+```bash
+python -m pip install git+https://github.com/LeMyst/WikibaseIntegrator.git@v0.12.15
+```
+
+where `v0.12.15` is the tag or branch you want to install.
 
 You can also use Poetry:
 
@@ -380,6 +422,18 @@ The following commands will install the development environment with the necessa
 ```bash
 python -m poetry install --with dev,coverage
 ```
+
+The `docs` and `notebooks` groups are also available (`--with docs,notebooks`) to build the documentation and run the
+Jupyter notebooks.
+
+The unit tests run offline (the HTTP calls are mocked) with:
+
+```bash
+python -m pytest
+```
+
+The integration tests, running against a real Wikibase instance, are deselected by default and can be run with
+`python -m pytest -m integration` (see [test/integration/README.md](test/integration/README.md)).
 
 # Using a Wikibase instance #
 
@@ -443,7 +497,7 @@ Features:
 ## wbi_login ##
 
 `wbi_login` provides the login functionality and also stores the cookies and edit tokens required (For security reasons,
-every MediaWiki edit requires an edit token). There is multiple methods to login:
+every MediaWiki edit requires an edit token). There are multiple methods to login:
 
 * `wbi_login.OAuth2(consumer_token, consumer_secret)` (recommended)
 * `wbi_login.OAuth1(consumer_token, consumer_secret, access_token, access_secret)`
@@ -490,9 +544,9 @@ login_instance = wbi_login.OAuth1(consumer_token='<your_consumer_key>', consumer
 #### To impersonate a user (OAuth 1.0a) ####
 
 If WBI is to be used as a backend for a web application, the script must use OAuth for authentication, WBI supports
-this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.Login`. Unlike login by
+this, you just need to specify consumer key and consumer secret when instantiating `wbi_login.OAuth1`. Unlike login by
 username and password, OAuth is a 2-step process, as manual confirmation of the user for the OAuth login is required.
-This means that the `wbi_login.OAuth1.continue_oauth()` method must be called after creating the `wbi_login.Login`
+This means that the `wbi_login.OAuth1.continue_oauth()` method must be called after creating the `wbi_login.OAuth1`
 instance.
 
 Example:
@@ -532,13 +586,14 @@ login_instance = wbi_login.Clientlogin(user='<user name>', password='<password>'
 
 ## Wikibase Data Types ##
 
-Currently, Wikibase supports 17 different data types. The data types are represented as their own classes in
+Currently, Wikibase supports 18 different data types. The data types are represented as their own classes in
 wikibaseintegrator.datatypes. Each datatype has its own peculiarities, which means that some of them require special
-parameters (e.g. Globe Coordinates). They are available under the namespace `wikibase.datatypes`.
+parameters (e.g. Globe Coordinates). They are available under the namespace `wikibaseintegrator.datatypes`.
 
 The data types currently implemented:
 
 * CommonsMedia
+* EntitySchema
 * ExternalID
 * Form
 * GeoShape
@@ -568,6 +623,11 @@ type instances for references and qualifiers.
 ## Structured Data on Commons ##
 
 WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.
+
+> [!IMPORTANT]
+> To ease the compatibility between Wikidata and Wikimedia Commons, the MediaInfo entity use the "claims" field instead of the "statements" from the API.
+> When you read a MediaInfo entity, the "claims" field will be filled with the data from the "statements" field.
+> When you write a MediaInfo entity, the "claims" field will be replaced by the "statements" field.
 
 ### Retrieve data ###
 
@@ -640,30 +700,69 @@ user_agent). The latter is very useful to let the operators of the endpoint know
 many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email address,
 or the URL to your bot code repository.)
 
+If the SPARQL endpoint is protected, pass the credentials with `auth`, either a `(username, password)` tuple for HTTP
+Basic authentication or any `requests.auth.AuthBase` instance, or add your own HTTP headers with `headers`. To set the
+credentials once for every query, including the ones executed by the fast run mode, use `wbi_config['SPARQL_AUTH']`:
+
+```python
+from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+query = 'SELECT ?item WHERE { ?item ?p ?o . } LIMIT 1'
+
+wbi_helpers.execute_sparql_query(query, auth=('username', 'password'))
+wbi_helpers.execute_sparql_query(query, headers={'Authorization': 'Bearer <token>'})
+
+wbi_config['SPARQL_AUTH'] = ('username', 'password')
+wbi_helpers.execute_sparql_query(query)
+```
+
 ## Wikibase search entities ##
 
-The method `wbi_helpers.search_entities()` allows for string search in a Wikibase instance. This means that labels,
-descriptions and aliases can be searched for a string of interest. The method takes five arguments: The actual search
-string (search_string), an optional server (mediawiki_api_url, in case the Wikibase instance used is not Wikidata), an
-optional user_agent, an optional max_results (default 500), an optional language (default 'en'), and an option
-dict_id_label to return a dict of item id and label as a result.
+The method `wbi_helpers.search_entities()` allows for string search in a Wikibase instance, using the labels and aliases
+of the entities. It takes the search string (search_string) and optional parameters: the language of the search
+(language, default `wbi_config['DEFAULT_LANGUAGE']`), strict_language to disable the language fallback, the type of
+entity to search (search_type: item, property, lexeme, form, sense or mediainfo, default item), the maximum number of
+results (max_results, default 50, higher values trigger additional paginated calls) and dict_result to return detailed
+dictionaries instead of a list of IDs. Like the other helpers, it also accepts `mediawiki_api_url`, `login`, `user_agent`,
+etc.
+
+```python
+from wikibaseintegrator import wbi_helpers
+
+print(wbi_helpers.search_entities(search_string='Earth', max_results=5))
+```
 
 ## Merge Wikibase items ##
 
-Sometimes, Wikibase items need to be merged. An API call exists for that, and wbi_core implements a method accordingly.
-`wbi_helpers.merge_items()` takes five arguments:
+Sometimes, Wikibase items need to be merged. An API call exists for that, and `wbi_helpers.merge_items()` implements it.
+It takes these arguments:
 
 * the QID of the item which should be merged into another item (from_id)
 * the QID of the item the first item should be merged into (to_id)
 * a login object of type wbi_login.Login to provide the API call with the required authentication information
+* a list of elements to ignore conflicts for (ignore_conflicts), which can contain `'description'`, `'sitelink'` and
+  `'statement'`. This will do a partial merge for the elements which do not conflict and should generally be avoided
+  because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts should be resolved first.
 * a boolean if the changes need to be marked as made by a bot (is_bot)
-* a flag for ignoring merge conflicts (ignore_conflicts), will do a partial merge for all statements which do not
-  conflict. This should generally be avoided because it leaves a crippled item in Wikibase. Before a merge, any
-  potential conflicts should be resolved first.
+
+## Other helpers ##
+
+`wbi_helpers` also provides:
+
+* `merge_lexemes()`: merge two lexemes.
+* `remove_claims()`: delete a claim from an entity by its claim ID.
+* `check_constraints()`: check the constraint violations of entities or claims with the WikibaseQualityConstraints
+  extension.
+* `fulltext_search()`: perform a fulltext search on the MediaWiki instance.
+* `delete_page()`: delete a page.
+* `download_entity_ttl()`: download the RDF (Turtle) representation of an entity.
+
+Some examples are available in the [wbi_helpers.ipynb](notebooks/wbi_helpers.ipynb) notebook.
 
 # Examples (in "normal" mode) #
 
-In order to create a minimal bot based on wbi_core, two things are required:
+In order to create a minimal bot based on WikibaseIntegrator, two things are required:
 
 * A datatype object containing a value.
 * An entity object (Item/Property/Lexeme/...) which takes the data, does the checks and performs write.
@@ -739,8 +838,8 @@ item.write()
 
 ## A bot for Mass Import ##
 
-An enhanced example of the previous bot just puts two of the three things into a 'for loop' and so allows mass creation,
-or modification of items.
+An enhanced example of the previous bot puts the creation of the data and the entity into a 'for loop' and so allows
+mass creation or modification of items.
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
@@ -786,21 +885,35 @@ for entrez_id, ensembl in raw_data.items():
 
 # Examples (in "fast run" mode) #
 
+The fast run mode is designed for bots synchronising an external resource with a Wikibase instance, where most of the
+entities are usually already up to date. Instead of loading every entity through the MediaWiki API to compare it with
+the local data, the fast run mode loads the current state of the entities of the data corpus with paginated SPARQL
+queries, then decides locally, entity per entity, if a write is required. When nothing changed (the most common case),
+no MediaWiki API call is made at all for that entity.
+
 In order to use the fast run mode, you need to know the property/value combination which determines the data corpus you
 would like to operate on. E.g. for operating on human genes, you need to know
 that [P351](https://www.wikidata.org/entity/P351) is the NCBI Entrez Gene ID and you also need to know that you are
 dealing with humans, best represented by the [found in taxon property (P703)](https://www.wikidata.org/entity/P703) with
 the value [Q15978631](https://www.wikidata.org/entity/Q15978631) for Homo sapiens.
 
-IMPORTANT: In order for the fast run mode to work, the data you provide in the constructor must contain at least one
-unique value/id only present on one Wikidata element, e.g. an NCBI entrez gene ID, Uniprot ID, etc. Usually, these would
-be the same unique core properties used for defining domains in wbi_core, e.g. for genes, proteins, drugs or your custom
-domains.
+IMPORTANT: In order for the fast run mode to work on entities without a known entity ID, the data you provide must
+contain at least one unique value/id only present on one Wikibase entity, e.g. an NCBI entrez gene ID, Uniprot ID, etc.
+This unique value is used to identify the target entity. If the entity ID is already known (e.g. the entity was loaded
+with `wbi.item.get()`), the comparison is automatically restricted to that entity and this requirement does not apply.
 
-Below, the normal mode run example from above, slightly modified, to meet the requirements for the fast run mode. To
-enable it, ItemEngine requires two parameters, fast_run=True/False and fast_run_base_filter which is a dictionary
-holding the properties to filter for as keys, and the item QIDs as dict values. If the value is not a QID but a literal,
-just provide an empty string. For the above example, the dictionary looks like this:
+## The base filter ##
+
+The base filter defines the data corpus and is a list of datatype instances (the same classes used to create claims).
+Three forms are supported:
+
+* A property with a value: the entities must have this exact statement, e.g. `Item(prop_nr='P703', value='Q15978631')`
+  (found in taxon Homo sapiens).
+* A property without a value: the entities must have a statement with this property, whatever the value, e.g.
+  `ExternalID(prop_nr='P351')` (any NCBI Entrez Gene ID).
+* A property path, given as a list of two datatype instances: the value is reached through the first property followed
+  by any number of hops with the second one, e.g. `[Item(prop_nr='P31', value='Q11173'), Item(prop_nr='P279')]`
+  (instance of (P31) chemical compound (Q11173), directly or through a chain of subclass of (P279)).
 
 ```python
 from wikibaseintegrator.datatypes import ExternalID, Item
@@ -808,20 +921,25 @@ from wikibaseintegrator.datatypes import ExternalID, Item
 fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
 ```
 
-The full example:
+## Checking if a write is required ##
+
+The entry point is `entity.write_required()`. It returns `True` if the local entity differs from the live data and an
+actual write is needed, `False` if the entity is already up to date and the write can be skipped. The full example, a
+modified version of the mass import bot from the normal mode example:
 
 ```python
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
-from wikibaseintegrator.datatypes import ExternalID, Item, String, Time
+from wikibaseintegrator.datatypes import ExternalID, Item, Time
 from wikibaseintegrator.wbi_enums import WikibaseTimePrecision
 
 # login object
 login = wbi_login.OAuth2(consumer_token='<consumer_token>', consumer_secret='<consumer_secret>')
 
-fast_run_base_filter = [ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')]
-fast_run = True
+wbi = WikibaseIntegrator(login=login)
 
-# We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl Gene IDs
+fast_run_base_filter = [ExternalID(prop_nr='P351'), ExternalID(prop_nr='P704'), Item(prop_nr='P703', value='Q15978631')]
+
+# We have raw data, which should be written to Wikidata, namely two human NCBI entrez gene IDs mapped to two Ensembl transcript IDs
 # You can iterate over any data source as long as you can map the values to Wikidata properties.
 raw_data = {
     '50943': 'ENST00000376197',
@@ -832,31 +950,90 @@ for entrez_id, ensembl in raw_data.items():
     # add some references
     references = [
         [
-            Item(value='Q20641742', prop_nr='P248')
-        ],
-        [
-            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseTimePrecision.DAY),
-            ExternalID(value='1017', prop_nr='P351')
+            Item(value='Q20641742', prop_nr='P248'),
+            Time(time='+2020-02-08T00:00:00Z', prop_nr='P813', precision=WikibaseTimePrecision.DAY)
         ]
     ]
 
-    # data type object
-    entrez_gene_id = String(value=entrez_id, prop_nr='P351', references=references)
-    ensembl_transcript_id = String(value=ensembl, prop_nr='P704', references=references)
+    # data type objects
+    entrez_gene_id = ExternalID(value=entrez_id, prop_nr='P351', references=references)
+    ensembl_transcript_id = ExternalID(value=ensembl, prop_nr='P704', references=references)
 
     # data goes into a list, because many data objects can be provided to
     data = [entrez_gene_id, ensembl_transcript_id]
 
-    # Search for and then edit/create new item
-    wb_item = WikibaseIntegrator(login=login).item.new()
-    wb_item.add_claims(claims=data)
-    wb_item.init_fastrun(base_filter=fast_run_base_filter)
-    wb_item.write()
+    item = wbi.item.new()
+    item.claims.add(data)
+
+    # Compare the local data with the live data and only write when something differs
+    if item.write_required(base_filter=fast_run_base_filter):
+        item.write()
 ```
 
-Note: Fastrun mode checks for equality of property/value pairs, qualifiers (not including qualifier attributes), labels,
-aliases and description, but it ignores references by default!
-References can be checked in fast run mode by setting `use_refs` to `True`.
+Note: only the claims whose property appears in the base filter are compared. In the example above, the P351 and P704
+claims are checked because both properties are part of the base filter; a claim on any other property would be ignored
+by the comparison. A write is reported as not required only when one entity (the entity being edited, when its ID is
+known) holds all the compared claims.
+
+## Options ##
+
+`write_required()` accepts optional parameters, forwarded to the fastrun container:
+
+* `use_qualifiers` (default `True`): also compare the qualifiers of the statements.
+* `use_references` (default `False`): also compare the references of the statements. By default, references are
+  ignored.
+* `use_rank` (default `False`): also compare the rank of the statements.
+* `case_insensitive` (default `False`): compare string values case-insensitively. The comparison of qualifiers,
+  references and ranks stays case sensitive.
+* `cache` (default `True`): keep the data returned by the SPARQL endpoint in memory and reuse it for the next
+  checks. When disabled, the queries are restricted to the exact values of the claims instead of preloading every
+  statement of the property.
+* `action_if_exists` (default `ActionIfExists.REPLACE_ALL`): the action that will be used for the write. With
+  `FORCE_APPEND`, the statements are always appended and a write is always reported as required. With the other
+  actions, the claims must already exist on the entity for the write to be skipped.
+
+The preloaded data is shared: containers are cached at the module level and reused by every `write_required()` call
+using the same base filter and options, so the SPARQL queries are only executed once per property.
+
+## Checking labels, descriptions and aliases ##
+
+`write_required()` only compares claims. To check language data (labels, descriptions or aliases), use the fastrun
+container directly:
+
+```python
+from wikibaseintegrator import wbi_fastrun
+from wikibaseintegrator.datatypes import ExternalID, Item
+
+frc = wbi_fastrun.get_fastrun_container(base_filter=[ExternalID(prop_nr='P351'), Item(prop_nr='P703', value='Q15978631')])
+
+# Resolve the entity ID from a unique value, without any MediaWiki API call
+qids = frc.get_entities(claims=[ExternalID(value='50943', prop_nr='P351')])
+
+# Returns True if the English label differs from 'CDK7' and a write is required
+frc.check_language_data(qid=qids[0], lang_data=['CDK7'], lang='en', lang_data_type='label')
+```
+
+## Limitations ##
+
+* The SPARQL endpoint can lag behind the live data (typically a few seconds to a few minutes on Wikidata). A write
+  that just happened may not be visible yet, and the same write could be reported as required again.
+* The attributes missing from the SPARQL simple values are rebuilt with their default value: the precision of a time
+  value is inferred from the timestamp, the bounds of a quantity are not compared, etc. Statements using non-default
+  attributes are always reported as requiring a write.
+* EntitySchema has no `PTYPE` mapping to the Wikibase ontology, so its statements are never matched by the fastrun
+  data and are always reported as requiring a write. Every other datatype implements `from_sparql_value()`.
+* The qualifiers, references and ranks are loaded lazily with one SPARQL query per statement to check. This is fast
+  when most entities are up to date, but can slow down the run when many entities hold the same values.
+
+## Performance statistics ##
+
+Measured on a synchronisation bot of French administrative entities with Wikidata. The "partial fastrun" column is the
+mode without cache, where the queries are restricted to the exact values of the claims:
+
+| Dataset                     | partial fastrun | fastrun without qualifiers/references | fastrun with qualifiers | fastrun with qualifiers/references |
+|:----------------------------|----------------:|--------------------------------------:|------------------------:|-----------------------------------:|
+| Communes (34990 elements)   |               ? |                                  7min |                     30s |                                60s |
+| Départements (100 elements) |           70min |                                    1s |                     30s |                                60s |
 
 # Debugging #
 

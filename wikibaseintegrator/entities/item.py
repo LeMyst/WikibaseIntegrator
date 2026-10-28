@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Self
 
-from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models import LanguageValues
+from wikibaseintegrator.entities.baseentity import BaseEntity, TermsEntity
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.models.sitelinks import Sitelinks
 
 
-class ItemEntity(BaseEntity):
+class ItemEntity(TermsEntity):
     ETYPE = 'item'
 
     def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, sitelinks: Sitelinks | None = None, **kwargs: Any) -> None:
@@ -24,12 +23,7 @@ class ItemEntity(BaseEntity):
         :param sitelinks:
         :param kwargs:
         """
-        super().__init__(**kwargs)
-
-        # Item, Property and MediaInfo specific
-        self.labels: LanguageValues = labels or Labels()
-        self.descriptions: LanguageValues = descriptions or Descriptions()
-        self.aliases = aliases or Aliases()
+        super().__init__(labels=labels, descriptions=descriptions, aliases=aliases, **kwargs)
 
         # Item specific
         self.sitelinks = sitelinks or Sitelinks()
@@ -52,36 +46,6 @@ class ItemEntity(BaseEntity):
             raise ValueError(f"Invalid item ID ({value}), format must be 'Q[0-9]+'")
 
         BaseEntity.id.fset(self, value)  # type: ignore
-
-    @property
-    def labels(self) -> Labels:
-        return self.__labels
-
-    @labels.setter
-    def labels(self, labels: Labels):
-        if not isinstance(labels, Labels):
-            raise TypeError
-        self.__labels = labels
-
-    @property
-    def descriptions(self) -> Descriptions:
-        return self.__descriptions
-
-    @descriptions.setter
-    def descriptions(self, descriptions: Descriptions):
-        if not isinstance(descriptions, Descriptions):
-            raise TypeError
-        self.__descriptions = descriptions
-
-    @property
-    def aliases(self) -> Aliases:
-        return self.__aliases
-
-    @aliases.setter
-    def aliases(self, aliases: Aliases):
-        if not isinstance(aliases, Aliases):
-            raise TypeError
-        self.__aliases = aliases
 
     @property
     def sitelinks(self) -> Sitelinks:
@@ -140,15 +104,10 @@ class ItemEntity(BaseEntity):
             **super().get_json()
         }
 
-    def from_json(self, json_data: dict[str, Any]) -> ItemEntity:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         super().from_json(json_data=json_data)
+        super()._terms_from_json(json_data=json_data)
 
-        if 'labels' in json_data:
-            self.labels = Labels().from_json(json_data['labels'])
-        if 'descriptions' in json_data:
-            self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        if 'aliases' in json_data:
-            self.aliases = Aliases().from_json(json_data['aliases'])
         if 'sitelinks' in json_data:
             self.sitelinks = Sitelinks().from_json(json_data['sitelinks'])
 
@@ -157,7 +116,7 @@ class ItemEntity(BaseEntity):
     def write(self, **kwargs: Any) -> ItemEntity:
         """
         Write the ItemEntity data to the Wikibase instance and return the ItemEntity object returned by the instance.
-        extend :func:`~wikibaseintegrator.entities.BaseEntity._write`
+        This function extend :func:`~wikibaseintegrator.entities.baseentity.BaseEntity._write`
 
         :param data: The serialized object that is used as the data source. A newly created entity will be assigned an 'id'.
         :param summary: A summary of the edit

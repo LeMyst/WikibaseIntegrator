@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import re
-from typing import Any, Optional, Union
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 
 class Lexeme(BaseDataType):
@@ -9,6 +13,7 @@ class Lexeme(BaseDataType):
     Implements the Wikibase data type 'wikibase-lexeme'
     """
     DTYPE = 'wikibase-lexeme'
+    PTYPE = 'http://wikiba.se/ontology#WikibaseLexeme'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -16,7 +21,7 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: Optional[Union[str, int]] = None, **kwargs: Any):
+    def __init__(self, value: str | int | None = None, **kwargs: Any):
         """
         Constructor, calls the superclass BaseDataType
 
@@ -26,7 +31,7 @@ class Lexeme(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: Optional[Union[str, int]] = None):
+    def set_value(self, value: str | int | None = None):
         assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
 
         if value:
@@ -48,5 +53,34 @@ class Lexeme(BaseDataType):
                 'type': 'wikibase-entityid'
             }
 
-    def get_sparql_value(self) -> str:
-        return self.mainsnak.datavalue['value']['id']
+    def from_sparql_value(self, sparql_value: dict) -> Self:
+        """
+        Parse data returned by a SPARQL endpoint and set the value to the object
+
+        :param sparql_value: A SPARQL value composed of type and value
+        :return:
+        """
+        type = sparql_value['type']
+        value = sparql_value['value']
+
+        if type != 'uri':
+            raise ValueError(f"Wrong SPARQL type {type}")
+
+        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+        else:
+            pattern = re.compile(r'^.+/(L[0-9]+)$')
+            matches = pattern.match(value)
+            if not matches:
+                raise ValueError(f"Invalid SPARQL value {value}")
+
+            self.set_value(value=str(matches.group(1)))
+
+        return self
+
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
+        if self.mainsnak.snaktype == WikibaseSnakType.KNOWN_VALUE:
+            wikibase_url = str(kwargs['wikibase_url'] if 'wikibase_url' in kwargs else config['WIKIBASE_URL'])
+            return f'<{wikibase_url}/entity/' + self.mainsnak.datavalue['value']['id'] + '>'
+
+        return None

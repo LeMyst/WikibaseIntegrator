@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Self
 
-from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models import Claims, LanguageValues
+from wikibaseintegrator.entities.baseentity import BaseEntity, TermsEntity
+from wikibaseintegrator.models import Claims
 from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
-class MediaInfoEntity(BaseEntity):
+class MediaInfoEntity(TermsEntity):
     ETYPE = 'mediainfo'
 
     def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:
@@ -24,12 +24,7 @@ class MediaInfoEntity(BaseEntity):
         :param sitelinks:
         :param kwargs:
         """
-        super().__init__(**kwargs)
-
-        # Item, Property and MediaInfo specific
-        self.labels: LanguageValues = labels or Labels()
-        self.descriptions: LanguageValues = descriptions or Descriptions()
-        self.aliases = aliases or Aliases()
+        super().__init__(labels=labels, descriptions=descriptions, aliases=aliases, **kwargs)
 
     @BaseEntity.id.setter  # type: ignore
     def id(self, value: None | str | int):
@@ -49,36 +44,6 @@ class MediaInfoEntity(BaseEntity):
             raise ValueError(f"Invalid MediaInfo ID ({value}), format must be 'M[0-9]+'")
 
         BaseEntity.id.fset(self, value)  # type: ignore
-
-    @property
-    def labels(self) -> Labels:
-        return self.__labels
-
-    @labels.setter
-    def labels(self, labels: Labels):
-        if not isinstance(labels, Labels):
-            raise TypeError
-        self.__labels = labels
-
-    @property
-    def descriptions(self) -> Descriptions:
-        return self.__descriptions
-
-    @descriptions.setter
-    def descriptions(self, descriptions: Descriptions):
-        if not isinstance(descriptions, Descriptions):
-            raise TypeError
-        self.__descriptions = descriptions
-
-    @property
-    def aliases(self) -> Aliases:
-        return self.__aliases
-
-    @aliases.setter
-    def aliases(self, aliases: Aliases):
-        if not isinstance(aliases, Aliases):
-            raise TypeError
-        self.__aliases = aliases
 
     def new(self, **kwargs: Any) -> MediaInfoEntity:
         return MediaInfoEntity(api=self.api, **kwargs)
@@ -121,29 +86,29 @@ class MediaInfoEntity(BaseEntity):
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
     def get_json(self) -> dict[str, str | dict]:
-        return {
+        json_data = {
             'labels': self.labels.get_json(),
             'descriptions': self.descriptions.get_json(),
             **super().get_json()
         }
 
-        # if 'claims' in json_data:  # MediaInfo change name of 'claims' to 'statements'
-        #     json_data['statements'] = json_data.pop('claims')
+        if 'claims' in json_data:  # MediaInfo change name of 'claims' to 'statements'
+            json_data['statements'] = json_data.pop('claims')
 
-        # if 'statements' in json_data:
-        #     for prop_nr in json_data['statements']:
-        #         for statement in json_data['statements'][prop_nr]:
-        #             if 'mainsnak' in statement and 'datatype' in statement['mainsnak']:
-        #                 del statement['mainsnak']['datatype']
+        if isinstance(json_data, dict) and 'statements' in json_data and isinstance(json_data['statements'], dict):
+            for prop_nr, statements in json_data['statements'].items():
+                for statement in statements:
+                    if isinstance(statement, dict) and 'mainsnak' in statement:
+                        if isinstance(statement['mainsnak'], dict) and 'datatype' in statement['mainsnak']:
+                            del statement['mainsnak']['datatype']
 
-    def from_json(self, json_data: dict[str, Any]) -> MediaInfoEntity:
+        return json_data
+
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         super().from_json(json_data=json_data)
+        super()._terms_from_json(json_data=json_data)
 
-        if 'labels' in json_data:
-            self.labels = Labels().from_json(json_data['labels'])
-        if 'descriptions' in json_data:
-            self.descriptions = Descriptions().from_json(json_data['descriptions'])
-        if 'aliases' in json_data:
+        if 'statements' in json_data:
             self.claims = Claims().from_json(json_data['statements'])
 
         return self

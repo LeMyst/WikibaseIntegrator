@@ -1,0 +1,480 @@
+"""
+Tests for the entity data models (labels, descriptions, aliases, sitelinks,
+claims, qualifiers, references, forms). Entities are built locally from the
+JSON fixtures — exactly the payloads a Wikibase instance would return — so no
+network interaction is required.
+"""
+import copy
+
+import pytest
+
+from wikibaseintegrator import WikibaseIntegrator, datatypes
+from wikibaseintegrator.datatypes import Item, MonolingualText, String
+from wikibaseintegrator.entities import ItemEntity
+from wikibaseintegrator.models import Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
+
+from .conftest import load_fixture
+
+
+@pytest.fixture
+def item() -> ItemEntity:
+    """A local ItemEntity deserialized from the Q582 fixture."""
+    return ItemEntity().from_json(load_fixture('item_Q582'))
+
+
+class TestDeserialization:
+    def test_from_json_roundtrip(self, item):
+        fixture = load_fixture('item_Q582')
+        assert item.id == 'Q582'
+        assert item.type == 'item'
+        assert item.lastrevid == fixture['lastrevid']
+        assert item.pageid == fixture['pageid']
+        assert item.title == 'Q582'
+
+    def test_labels(self, item):
+        assert item.labels.get('en') == 'Villeurbanne'
+        assert item.labels.get('en').value == 'Villeurbanne'
+        assert item.labels.get('es') == 'Villeurbanne'
+        assert item.labels.get('ak') is None
+
+    def test_descriptions(self, item):
+        description = item.descriptions.get('en').value
+        assert len(description) > 3
+        assert 'commune' in item.descriptions.get('en')
+
+    def test_aliases(self, item):
+        assert 'Villeurbanne (Rhône)' in item.aliases.get('fr')
+
+    def test_claims(self, item):
+        assert len(item.claims)
+        assert len(item.claims.get('P31')) == 2
+        assert 'Q484170' in [claim.mainsnak.datavalue['value']['id'] for claim in item.claims.get('P31')]
+        assert item.claims.get(31) == item.claims.get('P31')
+
+    def test_references(self, item):
+        assert len(item.claims.get('P2581')[0].references) == 1
+
+    def test_qualifiers(self, item):
+        assert len(item.claims.get('P443')[0].qualifiers) == 1
+
+    def test_get_json_returns_same_content(self, item):
+        json_data = item.get_json()
+        assert json_data['labels']['fr']['value'] == 'Villeurbanne'
+        assert json_data['id'] == 'Q582'
+
+
+class TestLabels:
+    def test_set_and_replace(self, item):
+        item.labels.set(value='Villeurbanne')
+        item.labels.set(value='xfgfdsg')
+        item.labels.set(language='en', value='xfgfdsgtest', action_if_exists=ActionIfExists.KEEP)
+        assert item.get_json()['labels']['en'] == {'language': 'en', 'value': 'xfgfdsg'}
+        assert item.get_json()['labels']['fr'] == {'language': 'fr', 'value': 'Villeurbanne'}
+
+    def test_remove_label(self, item):
+        item.labels.set(language='fr', value=None)
+        item.labels.set(language='non-exist-key', value=None)
+        assert 'remove' in item.get_json()['labels']['fr']
+
+    def test_set_label_in_new_language(self, item):
+        item.labels.set(value='label', language='ak')
+        assert item.labels.get('ak') == 'label'
+
+    def test_language_value_none_guards(self):
+        from wikibaseintegrator.models.language_values import LanguageValue
+
+        # A LanguageValue with no value must not crash on str/len/in (regression: these raised TypeError on None)
+        empty = LanguageValue(language='en', value=None)
+        assert str(empty) == ''
+        assert len(empty) == 0
+        assert ('anything' in empty) is False
+
+
+class TestDescriptions:
+    def test_set_and_replace(self, item):
+        description = item.descriptions.get('en').value
+
+        item.descriptions.set(value=description)
+        assert item.descriptions.get() == description
+        item.descriptions.set(value='lorem')
+        assert item.descriptions.get() == 'lorem'
+        item.descriptions.set(language='es', value='lorem ipsum')
+        assert item.descriptions.get('es') == 'lorem ipsum'
+        item.descriptions.set(language='en', value='lorem ipsum', action_if_exists=ActionIfExists.KEEP)
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem'}
+
+    def test_set_on_empty_descriptions(self, item):
+        item.descriptions = Descriptions()
+        item.descriptions.set(value='')
+        item.descriptions.set(language='en', value='lorem ipsum', action_if_exists=ActionIfExists.KEEP)
+        assert item.get_json()['descriptions']['en'] == {'language': 'en', 'value': 'lorem ipsum'}
+
+    def test_keep_and_replace_actions(self, item):
+        item.descriptions.set(language='fr', value='lorem', action_if_exists=ActionIfExists.KEEP)
+        item.descriptions.set(language='fr', value='lorem ipsum', action_if_exists=ActionIfExists.REPLACE_ALL)
+        assert item.get_json()['descriptions']['fr'] == {'language': 'fr', 'value': 'lorem ipsum'}
+
+
+class TestAliases:
+    def test_append_or_replace(self, item):
+        item.aliases.set(values=['fake alias'], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+        assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
+
+    def test_alias_actions(self, item):
+        item.aliases.set(values=['a'], language='ak', action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+        assert 'a' in item.aliases.get('ak')
+        item.aliases.set(values='b', language='ak')
+        assert all(i in item.aliases.get('ak') for i in ['a', 'b']) and len(item.aliases.get('ak')) >= 2
+        item.aliases.set(values='b', language='ak', action_if_exists=ActionIfExists.REPLACE_ALL)
+        assert item.aliases.get('ak') == ['b']
+        item.aliases.set(values=['c'], language='ak', action_if_exists=ActionIfExists.REPLACE_ALL)
+        assert item.aliases.get('ak') == ['c']
+        item.aliases.set(values=['d'], language='ak', action_if_exists=ActionIfExists.KEEP)
+        assert 'd' not in item.aliases.get('ak')
+
+    def test_alias_removal(self, item):
+        item.aliases.set(values=['a'], language='ak', action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+        item.aliases.set(language='ak', action_if_exists=ActionIfExists.KEEP)
+        assert 'remove' not in item.get_json()['aliases']['ak'][0]
+        item.aliases.set(language='ak')
+        assert 'remove' in item.get_json()['aliases']['ak'][0]
+
+
+class TestSitelinks:
+    def test_get_and_set(self, item):
+        assert item.sitelinks.get('enwiki') is not None
+        assert item.sitelinks.get('nowiki') is None
+
+        item.sitelinks.set(site='enwiki', title='something')
+        assert item.sitelinks.get('enwiki').title == 'something'
+
+    def test_set_on_item_without_sitelinks(self):
+        item = ItemEntity()
+        assert item.sitelinks.get('enwiki') is None
+        item.sitelinks.set(site='enwiki', title='something')
+        assert item.sitelinks.get('enwiki').title == 'something'
+
+
+class TestClaims:
+    def test_add_claims_types(self):
+        wbi = WikibaseIntegrator()
+        ItemEntity(api=wbi)
+        wbi.item.new()
+        ItemEntity(api=wbi).add_claims(String(value='test', prop_nr='P1'))
+        ItemEntity(api=wbi).add_claims([String(value='test', prop_nr='P1')])
+        ItemEntity(api=wbi, id='Q2')
+        with pytest.raises(TypeError):
+            ItemEntity(api=wbi).add_claims('test')
+
+    def test_action_if_exists(self, item):
+        instances = [Item(prop_nr='P31', value='Q1234'), Item(prop_nr='P31', value='Q1234')]
+        original_claim_count = len(item.claims.get('P31'))
+
+        appended = copy.deepcopy(item)
+        appended.add_claims(instances, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+        claims = [x.mainsnak.datavalue['value']['id'] for x in appended.claims.get('P31')]
+        # Only one unique claim is appended
+        assert len(claims) == original_claim_count + 1 and claims.count('Q1234') == 1
+
+        forced = copy.deepcopy(item)
+        forced.add_claims(instances, action_if_exists=ActionIfExists.FORCE_APPEND)
+        claims = [x.mainsnak.datavalue['value']['id'] for x in forced.claims.get('P31')]
+        # Both claims are appended, even if identical
+        assert len(claims) == original_claim_count + 2 and claims.count('Q1234') == 2
+
+        kept = copy.deepcopy(item)
+        kept.add_claims(instances, action_if_exists=ActionIfExists.KEEP)
+        claims = [x.mainsnak.datavalue['value']['id'] for x in kept.claims.get('P31')]
+        # Claims already exist for P31, nothing is added
+        assert len(claims) == original_claim_count and 'Q1234' not in claims
+
+        replaced = copy.deepcopy(item)
+        replaced.add_claims(instances, action_if_exists=ActionIfExists.REPLACE_ALL)
+        replaced.add_claims(instances, action_if_exists=ActionIfExists.REPLACE_ALL)  # add a second time, in case everything is marked as removed
+        claims = [x.mainsnak.datavalue['value']['id'] for x in replaced.claims.get('P31') if not x.removed]
+        removed_claims = [True for x in replaced.claims.get('P31') if x.removed]
+        # Old claims are marked as removed, only the new unique claim is kept
+        assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == original_claim_count
+
+    def test_claim_reset_id(self, item):
+        claim = item.claims.get('P31')[0]
+        assert claim.id is not None
+        claim.reset_id()
+        assert claim.id is None
+
+    def test_len_counts_properties_while_count_counts_claims(self):
+        claims = Claims()
+        claims.add([String(prop_nr='P1', value='a'), String(prop_nr='P1', value='b'), String(prop_nr='P2', value='c')], action_if_exists=ActionIfExists.FORCE_APPEND)
+
+        # len() is the number of distinct properties, count() the number of individual claims
+        assert len(claims) == 2
+        assert claims.count() == 3
+
+    def test_claim_comparison_with_unrelated_types(self):
+        claim = String(prop_nr='P1', value='foo')
+
+        # Comparing a claim with an unrelated type must return False, not raise
+        assert claim != 5
+        assert (claim == {'mainsnak': {}}) is False
+
+    def test_remove_unsaved_claims(self):
+        claims = Claims()
+        claims.add([String(prop_nr='P1', value='a'), String(prop_nr='P1', value='b')], action_if_exists=ActionIfExists.FORCE_APPEND)
+
+        claims.remove('P1')
+        assert claims.get('P1') == []
+
+    def test_merge_refs_or_append_with_valueless_snak(self):
+        # A no-value snak has no datavalue: MERGE_REFS_OR_APPEND must not raise a KeyError on it.
+        claims = Claims()
+        claims.add(String(prop_nr='P1', snaktype=WikibaseSnakType.NO_VALUE), action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+        claims.add(String(prop_nr='P1', snaktype=WikibaseSnakType.NO_VALUE), action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+
+        # The two identical no-value statements are recognized as equal, so only one is kept
+        assert len(claims.get('P1')) == 1
+
+    def test_merge_refs_or_append_merges_references(self):
+        claims = Claims()
+        claims.add(Item(value='Q1', prop_nr='P1', references=[datatypes.ExternalID(value='ref1', prop_nr='P352')]),
+                   action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+        # Same value but a new reference block: the reference is merged into the existing claim, no new claim is added
+        claims.add(Item(value='Q1', prop_nr='P1', references=[datatypes.ExternalID(value='ref2', prop_nr='P352')]),
+                   action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+
+        assert len(claims.get('P1')) == 1
+        assert len(claims.get('P1')[0].references) == 2
+
+    def test_multiline_string_values_rejected(self):
+        item = ItemEntity()
+
+        for value in ['Multi\r\nline', 'Multi\rline', 'Multi\nline']:
+            with pytest.raises(ValueError):
+                item.claims.add(String(prop_nr=123, value=value))
+            with pytest.raises(ValueError):
+                item.claims.add(MonolingualText(prop_nr=123, text=value))
+
+
+class TestQualifiers:
+    def test_clear(self, item):
+        cleared = copy.deepcopy(item)
+        assert len(cleared.claims.get('P443')[0].qualifiers.clear('P666')) >= 1
+        cleared = copy.deepcopy(item)
+        assert len(cleared.claims.get('P443')[0].qualifiers.clear('P407')) == 0
+        cleared = copy.deepcopy(item)
+        assert len(cleared.claims.get('P443')[0].qualifiers.clear()) == 0
+
+    def test_remove(self, item):
+        removed = copy.deepcopy(item)
+        assert len(removed.claims.get('P443')[0].qualifiers.remove(Item(prop_nr='P407', value='Q150'))) == 0
+
+    def test_count(self):
+        claim = Item(prop_nr='P1')
+        claim.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2'), Item(prop_nr='P3', value='Q3')])
+
+        # len() is the number of distinct qualifier properties, count() the number of individual snaks
+        assert len(claim.qualifiers) == 2
+        assert claim.qualifiers.count() == 3
+
+    def test_equality(self):
+        claim1 = Item(prop_nr='P1')
+        claim1.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2')])
+        claim2 = Item(prop_nr='P4')
+        claim2.qualifiers.set([Item(prop_nr='P2', value='Q1')])
+        claim3 = Item(prop_nr='P4')
+        claim3.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2')])
+        claim4 = Item(prop_nr='P4')
+        claim4.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q3')])
+        claim5 = Item(prop_nr='P4')
+        qualifiers = Qualifiers()
+        qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2')])
+        claim5.qualifiers.set(qualifiers)
+
+        assert claim1.has_equal_qualifiers(claim2) is False
+        assert claim1.has_equal_qualifiers(claim3) is True
+        assert claim1.has_equal_qualifiers(claim4) is False
+        assert claim1.has_equal_qualifiers(claim5) is True
+
+
+class TestReferences:
+    def test_statement_equality_with_and_without_refs(self):
+        oldref = [datatypes.ExternalID(value='P58742', prop_nr='P352'),
+                  datatypes.Item(value='Q24784025', prop_nr='P527'),
+                  datatypes.Time(time='+2001-12-31T00:00:00Z', prop_nr='P813')]
+        olditem = datatypes.Item(value='Q123', prop_nr='P123', references=[oldref])
+        newitem = copy.deepcopy(olditem)
+
+        # identical statements
+        assert olditem.equals(newitem, include_ref=False)
+        assert olditem.equals(newitem, include_ref=True)
+
+        # dates are a month apart
+        newitem = copy.deepcopy(olditem)
+        newitem.references.remove(datatypes.Time(time='+2001-12-31T00:00:00Z', prop_nr='P813'))
+        newitem.references.add(datatypes.Time(time='+2002-01-31T00:00:00Z', prop_nr='P813'))
+        assert olditem.equals(newitem, include_ref=False)
+        assert not olditem.equals(newitem, include_ref=True)
+
+        # multiple refs
+        newitem = copy.deepcopy(olditem)
+        newitem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
+        assert olditem.equals(newitem, include_ref=False)
+        assert not olditem.equals(newitem, include_ref=True)
+        olditem.references.add(datatypes.ExternalID(value='99999', prop_nr='P352'))
+        assert olditem.equals(newitem, include_ref=True)
+
+    def test_reference_removal(self):
+        claim = datatypes.Item(value='Q123', prop_nr='P123', references=[datatypes.ExternalID(value='P58742', prop_nr='P352')])
+
+        # Removing a reference that is not present returns False
+        assert claim.references.remove(datatypes.ExternalID(value='unknown', prop_nr='P352')) is False
+        assert len(claim.references) == 1
+
+        # An equivalent reference built from a claim is found and removed
+        assert claim.references.remove(datatypes.ExternalID(value='P58742', prop_nr='P352')) is True
+        assert len(claim.references) == 0
+
+
+class TestForms:
+    def test_get_forms(self):
+        wbi = WikibaseIntegrator()
+        lexeme = wbi.lexeme.new()
+
+        for form_id in ('L5-F4', 'L5-F5', None, None):
+            form = Form(form_id=form_id) if form_id else Form()
+            form.representations.set(language='en', value='English form representation')
+            form.representations.set(language='fr', value='French form representation')
+            form.claims.add(datatypes.String(prop_nr='P828', value='Create a string claim for form'))
+            lexeme.forms.add(form)
+
+        assert not lexeme.forms.get('L5-F3')
+        assert lexeme.forms.get('L5-F4') and lexeme.forms.get('L5-F5')
+        assert len(lexeme.forms) == 4
+
+    def test_grammatical_features_setter(self):
+        # int is normalized to a Q-id, str/list are wrapped/kept as a list
+        assert Form(grammatical_features=123).grammatical_features == ['Q123']
+        assert Form(grammatical_features='Q123').grammatical_features == ['Q123']
+        assert Form(grammatical_features=['Q1', 'Q2']).grammatical_features == ['Q1', 'Q2']
+        assert Form().grammatical_features == []
+
+        # The setter replaces the value instead of accumulating on each assignment
+        form = Form()
+        form.grammatical_features = 5
+        form.grammatical_features = 6
+        assert form.grammatical_features == ['Q6']
+
+        with pytest.raises(TypeError):
+            Form(grammatical_features=1.5)
+        with pytest.raises(TypeError):
+            Form(grammatical_features=True)
+
+    def test_forms_are_iterable(self):
+        forms = Forms()
+        forms.add(Form(form_id='L5-F1'))
+        forms.add(Form(form_id='L5-F2'))
+
+        assert [form.id for form in forms] == ['L5-F1', 'L5-F2']
+        # An iterator must be exhausted by the first loop, the container itself must not
+        assert [form.id for form in forms] == ['L5-F1', 'L5-F2']
+        assert list(iter(forms)) == forms.forms
+
+    def test_equality_compares_content(self):
+        def build_form(form_id=None, representation='pinos', feature='Q146786', value='a claim'):
+            form = Form(form_id=form_id, grammatical_features=feature)
+            form.representations.set(language='es', value=representation)
+            form.claims.add(datatypes.String(prop_nr='P828', value=value))
+            return form
+
+        # The id is assigned by the instance and isn't part of the comparison
+        assert build_form() == build_form(form_id='L5-F1')
+
+        assert build_form() != build_form(representation='pino')
+        assert build_form() != build_form(feature='Q110786')
+        assert build_form() != build_form(value='another claim')
+        assert Form() == Form()
+
+    def test_equality_with_unrelated_types(self):
+        assert Form() != 'L5-F1'
+        assert Form() != Sense()
+        assert Form().__eq__(None) is NotImplemented  # pylint: disable=unnecessary-dunder-call
+
+    def test_forms_are_hashable(self):
+        form = Form(grammatical_features='Q146786')
+        form.representations.set(language='es', value='pinos')
+        same_form = Form(form_id='L5-F1', grammatical_features='Q146786')
+        same_form.representations.set(language='es', value='pinos')
+
+        assert hash(form) == hash(same_form)
+        assert len({form, same_form, Form()}) == 2
+
+
+class TestSenses:
+    def test_senses_are_iterable(self):
+        senses = Senses()
+        senses.add(Sense(sense_id='L5-S1'))
+        senses.add(Sense(sense_id='L5-S2'))
+
+        assert [sense.id for sense in senses] == ['L5-S1', 'L5-S2']
+        assert [sense.id for sense in senses] == ['L5-S1', 'L5-S2']
+        assert list(iter(senses)) == senses.senses
+
+    def test_equality_compares_content(self):
+        def build_sense(sense_id=None, gloss='a gloss', value='a claim'):
+            sense = Sense(sense_id=sense_id)
+            sense.glosses.set(language='en', value=gloss)
+            sense.claims.add(datatypes.String(prop_nr='P828', value=value))
+            return sense
+
+        # The id is assigned by the instance and isn't part of the comparison
+        assert build_sense() == build_sense(sense_id='L5-S1')
+
+        assert build_sense() != build_sense(gloss='another gloss')
+        assert build_sense() != build_sense(value='another claim')
+        assert Sense() == Sense()
+
+    def test_equality_with_unrelated_types(self):
+        # Comparing with anything else must return False instead of raising
+        assert Sense() != 'L5-S1'
+        assert Sense() != Form()
+        assert Sense().__eq__(None) is NotImplemented  # pylint: disable=unnecessary-dunder-call
+
+    def test_senses_are_hashable(self):
+        sense = Sense()
+        sense.glosses.set(language='en', value='pine tree')
+        same_sense = Sense(sense_id='L5-S1')
+        same_sense.glosses.set(language='en', value='pine tree')
+
+        assert hash(sense) == hash(same_sense)
+        assert len({sense, same_sense, Sense()}) == 2
+
+
+class TestTermsEntity:
+    def test_term_setters_validate_type_across_entities(self):
+        from wikibaseintegrator.entities import ItemEntity, MediaInfoEntity, PropertyEntity
+
+        # The shared labels/descriptions/aliases setters (now on the TermsEntity base) still validate their type
+        for entity_cls in (ItemEntity, PropertyEntity, MediaInfoEntity):
+            with pytest.raises(TypeError):
+                entity_cls(labels='not a Labels object')
+
+    def test_mediainfo_reads_aliases_from_json(self):
+        from wikibaseintegrator.entities import MediaInfoEntity
+
+        media = MediaInfoEntity().from_json({
+            'id': 'M1', 'type': 'mediainfo', 'lastrevid': 1,
+            'labels': {'en': {'language': 'en', 'value': 'a caption'}},
+            'descriptions': {},
+            'aliases': {'en': [{'language': 'en', 'value': 'an alias'}]},
+        })
+        assert media.labels.get('en') == 'a caption'
+        assert 'an alias' in [alias.value for alias in media.aliases.get('en')]
+
+
+class TestWikibaseIntegratorApi:
+    def test_is_bot_propagation(self):
+        nwbi = WikibaseIntegrator(is_bot=False)
+        assert nwbi.item.api.is_bot is False
+        assert ItemEntity(api=nwbi, is_bot=True).api.is_bot is True
+        assert ItemEntity(api=nwbi).api.is_bot is False
+        assert ItemEntity().api.is_bot is False

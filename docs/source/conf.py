@@ -17,12 +17,12 @@ def get_meta() -> MutableMapping:
     Returns:
         MutableMapping
     """
-    import toml
+    import tomllib
 
     toml_path = os.path.join(os.path.dirname(__file__), "../..", "pyproject.toml")
 
-    with open(toml_path) as fopen:
-        pyproject = toml.load(fopen)
+    with open(toml_path, "rb") as fopen:
+        pyproject = tomllib.load(fopen)
 
     return pyproject
 
