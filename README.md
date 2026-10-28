@@ -713,6 +713,10 @@ WikibaseIntegrator natively supports some extensions:
 * LocalMedia datatype - [Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media)
 * Lexeme entity and datatype - [WikibaseLexeme](https://www.mediawiki.org/wiki/Extension:WikibaseLexeme)
 
+When a Lexeme request (getting or writing a lexeme, form or sense) is sent to a Wikibase instance without lexeme
+support, a `wikibaseintegrator.wbi_exceptions.MissingExtensionError` naming the missing WikibaseLexeme extension is
+raised, instead of the generic error returned by the API.
+
 # Helper Methods #
 
 ## Use MediaWiki API ##
