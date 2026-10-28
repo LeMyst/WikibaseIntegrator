@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum, StrEnum, auto
+from enum import Enum, IntEnum, StrEnum, auto
 
 
 class ActionIfExists(Enum):
@@ -63,24 +63,33 @@ class WikibaseDatatype(StrEnum):
             return value
 
 
-class WikibaseRank(Enum):
+class WikibaseRank(StrEnum):
+    """
+    The rank of a statement. A member is also a string equal to its API value: WikibaseRank.PREFERRED == 'preferred'.
+    """
     DEPRECATED = "deprecated"
     NORMAL = "normal"
     PREFERRED = "preferred"
 
 
-class WikibaseSnakType(Enum):
+class WikibaseSnakType(StrEnum):
     """
     The snak type of the Wikibase data snak, three values possible,
     depending if the value is a known (value), not existent (novalue) or
     unknown (somevalue). See Wikibase documentation.
+    A member is also a string equal to its API value: WikibaseSnakType.NO_VALUE == 'novalue'.
     """
     KNOWN_VALUE = "value"
     NO_VALUE = "novalue"
     UNKNOWN_VALUE = "somevalue"
 
 
-class WikibaseTimePrecision(Enum):
+class WikibaseTimePrecision(IntEnum):
+    """
+    The precision of a time value. A member is also an integer equal to its API value, so the precisions can be compared:
+    WikibaseTimePrecision.YEAR < WikibaseTimePrecision.DAY == 11. BILLION_YEARS is 0, so test a precision with
+    'is None', not with its truth value.
+    """
     # SECOND = 14  # UNSUPPORTED TO DATE (REL1_37)
     # MINUTE = 13  # UNSUPPORTED TO DATE (REL1_37)
     # HOUR = 12  # UNSUPPORTED TO DATE (REL1_37)

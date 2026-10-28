@@ -1,5 +1,6 @@
 """
-Tests for wbi_enums.WikibaseDatatype (#795): the datatypes are enum members that remain usable as strings.
+Tests for the wbi_enums mirroring API values (#795): WikibaseDatatype, WikibaseRank and WikibaseSnakType members are
+also strings, WikibaseTimePrecision members are also integers.
 """
 import json
 
@@ -10,7 +11,7 @@ from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import URL, BaseDataType, ExternalID, Item, MonolingualText, String, Time
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.models import Claim, Snak
-from wikibaseintegrator.wbi_enums import WikibaseDatatype
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseRank, WikibaseSnakType, WikibaseTimePrecision
 
 
 class TestWikibaseDatatype:
@@ -104,3 +105,56 @@ class TestPropertyDatatype:
     def test_get_property(self, wikibase):
         wikibase.add_property('P50', 'wikibase-item')
         assert WikibaseIntegrator().property.get('P50').datatype is WikibaseDatatype.ITEM
+
+
+class TestRankAndSnakType:
+    @pytest.mark.parametrize('member, value', [
+        (WikibaseRank.DEPRECATED, 'deprecated'), (WikibaseRank.NORMAL, 'normal'), (WikibaseRank.PREFERRED, 'preferred'),
+        (WikibaseSnakType.KNOWN_VALUE, 'value'), (WikibaseSnakType.NO_VALUE, 'novalue'), (WikibaseSnakType.UNKNOWN_VALUE, 'somevalue'),
+    ])
+    def test_member_is_a_string(self, member, value):
+        assert member == value
+        assert str(member) == value
+        assert {value: 1}[member] == 1
+
+    def test_comparison_with_the_json(self):
+        claim_json = {'mainsnak': {'snaktype': 'novalue', 'property': 'P1', 'datatype': 'string'}, 'type': 'statement', 'id': 'Q1$abc', 'rank': 'preferred'}
+        claim = Claim().from_json(claim_json)
+
+        assert claim.rank == 'preferred'
+        assert claim.mainsnak.snaktype == 'novalue'
+        assert claim_json['rank'] == WikibaseRank.PREFERRED
+
+    def test_strings_are_accepted(self):
+        claim = String(value='abc', prop_nr='P1', rank='deprecated')
+        claim.mainsnak.snaktype = 'somevalue'
+
+        assert claim.rank is WikibaseRank.DEPRECATED
+        assert claim.mainsnak.snaktype is WikibaseSnakType.UNKNOWN_VALUE
+
+    def test_json_holds_plain_strings(self):
+        claim_json = String(value='abc', prop_nr='P1', rank=WikibaseRank.PREFERRED).get_json()
+
+        assert type(claim_json['rank']) is str  # pylint: disable=unidiomatic-typecheck
+        assert type(claim_json['mainsnak']['snaktype']) is str  # pylint: disable=unidiomatic-typecheck
+        assert ujson.dumps([claim_json['rank'], claim_json['mainsnak']['snaktype']]) == '["preferred","value"]'
+
+
+class TestTimePrecision:
+    def test_member_is_an_integer(self):
+        assert WikibaseTimePrecision.DAY == 11
+        assert isinstance(WikibaseTimePrecision.YEAR, int)
+        assert WikibaseTimePrecision.YEAR < WikibaseTimePrecision.MONTH < WikibaseTimePrecision.DAY
+        assert json.dumps(WikibaseTimePrecision.DAY) == '11'
+
+    @pytest.mark.parametrize('precision', [WikibaseTimePrecision.BILLION_YEARS, 0])
+    def test_billion_years_precision(self, precision):
+        """The precision 0 was ignored when given as an integer, and inferred from the timestamp (year precision)."""
+        datavalue = Time(time='-13700000000-00-00T00:00:00Z', precision=precision, prop_nr='P1').get_json()['mainsnak']['datavalue']
+        assert datavalue['value']['precision'] == 0
+
+    @pytest.mark.parametrize('time, precision', [('+2021-05-17T00:00:00Z', 11), ('+2021-05-00T00:00:00Z', 10), ('+2021-00-00T00:00:00Z', 9)])
+    def test_inferred_precision(self, time, precision):
+        datavalue = Time(time=time, prop_nr='P1').get_json()['mainsnak']['datavalue']
+        assert datavalue['value']['precision'] == precision
+        assert type(datavalue['value']['precision']) is int  # pylint: disable=unidiomatic-typecheck

@@ -37,6 +37,10 @@ v0.13 contains changes that are not backward compatible with v0.12:
   `execute_sparql_query()`.
 - **Anonymous edits** that are not explicitly allowed raise `AnonymousEditNotAllowedError` instead of a bare
   `Exception`.
+- **The enums mirroring API values compare equal to them**: `WikibaseDatatype`, `WikibaseRank` and `WikibaseSnakType`
+  are `StrEnum`, and `WikibaseTimePrecision` is an `IntEnum`. A member is now equal to its API value
+  (`WikibaseRank.PREFERRED == 'preferred'`, `WikibaseTimePrecision.DAY == 11`, both were `False`), and `str()` gives
+  that value (`'preferred'` instead of `'WikibaseRank.PREFERRED'`). The JSON sent to the API is unchanged.
 - **Empty values are rejected before the write**: a claim, qualifier or reference created with `None` or an empty
   string as value raises `EmptyValueError` (a `ValueError`) listing every empty value, instead of being sent and
   rejected by the API with an `MWApiError`. Use the `WikibaseSnakType.NO_VALUE` or `WikibaseSnakType.UNKNOWN_VALUE`
