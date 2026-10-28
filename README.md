@@ -96,6 +96,7 @@ wikibaseintegrator~=0.12.15
     - [Execute SPARQL queries](#execute-sparql-queries)
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
+    - [Check a Wikibase instance](#check-a-wikibase-instance)
     - [Other helpers](#other-helpers)
     - [Track the edits with EditGroups](#track-the-edits-with-editgroups)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
@@ -814,6 +815,32 @@ from wikibaseintegrator import wbi_helpers, wbi_login
 login = wbi_login.Login(user='<bot user name>', password='<bot password>')
 to_id = wbi_helpers.merge_multiple_items(['Q100', 'Q30', 'Q5'], login=login)  # Q30 and Q100 are merged into Q5
 ```
+
+## Check a Wikibase instance ##
+
+`check_wikibase()` reports the features of a Wikibase instance: the MediaWiki version, the installed extensions, the
+entity types and the datatypes it supports, and whether the SPARQL endpoint answers. It also checks that
+`config['WIKIBASE_URL']` matches the concept URIs of the instance, as the SPARQL queries built by WikibaseIntegrator
+(fast run mode, ...) rely on it.
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_helpers import check_wikibase
+
+wbi_config['MEDIAWIKI_API_URL'] = 'https://my-wikibase.example.org/w/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'https://my-wikibase.example.org/query/sparql'
+wbi_config['WIKIBASE_URL'] = 'https://my-wikibase.example.org'
+
+result = check_wikibase()
+print(result)  # A readable report, with the problems found
+
+if not result.has_lexemes:
+    print('This instance does not support lexemes')
+```
+
+The result also provides `has_mediainfo`, `has_search` (WikibaseCirrusSearch, needed by the `haswbstatement` search
+keyword), `has_quality_constraints` (needed by `check_constraints()`), `extensions`, `entity_types`, `datatypes` and
+`problems`.
 
 ## Other helpers ##
 
