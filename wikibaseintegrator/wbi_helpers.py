@@ -270,22 +270,30 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 100, retry_after: int = 60,
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int | None = None, retry_after: int = 60,
                          auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
+
+    Server errors (HTTP 5xx), throttling (HTTP 429) and connection errors are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times.
+    If the Query Service still fails after that, the last exception (e.g. requests.HTTPError) is raised.
 
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-    :param max_retries: The number time this function should retry in case of header reports.
-    :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
+    :param max_retries: Deprecated and ignored, use config['BACKOFF_MAX_TRIES'] instead.
+    :param retry_after: The number of seconds to wait after a HTTP 429 (Too Many Requests) response without a Retry-After header.
     :param auth: Authentication for a protected SPARQL endpoint: a (username, password) tuple for HTTP Basic auth or any
                  requests.auth.AuthBase instance. Default is config['SPARQL_AUTH'].
     :param headers: Additional HTTP headers sent with the query (e.g. {'Authorization': 'Bearer <token>'}). They override the default ones.
     :return: The results of the query are returned in JSON format
+    :raises requests.HTTPError: If the Query Service returns an HTTP error, after the retries for the transient ones are exhausted
     """
+
+    if max_retries is not None:
+        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES'].", DeprecationWarning,
+                      stacklevel=3)
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
     auth = auth if auth is not None else config['SPARQL_AUTH']
@@ -316,29 +324,19 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     log.debug("SPARQL query:\n%s", body['query'])
 
-    for _ in range(max_retries):
+    # Connection errors, and the requests.HTTPError raised below for 5xx and 429 responses, are retried by wbi_backoff
+    response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
+    if response.status_code == 429:
+        # Honour the delay asked by the Query Service before wbi_backoff retries
         try:
-            response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
-        except requests.exceptions.ConnectionError as e:
-            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
-            sleep(retry_after)
-            continue
-        if response.status_code in (500, 502, 503, 504):
-            log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
-            sleep(retry_after)
-            continue
-        if response.status_code == 429:
-            if 'retry-after' in response.headers.keys():
-                retry_after = int(response.headers['retry-after'])
-            log.error("Too Many Requests (429). Sleeping for %d seconds", retry_after)
-            sleep(retry_after)
-            continue
-        response.raise_for_status()
-        results = response.json()
+            retry_after = int(response.headers.get('retry-after', retry_after))
+        except ValueError:
+            pass  # Retry-After given as an HTTP date, keep the default delay
+        log.error("Too Many Requests (429). Sleeping for %d seconds.", retry_after)
+        sleep(retry_after)
+    response.raise_for_status()
 
-        return results
-
-    raise MaxRetriesReachedException(f"No result after {max_retries} retries.")
+    return response.json()
 
 
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,

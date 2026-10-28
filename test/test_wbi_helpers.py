@@ -501,8 +501,62 @@ class TestSparql:
             {'json': {'results': {'bindings': []}}, 'status_code': 200},
         ])
 
-        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, max_retries=3, retry_after=1)
+        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, retry_after=1)
         assert results['results']['bindings'] == []
+        assert requests_mock.call_count == 2
+
+    @pytest.mark.parametrize('retry_after_header, expected_sleep', [('7', 7), ('Wed, 21 Oct 2015 07:28:00 GMT', 3)])
+    def test_sparql_429_honours_retry_after(self, requests_mock, monkeypatch, retry_after_header, expected_sleep):
+        url = 'https://throttled.example.org/sparql'
+        requests_mock.post(url, [
+            {'status_code': 429, 'headers': {'retry-after': retry_after_header}, 'text': 'Too Many Requests'},
+            {'json': {'results': {'bindings': []}}, 'status_code': 200},
+        ])
+        slept = []
+        monkeypatch.setattr('wikibaseintegrator.wbi_helpers.sleep', slept.append)
+
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, retry_after=3)
+        assert slept == [expected_sleep]
+
+    @pytest.mark.parametrize('status_code', [500, 502, 503, 504])
+    def test_sparql_retry_on_server_error(self, requests_mock, status_code):
+        url = 'https://unstable.example.org/sparql'
+        requests_mock.post(url, [
+            {'status_code': status_code, 'text': 'error'},
+            {'json': {'results': {'bindings': []}}, 'status_code': 200},
+        ])
+
+        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert results['results']['bindings'] == []
+        assert requests_mock.call_count == 2
+
+    def test_sparql_persistent_server_error_raises(self, requests_mock):
+        url = 'https://unstable.example.org/sparql'
+        requests_mock.post(url, status_code=503, text='Service Unavailable')
+        wbi_config['BACKOFF_MAX_TRIES'] = 3
+
+        with pytest.raises(requests.HTTPError) as excinfo:
+            execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert excinfo.value.response.status_code == 503
+        assert requests_mock.call_count == 3
+
+    def test_sparql_retry_on_connection_error(self, requests_mock):
+        url = 'https://unreachable.example.org/sparql'
+        requests_mock.post(url, [
+            {'exc': requests.exceptions.ConnectionError},
+            {'json': {'results': {'bindings': []}}, 'status_code': 200},
+        ])
+
+        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert results['results']['bindings'] == []
+        assert requests_mock.call_count == 2
+
+    def test_sparql_max_retries_is_deprecated(self, requests_mock):
+        url = 'https://public.example.org/sparql'
+        requests_mock.post(url, json={'results': {'bindings': []}})
+
+        with pytest.warns(DeprecationWarning, match='max_retries'):
+            execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, max_retries=3)
 
     def test_sparql_basic_auth(self, requests_mock):
         url = 'https://protected.example.org/sparql'
