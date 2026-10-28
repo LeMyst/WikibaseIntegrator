@@ -284,11 +284,19 @@ class Claim(BaseModel):
         self.removed = remove
 
     def update(self, claim: Claim) -> None:
+        """
+        Update this claim with the data of an equal claim (same value and qualifiers).
+        The rank and the references are only taken from the new claim when it sets them, so re-adding an existing value doesn't reset its rank or drop its references.
+
+        :param claim: The claim to take the data from.
+        """
         self.mainsnak = claim.mainsnak
         self.qualifiers = claim.qualifiers
         self.qualifiers_order = claim.qualifiers_order
-        self.rank = claim.rank
-        self.references = claim.references
+        if claim.rank != WikibaseRank.NORMAL:
+            self.rank = claim.rank
+        if len(claim.references) > 0:
+            self.references = claim.references
 
     def from_json(self, json_data: dict[str, Any]) -> Self:
         """

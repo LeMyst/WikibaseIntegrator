@@ -9,10 +9,10 @@ import copy
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes
-from wikibaseintegrator.datatypes import Item, MonolingualText, String
+from wikibaseintegrator.datatypes import ExternalID, Item, MonolingualText, String
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.models import Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import load_fixture
 
@@ -208,6 +208,28 @@ class TestClaims:
         assert len(claims) == original_claim_count + 1
         assert not any(claim.removed for claim in claims)
         assert not any('remove' in claim for claim in item.claims.get_json()['P31'])
+
+    def test_add_existing_value_keeps_rank_and_references(self, item):
+        # Re-adding an existing value without rank or references must not reset the rank or drop the references
+        existing = item.claims.get('P2581')[0]
+        existing.rank = WikibaseRank.PREFERRED
+
+        item.claims.add(ExternalID(prop_nr='P2581', value=existing.mainsnak.datavalue['value']))
+
+        json_claim = item.claims.get_json()['P2581'][0]
+        assert len(item.claims.get('P2581')) == 1
+        assert json_claim['rank'] == 'preferred' and len(json_claim['references']) == 1
+
+    def test_add_existing_value_updates_rank_and_references(self, item):
+        existing = item.claims.get('P2581')[0]
+        new_claim = ExternalID(prop_nr='P2581', value=existing.mainsnak.datavalue['value'], rank=WikibaseRank.DEPRECATED,
+                               references=[[String(prop_nr='P828', value='ref1')], [String(prop_nr='P828', value='ref2')]])
+
+        item.claims.add(new_claim)
+
+        json_claim = item.claims.get_json()['P2581'][0]
+        assert len(item.claims.get('P2581')) == 1
+        assert json_claim['rank'] == 'deprecated' and len(json_claim['references']) == 2
 
     def test_add_replace_all_removes_existing_claims(self, item):
         original_claim_count = len(item.claims.get('P31'))
