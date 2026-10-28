@@ -2,13 +2,14 @@ import re
 from typing import Any
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype
 
 
 class EntitySchema(BaseDataType):
     """
     Implements the Wikibase data type 'entity-schema'
     """
-    DTYPE = 'entity-schema'
+    DTYPE = WikibaseDatatype.ENTITYSCHEMA
 
     def __init__(self, value: str | int | None = None, **kwargs: Any):
         """

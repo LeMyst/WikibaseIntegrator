@@ -5,14 +5,14 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Item(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-item' with a value being another item ID
     """
-    DTYPE = 'wikibase-item'
+    DTYPE = WikibaseDatatype.ITEM
     PTYPE = 'http://wikiba.se/ontology#WikibaseItem'
     sparql_query = '''
         SELECT * WHERE {{

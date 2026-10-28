@@ -5,14 +5,14 @@ import urllib.parse
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class TabularData(BaseDataType):
     """
     Implements the Wikibase data type 'tabular-data'
     """
-    DTYPE = 'tabular-data'
+    DTYPE = WikibaseDatatype.TABULARDATA
     PTYPE = 'http://wikiba.se/ontology#TabularData'
 
     def __init__(self, value: str | None = None, **kwargs: Any):

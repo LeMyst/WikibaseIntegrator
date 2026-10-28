@@ -6,14 +6,14 @@ from typing import Any, Self
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class GlobeCoordinate(BaseDataType):
     """
     Implements the Wikibase data type for globe coordinates
     """
-    DTYPE = 'globe-coordinate'
+    DTYPE = WikibaseDatatype.GLOBECOORDINATE
     PTYPE = 'http://wikiba.se/ontology#GlobeCoordinate'
     sparql_query = '''
         SELECT * WHERE {{

@@ -667,6 +667,12 @@ For details of how to create values (=instances) with these data types, please (
 source code or the documentation website. Of note, these data type instances hold the values and, if specified, data
 type instances for references and qualifiers.
 
+The datatype names used by the Wikibase API are listed in the `wikibaseintegrator.wbi_enums.WikibaseDatatype` enum,
+e.g. for a new property: `wbi.property.new(datatype=WikibaseDatatype.ITEM)`. Its members are also strings equal to the
+API names (`WikibaseDatatype.ITEM == 'wikibase-item'`), so a plain string works too. Each data type class gives its own
+name in `DTYPE` (`Item.DTYPE is WikibaseDatatype.ITEM`). A datatype unknown to WikibaseIntegrator, provided by a
+Wikibase extension, is kept as a string.
+
 ## Structured Data on Commons ##
 
 WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.

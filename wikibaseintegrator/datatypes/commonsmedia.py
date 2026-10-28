@@ -5,14 +5,14 @@ import urllib.parse
 from typing import Self
 
 from wikibaseintegrator.datatypes.url import URL
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class CommonsMedia(URL):
     """
     Implements the Wikibase data type for Wikimedia commons media files
     """
-    DTYPE = 'commonsMedia'
+    DTYPE = WikibaseDatatype.COMMONSMEDIA
     PTYPE = 'http://wikiba.se/ontology#CommonsMedia'
 
     def set_value(self, value: str | None = None):

@@ -5,14 +5,14 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Form(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-form'
     """
-    DTYPE = 'wikibase-form'
+    DTYPE = WikibaseDatatype.FORM
     PTYPE = 'http://wikiba.se/ontology#WikibaseForm'
     sparql_query = '''
         SELECT * WHERE {{

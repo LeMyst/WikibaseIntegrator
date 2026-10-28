@@ -5,14 +5,14 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
 class Lexeme(BaseDataType):
     """
     Implements the Wikibase data type 'wikibase-lexeme'
     """
-    DTYPE = 'wikibase-lexeme'
+    DTYPE = WikibaseDatatype.LEXEME
     PTYPE = 'http://wikiba.se/ontology#WikibaseLexeme'
     sparql_query = '''
         SELECT * WHERE {{

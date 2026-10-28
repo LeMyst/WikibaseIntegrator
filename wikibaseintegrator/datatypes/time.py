@@ -7,7 +7,7 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import WikibaseSnakType, WikibaseTimePrecision
+from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType, WikibaseTimePrecision
 
 
 @total_ordering
@@ -15,7 +15,7 @@ class Time(BaseDataType):
     """
     Implements the Wikibase data type with date and time values
     """
-    DTYPE = 'time'
+    DTYPE = WikibaseDatatype.TIME
     PTYPE = 'http://wikiba.se/ontology#Time'
     sparql_query = '''
         SELECT * WHERE {{
