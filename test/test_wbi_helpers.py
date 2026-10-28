@@ -5,9 +5,11 @@ mapping), search, merge, SPARQL and the various pure helper functions.
 import logging
 import threading
 from types import MappingProxyType
+from urllib.parse import quote_plus
 
 import pytest
 import requests
+import ujson
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_helpers
 from wikibaseintegrator.datatypes import Item, MonolingualText, Quantity, String, Time
@@ -589,6 +591,136 @@ class TestCheckWikibase:
         assert result.sparql_endpoint_url is None
         assert not wikibase.sparql_queries
         assert '(not checked)' in str(result)
+
+
+class TestSplitLargeWrites:
+    """A write larger than the maximum request size is split into several edits (#463)."""
+
+    MAX = 1500
+
+    @staticmethod
+    def _sent_size(edit):
+        # The form-encoded size of the 'data' parameter, as sent in the request body
+        return len(quote_plus(edit['params']['data']))
+
+    @staticmethod
+    def _new_item(claims=40):
+        item = WikibaseIntegrator().item.new()
+        item.labels.set('en', 'A large item')
+        item.descriptions.set('en', 'An item with many statements')
+        item.claims.add([String(value=f'value number {number}', prop_nr='P1') for number in range(claims)])
+        return item
+
+    def test_small_write_is_not_split(self, wikibase):
+        self._new_item(claims=2).write(allow_anonymous=True, max_request_size=10_000)
+
+        assert len(wikibase.edits) == 1
+
+    def test_not_split_by_default(self, wikibase):
+        assert wbi_config['MAX_REQUEST_SIZE'] is None
+
+        self._new_item(claims=200).write(allow_anonymous=True)
+
+        assert len(wikibase.edits) == 1
+
+    def test_new_entity(self, wikibase):
+        item = self._new_item().write(allow_anonymous=True, max_request_size=self.MAX)
+
+        assert len(wikibase.edits) > 2
+        first, *others = wikibase.edits
+        # The first edit creates the entity with everything but the statements, and as many statements as fit
+        assert first['params']['new'] == 'item'
+        assert first['data']['labels']['en']['value'] == 'A large item'
+        # The next edits only add statements to the created entity
+        assert all(edit['params']['id'] == item.id and 'new' not in edit['params'] and set(edit['data']) == {'claims'} for edit in others)
+        assert all(self._sent_size(edit) <= self.MAX for edit in wikibase.edits)
+        # Every statement is written once, in order
+        sent = [statement['mainsnak']['datavalue']['value'] for edit in wikibase.edits for statement in edit['data']['claims']]
+        assert sent == [f'value number {number}' for number in range(40)]
+        # The returned entity is the one of the last edit, with every statement
+        assert len(item.claims.get('P1')) == 40
+        assert len(wikibase.entities[item.id]['claims']['P1']) == 40
+
+    def test_config(self, wikibase):
+        wbi_config['MAX_REQUEST_SIZE'] = self.MAX
+
+        self._new_item().write(allow_anonymous=True)
+
+        assert len(wikibase.edits) > 2
+
+    def test_existing_entity_clear_and_baserevid_on_the_first_edit_only(self, wikibase):
+        wikibase.add_entity({'pageid': 1, 'ns': 0, 'title': 'Q1', 'lastrevid': 7, 'type': 'item', 'id': 'Q1', 'labels': {}, 'descriptions': {}, 'aliases': {},
+                             'sitelinks': {}, 'claims': {}})
+        data = self._new_item().get_json()
+
+        edit_entity(data=data, id='Q1', clear=True, baserevid=7, allow_anonymous=True, max_request_size=self.MAX)
+
+        assert len(wikibase.edits) > 2
+        assert all(edit['params']['id'] == 'Q1' for edit in wikibase.edits)
+        assert [('clear' in edit['params'], 'baserevid' in edit['params']) for edit in wikibase.edits] == [(True, True)] + [(False, False)] * (len(wikibase.edits) - 1)
+        assert len(wikibase.entities['Q1']['claims']['P1']) == 40
+
+    def test_statement_larger_than_the_maximum(self, wikibase):
+        item = self._new_item(claims=3)
+        item.claims.add(String(value='x' * (2 * self.MAX), prop_nr='P2'))
+
+        with pytest.raises(ValueError, match='A statement of property P2 is larger than the maximum request size'):
+            item.write(allow_anonymous=True, max_request_size=self.MAX)
+
+        assert not wikibase.edits
+
+    def test_data_without_statements_larger_than_the_maximum(self, wikibase):
+        item = self._new_item(claims=3)
+        item.descriptions.set('fr', 'y' * (2 * self.MAX))
+
+        with pytest.raises(ValueError, match="without its statements is larger than the maximum request size"):
+            item.write(allow_anonymous=True, max_request_size=self.MAX)
+
+        assert not wikibase.edits
+
+    def test_partial_failure(self, wikibase, monkeypatch):
+        """An edit failing after the first one keeps its type, with a note telling what was saved."""
+        original = wikibase._action_wbeditentity  # pylint: disable=protected-access
+
+        def fail_second_edit(params):
+            if len(wikibase.edits) == 1:
+                wikibase.edits.append({'params': params, 'data': None})
+                return {'error': {'code': 'failed-save', 'info': 'The save has failed.'}}
+            return original(params)
+
+        monkeypatch.setattr(wikibase, '_action_wbeditentity', fail_second_edit)
+
+        with pytest.raises(MWApiError) as excinfo:
+            self._new_item().write(allow_anonymous=True, max_request_size=self.MAX)
+
+        created = next(iter(wikibase.entities))
+        assert any('only the first 1 were saved' in note and created in note for note in excinfo.value.__notes__)
+        assert wikibase.entities[created]['labels']['en']['value'] == 'A large item'
+
+    def test_mediainfo_statements_and_removals(self):
+        statements = {'P180': [{'mainsnak': {'snaktype': 'value', 'property': 'P180', 'datavalue': {'value': f'v{n}', 'type': 'string'}}, 'type': 'statement'}
+                               for n in range(30)]
+                      + [{'id': 'M1$abc', 'remove': ''}]}
+
+        parts = wbi_helpers._split_entity_data({'labels': {}, 'statements': statements}, self.MAX)  # pylint: disable=protected-access
+
+        assert len(parts) > 1
+        assert all(set(part) <= {'labels', 'statements'} for part in parts)
+        assert sum(len(part['statements']) for part in parts) == 31
+        assert parts[-1]['statements'][-1] == {'id': 'M1$abc', 'remove': ''}
+
+    def test_computed_size_is_the_sent_size(self):
+        """The size is computed by parts, without serializing each growing part: it must match the real serialization."""
+        data = self._new_item(claims=60).get_json()
+
+        parts = wbi_helpers._split_entity_data(data, self.MAX)  # pylint: disable=protected-access
+
+        sizes = [len(quote_plus(ujson.dumps(part))) for part in parts]
+        assert all(size <= self.MAX for size in sizes)
+        # Each part is full: adding the first statement of the next part would exceed the maximum
+        for part, next_part in zip(parts, parts[1:]):
+            grown = dict(part, claims=part['claims'] + next_part['claims'][:1])
+            assert len(quote_plus(ujson.dumps(grown))) > self.MAX
 
 
 class TestCheckConstraints:
