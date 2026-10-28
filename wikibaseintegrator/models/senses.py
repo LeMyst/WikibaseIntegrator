@@ -20,7 +20,7 @@ class Senses(BaseModel):
         return None
 
     # TODO: implement action_if_exists
-    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
+    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         self.senses.append(sense)
 
         return self

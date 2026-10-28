@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
 from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances,
                                             get_user_agent, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items,
-                                            remove_claims, search_entities)
+                                            merge_multiple_items, remove_claims, search_entities)
 
 
 class FakeLogin:
@@ -416,6 +416,40 @@ class TestEditHelpers:
         assert request['fromid'] == 'Q1'
         assert request['toid'] == 'Q2'
         assert request['ignoreconflicts'] == 'description'
+        assert 'tags' not in request
+
+    def test_merge_items_tags(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        merge_items(from_id='Q1', to_id='Q2', login=login, tags=['tag1', 'tag2'])
+
+        assert wikibase.last_request['tags'] == 'tag1|tag2'
+
+    def test_merge_multiple_items(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        to_id = merge_multiple_items(['Q100', 'q30', 'Q5', 'Q30'], login=login, ignore_conflicts=['description', 'sitelink'], tags=['tag1'])
+
+        assert to_id == 'Q5'
+        merges = [request for request in wikibase.requests if request.get('action') == 'wbmergeitems']
+        assert [(request['fromid'], request['toid']) for request in merges] == [('Q30', 'Q5'), ('Q100', 'Q5')]
+        assert all(request['ignoreconflicts'] == 'description|sitelink' for request in merges)
+        assert all(request['tags'] == 'tag1' for request in merges)
+
+    @pytest.mark.parametrize('item_ids', [[], ['Q1'], ['Q1', 'q1'], ['Q1', 'P2'], ['Q1', 'L3'], ['Q1', 'Qfoo'], ['Q1', '2']])
+    def test_merge_multiple_items_invalid(self, wikibase, item_ids):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        with pytest.raises(ValueError):
+            merge_multiple_items(item_ids, login=login)
+
+        assert not wikibase.requests
+
+    def test_merge_multiple_items_stops_on_error(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        wikibase.fail_next(code='failed-modify', info='Conflicting descriptions for language en.')
+        with pytest.raises(MWApiError):
+            merge_multiple_items(['Q1', 'Q2', 'Q3'], login=login)
+
+        merges = [request for request in wikibase.requests if request.get('action') == 'wbmergeitems']
+        assert [request['fromid'] for request in merges] == ['Q2']
 
     def test_remove_claims(self, wikibase):
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
@@ -501,8 +535,62 @@ class TestSparql:
             {'json': {'results': {'bindings': []}}, 'status_code': 200},
         ])
 
-        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, max_retries=3, retry_after=1)
+        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, retry_after=1)
         assert results['results']['bindings'] == []
+        assert requests_mock.call_count == 2
+
+    @pytest.mark.parametrize('retry_after_header, expected_sleep', [('7', 7), ('Wed, 21 Oct 2015 07:28:00 GMT', 3)])
+    def test_sparql_429_honours_retry_after(self, requests_mock, monkeypatch, retry_after_header, expected_sleep):
+        url = 'https://throttled.example.org/sparql'
+        requests_mock.post(url, [
+            {'status_code': 429, 'headers': {'retry-after': retry_after_header}, 'text': 'Too Many Requests'},
+            {'json': {'results': {'bindings': []}}, 'status_code': 200},
+        ])
+        slept = []
+        monkeypatch.setattr('wikibaseintegrator.wbi_helpers.sleep', slept.append)
+
+        execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, retry_after=3)
+        assert slept == [expected_sleep]
+
+    @pytest.mark.parametrize('status_code', [500, 502, 503, 504])
+    def test_sparql_retry_on_server_error(self, requests_mock, status_code):
+        url = 'https://unstable.example.org/sparql'
+        requests_mock.post(url, [
+            {'status_code': status_code, 'text': 'error'},
+            {'json': {'results': {'bindings': []}}, 'status_code': 200},
+        ])
+
+        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert results['results']['bindings'] == []
+        assert requests_mock.call_count == 2
+
+    def test_sparql_persistent_server_error_raises(self, requests_mock):
+        url = 'https://unstable.example.org/sparql'
+        requests_mock.post(url, status_code=503, text='Service Unavailable')
+        wbi_config['BACKOFF_MAX_TRIES'] = 3
+
+        with pytest.raises(requests.HTTPError) as excinfo:
+            execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert excinfo.value.response.status_code == 503
+        assert requests_mock.call_count == 3
+
+    def test_sparql_retry_on_connection_error(self, requests_mock):
+        url = 'https://unreachable.example.org/sparql'
+        requests_mock.post(url, [
+            {'exc': requests.exceptions.ConnectionError},
+            {'json': {'results': {'bindings': []}}, 'status_code': 200},
+        ])
+
+        results = execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url)
+        assert results['results']['bindings'] == []
+        assert requests_mock.call_count == 2
+
+    def test_sparql_max_retries_is_deprecated(self, requests_mock):
+        url = 'https://public.example.org/sparql'
+        requests_mock.post(url, json={'results': {'bindings': []}})
+
+        with pytest.warns(DeprecationWarning, match='max_retries'):
+            execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, max_retries=3)
 
     def test_sparql_basic_auth(self, requests_mock):
         url = 'https://protected.example.org/sparql'

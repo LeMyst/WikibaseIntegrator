@@ -270,22 +270,30 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 
 @wbi_backoff()
-def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int = 100, retry_after: int = 60,
+def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int | None = None, retry_after: int = 60,
                          auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
+
+    Server errors (HTTP 5xx), throttling (HTTP 429) and connection errors are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times.
+    If the Query Service still fails after that, the last exception (e.g. requests.HTTPError) is raised.
 
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
     :param endpoint: The URL string for the SPARQL endpoint. Default is the URL for the Wikidata SPARQL endpoint
     :param user_agent: Set a user agent string for the HTTP header to let the Query Service know who you are.
-    :param max_retries: The number time this function should retry in case of header reports.
-    :param retry_after: the number of seconds should wait upon receiving either an error code or the Query Service is not reachable.
+    :param max_retries: Deprecated and ignored, use config['BACKOFF_MAX_TRIES'] instead.
+    :param retry_after: The number of seconds to wait after a HTTP 429 (Too Many Requests) response without a Retry-After header.
     :param auth: Authentication for a protected SPARQL endpoint: a (username, password) tuple for HTTP Basic auth or any
                  requests.auth.AuthBase instance. Default is config['SPARQL_AUTH'].
     :param headers: Additional HTTP headers sent with the query (e.g. {'Authorization': 'Bearer <token>'}). They override the default ones.
     :return: The results of the query are returned in JSON format
+    :raises requests.HTTPError: If the Query Service returns an HTTP error, after the retries for the transient ones are exhausted
     """
+
+    if max_retries is not None:
+        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES'].", DeprecationWarning,
+                      stacklevel=3)
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
     auth = auth if auth is not None else config['SPARQL_AUTH']
@@ -316,29 +324,19 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     log.debug("SPARQL query:\n%s", body['query'])
 
-    for _ in range(max_retries):
+    # Connection errors, and the requests.HTTPError raised below for 5xx and 429 responses, are retried by wbi_backoff
+    response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
+    if response.status_code == 429:
+        # Honour the delay asked by the Query Service before wbi_backoff retries
         try:
-            response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
-        except requests.exceptions.ConnectionError as e:
-            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
-            sleep(retry_after)
-            continue
-        if response.status_code in (500, 502, 503, 504):
-            log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
-            sleep(retry_after)
-            continue
-        if response.status_code == 429:
-            if 'retry-after' in response.headers.keys():
-                retry_after = int(response.headers['retry-after'])
-            log.error("Too Many Requests (429). Sleeping for %d seconds", retry_after)
-            sleep(retry_after)
-            continue
-        response.raise_for_status()
-        results = response.json()
+            retry_after = int(response.headers.get('retry-after', retry_after))
+        except ValueError:
+            pass  # Retry-After given as an HTTP date, keep the default delay
+        log.error("Too Many Requests (429). Sleeping for %d seconds.", retry_after)
+        sleep(retry_after)
+    response.raise_for_status()
 
-        return results
-
-    raise MaxRetriesReachedException(f"No result after {max_retries} retries.")
+    return response.json()
 
 
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
@@ -396,15 +394,17 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+                **kwargs: Any) -> dict:
     """
-    A static method to merge two items
+    A static method to merge two items. Wikibase turns the emptied item into a redirect to the target item.
 
     :param from_id: The ID to merge from. This parameter is required.
     :param to_id: The ID to merge to. This parameter is required.
     :param login: A wbi_login.Login instance
     :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
     :param is_bot: Mark this edit as bot.
+    :param tags: Change tags to apply to the revision.
     """
 
     params = {
@@ -420,7 +420,46 @@ def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_co
     if is_bot:
         params.update({'bot': ''})
 
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
+
+
+def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+                         **kwargs: Any) -> str:
+    """
+    Merge several items into the one with the lowest numeric ID, one wbmergeitems call per merged item.
+    Each merged item is turned into a redirect by Wikibase.
+
+    If a merge fails, the exception is raised and the merges already done are kept.
+
+    :param item_ids: The IDs of the items to merge (at least two distinct IDs).
+    :param login: A wbi_login.Login instance
+    :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
+    :param is_bot: Mark these edits as bot.
+    :param tags: Change tags to apply to the revisions.
+    :return: The ID of the item all the others were merged into.
+    """
+
+    ids = []
+    for item_id in item_ids:
+        if not re.fullmatch(r'Q\d+', item_id.upper()):
+            raise ValueError(f"Invalid item ID: {item_id}")
+        if item_id.upper() not in ids:
+            ids.append(item_id.upper())
+
+    if len(ids) < 2:
+        raise ValueError("At least two distinct item IDs are required to merge.")
+
+    ids.sort(key=lambda x: int(x[1:]))
+    to_id = ids[0]
+
+    for from_id in ids[1:]:
+        merge_items(from_id=from_id, to_id=to_id, login=login, ignore_conflicts=ignore_conflicts, is_bot=is_bot, tags=tags, **kwargs)
+        log.info(f"Merged {from_id} into {to_id}")
+
+    return to_id
 
 
 def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:

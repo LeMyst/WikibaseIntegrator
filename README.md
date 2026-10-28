@@ -10,17 +10,38 @@
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
 Wikidata).
 
-# Breaking changes in v0.12 #
+# Breaking changes in v0.13 #
 
-A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which has led to some important changes.
+v0.13 contains changes that are not backward compatible with v0.12:
 
-It offers a new object-oriented approach, better code readability and support for Property, Lexeme and MediaInfo
-entities (in addition to Item).
+- **Python 3.11 or newer is required.** Python 3.9 and 3.10 are no longer supported.
+- **The fast run mode has been rewritten** (see [Examples (in "fast run" mode)](#examples-in-fast-run-mode)). Code
+  using `wbi_fastrun` directly needs to be updated:
+    - `FastRunContainer.get_items()` is renamed `get_entities()`.
+    - `FastRunContainer()` takes `base_filter` as its first, mandatory argument and `base_data_type` is now optional.
+      `use_refs` is renamed `use_references`, and `use_qualifiers` (default `True`), `use_rank` and `cache` are added.
+    - `FastRunContainer.write_required()` drops `cqid` and gains `entity_filter` and `property_filter`.
+    - `BaseEntity.write_required()` now requires `base_filter`.
+    - Data types compared through SPARQL implement `from_sparql_value()`, which replaces `parse_sparql_value()` for
+      the fast run mode.
+- **`Form` and `Sense` compare and hash by content** (representations or glosses, grammatical features, claims)
+  instead of by identity, and ignore their id. Two distinct objects holding the same content are now equal, and a
+  Form/Sense modified after being added to a `set` or used as a `dict` key can no longer be found there.
+- **HTTP requests have a default timeout** of 5 seconds to connect and 300 seconds to read. Change it with
+  `wbi_config['TIMEOUT']`, or set it to `None` to wait forever as before.
+- **Fewer retries by default**: `max_retries` defaults to 100 instead of 1000 in `mediawiki_api_call_helper()` and
+  `execute_sparql_query()`.
+- **Anonymous edits** that are not explicitly allowed raise `AnonymousEditNotAllowedError` instead of a bare
+  `Exception`.
+- **`mwoauth` is no longer a dependency**: OAuth1 is implemented with `oauthlib` directly. Install `mwoauth` yourself
+  if your own code imports it.
+- **`wbi_helpers.default_session` and `wbi_helpers.helpers_session` are deprecated**: requests made without a login
+  now use a private session per thread. The old names still work but emit a `DeprecationWarning`.
 
-If you want to stay on v0.11.x, you can put this line in your requirements.txt:
+If you want to stay on v0.12.x, you can put this line in your requirements.txt:
 
 ```
-wikibaseintegrator~=0.11.3
+wikibaseintegrator~=0.12.15
 ```
 
 ---
@@ -745,6 +766,21 @@ It takes these arguments:
   `'statement'`. This will do a partial merge for the elements which do not conflict and should generally be avoided
   because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts should be resolved first.
 * a boolean if the changes need to be marked as made by a bot (is_bot)
+* a list of change tags to apply to the revision (tags)
+
+Wikibase turns the emptied item into a redirect to the target item, so there is no need to create the redirect
+separately.
+
+To merge more than two items at once, `wbi_helpers.merge_multiple_items()` takes a list of QIDs and merges all of them
+into the one with the lowest numeric ID, which it returns. It accepts the same login, ignore_conflicts, is_bot and tags
+arguments. The merges are done one by one: if one fails, its exception is raised and the merges already done are kept.
+
+```python
+from wikibaseintegrator import wbi_helpers, wbi_login
+
+login = wbi_login.Login(user='<bot user name>', password='<bot password>')
+to_id = wbi_helpers.merge_multiple_items(['Q100', 'Q30', 'Q5'], login=login)  # Q30 and Q100 are merged into Q5
+```
 
 ## Other helpers ##
 
