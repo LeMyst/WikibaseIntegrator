@@ -44,11 +44,11 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
+    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
-        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists. Defaults to REPLACE_ALL.
+        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists. Defaults to APPEND_OR_REPLACE.
             KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
             APPEND_OR_REPLACE: The new claim will be added only if the new one is different (by comparing values)
             FORCE_APPEND: The new claim will be added even if already exists
@@ -284,11 +284,19 @@ class Claim(BaseModel):
         self.removed = remove
 
     def update(self, claim: Claim) -> None:
+        """
+        Update this claim with the data of an equal claim (same value and qualifiers).
+        The rank and the references are only taken from the new claim when it sets them, so re-adding an existing value doesn't reset its rank or drop its references.
+
+        :param claim: The claim to take the data from.
+        """
         self.mainsnak = claim.mainsnak
         self.qualifiers = claim.qualifiers
         self.qualifiers_order = claim.qualifiers_order
-        self.rank = claim.rank
-        self.references = claim.references
+        if claim.rank != WikibaseRank.NORMAL:
+            self.rank = claim.rank
+        if len(claim.references) > 0:
+            self.references = claim.references
 
     def from_json(self, json_data: dict[str, Any]) -> Self:
         """

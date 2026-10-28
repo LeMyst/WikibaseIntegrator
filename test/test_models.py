@@ -9,10 +9,10 @@ import copy
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes
-from wikibaseintegrator.datatypes import Item, MonolingualText, String
+from wikibaseintegrator.datatypes import ExternalID, Item, MonolingualText, String
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.models import Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import load_fixture
 
@@ -196,6 +196,50 @@ class TestClaims:
         removed_claims = [True for x in replaced.claims.get('P31') if x.removed]
         # Old claims are marked as removed, only the new unique claim is kept
         assert len(claims) == 1 and 'Q1234' in claims and len(removed_claims) == original_claim_count
+
+    def test_add_keeps_existing_claims_by_default(self, item):
+        # Regression test for #922: adding a claim must not remove the existing claims with the same property
+        original_claim_count = len(item.claims.get('P31'))
+
+        item.claims.add(Item(prop_nr='P31', value='Q1234'))
+        item.claims.add(Item(prop_nr='P31', value='Q1234'))  # add a second time, the identical claim is not duplicated
+
+        claims = item.claims.get('P31')
+        assert len(claims) == original_claim_count + 1
+        assert not any(claim.removed for claim in claims)
+        assert not any('remove' in claim for claim in item.claims.get_json()['P31'])
+
+    def test_add_existing_value_keeps_rank_and_references(self, item):
+        # Re-adding an existing value without rank or references must not reset the rank or drop the references
+        existing = item.claims.get('P2581')[0]
+        existing.rank = WikibaseRank.PREFERRED
+
+        item.claims.add(ExternalID(prop_nr='P2581', value=existing.mainsnak.datavalue['value']))
+
+        json_claim = item.claims.get_json()['P2581'][0]
+        assert len(item.claims.get('P2581')) == 1
+        assert json_claim['rank'] == 'preferred' and len(json_claim['references']) == 1
+
+    def test_add_existing_value_updates_rank_and_references(self, item):
+        existing = item.claims.get('P2581')[0]
+        new_claim = ExternalID(prop_nr='P2581', value=existing.mainsnak.datavalue['value'], rank=WikibaseRank.DEPRECATED,
+                               references=[[String(prop_nr='P828', value='ref1')], [String(prop_nr='P828', value='ref2')]])
+
+        item.claims.add(new_claim)
+
+        json_claim = item.claims.get_json()['P2581'][0]
+        assert len(item.claims.get('P2581')) == 1
+        assert json_claim['rank'] == 'deprecated' and len(json_claim['references']) == 2
+
+    def test_add_replace_all_removes_existing_claims(self, item):
+        original_claim_count = len(item.claims.get('P31'))
+
+        item.claims.add(Item(prop_nr='P31', value='Q1234'), action_if_exists=ActionIfExists.REPLACE_ALL)
+
+        # The existing claims are sent with a 'remove' flag, only the new claim is kept
+        json_claims = item.claims.get_json()['P31']
+        assert len([claim for claim in json_claims if 'remove' in claim]) == original_claim_count
+        assert [claim['mainsnak']['datavalue']['value']['id'] for claim in json_claims if 'remove' not in claim] == ['Q1234']
 
     def test_claim_reset_id(self, item):
         claim = item.claims.get('P31')[0]
