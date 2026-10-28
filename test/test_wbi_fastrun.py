@@ -23,6 +23,7 @@ PTYPE_STRING = 'http://wikiba.se/ontology#String'
 PTYPE_TIME = 'http://wikiba.se/ontology#Time'
 XSD_DATETIME = 'http://www.w3.org/2001/XMLSchema#dateTime'
 XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal'
+XSD_INTEGER = 'http://www.w3.org/2001/XMLSchema#integer'
 
 
 class SparqlData:
@@ -64,7 +65,7 @@ class SparqlData:
         assert match is not None
         return match.group(1)
 
-    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None) -> str:
+    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None, precision: int | None = None) -> str:
         """Register a statement binding and return its statement URI."""
         sid = f'{self.wikibase.base_url}/entity/statement/{entity_id}-{prop_nr}-{index}'
         binding = {
@@ -75,23 +76,31 @@ class SparqlData:
         }
         if unit is not None:
             binding['unit'] = uri(unit)
+        if precision is not None:
+            binding['precision'] = literal(str(precision), datatype=XSD_INTEGER)
         self.statements.setdefault(prop_nr, []).append(binding)
         return sid
 
-    def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str) -> None:
-        self.qualifiers.setdefault(sid, []).append({
+    def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str, precision: int | None = None) -> None:
+        binding = {
             'property': uri(f'{self.wikibase.base_url}/entity/{prop_nr}'),
             'value': value,
             'property_type': uri(property_type),
-        })
+        }
+        if precision is not None:
+            binding['precision'] = literal(str(precision), datatype=XSD_INTEGER)
+        self.qualifiers.setdefault(sid, []).append(binding)
 
-    def reference(self, sid: str, prop_nr: str, value: dict, property_type: str, ref_node: str = 'deadbeef') -> None:
-        self.references.setdefault(sid, []).append({
+    def reference(self, sid: str, prop_nr: str, value: dict, property_type: str, ref_node: str = 'deadbeef', precision: int | None = None) -> None:
+        binding = {
             'srid': uri(f'{self.wikibase.base_url}/reference/{ref_node}'),
             'ref_property': uri(f'{self.wikibase.base_url}/entity/{prop_nr}'),
             'ref_value': value,
             'property_type': uri(property_type),
-        })
+        }
+        if precision is not None:
+            binding['ref_precision'] = literal(str(precision), datatype=XSD_INTEGER)
+        self.references.setdefault(sid, []).append(binding)
 
     def rank(self, sid: str, rank: str) -> None:
         self.ranks[sid] = [{'rank': uri(f'http://wikiba.se/ontology#{rank}')}]
@@ -361,6 +370,96 @@ class TestWriteRequiredQuantityUnits:
 
         assert frc.get_entities(claims=Quantity(amount=42, unit='Q712226', prop_nr='P2046')) == ['Q99']
         assert frc.get_entities(claims=Quantity(amount=42, prop_nr='P2046')) == ['Q100']
+
+
+class TestWriteRequiredTimePrecision:
+    """
+    The SPARQL endpoint stores a timestamp with a precision lower than the day with '01' for the unknown month and day
+    ('+1987-00-00T00:00:00Z' becomes '1987-01-01T00:00:00Z'), the precision is only on the value node.
+    """
+
+    @pytest.mark.parametrize('time, precision, expected', [
+        ('+1987-00-00T00:00:00Z', 9, '+1987-01-01T00:00:00Z'),
+        ('+1987-05-00T00:00:00Z', 10, '+1987-05-01T00:00:00Z'),
+        ('+1987-05-17T00:00:00Z', 9, '+1987-01-01T00:00:00Z'),
+        ('+1987-05-17T00:00:00Z', 10, '+1987-05-01T00:00:00Z'),
+        ('+1987-05-17T00:00:00Z', 11, '+1987-05-17T00:00:00Z'),
+        ('-13700000000-00-00T00:00:00Z', 1, '-13700000000-01-01T00:00:00Z'),
+        ('+1987-00-00T00:00:00Z', None, '+1987-01-01T00:00:00Z'),
+    ])
+    def test_sparql_time(self, time, precision, expected):
+        assert Time.sparql_time(time, precision) == expected
+
+    @pytest.mark.parametrize('time, sparql_time, precision', [
+        ('+1987-00-00T00:00:00Z', '1987-01-01T00:00:00Z', 9),
+        ('+1987-01-01T00:00:00Z', '1987-01-01T00:00:00Z', 9),
+        ('+1987-05-00T00:00:00Z', '1987-05-01T00:00:00Z', 10),
+        ('+1987-05-17T00:00:00Z', '1987-05-17T00:00:00Z', 11),
+    ])
+    def test_matching_time(self, wikibase, sparql_data, frc, time, sparql_time, precision):
+        sparql_data.statement('Q99', 'P577', literal(sparql_time, datatype=XSD_DATETIME), PTYPE_TIME, precision=precision)
+
+        assert frc.write_required(claims=[Time(time=time, precision=precision, prop_nr='P577')]) is False
+
+    def test_different_precision(self, wikibase, sparql_data, frc):
+        """The same timestamp with another precision is another value: 1987-01-01 is not the year 1987."""
+        sparql_data.statement('Q99', 'P577', literal('1987-01-01T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=11)
+
+        assert frc.write_required(claims=[Time(time='+1987-00-00T00:00:00Z', precision=9, prop_nr='P577')]) is True
+        assert frc.write_required(claims=[Time(time='+1987-01-01T00:00:00Z', precision=11, prop_nr='P577')]) is False
+
+    def test_unknown_precision_requires_write(self, wikibase, sparql_data, frc):
+        """Without the precision from the value node, a year can't be told from its first day: the write is kept."""
+        sparql_data.statement('Q99', 'P577', literal('1987-01-01T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME)
+
+        assert frc.write_required(claims=[Time(time='+1987-00-00T00:00:00Z', precision=9, prop_nr='P577')]) is True
+
+    def test_partial_load_queries_the_stored_timestamp(self, wikibase, sparql_data):
+        queries = []
+        dispatch = sparql_data.dispatch
+        wikibase.sparql_bindings = lambda query: (queries.append(query), dispatch(query))[1]
+        sparql_data.statement('Q99', 'P577', literal('1987-01-01T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=9)
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P577')], base_data_type=BaseDataType, cache=False)
+        assert frc.write_required(claims=[Time(time='+1987-00-00T00:00:00Z', precision=9, prop_nr='P577')]) is False
+        assert any('"+1987-01-01T00:00:00Z"^^xsd:dateTime' in query for query in queries)
+
+    @pytest.mark.parametrize('time, sparql_time, precision, expected', [
+        ('+2022-00-00T00:00:00Z', '2022-01-01T00:00:00Z', 9, False),
+        ('+2022-07-00T00:00:00Z', '2022-07-01T00:00:00Z', 10, False),
+        ('+2022-07-19T00:00:00Z', '2022-07-19T00:00:00Z', 11, False),
+        ('+2022-00-00T00:00:00Z', '2022-01-01T00:00:00Z', 11, True),
+    ])
+    def test_time_qualifier(self, wikibase, sparql_data, frc, time, sparql_time, precision, expected):
+        sid = sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
+        sparql_data.qualifier(sid, 'P585', literal(sparql_time, datatype=XSD_DATETIME), PTYPE_TIME, precision=precision)
+
+        claim = ExternalID(value='P40095', prop_nr='P352', qualifiers=[Time(time=time, prop_nr='P585')])
+        assert frc.write_required(claims=[claim]) is expected
+
+    @pytest.mark.parametrize('time, precision, expected', [
+        ('+2022-00-00T00:00:00Z', 9, False),
+        ('+2022-00-00T00:00:00Z', 11, True),
+    ])
+    def test_time_reference(self, wikibase, sparql_data, frc, time, precision, expected):
+        sid = sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
+        sparql_data.reference(sid, 'P248', uri(f'{wikibase.base_url}/entity/Q1234'), PTYPE_ITEM)
+        sparql_data.reference(sid, 'P577', literal('2022-01-01T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=precision)
+
+        claim = ExternalID(value='P40095', prop_nr='P352', references=[[Time(time=time, prop_nr='P577'), Item(value='Q1234', prop_nr='P248')]])
+        assert frc.write_required(claims=[claim], use_references=True) is expected
+
+    def test_unchanged_entity(self, wikibase, sparql_data):
+        """Issue #380: an existing entity holding low precision dates, checked again without any change."""
+        sparql_data.statement('Q99', 'P1476', literal('The secret war against Sweden'), PTYPE_STRING)
+        sid = sparql_data.statement('Q99', 'P577', literal('1988-01-01T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=9)
+        sparql_data.qualifier(sid, 'P585', literal('2022-07-01T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=10)
+
+        item = wbi.item.new()
+        item.id = 'Q99'
+        item.claims.add(String(value='The secret war against Sweden', prop_nr='P1476'))
+        item.claims.add(Time(time='+1988-00-00T00:00:00Z', prop_nr='P577', qualifiers=[Time(time='+2022-07-00T00:00:00Z', prop_nr='P585')]))
+        assert item.write_required(base_filter=[BaseDataType(prop_nr='P1476'), BaseDataType(prop_nr='P577')]) is False
 
 
 class TestCaseInsensitive:

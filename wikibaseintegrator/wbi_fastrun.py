@@ -5,16 +5,19 @@ is actually required, so that a synchronisation bot can skip the entities that a
 from __future__ import annotations
 
 import collections
+import copy
+import json
 import logging
 import re
 from collections import defaultdict
 
-from wikibaseintegrator.datatypes import BaseDataType
+from wikibaseintegrator.datatypes import BaseDataType, Time
 from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.reference import Reference
 from wikibaseintegrator.models.references import References
+from wikibaseintegrator.models.snak import Snak
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
@@ -121,7 +124,28 @@ class FastRunContainer:
         datavalue = claim.mainsnak.datavalue
         if isinstance(datavalue, dict) and datavalue.get('type') == 'quantity':
             value += '@' + self._normalize_unit(datavalue['value'].get('unit', '1'))
+        # The simple value of a time drops the precision: '1987' and '1987-01-01' share the same timestamp
+        if isinstance(datavalue, dict) and datavalue.get('type') == 'time':
+            value += '@' + str(datavalue['value'].get('precision'))
         return value
+
+    @staticmethod
+    def _snak_key(snak: Snak) -> str:
+        """
+        The key comparing a snak loaded from the SPARQL endpoint with a local snak. The timestamps are compared in the
+        form the SPARQL endpoint stores them: '+1987-00-00T00:00:00Z' and '+1987-01-01T00:00:00Z' are the same year.
+        """
+        datavalue = snak.datavalue
+        if isinstance(datavalue, dict) and datavalue.get('type') == 'time':
+            datavalue = copy.deepcopy(datavalue)
+            datavalue['value']['time'] = Time.sparql_time(datavalue['value']['time'], datavalue['value'].get('precision'))
+        return json.dumps([snak.property_number, snak.snaktype.value, snak.datatype, datavalue], sort_keys=True)
+
+    @staticmethod
+    def _set_precision(f: BaseDataType, result: dict, name: str) -> None:
+        """Set the precision of a time loaded from the SPARQL endpoint, the simple value does not carry it."""
+        if name in result and isinstance(f.mainsnak.datavalue, dict) and f.mainsnak.datavalue.get('type') == 'time':
+            f.mainsnak.datavalue['value']['precision'] = int(result[name]['value'])
 
     def _base_filter_string(self, wb_url: str | None = None) -> str:
         """Generate the SPARQL triples restricting ?entity to the entities matching the base filter."""
@@ -218,7 +242,7 @@ class FastRunContainer:
                 if partial_load:
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
-                    SELECT ?entity ?sid ?value ?property_type ?unit WHERE {{
+                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision WHERE {{
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
@@ -228,6 +252,8 @@ class FastRunContainer:
                       {qualifiers_filter_string}
                       # The unit of a quantity value, only bound for quantities
                       OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:quantityUnit ?unit ] . }}
+                      # The precision of a time value, only bound for times
+                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:timePrecision ?precision ] . }}
                     }}
                     ORDER BY ?sid
                     OFFSET {offset}
@@ -240,7 +266,7 @@ class FastRunContainer:
                 else:
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
-                    SELECT ?entity ?sid ?value ?property_type ?unit WHERE {{
+                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision WHERE {{
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
@@ -248,6 +274,8 @@ class FastRunContainer:
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
                       # The unit of a quantity value, only bound for quantities
                       OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:quantityUnit ?unit ] . }}
+                      # The precision of a time value, only bound for times
+                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:timePrecision ?precision ] . }}
                     }}
                     ORDER BY ?sid
                     OFFSET {offset}
@@ -282,6 +310,8 @@ class FastRunContainer:
                     # The simple value of a quantity does not carry the unit, set it from the value node
                     if 'unit' in result and isinstance(f.mainsnak.datavalue, dict) and f.mainsnak.datavalue.get('type') == 'quantity':
                         f.mainsnak.datavalue['value']['unit'] = result['unit']['value']
+
+                    self._set_precision(f, result, 'precision')
 
                     sparql_value = self._value_key(f)
                     if sparql_value is not None:
@@ -325,11 +355,18 @@ class FastRunContainer:
         while True:
             query = f'''
             #Tool: WikibaseIntegrator wbi_fastrun._load_qualifiers
-            SELECT ?property ?value ?property_type WHERE {{
+            SELECT ?property ?value ?property_type ?precision WHERE {{
               VALUES ?sid {{ <{sid}> }}
               ?sid ?predicate ?value.
               ?property wikibase:qualifier ?predicate.
               ?property wikibase:propertyType ?property_type.
+              # The precision of a time value, from the value node holding the same timestamp
+              OPTIONAL {{
+                ?property wikibase:qualifierValue ?value_predicate.
+                ?sid ?value_predicate ?value_node.
+                ?value_node wikibase:timeValue ?value;
+                            wikibase:timePrecision ?precision.
+              }}
             }}
             ORDER BY ?sid
             OFFSET {offset}
@@ -356,6 +393,8 @@ class FastRunContainer:
                 if f is None:
                     log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the qualifier", prop_nr)
                     continue
+
+                self._set_precision(f, result, 'precision')
 
                 qualifiers.add(f)
 
@@ -393,13 +432,20 @@ class FastRunContainer:
         while True:
             query = f'''
             #Tool: WikibaseIntegrator wbi_fastrun._load_references
-            SELECT ?srid ?ref_property ?ref_value ?property_type WHERE {{
+            SELECT ?srid ?ref_property ?ref_value ?property_type ?ref_precision WHERE {{
               VALUES ?sid {{ <{sid}> }}
 
               ?sid prov:wasDerivedFrom ?srid.
               ?srid ?ref_predicate ?ref_value.
               ?ref_property wikibase:reference ?ref_predicate.
               ?ref_property wikibase:propertyType ?property_type.
+              # The precision of a time value, from the value node holding the same timestamp
+              OPTIONAL {{
+                ?ref_property wikibase:referenceValue ?ref_value_predicate.
+                ?srid ?ref_value_predicate ?ref_value_node.
+                ?ref_value_node wikibase:timeValue ?ref_value;
+                                wikibase:timePrecision ?ref_precision.
+              }}
             }}
             ORDER BY ?srid
             OFFSET {offset}
@@ -427,6 +473,8 @@ class FastRunContainer:
                 if f is None:
                     log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the reference snak", prop_nr)
                     continue
+
+                self._set_precision(f, result, 'ref_precision')
 
                 if srid not in reference:
                     reference[srid] = Reference()
@@ -556,10 +604,9 @@ class FastRunContainer:
                 log.debug("Difference in number of qualifiers, '%i' != '%i'", qualifiers.count(), claim.qualifiers.count())
                 return False
 
-            for qualifier in qualifiers:
-                if qualifier not in claim.qualifiers:
-                    log.debug("Difference between two qualifiers")
-                    return False
+            if collections.Counter(map(self._snak_key, qualifiers)) != collections.Counter(map(self._snak_key, claim.qualifiers)):
+                log.debug("Difference between two qualifiers")
+                return False
 
         if use_references:
             references = self._load_references(sid, cache=cache)
@@ -568,10 +615,13 @@ class FastRunContainer:
                 log.debug("Difference in number of references, '%i' != '%i'", len(references), len(claim.references))
                 return False
 
-            for reference in references:
-                if reference not in claim.references:
-                    log.debug("Difference between two references")
-                    return False
+            # A reference is compared through its snaks, whatever their order
+            def reference_key(reference: Reference) -> tuple[str, ...]:
+                return tuple(sorted(map(self._snak_key, reference)))
+
+            if collections.Counter(map(reference_key, references)) != collections.Counter(map(reference_key, claim.references)):
+                log.debug("Difference between two references")
+                return False
 
         if use_rank:
             rank = self._load_rank(sid, cache=cache)
