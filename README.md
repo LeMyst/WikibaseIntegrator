@@ -102,6 +102,7 @@ wikibaseintegrator~=0.12.15
 - [Helper Methods](#helper-methods)
     - [Use MediaWiki API](#use-mediawiki-api)
     - [Execute SPARQL queries](#execute-sparql-queries)
+        - [Wikimedia Commons Query Service](#wikimedia-commons-query-service)
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
     - [Check a Wikibase instance](#check-a-wikibase-instance)
@@ -721,6 +722,9 @@ media.claims.add(Item(prop_nr='P180', value='Q3146211'))
 media.write()
 ```
 
+To query Structured Data on Commons with SPARQL, or to use the fast run mode with MediaInfo entities, see
+[Wikimedia Commons Query Service](#wikimedia-commons-query-service).
+
 # More than Wikibase #
 
 WikibaseIntegrator natively supports some extensions:
@@ -785,6 +789,28 @@ wbi_helpers.execute_sparql_query(query, headers={'Authorization': 'Bearer <token
 wbi_config['SPARQL_AUTH'] = ('username', 'password')
 wbi_helpers.execute_sparql_query(query)
 ```
+
+### Wikimedia Commons Query Service ###
+
+The SPARQL endpoint of Structured Data on Commons, the [Wikimedia Commons Query Service](https://commons-query.wikimedia.org/)
+(WCQS), authenticates with a long-lived `wcqsOauth` cookie. There is no API to get it: copy it from a web browser logged
+in to WCQS, as explained in [Commons:SPARQL query service/API endpoint](https://commons.wikimedia.org/wiki/Commons:SPARQL_query_service/API_endpoint).
+`wbi_login.WCQSAuth` sends it, and keeps the short-lived session cookie WCQS sets in return:
+
+```python
+from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_login import WCQSAuth
+
+wbi_config['SPARQL_ENDPOINT_URL'] = 'https://commons-query.wikimedia.org/sparql'
+wbi_config['WIKIBASE_URL'] = 'https://commons.wikimedia.org'
+# Every query, including the ones of the fast run mode, is authenticated
+wbi_config['SPARQL_AUTH'] = WCQSAuth('<wcqsOauth cookie>')
+
+wbi_helpers.execute_sparql_query('SELECT ?file WHERE { ?file wdt:P180 wd:Q146 } LIMIT 10')
+```
+
+An invalid or revoked cookie raises a `WCQSAuthenticationError`, instead of being retried.
 
 ## Wikibase search entities ##
 

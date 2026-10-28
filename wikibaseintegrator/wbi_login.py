@@ -9,13 +9,15 @@ from urllib.parse import parse_qs, urlencode
 
 import requests
 from oauthlib.oauth2 import BackendApplicationClient, InvalidClientError
-from requests import Session
+from requests import PreparedRequest, Response, Session
+from requests.auth import AuthBase
 from requests.cookies import RequestsCookieJar
 from requests_oauthlib import OAuth1 as OAuth1Auth
 from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_exceptions import WCQSAuthenticationError
 from wikibaseintegrator.wbi_helpers import get_user_agent
 
 log = logging.getLogger(__name__)
@@ -430,6 +432,56 @@ class Clientlogin(_Login):
         self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
         self.generate_edit_credentials()
         self.instantiation_time = time.time()
+
+
+class WCQSAuth(AuthBase):
+    """
+    Authentication for the Wikimedia Commons Query Service (WCQS, https://commons-query.wikimedia.org/), the SPARQL
+    endpoint of Structured Data on Commons, e.g. to use the fast run mode with MediaInfo entities.
+
+    WCQS authenticates with the long-lived 'wcqsOauth' cookie. There is no API to get it: copy it from a web browser
+    logged in to WCQS, see https://commons.wikimedia.org/wiki/Commons:SPARQL_query_service/API_endpoint. WCQS answers
+    with a redirect setting a short-lived 'wcqsSession' cookie, which the HTTP session of WikibaseIntegrator keeps for
+    the next queries.
+
+    To authenticate every query, including the ones of the fast run mode::
+
+        wbi_config['SPARQL_ENDPOINT_URL'] = 'https://commons-query.wikimedia.org/sparql'
+        wbi_config['SPARQL_AUTH'] = WCQSAuth('<wcqsOauth cookie>')
+
+    An invalid or revoked cookie raises a WCQSAuthenticationError.
+    """
+
+    def __init__(self, oauth_cookie: str):
+        """
+        :param oauth_cookie: The value of the 'wcqsOauth' cookie, two hexadecimal strings separated by a period.
+        """
+        if not oauth_cookie or not oauth_cookie.strip():
+            raise ValueError("The value of the 'wcqsOauth' cookie is required")
+        self.oauth_cookie = oauth_cookie.strip()
+
+    def __call__(self, r: PreparedRequest) -> PreparedRequest:
+        # Add the cookie to the ones of the session (the wcqsSession cookie) instead of replacing them
+        cookie = f'wcqsOauth={self.oauth_cookie}'
+        current = r.headers.get('Cookie')
+        if isinstance(current, bytes):
+            current = current.decode('latin-1')
+        r.headers['Cookie'] = f'{current}; {cookie}' if current else cookie
+        r.register_hook('response', self._check_response)
+        return r
+
+    @staticmethod
+    def _check_response(response: Response, *_args: Any, **_kwargs: Any) -> Response:
+        # WCQS redirects a request with an invalid cookie to the login page of Wikimedia Commons. Without this check, the
+        # HTML page fails as a JSON decoding error, which is retried with backoff.
+        if not response.is_redirect and 'text/html' in response.headers.get('Content-Type', ''):
+            raise WCQSAuthenticationError("The Wikimedia Commons Query Service returned an HTML page instead of the query results: the wcqsOauth cookie is "
+                                          "invalid or was revoked, see https://commons.wikimedia.org/wiki/Commons:SPARQL_query_service/API_endpoint")
+        return response
+
+    def __repr__(self) -> str:
+        # Never expose the cookie, e.g. in the logs
+        return '<WCQSAuth>'
 
 
 class LoginError(Exception):
