@@ -184,7 +184,8 @@ class _WCQSHandler(BaseHTTPRequestHandler):
         elif 'wcqsOauth=good.cookie' in cookie:
             # A valid wcqsOauth cookie without session: WCQS sets the session cookie with a redirect
             self.send_response(307)
-            self.send_header('Location', self.path)
+            # A fixed location, the request path is not reflected in a header
+            self.send_header('Location', '/sparql')
             self.send_header('Set-Cookie', 'wcqsSession=jwt123; Path=/; HttpOnly')
             self.send_header('Content-Length', '0')
             self.end_headers()
