@@ -10,12 +10,14 @@ import pytest
 import requests
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_helpers
+from wikibaseintegrator.datatypes import Item, MonolingualText, Quantity, String, Time
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
+from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
                                                NonExistentEntityError, SaveFailed)
-from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances,
-                                            get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call,
-                                            mediawiki_api_call_helper, merge_items, merge_multiple_items, remove_claims, search_entities)
+from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount, fulltext_search,
+                                            generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense,
+                                            mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, remove_claims, search_entities)
 
 
 class FakeLogin:
@@ -449,6 +451,74 @@ class TestSearchEntities:
         assert 'strictlanguage' in wikibase.last_request
         assert wikibase.last_request['limit'] == '10'
         assert len(results) == 10
+
+
+class TestEmptyValues:
+    """A snak of the 'value' type without value is rejected before the write, with an explicit error (#496)."""
+
+    @staticmethod
+    def _item(*claims):
+        item = WikibaseIntegrator().item.new()
+        item.claims.add(list(claims))
+        return item
+
+    @pytest.mark.parametrize('claim', [String(value='', prop_nr='P1'), String(value=None, prop_nr='P1'), Item(prop_nr='P1'), Time(prop_nr='P1'),
+                                       MonolingualText(text='', language='en', prop_nr='P1')])
+    def test_empty_claim(self, wikibase, claim):
+        with pytest.raises(EmptyValueError, match='Missing value for: claim P1. Set a value, or use the WikibaseSnakType.NO_VALUE') as excinfo:
+            self._item(claim).write(allow_anonymous=True)
+
+        assert isinstance(excinfo.value, ValueError)
+        # Nothing was sent to the Wikibase instance
+        assert not wikibase.edits
+
+    def test_empty_qualifier_and_reference(self, wikibase):
+        claim = String(value='abc', prop_nr='P1', qualifiers=[Time(prop_nr='P585')], references=[[String(value='', prop_nr='P854')]])
+
+        with pytest.raises(EmptyValueError) as excinfo:
+            self._item(claim).write(allow_anonymous=True)
+
+        assert 'qualifier P585 of a P1 claim' in str(excinfo.value)
+        assert 'reference P854 of a P1 claim' in str(excinfo.value)
+
+    def test_all_problems_are_listed(self, wikibase):
+        with pytest.raises(EmptyValueError, match='Missing value for: claim P1, claim P2. '):
+            self._item(String(value='', prop_nr='P1'), String(value='', prop_nr='P2')).write(allow_anonymous=True)
+
+    def test_values_are_written(self, wikibase):
+        """No value and unknown value snaks, and falsy values like 0, are valid."""
+        item = self._item(String(prop_nr='P1', snaktype=WikibaseSnakType.NO_VALUE), String(prop_nr='P2', snaktype=WikibaseSnakType.UNKNOWN_VALUE),
+                          Quantity(amount=0, prop_nr='P3', qualifiers=[String(prop_nr='P4', snaktype=WikibaseSnakType.NO_VALUE)]))
+
+        item.write(allow_anonymous=True)
+
+        assert len(wikibase.edits) == 1
+
+    def test_removed_statement_is_not_checked(self, wikibase):
+        data = {'claims': [{'id': 'Q1$abc', 'mainsnak': {'snaktype': 'value', 'property': 'P1'}, 'type': 'statement', 'remove': ''}]}
+        edit_entity(data=data, id='Q582', allow_anonymous=True)
+
+    def test_mediainfo_statements(self, wikibase):
+        data = {'statements': {'P180': [{'mainsnak': {'snaktype': 'value', 'property': 'P180', 'datavalue': {}}, 'type': 'statement'}]}}
+
+        with pytest.raises(EmptyValueError, match='claim P180'):
+            edit_entity(data=data, id='M1', allow_anonymous=True)
+
+    def test_lexeme_forms_and_senses(self, wikibase):
+        empty_claims = {'P1': [{'mainsnak': {'snaktype': 'value', 'property': 'P1', 'datavalue': {}}, 'type': 'statement'}]}
+        data = {'forms': [{'add': '', 'claims': empty_claims}], 'senses': [{'id': 'L5-S1', 'claims': empty_claims}]}
+
+        with pytest.raises(EmptyValueError, match=r'form \(new\): claim P1, sense L5-S1: claim P1'):
+            edit_entity(data=data, id='L5', allow_anonymous=True)
+
+    def test_lexeme_add_form(self, wikibase):
+        data = {'representations': {'en': {'language': 'en', 'value': 'test'}}, 'grammaticalFeatures': [],
+                'claims': [{'mainsnak': {'snaktype': 'value', 'property': 'P1', 'datavalue': {}}, 'type': 'statement'}]}
+
+        with pytest.raises(EmptyValueError, match='claim P1'):
+            lexeme_add_form('L5', data=data, allow_anonymous=True)
+
+        assert 'wbladdform' not in [request.get('action') for request in wikibase.requests]
 
 
 class TestCheckConstraints:

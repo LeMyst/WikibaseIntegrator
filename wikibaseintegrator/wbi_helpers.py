@@ -20,7 +20,7 @@ from requests.auth import AuthBase
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
                                                NonExistentEntityError, SaveFailed, SearchError)
 
 if TYPE_CHECKING:
@@ -395,6 +395,56 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     return response.json()
 
 
+def _check_empty_values(data: Any) -> None:
+    """
+    Check that every snak of the data sent to the API has a value when its snak type states that it has one: a datatype
+    created with None or an empty string as value has an empty datavalue, which the Wikibase instance rejects with a
+    less explicit error (#496). The statements of the forms and senses of a lexeme are checked too.
+
+    :param data: The JSON representation of an entity, a form or a sense
+    :exception EmptyValueError: if at least one snak has no value
+    """
+    problems: list[str] = []
+
+    def check_snak(snak: Any, description: str) -> None:
+        if isinstance(snak, dict) and snak.get('snaktype', 'value') == 'value' and not snak.get('datavalue'):
+            problems.append(description)
+
+    def check_statements(entity: dict, owner: str) -> None:
+        statements = entity.get('claims', entity.get('statements')) or []
+        if isinstance(statements, dict):
+            statements = [statement for property_statements in statements.values() for statement in property_statements]
+
+        for statement in statements:
+            # A statement being removed only needs its ID
+            if not isinstance(statement, dict) or 'remove' in statement:
+                continue
+
+            mainsnak = statement.get('mainsnak') or {}
+            property_number = mainsnak.get('property')
+            check_snak(mainsnak, f'{owner}claim {property_number}')
+            for snaks in (statement.get('qualifiers') or {}).values():
+                for snak in snaks:
+                    check_snak(snak, f"{owner}qualifier {snak.get('property')} of a {property_number} claim")
+            for reference in statement.get('references') or []:
+                for snaks in (reference.get('snaks') or {}).values():
+                    for snak in snaks:
+                        check_snak(snak, f"{owner}reference {snak.get('property')} of a {property_number} claim")
+
+    if not isinstance(data, dict):
+        return
+
+    check_statements(data, owner='')
+    for section, name in (('forms', 'form'), ('senses', 'sense')):
+        for sub_entity in data.get(section) or []:
+            if isinstance(sub_entity, dict):
+                check_statements(sub_entity, owner=f"{name} {sub_entity.get('id', '(new)')}: ")
+
+    if problems:
+        raise EmptyValueError(f"Missing value for: {', '.join(problems)}. Set a value, or use the WikibaseSnakType.NO_VALUE or WikibaseSnakType.UNKNOWN_VALUE "
+                              f"snak type to state that there is no value or an unknown value.")
+
+
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
                 tags: list[str] | None = None, site: str | None = None, title: str | None = None, **kwargs: Any) -> dict:
     """
@@ -414,6 +464,8 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     :param kwargs: More arguments for Python requests
     :return: The answer from the Wikibase API
     """
+    _check_empty_values(data)
+
     params = {
         'action': 'wbeditentity',
         'data': ujson.dumps(data),
@@ -691,6 +743,8 @@ def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[st
 
     """
 
+    _check_empty_values(data)
+
     params = {
         'action': 'wbladdform',
         'lexemeId': lexeme_id,
@@ -731,6 +785,8 @@ def lexeme_edit_form(form_id: str, data, baserevid: int | None = None, tags: lis
         raise ValueError(f"Invalid Form ID ({form_id}), format must be 'L[0-9]+-F[0-9]+'")
 
     form_id = matches.group(1)
+
+    _check_empty_values(data)
 
     params = {
         'action': 'wbleditformelements',
@@ -804,6 +860,8 @@ def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[s
 
     """
 
+    _check_empty_values(data)
+
     params = {
         'action': 'wbladdsense',
         'lexemeId': lexeme_id,
@@ -844,6 +902,8 @@ def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: l
         raise ValueError(f"Invalid Sense ID ({sense_id}), format must be 'L[0-9]+-S[0-9]+'")
 
     sense_id = matches.group(1)
+
+    _check_empty_values(data)
 
     params = {
         'action': 'wbleditsenseelements',

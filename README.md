@@ -37,6 +37,10 @@ v0.13 contains changes that are not backward compatible with v0.12:
   `execute_sparql_query()`.
 - **Anonymous edits** that are not explicitly allowed raise `AnonymousEditNotAllowedError` instead of a bare
   `Exception`.
+- **Empty values are rejected before the write**: a claim, qualifier or reference created with `None` or an empty
+  string as value raises `EmptyValueError` (a `ValueError`) listing every empty value, instead of being sent and
+  rejected by the API with an `MWApiError`. Use the `WikibaseSnakType.NO_VALUE` or `WikibaseSnakType.UNKNOWN_VALUE`
+  snak type to state that there is no value or an unknown value.
 - **`mwoauth` is no longer a dependency**: OAuth1 is implemented with `oauthlib` directly. Install `mwoauth` yourself
   if your own code imports it.
 - **`wbi_helpers.default_session` and `wbi_helpers.helpers_session` are deprecated**: requests made without a login
