@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_exceptions import AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed
 from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, execute_sparql_query, format2wbi, format_amount, fulltext_search, generate_entity_instances,
                                             get_user_agent, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items,
-                                            remove_claims, search_entities)
+                                            merge_multiple_items, remove_claims, search_entities)
 
 
 class FakeLogin:
@@ -416,6 +416,40 @@ class TestEditHelpers:
         assert request['fromid'] == 'Q1'
         assert request['toid'] == 'Q2'
         assert request['ignoreconflicts'] == 'description'
+        assert 'tags' not in request
+
+    def test_merge_items_tags(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        merge_items(from_id='Q1', to_id='Q2', login=login, tags=['tag1', 'tag2'])
+
+        assert wikibase.last_request['tags'] == 'tag1|tag2'
+
+    def test_merge_multiple_items(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        to_id = merge_multiple_items(['Q100', 'q30', 'Q5', 'Q30'], login=login, ignore_conflicts=['description', 'sitelink'], tags=['tag1'])
+
+        assert to_id == 'Q5'
+        merges = [request for request in wikibase.requests if request.get('action') == 'wbmergeitems']
+        assert [(request['fromid'], request['toid']) for request in merges] == [('Q30', 'Q5'), ('Q100', 'Q5')]
+        assert all(request['ignoreconflicts'] == 'description|sitelink' for request in merges)
+        assert all(request['tags'] == 'tag1' for request in merges)
+
+    @pytest.mark.parametrize('item_ids', [[], ['Q1'], ['Q1', 'q1'], ['Q1', 'P2'], ['Q1', 'L3'], ['Q1', 'Qfoo'], ['Q1', '2']])
+    def test_merge_multiple_items_invalid(self, wikibase, item_ids):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        with pytest.raises(ValueError):
+            merge_multiple_items(item_ids, login=login)
+
+        assert not wikibase.requests
+
+    def test_merge_multiple_items_stops_on_error(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        wikibase.fail_next(code='failed-modify', info='Conflicting descriptions for language en.')
+        with pytest.raises(MWApiError):
+            merge_multiple_items(['Q1', 'Q2', 'Q3'], login=login)
+
+        merges = [request for request in wikibase.requests if request.get('action') == 'wbmergeitems']
+        assert [request['fromid'] for request in merges] == ['Q2']
 
     def test_remove_claims(self, wikibase):
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)

@@ -394,15 +394,17 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+                **kwargs: Any) -> dict:
     """
-    A static method to merge two items
+    A static method to merge two items. Wikibase turns the emptied item into a redirect to the target item.
 
     :param from_id: The ID to merge from. This parameter is required.
     :param to_id: The ID to merge to. This parameter is required.
     :param login: A wbi_login.Login instance
     :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
     :param is_bot: Mark this edit as bot.
+    :param tags: Change tags to apply to the revision.
     """
 
     params = {
@@ -418,7 +420,46 @@ def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_co
     if is_bot:
         params.update({'bot': ''})
 
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
+
+
+def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+                         **kwargs: Any) -> str:
+    """
+    Merge several items into the one with the lowest numeric ID, one wbmergeitems call per merged item.
+    Each merged item is turned into a redirect by Wikibase.
+
+    If a merge fails, the exception is raised and the merges already done are kept.
+
+    :param item_ids: The IDs of the items to merge (at least two distinct IDs).
+    :param login: A wbi_login.Login instance
+    :param ignore_conflicts: List of elements of the item to ignore conflicts for. Can only contain values of "description", "sitelink" and "statement"
+    :param is_bot: Mark these edits as bot.
+    :param tags: Change tags to apply to the revisions.
+    :return: The ID of the item all the others were merged into.
+    """
+
+    ids = []
+    for item_id in item_ids:
+        if not re.fullmatch(r'Q\d+', item_id.upper()):
+            raise ValueError(f"Invalid item ID: {item_id}")
+        if item_id.upper() not in ids:
+            ids.append(item_id.upper())
+
+    if len(ids) < 2:
+        raise ValueError("At least two distinct item IDs are required to merge.")
+
+    ids.sort(key=lambda x: int(x[1:]))
+    to_id = ids[0]
+
+    for from_id in ids[1:]:
+        merge_items(from_id=from_id, to_id=to_id, login=login, ignore_conflicts=ignore_conflicts, is_bot=is_bot, tags=tags, **kwargs)
+        log.info(f"Merged {from_id} into {to_id}")
+
+    return to_id
 
 
 def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
