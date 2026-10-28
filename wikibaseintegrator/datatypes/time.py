@@ -105,8 +105,32 @@ class Time(BaseDataType):
                 'type': 'time'
             }
 
+    @staticmethod
+    def sparql_time(time: str, precision: int | None = None) -> str:
+        """
+        Return the timestamp in the form the Wikibase RDF export stores it: the month and the day are set to 01 when
+        they are unknown ('00') or below the precision. '+1987-00-00T00:00:00Z' and '+1987-05-17T00:00:00Z' with a year
+        precision both become '+1987-01-01T00:00:00Z'.
+
+        :param time: A timestamp, as found in the JSON representation.
+        :param precision: The precision of the timestamp.
+        :return: The normalized timestamp.
+        """
+        matches = re.match(r'^([+-]?[0-9]+)-([0-9]{2})-([0-9]{2})(T.*)$', time)
+        if not matches:
+            return time
+
+        year, month, day, rest = matches.groups()
+        if month == '00' or (precision is not None and precision < WikibaseTimePrecision.MONTH.value):
+            month = '01'
+        if day == '00' or (precision is not None and precision < WikibaseTimePrecision.DAY.value):
+            day = '01'
+
+        return f'{year}-{month}-{day}{rest}'
+
     def get_sparql_value(self, **kwargs: Any) -> str:
-        return '"' + self.mainsnak.datavalue['value']['time'] + '"^^xsd:dateTime'
+        value = self.mainsnak.datavalue['value']
+        return '"' + self.sparql_time(value['time'], value.get('precision')) + '"^^xsd:dateTime'
 
     def _time_parts(self) -> tuple[int, int, int]:
         """
