@@ -120,12 +120,18 @@ class BaseEntity:
     def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         """
 
-        :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
-        :param action_if_exists: Replace or append the statement. You can force an addition if the declaration already exists.
-            KEEP: The original claim will be kept and the new one will not be added (because there is already one with this property number)
-            APPEND_OR_REPLACE: The new claim will be added only if the new one is different (by comparing values)
-            FORCE_APPEND: The new claim will be added even if already exists
-            REPLACE_ALL: The new claim will replace the old one
+        :param claims: A Claim, list of Claim or just a Claims object to add to the claims of this entity.
+        :param action_if_exists: What to do when the property already has claims. Two claims are equal when they have the
+            same property, value and qualifiers (the rank and the references are not compared). Defaults to APPEND_OR_REPLACE.
+            APPEND_OR_REPLACE: Add the new claim if no equal claim exists. Otherwise, update the equal claim in place
+            (same statement) instead of adding a duplicate: it takes the rank of the new claim if set (not normal), and
+            its references if it has some (they replace the existing references). The other claims of the property are kept.
+            MERGE_REFS_OR_APPEND: Add the new claim if no equal claim exists. Otherwise, add the references of the new
+            claim missing from the equal claim. The other claims of the property are kept.
+            FORCE_APPEND: Always add the new claim, even if an equal claim exists (duplicate statement).
+            KEEP: Add the new claim only if the property has no claim yet, otherwise do nothing.
+            REPLACE_ALL: Remove the claims of the property that are not equal to one of the new claims, then add the new
+            claims not already present. The equal claims are kept as they are.
         :return: Return the updated entity object.
         """
 
