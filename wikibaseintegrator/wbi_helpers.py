@@ -20,8 +20,8 @@ from requests.auth import AuthBase
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed,
-                                               SearchError)
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
+                                               NonExistentEntityError, SaveFailed, SearchError)
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -77,6 +77,57 @@ class BColors:
 # failing call can still look valid, since generate_edit_credentials() reads it off the very session
 # cookies that are now rejected; recovering requires a full re-login instead.
 SESSION_LOST_ERROR_CODES = {'assertuserfailed', 'assertbotfailed', 'notloggedin'}
+
+# The entity types provided by the WikibaseLexeme extension, and the IDs of these entities (L1, L1-F1, L1-S1),
+# optionally prefixed by a federated repository name.
+LEXEME_ENTITY_TYPES = ('lexeme', 'form', 'sense')
+LEXEME_ID_PATTERN = re.compile(r'^(?:[a-zA-Z]+:)?L[1-9][0-9]*(?:-[FS][1-9][0-9]*)?$')
+
+
+def _creatable_entity_types(mediawiki_api_url: str, session: Session, timeout: Any) -> list[str]:
+    """
+    Return the entity types the Wikibase instance can create with wbeditentity, e.g. ['item', 'property'] on a
+    Wikibase instance without extension, plus 'lexeme', 'form' and 'sense' with WikibaseLexeme.
+    """
+    # A single attempt without waiting: this check only improves an error message
+    json_data = mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, max_retries=1, retry_after=0, timeout=timeout,
+                                   data={'action': 'paraminfo', 'modules': 'wbeditentity'})
+    for parameter in json_data['paraminfo']['modules'][0]['parameters']:
+        if parameter['name'] == 'new':
+            return list(parameter['type'])
+    return []
+
+
+def _lexeme_support_missing(data: dict[str, Any], error: dict[str, Any], mediawiki_api_url: str, session: Session, timeout: Any) -> bool:
+    """
+    Check whether an API error comes from a Lexeme request sent to a Wikibase instance without lexeme support (#500).
+    Such an instance doesn't know the Lexeme API actions, the lexeme entity types, nor the lexeme IDs.
+
+    :param data: The parameters of the failed request
+    :param error: The error returned by the API
+    :return: True if the error is caused by the missing WikibaseLexeme extension
+    """
+    code = str(error.get('code', ''))
+    info = str(error.get('info', ''))
+    action = str(data.get('action', ''))
+
+    # 'Unrecognized value for parameter "action": wbladdform.' or 'Unrecognized value for parameter "new": lexeme.'
+    # The code is 'badvalue' since MediaWiki 1.35, 'unknown_<parameter>' before.
+    if code == 'badvalue' or code.startswith('unknown_'):
+        if action.startswith('wbl') and 'parameter "action"' in info:
+            return True
+        return data.get('new') in LEXEME_ENTITY_TYPES and 'parameter "new"' in info
+
+    # A repository supporting lexemes reports a missing lexeme as 'missing' in the wbgetentities response, the
+    # 'no-such-entity' error means the ID itself is unknown. Confirm with the entity types the instance can create.
+    if code == 'no-such-entity' and action == 'wbgetentities' and LEXEME_ID_PATTERN.match(str(error.get('id', ''))):
+        try:
+            return 'lexeme' not in _creatable_entity_types(mediawiki_api_url=mediawiki_api_url, session=session, timeout=timeout)
+        except (MWApiError, MaxRetriesReachedException, requests.RequestException, KeyError, IndexError, TypeError, ValueError):
+            log.debug("Unable to check the lexeme support of the Wikibase instance", exc_info=True)
+            return False
+
+    return False
 
 
 def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 100, retry_after: int = 60,
@@ -163,6 +214,11 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 if 'data' in kwargs and kwargs['data'] and 'token' in kwargs['data']:
                     kwargs['data']['token'] = login.get_edit_token()
                 continue
+
+            # Lexeme request on a Wikibase instance without the WikibaseLexeme extension
+            if _lexeme_support_missing(data=kwargs.get('data') or {}, error=json_data['error'], mediawiki_api_url=mediawiki_api_url, session=session,
+                                       timeout=kwargs['timeout']):
+                raise MissingExtensionError(json_data['error'], extension='WikibaseLexeme')
 
             # non-existent error
             if 'code' in json_data['error'] and json_data['error']['code'] in ['no-such-entity', 'missingtitle']:

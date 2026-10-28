@@ -80,6 +80,7 @@ class MockWikibase:
         self.fulltext_results: list[dict] = []  # list=search results
         self.sparql_bindings: list[dict] = []  # bindings returned by the SPARQL endpoint
         self.constraint_results: dict[str, list[dict]] = {}  # wbcheckconstraints results, keyed by entity id
+        self.entity_types: list[str] = ['item', 'property', 'lexeme', 'form', 'sense']  # entity types wbeditentity can create (paraminfo)
         self.valid_credentials: dict[str, str] = {}  # user -> password accepted by (client)login
         self.login_token = 'aabbccddeeff+\\'
         self.csrf_token = '0123456789abcdef+\\'
@@ -377,6 +378,11 @@ class MockWikibase:
             return {'clientlogin': {'status': 'PASS', 'username': user}}
 
         return {'clientlogin': {'status': 'FAIL', 'message': 'Incorrect username or password entered. Please try again.', 'messagecode': 'wrongpassword'}}
+
+    def _action_paraminfo(self, params: dict[str, str]) -> dict:
+        if params.get('modules') != 'wbeditentity':
+            return {'paraminfo': {'modules': []}}
+        return {'paraminfo': {'modules': [{'name': 'wbeditentity', 'parameters': [{'name': 'new', 'type': list(self.entity_types)}]}]}}
 
     def _action_wbsearchentities(self, params: dict[str, str]) -> dict:
         offset = int(params.get('continue', 0))
