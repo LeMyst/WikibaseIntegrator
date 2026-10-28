@@ -19,6 +19,7 @@ Submodules
 
    wikibaseintegrator.wbi_backoff
    wikibaseintegrator.wbi_config
+   wikibaseintegrator.wbi_editgroups
    wikibaseintegrator.wbi_enums
    wikibaseintegrator.wbi_exceptions
    wikibaseintegrator.wbi_fastrun

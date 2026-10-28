@@ -97,6 +97,7 @@ wikibaseintegrator~=0.12.15
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
     - [Other helpers](#other-helpers)
+    - [Track the edits with EditGroups](#track-the-edits-with-editgroups)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
     - [Create a new Item](#create-a-new-item)
     - [Modify an existing item](#modify-an-existing-item)
@@ -827,6 +828,33 @@ to_id = wbi_helpers.merge_multiple_items(['Q100', 'Q30', 'Q5'], login=login)  # 
 * `download_entity_ttl()`: download the RDF (Turtle) representation of an entity.
 
 Some examples are available in the [wbi_helpers.ipynb](notebooks/wbi_helpers.ipynb) notebook.
+
+## Track the edits with EditGroups ##
+
+[EditGroups](https://www.wikidata.org/wiki/Wikidata:Edit_groups) tracks the edits of a bot on Wikidata as a batch,
+which can be reviewed, discussed and reverted at once. An edit is part of a batch when its summary ends with a link to
+the batch, which `EditGroup` generates:
+
+```python
+from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import Item
+from wikibaseintegrator.wbi_editgroups import EditGroup
+
+wbi = WikibaseIntegrator(login=login_instance)
+
+# One EditGroup per batch, with a random batch ID
+editgroup = EditGroup()
+print(editgroup.url)  # https://editgroups.toolforge.org/b/CB/<batch ID>/
+
+for qid in ['Q582', 'Q90']:
+    item = wbi.item.get(qid)
+    item.claims.add(Item(value='Q484170', prop_nr='P31'))
+    # "Add instance of ([[:toolforge:editgroups/b/CB/<batch ID>|details]])"
+    item.write(summary=editgroup.summary('Add instance of'))
+```
+
+To add edits to an existing batch, for example after a restart of the bot, pass its ID: `EditGroup('89ead4fe')`. A
+summary that is too long is shortened, so that the link is never truncated.
 
 # Examples (in "normal" mode) #
 
