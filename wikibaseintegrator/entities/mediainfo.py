@@ -1,3 +1,11 @@
+"""
+MediaInfo entity, used by Structured Data on Commons (SDC).
+
+.. warning::
+    Beta: Structured Data on Commons has no stable interface policy (https://phabricator.wikimedia.org/T149410) and its
+    API is not versioned, so it can change without notice. This module follows these changes and may change in a minor
+    release, without a deprecation period.
+"""
 from __future__ import annotations
 
 import re
@@ -12,6 +20,12 @@ from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
 class MediaInfoEntity(TermsEntity):
+    """
+    A MediaInfo entity (M-ID), holding the structured data of a media file hosted on Wikimedia Commons.
+
+    .. warning::
+        Beta: Structured Data on Commons has no stable interface policy, see the module documentation.
+    """
     ETYPE = 'mediainfo'
 
     def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:

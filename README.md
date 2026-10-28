@@ -522,10 +522,11 @@ an external resource.
 
 WikibaseIntegrator supports the manipulation of Item, Property, Lexeme and MediaInfo entities through these classes:
 
-* wikibaseintegrator.entities.item.Item
-* wikibaseintegrator.entities.property.Property
-* wikibaseintegrator.entities.lexeme.Lexeme
-* wikibaseintegrator.entities.mediainfo.MediaInfo
+* wikibaseintegrator.entities.item.ItemEntity
+* wikibaseintegrator.entities.property.PropertyEntity
+* wikibaseintegrator.entities.lexeme.LexemeEntity
+* wikibaseintegrator.entities.mediainfo.MediaInfoEntity (beta,
+  see [Structured Data on Commons](#structured-data-on-commons))
 
 Features:
 
@@ -663,6 +664,14 @@ type instances for references and qualifiers.
 
 WikibaseIntegrator supports SDC (Structured Data on Commons) to update a media file hosted on Wikimedia Commons.
 
+> [!WARNING]
+> **The MediaInfo support is in beta.** Unlike [MediaWiki](https://www.mediawiki.org/wiki/Stable_interface_policy) and
+> [Wikidata](https://www.wikidata.org/wiki/Wikidata:Stable_Interface_Policy), Structured Data on Commons has no stable
+> interface policy ([T149410](https://phabricator.wikimedia.org/T149410)) and its API is not versioned, so it can change
+> without notice. `MediaInfoEntity` (`wbi.mediainfo`) follows these changes and may change in a minor release, without
+> a deprecation period. The Commons-related datatypes used on Wikidata (CommonsMedia, GeoShape, TabularData) are not
+> affected.
+
 > [!IMPORTANT]
 > To ease the compatibility between Wikidata and Wikimedia Commons, the MediaInfo entity use the "claims" field instead of the "statements" from the API.
 > When you read a MediaInfo entity, the "claims" field will be filled with the data from the "statements" field.
@@ -699,7 +708,7 @@ media.write()
 
 WikibaseIntegrator natively supports some extensions:
 
-* MediaInfo entity - [WikibaseMediaInfo](https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo)
+* MediaInfo entity (beta, see [Structured Data on Commons](#structured-data-on-commons)) - [WikibaseMediaInfo](https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo)
 * EDTF datatype - [Wikibase EDTF](https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF)
 * LocalMedia datatype - [Wikibase Local Media](https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media)
 * Lexeme entity and datatype - [WikibaseLexeme](https://www.mediawiki.org/wiki/Extension:WikibaseLexeme)
