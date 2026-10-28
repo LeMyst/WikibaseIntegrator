@@ -16,6 +16,11 @@ TIMEOUT:           Timeout (in seconds) passed to every HTTP request, either a s
 SPARQL_AUTH:       Default authentication used by wbi_helpers.execute_sparql_query() (and so by the fast run mode) when the
                    SPARQL endpoint is protected. Either a (username, password) tuple for HTTP Basic auth or any
                    requests.auth.AuthBase instance. Default: None (no authentication)
+MAX_REQUEST_SIZE:  Maximum size (in bytes) of the entity data sent by a write, once form-encoded. A larger write is
+                   split into several edits: the first one with everything but the statements and as many statements as
+                   fit, then the remaining statements. Use it with a Wikibase instance rejecting large requests with an
+                   HTTP 413 error (e.g. Wikibase.cloud), with a margin for the other parameters of the request.
+                   Default: None (never split)
 """
 
 from typing import Any
@@ -34,6 +39,7 @@ config: dict[str, Any] = {
     'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
     'SPARQL_AUTH': None,
+    'MAX_REQUEST_SIZE': None,
     'WIKIBASE_URL': 'http://www.wikidata.org',
     'DEFAULT_LANGUAGE': 'en',
     'DEFAULT_LEXEME_LANGUAGE': 'Q1860',

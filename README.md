@@ -89,6 +89,7 @@ wikibaseintegrator~=0.12.15
 - [Installation](#installation)
 - [Installation of the development environment](#installation-of-the-development-environment)
 - [Using a Wikibase instance](#using-a-wikibase-instance)
+    - [Request size limit](#request-size-limit)
     - [Wikimedia Foundation User-Agent policy](#wikimedia-foundation-user-agent-policy)
 - [The Core Parts](#the-core-parts)
     - [Entity manipulation](#entity-manipulation)
@@ -508,6 +509,27 @@ wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 ```
 
 You can find more default settings in the file wbi_config.py
+
+## Request size limit ##
+
+Some Wikibase instances (e.g. Wikibase.cloud) reject a request larger than a given size with an
+`HTTP 413 Request Entity Too Large` error, for example when creating an entity with hundreds of statements. Set
+`wbi_config['MAX_REQUEST_SIZE']` (in bytes, for every write) or pass `max_request_size` to `write()` to split such a
+write into several edits: the first one with the labels, descriptions, aliases, sitelinks and as many statements as fit,
+then the remaining statements. Keep a margin under the limit of the instance for the other parameters of the request.
+
+```python
+from wikibaseintegrator.wbi_config import config as wbi_config
+
+wbi_config['MAX_REQUEST_SIZE'] = 500_000  # bytes
+
+item.write()  # written with several edits if needed
+item.write(max_request_size=200_000)  # or for a single write
+```
+
+The edits are not atomic: if one of them fails, the previous ones are kept, and the error says how many were saved
+on which entity. Writing the entity again sends the remaining statements. A single statement, or the data without its
+statements, larger than the limit raises a `ValueError` before anything is written.
 
 ## Wikimedia Foundation User-Agent policy ##
 

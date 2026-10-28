@@ -12,7 +12,7 @@ import warnings
 from dataclasses import dataclass, field
 from time import sleep
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse
+from urllib.parse import quote_plus, urlparse
 
 import requests
 import ujson
@@ -456,8 +456,63 @@ def _check_empty_values(data: Any) -> None:
                               f"snak type to state that there is no value or an unknown value.")
 
 
+def _encoded_size(value: Any) -> int:
+    """
+    The size of a value serialized like the 'data' parameter of a write: JSON, then form-encoded in the request body.
+    Form-encoding works character by character, so the size of a JSON array is the sum of the sizes of its parts.
+    """
+    return len(quote_plus(ujson.dumps(value)))
+
+
+def _split_entity_data(data: dict[str, Any], max_request_size: int) -> list[dict[str, Any]]:
+    """
+    Split the data of an entity whose form-encoded size is larger than max_request_size into several parts, each one
+    under that size (#463): the first part holds everything but the statements and as many statements as fit, the next
+    parts hold the remaining statements.
+
+    :param data: The JSON representation of an entity
+    :param max_request_size: The maximum form-encoded size of each part, in bytes
+    :return: The parts of the data, the data itself if it is small enough
+    :exception ValueError: if the data without its statements, or a single statement, is larger than max_request_size
+    """
+    if _encoded_size(data) <= max_request_size:
+        return [data]
+
+    key = 'claims' if 'claims' in data else 'statements'  # 'statements' for MediaInfo
+    statements = data.get(key) or []
+    if isinstance(statements, dict):
+        statements = [statement for property_statements in statements.values() for statement in property_statements]
+
+    first: dict[str, Any] = {name: value for name, value in data.items() if name != key}
+    first[key] = []
+    current = first
+    current_size = _encoded_size(first)
+    if current_size > max_request_size:
+        raise ValueError(f"The data of the entity without its statements is larger than the maximum request size ({max_request_size} bytes), it can't be split")
+
+    parts = [first]
+    separator_size = len(quote_plus(','))
+    for statement in statements:
+        statement_size = _encoded_size(statement)
+        added_size = statement_size + (separator_size if current[key] else 0)
+        if current_size + added_size > max_request_size:
+            # The statement doesn't fit: it starts a new part
+            current = {key: []}
+            current_size = _encoded_size(current)
+            added_size = statement_size
+            if current_size + added_size > max_request_size:
+                property_number = statement.get('mainsnak', {}).get('property') if isinstance(statement, dict) else None
+                raise ValueError(f"A statement of property {property_number} is larger than the maximum request size ({max_request_size} bytes) on its own")
+            parts.append(current)
+
+        current[key].append(statement)
+        current_size += added_size
+
+    return parts
+
+
 def edit_entity(data: dict, id: str | None = None, type: str | None = None, baserevid: int | None = None, summary: str | None = None, clear: bool = False, is_bot: bool = False,
-                tags: list[str] | None = None, site: str | None = None, title: str | None = None, **kwargs: Any) -> dict:
+                tags: list[str] | None = None, site: str | None = None, title: str | None = None, max_request_size: int | None = None, **kwargs: Any) -> dict:
     """
     Creates a single new Wikibase entity and modifies it with serialised information.
 
@@ -472,45 +527,72 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     :param tags: Change tags to apply to the revision.
     :param site: An identifier for the site on which the page resides. Use together with title to make a complete sitelink.
     :param title: Title of the page to associate. Use together with site to make a complete sitelink.
+    :param max_request_size: Maximum form-encoded size of the data, in bytes. Larger data is written with several edits:
+        the first one with everything but the statements and as many statements as fit, then the remaining statements.
+        The edits are not atomic: if one fails, the previous ones are kept. Default config['MAX_REQUEST_SIZE'] (None,
+        never split).
     :param kwargs: More arguments for Python requests
-    :return: The answer from the Wikibase API
+    :return: The answer from the Wikibase API, of the last edit when the data is split
     """
     _check_empty_values(data)
 
-    params = {
-        'action': 'wbeditentity',
-        'data': ujson.dumps(data),
-        'format': 'json'
-    }
+    if not id and not (site and title) and not type:
+        raise ValueError("The 'type' parameter is mandatory when creating a new entity (no id, site or title given).")
 
-    if baserevid:
-        params.update({'baserevid': str(baserevid)})
+    if max_request_size is None:
+        max_request_size = config['MAX_REQUEST_SIZE']
+    parts = _split_entity_data(data, max_request_size) if max_request_size else [data]
+    if len(parts) > 1:
+        log.info("The data is larger than the maximum request size (%d bytes), it is written with %d edits", max_request_size, len(parts))
 
-    if summary:
-        params.update({'summary': summary})
+    json_result: dict = {}
+    for position, part in enumerate(parts):
+        params = {
+            'action': 'wbeditentity',
+            'data': ujson.dumps(part),
+            'format': 'json'
+        }
 
-    if tags:
-        params.update({'tags': '|'.join(tags)})
+        # The base revision only applies to the first edit, the next ones are based on the previous edit
+        if baserevid and position == 0:
+            params.update({'baserevid': str(baserevid)})
 
-    if id:
-        params.update({'id': id})
-    elif site and title:
-        params.update({
-            'site': site,
-            'title': title
-        })
-    else:
-        if not type:
-            raise ValueError("The 'type' parameter is mandatory when creating a new entity (no id, site or title given).")
-        params.update({'new': type})
+        if summary:
+            params.update({'summary': summary})
 
-    if clear:
-        params.update({'clear': ''})
+        if tags:
+            params.update({'tags': '|'.join(tags)})
 
-    if is_bot:
-        params.update({'bot': ''})
+        if id:
+            params.update({'id': id})
+        elif site and title:
+            params.update({
+                'site': site,
+                'title': title
+            })
+        else:
+            params.update({'new': str(type)})
 
-    return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+        # Only the first edit may clear the entity, the next ones add the remaining statements
+        if clear and position == 0:
+            params.update({'clear': ''})
+
+        if is_bot:
+            params.update({'bot': ''})
+
+        try:
+            json_result = mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+        except Exception as exception:
+            if position > 0:
+                exception.add_note(f"The write was split in {len(parts)} edits to stay under the maximum request size ({max_request_size} bytes): only the first {position} "
+                                   f"were saved, on the entity {id}. Write the entity again to send the remaining statements.")
+            raise
+
+        # The next edits update the entity, created by the first edit if it is a new one
+        if position + 1 < len(parts):
+            id = json_result['entity']['id']
+
+    return json_result
 
 
 def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
