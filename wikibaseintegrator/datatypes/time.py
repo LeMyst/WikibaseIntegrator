@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 import re
 from functools import total_ordering
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
@@ -132,7 +132,7 @@ class Time(BaseDataType):
     def __lt__(self, other):
         return self._time_parts() < other._time_parts()
 
-    def from_sparql_value(self, sparql_value: dict) -> Time:
+    def from_sparql_value(self, sparql_value: dict) -> Self:
         """
         Parse data returned by a SPARQL endpoint and set the value to the object
 

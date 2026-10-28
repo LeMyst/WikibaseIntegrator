@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.string import String
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -13,7 +13,7 @@ class Math(String):
     DTYPE = 'math'
     PTYPE = 'http://wikiba.se/ontology#Math'
 
-    def from_sparql_value(self, sparql_value: dict) -> Math:
+    def from_sparql_value(self, sparql_value: dict) -> Self:
         """
         Parse data returned by a SPARQL endpoint and set the value to the object
 

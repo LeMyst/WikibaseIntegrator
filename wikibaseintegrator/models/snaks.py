@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -20,7 +20,7 @@ class Snaks(BaseModel):
 
         return []
 
-    def add(self, snak: Snak) -> Snaks:
+    def add(self, snak: Snak) -> Self:
         property = snak.property_number
 
         if property not in self.snaks:
@@ -30,7 +30,7 @@ class Snaks(BaseModel):
 
         return self
 
-    def from_json(self, json_data: dict[str, list]) -> Snaks:
+    def from_json(self, json_data: dict[str, list]) -> Self:
         for property in json_data:
             for snak in json_data[property]:
                 self.add(snak=Snak().from_json(snak))
@@ -121,7 +121,7 @@ class Snak(BaseModel):
     def datatype(self, value):
         self.__datatype = value
 
-    def from_json(self, json_data: dict[str, Any]) -> Snak:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.snaktype: WikibaseSnakType = WikibaseSnakType(json_data['snaktype'])
         self.property_number = json_data['property']
         if 'hash' in json_data:

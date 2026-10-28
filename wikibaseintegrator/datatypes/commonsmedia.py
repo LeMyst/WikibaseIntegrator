@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import urllib.parse
+from typing import Self
 
 from wikibaseintegrator.datatypes.url import URL
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
@@ -29,7 +30,7 @@ class CommonsMedia(URL):
                 'type': 'string'
             }
 
-    def from_sparql_value(self, sparql_value: dict) -> CommonsMedia:
+    def from_sparql_value(self, sparql_value: dict) -> Self:
         """
         Parse data returned by a SPARQL endpoint and set the value to the object
 
