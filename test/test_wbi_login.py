@@ -3,10 +3,16 @@ Tests for the login flows (bot password, clientlogin, OAuth) against the
 simulated MediaWiki API. Both the happy paths and the failure paths are
 covered, without any real credentials or network access.
 """
-import pytest
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from wikibaseintegrator import wbi_login
-from wikibaseintegrator.wbi_helpers import edit_entity
+import pytest
+import requests
+
+from wikibaseintegrator import wbi_helpers, wbi_login
+from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_exceptions import WCQSAuthenticationError
+from wikibaseintegrator.wbi_helpers import edit_entity, execute_sparql_query
 from wikibaseintegrator.wbi_login import LoginError
 
 
@@ -163,3 +169,98 @@ class TestOAuth2:
         # The short-lived access token has no refresh token, so renewing the credentials must re-fetch it (not only the CSRF token).
         login.get_edit_token()
         assert token_matcher.call_count > calls_after_init
+
+
+class _WCQSHandler(BaseHTTPRequestHandler):
+    """Emulate the Wikimedia Commons Query Service authentication, with real HTTP cookies."""
+    received: list[str] = []
+
+    def do_POST(self):  # pylint: disable=invalid-name
+        self.rfile.read(int(self.headers.get('Content-Length', 0)))
+        cookie = self.headers.get('Cookie', '')
+        self.received.append(cookie)
+        if 'wcqsSession=jwt123' in cookie:
+            self._send(200, 'application/sparql-results+json', b'{"head": {"vars": []}, "results": {"bindings": [{"x": {"type": "literal", "value": "ok"}}]}}')
+        elif 'wcqsOauth=good.cookie' in cookie:
+            # A valid wcqsOauth cookie without session: WCQS sets the session cookie with a redirect
+            self.send_response(307)
+            # A fixed location, the request path is not reflected in a header
+            self.send_header('Location', '/sparql')
+            self.send_header('Set-Cookie', 'wcqsSession=jwt123; Path=/; HttpOnly')
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+        else:
+            # An invalid cookie ends on the login page of Wikimedia Commons
+            self._send(200, 'text/html; charset=UTF-8', b'<html>Log in to Wikimedia Commons</html>')
+
+    def _send(self, status, content_type, payload):
+        self.send_response(status)
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def log_message(self, *args):  # pylint: disable=arguments-differ
+        pass
+
+
+@pytest.fixture
+def wcqs(monkeypatch):
+    """A local server emulating WCQS, and a fresh HTTP session: cookies are shared by host whatever the port."""
+    monkeypatch.setattr(wbi_helpers._thread_local, 'session', requests.Session(), raising=False)  # pylint: disable=protected-access
+    _WCQSHandler.received = []
+    server = HTTPServer(('127.0.0.1', 0), _WCQSHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f'http://127.0.0.1:{server.server_port}/sparql', _WCQSHandler.received
+    server.shutdown()
+    server.server_close()
+
+
+class TestWCQSAuth:
+    """WCQSAuth authenticates the SPARQL queries to the Wikimedia Commons Query Service (#307)."""
+
+    def test_session_cookie_is_kept(self, wcqs):
+        url, received = wcqs
+        auth = wbi_login.WCQSAuth('good.cookie')
+
+        result = execute_sparql_query('SELECT ?x WHERE {}', endpoint=url, auth=auth)
+        assert result['results']['bindings'][0]['x']['value'] == 'ok'
+        # The first query is redirected to set the session cookie
+        assert received == ['wcqsOauth=good.cookie', 'wcqsSession=jwt123']
+
+        execute_sparql_query('SELECT ?x WHERE {}', endpoint=url, auth=auth)
+        # The next query sends both cookies, without redirect
+        assert received[2:] == ['wcqsSession=jwt123; wcqsOauth=good.cookie']
+
+    def test_config_authenticates_every_query(self, wcqs):
+        """config['SPARQL_AUTH'] is the authentication used by the fast run mode."""
+        url, received = wcqs
+        wbi_config['SPARQL_ENDPOINT_URL'] = url
+        wbi_config['SPARQL_AUTH'] = wbi_login.WCQSAuth('good.cookie')
+
+        assert execute_sparql_query('SELECT ?x WHERE {}')['results']['bindings']
+        assert 'wcqsOauth=good.cookie' in received[0]
+
+    def test_invalid_cookie(self, wcqs):
+        url, received = wcqs
+
+        with pytest.raises(WCQSAuthenticationError, match='invalid or was revoked'):
+            execute_sparql_query('SELECT ?x WHERE {}', endpoint=url, auth=wbi_login.WCQSAuth('bad.cookie'))
+
+        # Not retried with backoff, unlike a JSON decoding error
+        assert len(received) == 1
+
+    def test_existing_cookies_are_kept(self):
+        request = requests.Request('POST', 'https://commons-query.wikimedia.org/sparql', cookies={'wcqsSession': 'jwt123'}).prepare()
+
+        wbi_login.WCQSAuth(' good.cookie ')(request)
+
+        assert request.headers['Cookie'] == 'wcqsSession=jwt123; wcqsOauth=good.cookie'
+
+    @pytest.mark.parametrize('cookie', ['', '   '])
+    def test_cookie_is_required(self, cookie):
+        with pytest.raises(ValueError):
+            wbi_login.WCQSAuth(cookie)
+
+    def test_repr_hides_the_cookie(self):
+        assert 'good.cookie' not in repr(wbi_login.WCQSAuth('good.cookie'))

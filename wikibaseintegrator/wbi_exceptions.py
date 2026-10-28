@@ -117,6 +117,15 @@ class EmptyValueError(ValueError):
     pass
 
 
+class WCQSAuthenticationError(Exception):
+    """
+    Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth:
+    it answers with the HTML login page of Wikimedia Commons instead of the query results. The cookie is invalid, or was
+    revoked. It is not retried, as retrying with the same cookie cannot succeed.
+    """
+    pass
+
+
 class MaxRetriesReachedException(Exception):
     pass
 
