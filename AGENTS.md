@@ -99,4 +99,4 @@ notebooks/                  # Jupyter usage examples
 - `wbi_config.py` holds the default `mediawiki_api_url` (`https://www.wikidata.org/w/api.php`). Unit tests must never hit a real API: use the `wikibase` fixture (MockWikibase) or `requests_mock` directly; real-instance scenarios belong in `test/integration/`.
 - The `fastrun` module caches entity data before bulk writes to avoid redundant API calls — changes there require careful testing to avoid stale cache issues.
 - `datatypes/extra/` contains optional extensions with their own dependencies; do not import them unconditionally from core modules.
-- Version string is in `pyproject.toml` (`version = "0.13.0.dev0"`); `wikibaseintegrator/__init__.py` exposes it as `__version__` by reading the installed package metadata (`importlib.metadata`), so there is nothing to update there.
+- Version string is in `pyproject.toml` (`version`: the release, e.g. `0.13.0`, or a `.dev0` version between releases); `wikibaseintegrator/__init__.py` exposes it as `__version__` by reading the installed package metadata (`importlib.metadata`), so there is nothing to update there.
