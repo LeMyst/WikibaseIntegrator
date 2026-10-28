@@ -4,9 +4,11 @@ import re
 from typing import Any, Self
 
 from wikibaseintegrator.entities.baseentity import BaseEntity
-from wikibaseintegrator.models.forms import Form, Forms
+from wikibaseintegrator.models.form import Form
+from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
-from wikibaseintegrator.models.senses import Sense, Senses
+from wikibaseintegrator.models.sense import Sense
+from wikibaseintegrator.models.senses import Senses
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense
 from wikibaseintegrator.wbi_login import _Login

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any, Self
 
-from wikibaseintegrator.models import Claim
+from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
 

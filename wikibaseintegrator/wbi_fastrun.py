@@ -10,7 +10,11 @@ import re
 from collections import defaultdict
 
 from wikibaseintegrator.datatypes import BaseDataType
-from wikibaseintegrator.models import Claim, Claims, Qualifiers, Reference, References
+from wikibaseintegrator.models.claim import Claim
+from wikibaseintegrator.models.claims import Claims
+from wikibaseintegrator.models.qualifiers import Qualifiers
+from wikibaseintegrator.models.reference import Reference
+from wikibaseintegrator.models.references import References
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 from wikibaseintegrator.wbi_helpers import execute_sparql_query

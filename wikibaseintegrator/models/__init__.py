@@ -1,13 +1,23 @@
-from .aliases import Alias, Aliases
+from .alias import Alias
+from .aliases import Aliases
 from .basemodel import BaseModel
-from .claims import Claim, Claims
+from .claim import Claim
+from .claims import Claims
 from .descriptions import Descriptions
-from .forms import Form, Forms
+from .form import Form
+from .forms import Forms
+from .glosses import Glosses
 from .labels import Labels
-from .language_values import LanguageValue, LanguageValues
+from .language_value import LanguageValue
+from .language_values import LanguageValues
 from .lemmas import Lemmas
 from .qualifiers import Qualifiers
-from .references import Reference, References
-from .senses import Glosses, Sense, Senses
-from .sitelinks import Sitelink, Sitelinks
-from .snaks import Snak, Snaks
+from .reference import Reference
+from .references import References
+from .representations import Representations
+from .sense import Sense
+from .senses import Senses
+from .sitelink import Sitelink
+from .sitelinks import Sitelinks
+from .snak import Snak
+from .snaks import Snaks

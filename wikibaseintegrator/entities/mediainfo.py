@@ -4,8 +4,8 @@ import re
 from typing import Any, Self
 
 from wikibaseintegrator.entities.baseentity import BaseEntity, TermsEntity
-from wikibaseintegrator.models import Claims
 from wikibaseintegrator.models.aliases import Aliases
+from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper

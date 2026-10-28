@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.models.sitelink import Sitelink
 
 
 class Sitelinks(BaseModel):
@@ -38,13 +39,3 @@ class Sitelinks(BaseModel):
 
     def __len__(self):
         return len(self.sitelinks)
-
-
-class Sitelink(BaseModel):
-    def __init__(self, site: str | None = None, title: str | None = None, badges: list[str] | None = None):
-        self.site = site
-        self.title = title
-        self.badges: list[str] = badges or []
-
-    def __str__(self):
-        return self.title
