@@ -4,7 +4,7 @@ import copy
 import warnings
 from abc import abstractmethod
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
@@ -44,7 +44,7 @@ class Claims(BaseModel):
             if len(self.claims[property]) == 0:
                 del self.claims[property]
 
-    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Claims:
+    def add(self, claims: Claims | list[Claim] | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -119,7 +119,7 @@ class Claims(BaseModel):
                         self.claims[property].append(claim)
         return self
 
-    def from_json(self, json_data: dict[str, Any]) -> Claims:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         for property in json_data:
             for claim in json_data[property]:
                 from wikibaseintegrator.datatypes import BaseDataType
@@ -290,7 +290,7 @@ class Claim(BaseModel):
         self.rank = claim.rank
         self.references = claim.references
 
-    def from_json(self, json_data: dict[str, Any]) -> Claim:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         """
 
         :param json_data: a JSON representation of a Claim

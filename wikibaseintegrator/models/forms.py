@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -29,12 +29,12 @@ class Forms(BaseModel):
 
         return None
 
-    def add(self, form: Form) -> Forms:
+    def add(self, form: Form) -> Self:
         self.__forms.append(form)
 
         return self
 
-    def from_json(self, json_data: list[dict]) -> Forms:
+    def from_json(self, json_data: list[dict]) -> Self:
         for form in json_data:
             self.add(form=Form().from_json(form))
 
@@ -105,7 +105,7 @@ class Form(BaseModel):
     def claims(self, value):
         self.__claims = value
 
-    def from_json(self, json_data: dict[str, Any]) -> Form:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.id = json_data['id']
         self.representations = Representations().from_json(json_data['representations'])
         self.grammatical_features = json_data['grammaticalFeatures']

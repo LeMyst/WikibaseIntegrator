@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claims import Claims
@@ -20,12 +20,12 @@ class Senses(BaseModel):
         return None
 
     # TODO: implement action_if_exists
-    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Senses:
+    def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL) -> Self:
         self.senses.append(sense)
 
         return self
 
-    def from_json(self, json_data: list[dict]) -> Senses:
+    def from_json(self, json_data: list[dict]) -> Self:
         for sense in json_data:
             self.add(sense=Sense().from_json(sense))
 
@@ -52,7 +52,7 @@ class Sense(BaseModel):
         self.claims = claims or Claims()
         self.removed = False
 
-    def from_json(self, json_data: dict[str, Any]) -> Sense:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         self.id = json_data['id']
         self.glosses = Glosses().from_json(json_data['glosses'])
         self.claims = Claims().from_json(json_data['claims'])
@@ -75,7 +75,7 @@ class Sense(BaseModel):
 
         return json_data
 
-    def remove(self) -> Sense:
+    def remove(self) -> Self:
         self.removed = True
         return self
 

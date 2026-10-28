@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Self
+
 from wikibaseintegrator.models.basemodel import BaseModel
 
 
@@ -28,7 +30,7 @@ class Sitelinks(BaseModel):
                 } for sitelink in self.sitelinks
         }
 
-    def from_json(self, json_data: dict[str, dict]) -> Sitelinks:
+    def from_json(self, json_data: dict[str, dict]) -> Self:
         for sitelink in json_data:
             self.set(site=json_data[sitelink]['site'], title=json_data[sitelink]['title'], badges=json_data[sitelink]['badges'])
 

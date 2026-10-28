@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from copy import copy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -116,7 +116,7 @@ class BaseEntity:
 
         self.__claims = value
 
-    def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> BaseEntity:
+    def add_claims(self, claims: Claim | list[Claim] | Claims, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         """
 
         :param claims: A Claim, list of Claim or just a Claims object to add to this Claims object.
@@ -147,7 +147,7 @@ class BaseEntity:
 
         return json_data
 
-    def from_json(self, json_data: dict[str, Any]) -> BaseEntity:
+    def from_json(self, json_data: dict[str, Any]) -> Self:
         """
         Import a dictionary into BaseEntity attributes.
 
@@ -211,7 +211,7 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any):
+    def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
         params = {
             'action': 'wbgetclaims',
             'entity': self.id,
