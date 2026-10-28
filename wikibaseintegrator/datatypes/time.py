@@ -67,7 +67,8 @@ class Time(BaseDataType):
             pattern_day = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[1-9])-(?:3[01]|0[1-9]|[12][0-9])T00:00:00Z$')
             pattern_month = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[1-9])-(?:3[01]|0[0-9]|[12][0-9])T00:00:00Z$')
             pattern_year = re.compile(r'^[+-][0-9]{1,16}-(?:1[0-2]|0[0-9])-(?:3[01]|0[0-9]|[12][0-9])T00:00:00Z$')
-            if not precision:
+            # 'is None': the BILLION_YEARS precision is 0
+            if precision is None:
                 if pattern_day.match(time):
                     precision = WikibaseTimePrecision.DAY
                 elif pattern_month.match(time):
