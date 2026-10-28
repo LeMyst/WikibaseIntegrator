@@ -11,7 +11,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import ExternalID, Item, MonolingualText, String
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.models import Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
+from wikibaseintegrator.models import Aliases, Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import load_fixture
@@ -139,6 +139,46 @@ class TestAliases:
         assert 'remove' not in item.get_json()['aliases']['ak'][0]
         item.aliases.set(language='ak')
         assert 'remove' in item.get_json()['aliases']['ak'][0]
+
+    def test_add(self, item):
+        existing = [alias.value for alias in item.aliases.get('fr')]
+        item.aliases.add('fr', 'new alias')
+        assert [alias.value for alias in item.aliases.get('fr')] == existing + ['new alias']
+
+    def test_add_existing_does_nothing(self, item):
+        before = item.get_json()['aliases']['fr']
+        item.aliases.add('fr', 'Villeurbanne (Rhône)')
+        assert item.get_json()['aliases']['fr'] == before
+
+    def test_add_list_and_new_language(self, item):
+        item.aliases.add('ak', ['a', 'b', 'a', ''])
+        assert item.get_json()['aliases']['ak'] == [{'language': 'ak', 'value': 'a'}, {'language': 'ak', 'value': 'b'}]
+
+    def test_add_default_language(self, item):
+        item.aliases.add(values='fake alias')
+        assert {'language': 'en', 'value': 'fake alias'} in item.get_json()['aliases']['en']
+
+    def test_add_empty_does_nothing(self, item):
+        before = item.get_json()['aliases']
+        item.aliases.add('fr')
+        item.aliases.add('fr', '')
+        item.aliases.add('fr', [])
+        assert item.get_json()['aliases'] == before
+
+    def test_add_restores_removed_alias(self, item):
+        item.aliases.add('ak', ['a', 'b'])
+        item.aliases.set(language='ak')
+        assert all('remove' in alias for alias in item.get_json()['aliases']['ak'])
+        item.aliases.add('ak', 'a')
+        assert item.get_json()['aliases']['ak'] == [{'language': 'ak', 'value': 'a'}, {'language': 'ak', 'value': 'b', 'remove': ''}]
+
+    def test_add_invalid_type(self, item):
+        with pytest.raises(TypeError):
+            item.aliases.add('fr', 42)
+
+    def test_add_chaining(self):
+        aliases = Aliases().add('en', 'a').add('fr', 'b')
+        assert aliases.get_json() == {'en': [{'language': 'en', 'value': 'a'}], 'fr': [{'language': 'fr', 'value': 'b'}]}
 
 
 class TestSitelinks:

@@ -202,6 +202,12 @@ entity.aliases.set('en', 'Item')
 entity.aliases.set('fr', 'Élément')
 ```
 
+`aliases.add()` adds one or more aliases while keeping the existing ones. An alias that is already present is left as it is.
+
+```python
+entity.aliases.add('en', ['Item', 'Thing'])
+```
+
 #### Add descriptions
 
 Add an English and a French description to the local entity.

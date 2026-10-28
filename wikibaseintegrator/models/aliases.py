@@ -33,6 +33,38 @@ class Aliases(BaseModel):
 
         return None
 
+    def add(self, language: str | None = None, values: str | list[str] | None = None) -> Self:
+        """
+        Add one or more aliases to a language, keeping the existing ones. An alias already present is left untouched,
+        unless it was marked for removal, in which case it is kept instead.
+
+        :param language: The language of the aliases. Use the default language in wbi_config if none specified.
+        :param values: An alias or a list of aliases to add. Empty values are ignored.
+        :return: The current Aliases object
+        """
+        language = str(language or config['DEFAULT_LANGUAGE'])
+
+        if values is None:
+            return self
+
+        if isinstance(values, str):
+            values = [values]
+        elif not isinstance(values, list):
+            raise TypeError(f"value must be a str or list of strings, got '{type(values)}'")
+
+        aliases = self.aliases.setdefault(language, [])
+        for value in values:
+            if not value:
+                continue
+
+            existing_alias = next((alias for alias in aliases if alias == value), None)
+            if existing_alias is None:
+                aliases.append(Alias(language, value))
+            else:
+                existing_alias.removed = False
+
+        return self
+
     def set(self, language: str | None = None, values: str | list | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in ActionIfExists
@@ -53,22 +85,19 @@ class Aliases(BaseModel):
         elif values is not None and not isinstance(values, list):
             raise TypeError(f"value must be a str or list of strings, got '{type(values)}'")
 
+        if action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
+            return self.add(language=language, values=values)
+
         if action_if_exists == ActionIfExists.REPLACE_ALL:
             aliases = []
             for value in values:
                 alias = Alias(language, value)
                 aliases.append(alias)
             self.aliases[language] = aliases
-        else:
+        elif action_if_exists == ActionIfExists.KEEP:
             for value in values:
-                alias = Alias(language, value)
-
-                if action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
-                    if alias not in self.aliases[language]:
-                        self.aliases[language].append(alias)
-                elif action_if_exists == ActionIfExists.KEEP:
-                    if not self.aliases[language]:
-                        self.aliases[language].append(alias)
+                if not self.aliases[language]:
+                    self.aliases[language].append(Alias(language, value))
 
         return self
 
