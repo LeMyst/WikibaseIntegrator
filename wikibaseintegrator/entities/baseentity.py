@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, Any, Self
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
 from wikibaseintegrator.models.aliases import Aliases
-from wikibaseintegrator.models.claims import Claim, Claims
+from wikibaseintegrator.models.claim import Claim
+from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField

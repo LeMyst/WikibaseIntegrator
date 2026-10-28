@@ -1038,7 +1038,8 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
     if 'claims' in json_decoded:
         properties = list(json_decoded['claims'].keys())
 
-        from wikibaseintegrator.models import Qualifiers, References
+        from wikibaseintegrator.models.qualifiers import Qualifiers
+        from wikibaseintegrator.models.references import References
         from wikibaseintegrator.wbi_enums import ActionIfExists
 
         params = {

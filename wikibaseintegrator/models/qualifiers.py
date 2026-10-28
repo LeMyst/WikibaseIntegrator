@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.models.snaks import Snak
+from wikibaseintegrator.models.snak import Snak
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.models.claims import Claim
+    from wikibaseintegrator.models.claim import Claim
 
 
 class Qualifiers(BaseModel):
@@ -45,7 +45,8 @@ class Qualifiers(BaseModel):
 
     # TODO: implement action_if_exists
     def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
-        from wikibaseintegrator.models.claims import Claim
+        # Imported here because Claim holds Qualifiers, which would make a circular import at module level
+        from wikibaseintegrator.models.claim import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
 
@@ -62,7 +63,7 @@ class Qualifiers(BaseModel):
         return self
 
     def remove(self, qualifier: Snak | Claim) -> Self:
-        from wikibaseintegrator.models.claims import Claim
+        from wikibaseintegrator.models.claim import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
 

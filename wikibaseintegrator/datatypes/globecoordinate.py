@@ -4,7 +4,7 @@ import re
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.models import Claim
+from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 
