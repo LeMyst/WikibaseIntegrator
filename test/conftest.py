@@ -81,6 +81,9 @@ class MockWikibase:
         self.sparql_bindings: list[dict] = []  # bindings returned by the SPARQL endpoint
         self.constraint_results: dict[str, list[dict]] = {}  # wbcheckconstraints results, keyed by entity id
         self.entity_types: list[str] = ['item', 'property', 'lexeme', 'form', 'sense']  # entity types wbeditentity can create (paraminfo)
+        self.datatypes: list[str] = ['external-id', 'quantity', 'string', 'time', 'url', 'wikibase-item', 'wikibase-lexeme', 'wikibase-property']  # wbformatvalue datatypes
+        self.extensions: list[str] = ['CirrusSearch', 'WikibaseCirrusSearch', 'WikibaseClient', 'WikibaseLexeme', 'WikibaseRepository']  # meta=siteinfo extensions
+        self.mediawiki_version = 'MediaWiki 1.43.0'
         self.valid_credentials: dict[str, str] = {}  # user -> password accepted by (client)login
         self.login_token = 'aabbccddeeff+\\'
         self.csrf_token = '0123456789abcdef+\\'
@@ -357,6 +360,10 @@ class MockWikibase:
                 return {'batchcomplete': '', 'query': {'tokens': {'logintoken': self.login_token}}}
             return {'batchcomplete': '', 'query': {'tokens': {'csrftoken': self.csrf_token}}}
 
+        if params.get('meta') == 'siteinfo':
+            general = {'generator': self.mediawiki_version, 'wikibase-conceptbaseuri': self.base_url + '/entity/'}
+            return {'batchcomplete': '', 'query': {'general': general, 'extensions': [{'type': 'wikibase', 'name': name} for name in self.extensions]}}
+
         if params.get('list') == 'search':
             return {'batchcomplete': '', 'query': {'searchinfo': {'totalhits': len(self.fulltext_results)}, 'search': deepcopy(self.fulltext_results)}}
 
@@ -380,9 +387,12 @@ class MockWikibase:
         return {'clientlogin': {'status': 'FAIL', 'message': 'Incorrect username or password entered. Please try again.', 'messagecode': 'wrongpassword'}}
 
     def _action_paraminfo(self, params: dict[str, str]) -> dict:
-        if params.get('modules') != 'wbeditentity':
-            return {'paraminfo': {'modules': []}}
-        return {'paraminfo': {'modules': [{'name': 'wbeditentity', 'parameters': [{'name': 'new', 'type': list(self.entity_types)}]}]}}
+        parameters = {
+            'wbeditentity': [{'name': 'new', 'type': list(self.entity_types)}],
+            'wbformatvalue': [{'name': 'datatype', 'type': list(self.datatypes)}],
+        }
+        modules = [{'name': module, 'parameters': parameters[module]} for module in params.get('modules', '').split('|') if module in parameters]
+        return {'paraminfo': {'modules': modules}}
 
     def _action_wbsearchentities(self, params: dict[str, str]) -> dict:
         offset = int(params.get('continue', 0))

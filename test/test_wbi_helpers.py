@@ -15,7 +15,7 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
                                                NonExistentEntityError, SaveFailed)
-from wikibaseintegrator.wbi_helpers import (check_constraints, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount, fulltext_search,
+from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount, fulltext_search,
                                             generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense,
                                             mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, remove_claims, search_entities)
 
@@ -519,6 +519,76 @@ class TestEmptyValues:
             lexeme_add_form('L5', data=data, allow_anonymous=True)
 
         assert 'wbladdform' not in [request.get('action') for request in wikibase.requests]
+
+
+class TestCheckWikibase:
+    """check_wikibase() reports the features of the instance and the problems found (#501)."""
+
+    def test_instance_with_lexemes(self, wikibase):
+        result = check_wikibase()
+
+        assert result.mediawiki_version == 'MediaWiki 1.43.0'
+        assert result.concept_base_uri == f'{wikibase.base_url}/entity/'
+        assert result.is_wikibase and result.has_lexemes and result.has_search
+        assert not result.has_mediainfo and not result.has_quality_constraints
+        assert 'wikibase-lexeme' in result.datatypes
+        assert result.sparql_available is True
+        assert not result.problems
+        # Two API requests: siteinfo and paraminfo
+        assert [request.get('action') for request in wikibase.requests] == ['query', 'paraminfo']
+
+        report = str(result)
+        assert 'Lexemes: yes, MediaInfo: no, Search (WikibaseCirrusSearch): yes' in report
+        assert f'SPARQL endpoint: {wikibase.sparql_endpoint_url} (available)' in report
+        assert 'No problem found' in report
+
+    def test_lexeme_extension_without_lexeme_support(self, wikibase):
+        """Like Wikimedia Commons: WikibaseLexeme is installed, but the instance doesn't serve lexemes."""
+        wikibase.entity_types = ['mediainfo']
+        wikibase.extensions = ['WikibaseLexeme', 'WikibaseMediaInfo', 'WikibaseQualityConstraints', 'WikibaseRepository']
+
+        result = check_wikibase(check_sparql=False)
+
+        assert not result.has_lexemes
+        assert result.has_mediainfo and result.has_quality_constraints
+        assert not result.has_search
+
+    def test_wikibase_url_mismatch(self, wikibase):
+        result = check_wikibase(wikibase_url='http://www.wikidata.org', check_sparql=False)
+
+        assert len(result.problems) == 1
+        assert f"set config['WIKIBASE_URL'] to '{wikibase.base_url}'" in result.problems[0]
+        assert 'Problems:' in str(result)
+
+    def test_trailing_slash_is_not_a_mismatch(self, wikibase):
+        assert not check_wikibase(wikibase_url=wikibase.base_url + '/', check_sparql=False).problems
+
+    def test_not_a_wikibase(self, wikibase):
+        wikibase.entity_types = []
+
+        result = check_wikibase(check_sparql=False)
+
+        assert not result.is_wikibase
+        assert 'not a Wikibase repository' in result.problems[0]
+
+    def test_sparql_endpoint_not_available(self, wikibase, requests_mock):
+        sparql = requests_mock.post(wikibase.sparql_endpoint_url, status_code=503)
+
+        result = check_wikibase()
+
+        assert result.sparql_available is False
+        assert 'is not available' in result.problems[0]
+        assert '(not available)' in str(result)
+        # A single attempt, without retries
+        assert sparql.call_count == 1
+
+    def test_sparql_not_checked(self, wikibase):
+        result = check_wikibase(check_sparql=False)
+
+        assert result.sparql_available is None
+        assert result.sparql_endpoint_url is None
+        assert not wikibase.sparql_queries
+        assert '(not checked)' in str(result)
 
 
 class TestCheckConstraints:

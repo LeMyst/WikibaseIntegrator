@@ -9,6 +9,7 @@ import logging
 import re
 import threading
 import warnings
+from dataclasses import dataclass, field
 from time import sleep
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -92,9 +93,19 @@ def _creatable_entity_types(mediawiki_api_url: str, session: Session, timeout: A
     # A single attempt without waiting: this check only improves an error message
     json_data = mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, max_retries=1, retry_after=0, timeout=timeout,
                                    data={'action': 'paraminfo', 'modules': 'wbeditentity'})
-    for parameter in json_data['paraminfo']['modules'][0]['parameters']:
-        if parameter['name'] == 'new':
-            return list(parameter['type'])
+    return _paraminfo_values(json_data, module='wbeditentity', parameter='new')
+
+
+def _paraminfo_values(json_data: dict[str, Any], module: str, parameter: str) -> list[str]:
+    """
+    Return the values accepted by a parameter of an API module, from a paraminfo response. The list is empty if the
+    module doesn't exist on the instance or if the parameter doesn't take a list of values.
+    """
+    for module_info in json_data.get('paraminfo', {}).get('modules', []):
+        if module_info.get('name') == module:
+            for parameter_info in module_info.get('parameters', []):
+                if parameter_info.get('name') == parameter and isinstance(parameter_info.get('type'), list):
+                    return list(parameter_info['type'])
     return []
 
 
@@ -1293,6 +1304,128 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
     results = response.text
 
     return results
+
+
+@dataclass
+class WikibaseCheck:
+    """
+    The features of a Wikibase instance, as returned by check_wikibase(). Print it for a readable report.
+    """
+    mediawiki_api_url: str
+    mediawiki_version: str | None = None
+    concept_base_uri: str | None = None
+    extensions: list[str] = field(default_factory=list)  # The names of the installed MediaWiki extensions
+    entity_types: list[str] = field(default_factory=list)  # The entity types the instance can create (item, property, lexeme...)
+    datatypes: list[str] = field(default_factory=list)  # The property datatypes the instance supports
+    sparql_endpoint_url: str | None = None
+    sparql_available: bool | None = None  # None when the SPARQL endpoint wasn't checked
+    problems: list[str] = field(default_factory=list)  # The problems found, empty when everything is fine
+
+    @property
+    def is_wikibase(self) -> bool:
+        """The instance is a Wikibase repository: it can create entities."""
+        return bool(self.entity_types)
+
+    @property
+    def has_lexemes(self) -> bool:
+        """The instance supports lexemes (WikibaseLexeme). The extension can be installed without lexeme support."""
+        return 'lexeme' in self.entity_types
+
+    @property
+    def has_mediainfo(self) -> bool:
+        """The instance supports MediaInfo entities (WikibaseMediaInfo, Structured Data on Commons)."""
+        return 'mediainfo' in self.entity_types
+
+    @property
+    def has_search(self) -> bool:
+        """The instance has WikibaseCirrusSearch: the statements can be searched, e.g. with the haswbstatement keyword."""
+        return 'WikibaseCirrusSearch' in self.extensions
+
+    @property
+    def has_quality_constraints(self) -> bool:
+        """The instance has WikibaseQualityConstraints, needed by check_constraints()."""
+        return 'WikibaseQualityConstraints' in self.extensions
+
+    def __str__(self) -> str:
+        def yes_no(value: bool) -> str:
+            return 'yes' if value else 'no'
+
+        sparql = 'not checked' if self.sparql_available is None else ('available' if self.sparql_available else 'not available')
+        lines = [
+            f'Wikibase instance: {self.mediawiki_api_url}',
+            f'MediaWiki version: {self.mediawiki_version or "unknown"}',
+            f'Concept base URI: {self.concept_base_uri or "unknown"}',
+            f'Entity types: {", ".join(self.entity_types) or "none"}',
+            f'Datatypes: {", ".join(self.datatypes) or "none"}',
+            f'Lexemes: {yes_no(self.has_lexemes)}, MediaInfo: {yes_no(self.has_mediainfo)}, Search (WikibaseCirrusSearch): {yes_no(self.has_search)}, '
+            f'Quality constraints: {yes_no(self.has_quality_constraints)}',
+            f'SPARQL endpoint: {self.sparql_endpoint_url or "none"} ({sparql})',
+        ]
+        if self.problems:
+            lines.append('Problems:')
+            lines.extend(f'- {problem}' for problem in self.problems)
+        else:
+            lines.append('No problem found')
+        return '\n'.join(lines)
+
+
+def check_wikibase(mediawiki_api_url: str | None = None, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None, check_sparql: bool = True,
+                   login: _Login | None = None, **kwargs: Any) -> WikibaseCheck:
+    """
+    Check the features of a Wikibase instance: the MediaWiki version, the installed extensions, the entity types and the
+    datatypes it supports, and whether the SPARQL endpoint answers. It also checks the configuration of
+    WikibaseIntegrator: a 'WIKIBASE_URL' not matching the concept URIs of the instance breaks the SPARQL queries built
+    by WikibaseIntegrator (fast run mode, ...). The problems found are listed in the 'problems' attribute.
+
+    Example: print(check_wikibase())
+
+    :param mediawiki_api_url: The URL to the MediaWiki API. Default config['MEDIAWIKI_API_URL'].
+    :param sparql_endpoint_url: The URL to the SPARQL endpoint. Default config['SPARQL_ENDPOINT_URL'].
+    :param wikibase_url: The Wikibase URL compared with the concept URIs of the instance. Default config['WIKIBASE_URL'].
+    :param check_sparql: Send a test query to the SPARQL endpoint.
+    :param login: A login instance, to check a private instance.
+    :param kwargs: More arguments for mediawiki_api_call_helper()
+    :return: A WikibaseCheck object
+    """
+    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+    wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+    result = WikibaseCheck(mediawiki_api_url=mediawiki_api_url)
+
+    siteinfo = mediawiki_api_call_helper(data={'action': 'query', 'meta': 'siteinfo', 'siprop': 'general|extensions', 'format': 'json'}, mediawiki_api_url=mediawiki_api_url,
+                                         login=login, allow_anonymous=True, **kwargs)['query']
+    result.mediawiki_version = siteinfo['general'].get('generator')
+    result.concept_base_uri = siteinfo['general'].get('wikibase-conceptbaseuri')
+    result.extensions = sorted(extension['name'] for extension in siteinfo.get('extensions', []))
+
+    # The entity types wbeditentity can create, and the datatypes wbformatvalue accepts
+    paraminfo = mediawiki_api_call_helper(data={'action': 'paraminfo', 'modules': 'wbeditentity|wbformatvalue', 'format': 'json'}, mediawiki_api_url=mediawiki_api_url,
+                                          login=login, allow_anonymous=True, **kwargs)
+    result.entity_types = _paraminfo_values(paraminfo, module='wbeditentity', parameter='new')
+    result.datatypes = _paraminfo_values(paraminfo, module='wbformatvalue', parameter='datatype')
+
+    if not result.is_wikibase:
+        result.problems.append('The MediaWiki instance is not a Wikibase repository: the wbeditentity API module is missing')
+
+    if result.concept_base_uri and result.concept_base_uri.rstrip('/') != wikibase_url.rstrip('/') + '/entity':
+        expected_wikibase_url = result.concept_base_uri.rstrip('/').removesuffix('/entity')
+        result.problems.append(f"The Wikibase URL '{wikibase_url}' doesn't match the concept URIs of the instance ('{result.concept_base_uri}'), "
+                               f"set config['WIKIBASE_URL'] to '{expected_wikibase_url}'")
+
+    if check_sparql:
+        result.sparql_endpoint_url = str(sparql_endpoint_url or config['SPARQL_ENDPOINT_URL'])
+        user_agent = str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None
+        try:
+            # A single attempt, without the retries of execute_sparql_query(): an unavailable endpoint is reported
+            response = _get_default_session().post(result.sparql_endpoint_url, data={'query': 'ASK {}', 'format': 'json'}, auth=config['SPARQL_AUTH'], timeout=config['TIMEOUT'],
+                                                   headers={'Accept': 'application/sparql-results+json', 'User-Agent': get_user_agent(user_agent)})
+            response.raise_for_status()
+            response.json()
+            result.sparql_available = True
+        except (requests.RequestException, ValueError) as exception:
+            result.sparql_available = False
+            result.problems.append(f"The SPARQL endpoint '{result.sparql_endpoint_url}' is not available: {exception}")
+
+    return result
 
 # def __deepcopy__(memo):
 #     # Don't return a copy of the module
