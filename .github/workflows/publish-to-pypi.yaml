@@ -124,20 +124,12 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
-      - name: Sign the dists with Sigstore
+      # On a release event, the action itself attaches the built packages, the source archives of the release and
+      # their Sigstore signatures to the release: uploading them again fails with "asset under the same name already exists".
+      - name: Sign the dists with Sigstore and upload them to the GitHub Release
         uses: sigstore/gh-action-sigstore-python@v3.5.0
         with:
           inputs: >-
             ./dist/*.tar.gz
             ./dist/*.whl
-      - name: Upload artifact signatures to GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
-        # Upload to the published GitHub Release using the `gh` CLI.
-        # `dist/` contains the built packages, and the
-        # sigstore-produced signatures and certificates.
-        run: >-
-          gh release upload
-          "${TAG}" dist/**
-          --repo '${{ github.repository }}'
+          release-signing-artifacts: true
