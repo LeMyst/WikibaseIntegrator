@@ -106,6 +106,17 @@ class MissingExtensionError(NonExistentEntityError):
         self.args = (self.info,)
 
 
+class EmptyValueError(ValueError):
+    """
+    Raised before a write when a claim, a qualifier or a reference has no value, while its snak type states that it has
+    one. A datatype created with None or an empty string as value has no value, and the Wikibase instance would reject
+    it with a less explicit error.
+
+    Set a value, or use the WikibaseSnakType.NO_VALUE or WikibaseSnakType.UNKNOWN_VALUE snak type.
+    """
+    pass
+
+
 class MaxRetriesReachedException(Exception):
     pass
 
