@@ -20,8 +20,8 @@ from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, Emp
                                                NonExistentEntityError, SaveFailed)
 from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount,
                                             fulltext_search, generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form,
-                                            lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, remove_claims, search_entities,
-                                            set_claim)
+                                            lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value, remove_claims,
+                                            search_entities, set_claim)
 
 
 class FakeLogin:
@@ -756,6 +756,74 @@ class TestCheckConstraints:
     def test_check_with_status_filter(self, wikibase):
         check_constraints(entity_id='Q582', status=['violation', 'warning'])
         assert wikibase.last_request['status'] == 'violation|warning'
+
+
+TIME_1850 = {'value': {'time': '+1850-03-03T00:00:00Z', 'timezone': 0, 'before': 0, 'after': 0, 'precision': 11, 'calendarmodel': 'http://www.wikidata.org/entity/Q1985727'},
+             'type': 'time'}
+
+
+class TestParseValue:
+    def test_parse_value(self, wikibase):
+        wikibase.parsed_values = {'3 March 1850': TIME_1850}
+
+        results = parse_value('3 March 1850', datatype='time')
+        assert results == [{'raw': '3 March 1850', **TIME_1850}]
+
+        request = wikibase.last_request
+        assert request['action'] == 'wbparsevalue'
+        assert request['datatype'] == 'time'
+        assert request['values'] == '3 March 1850'
+        assert not {'property', 'options', 'validate'} & request.keys()
+
+    def test_parse_value_failure(self, wikibase):
+        # A value which can't be parsed is reported in its result, the other values are still parsed
+        wikibase.parsed_values = {'3 March 1850': TIME_1850}
+
+        results = parse_value(['foo bar', '3 March 1850'], datatype='time')
+        assert [result['raw'] for result in results] == ['foo bar', '3 March 1850']
+        assert results[0]['error'] == 'ValueParsers\\ParseException'
+        assert results[0]['messages'][0]['name'] == 'wikibase-parse-error'
+        assert results[1]['value'] == TIME_1850['value']
+
+    def test_parse_value_parameters(self, wikibase):
+        wikibase.parsed_values = {'1 février 1850': TIME_1850}
+
+        results = parse_value(['1 février 1850'], prop_nr='P569', options={'lang': 'fr'}, validate=True)
+        assert 'valid' in results[0]
+
+        request = wikibase.last_request
+        assert request['property'] == 'P569'
+        assert ujson.loads(request['options']) == {'lang': 'fr'}
+        assert 'validate' in request
+        assert 'datatype' not in request
+
+    def test_parse_value_pipe(self, wikibase):
+        wikibase.parsed_values = {'a|b': {'value': 'a|b', 'type': 'string'}, 'c': {'value': 'c', 'type': 'string'}}
+
+        results = parse_value(['a|b', 'c'], datatype='string')
+        assert [result['value'] for result in results] == ['a|b', 'c']
+        assert wikibase.last_request['values'] == '\x1fa|b\x1fc'
+
+    def test_parse_value_batches(self, wikibase):
+        values = [str(number) for number in range(120)]
+        wikibase.parsed_values = {value: {'value': value, 'type': 'string'} for value in values}
+
+        results = parse_value(values, datatype='string')
+        assert [result['raw'] for result in results] == values
+        assert [len(request['values'].split('|')) for request in wikibase.requests] == [50, 50, 20]
+
+    @pytest.mark.parametrize('arguments', [{}, {'datatype': 'time', 'prop_nr': 'P569'}])
+    def test_parse_value_invalid(self, wikibase, arguments):
+        with pytest.raises(ValueError):
+            parse_value('foo', **arguments)
+
+        assert not wikibase.requests
+
+    def test_parse_value_request_error(self, wikibase):
+        # An error without results (e.g. an unknown property) is raised
+        wikibase.fail_next(code='no-such-entity', info='Could not find an entity with the ID "P99999".')
+        with pytest.raises(NonExistentEntityError):
+            parse_value('foo', prop_nr='P99999')
 
 
 class TestFulltextSearch:

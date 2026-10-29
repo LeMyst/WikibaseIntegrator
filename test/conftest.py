@@ -80,6 +80,7 @@ class MockWikibase:
         self.fulltext_results: list[dict] = []  # list=search results
         self.sparql_bindings: list[dict] = []  # bindings returned by the SPARQL endpoint
         self.constraint_results: dict[str, list[dict]] = {}  # wbcheckconstraints results, keyed by entity id
+        self.parsed_values: dict[str, dict] = {}  # wbparsevalue results ('value' and 'type'), keyed by raw value; the other values fail to parse
         self.entity_types: list[str] = ['item', 'property', 'lexeme', 'form', 'sense']  # entity types wbeditentity can create (paraminfo)
         self.datatypes: list[str] = ['external-id', 'quantity', 'string', 'time', 'url', 'wikibase-item', 'wikibase-lexeme', 'wikibase-property']  # wbformatvalue datatypes
         self.extensions: list[str] = ['CirrusSearch', 'WikibaseCirrusSearch', 'WikibaseClient', 'WikibaseLexeme', 'WikibaseRepository']  # meta=siteinfo extensions
@@ -433,6 +434,28 @@ class MockWikibase:
 
     def _action_delete(self, params: dict[str, str]) -> dict:
         return {'delete': {'title': params.get('title', ''), 'reason': params.get('reason', 'mock deletion'), 'logid': 1}}
+
+    def _action_wbparsevalue(self, params: dict[str, str]) -> dict:
+        values = params['values']
+        raw_values = values[1:].split('\x1f') if values.startswith('\x1f') else values.split('|')
+
+        results = []
+        for raw in raw_values:
+            if raw in self.parsed_values:
+                result = {'raw': raw, **deepcopy(self.parsed_values[raw])}
+                if 'validate' in params:
+                    result['valid'] = ''
+            else:
+                result = {'raw': raw, 'error': 'ValueParsers\\ParseException', 'error-info': 'The value is not recognized by the configured parsers',
+                          'messages': [{'name': 'wikibase-parse-error', 'parameters': [], 'html': {'*': 'Malformed value.'}}]}
+            results.append(result)
+
+        # Like a real instance, the first value which failed is also reported as the error of the request
+        response: dict[str, Any] = {'results': results}
+        failed = next((result for result in results if 'error' in result), None)
+        if failed:
+            response['error'] = {'code': failed['messages'][0]['name'], 'info': failed['messages'][0]['html']['*']}
+        return response
 
     def _action_wbcheckconstraints(self, params: dict[str, str]) -> dict:
         requested_ids = params['id'].split('|') if 'id' in params else list(self.constraint_results.keys())

@@ -231,24 +231,24 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             # Lexeme request on a Wikibase instance without the WikibaseLexeme extension
             if _lexeme_support_missing(data=kwargs.get('data') or {}, error=json_data['error'], mediawiki_api_url=mediawiki_api_url, session=session,
                                        timeout=kwargs['timeout']):
-                raise MissingExtensionError(json_data['error'], extension='WikibaseLexeme')
+                raise MissingExtensionError(json_data['error'], extension='WikibaseLexeme', response=json_data)
 
             # non-existent error
             if 'code' in json_data['error'] and json_data['error']['code'] in ['no-such-entity', 'missingtitle']:
-                raise NonExistentEntityError(json_data['error'])
+                raise NonExistentEntityError(json_data['error'], response=json_data)
 
             # duplicate error
             if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':  # pragma: no cover
-                raise ModificationFailed(json_data['error'])
+                raise ModificationFailed(json_data['error'], response=json_data)
 
             # sitelink conflict
             if ('code' in json_data['error'] and json_data['error']['code'] == 'failed-save' and
                     any([message.get('name', '') == 'wikibase-validator-sitelink-conflict'
                          for message in json_data['error'].get('messages', [])])):
-                raise SaveFailed(json_data['error'])
+                raise SaveFailed(json_data['error'], response=json_data)
 
             # others case
-            raise MWApiError(json_data['error'])
+            raise MWApiError(json_data['error'], response=json_data)
 
         # there is no error or waiting. break out of this loop and parse response
         break
@@ -925,6 +925,66 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
 
     # A page holds up to 50 results, so the last page can overshoot max_results: truncate to the requested length
     return results[:max_results]
+
+
+def parse_value(values: str | list[str], datatype: str | None = None, prop_nr: str | None = None, options: dict[str, Any] | None = None, validate: bool = False,
+                allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
+    """
+    Parse values written as text (e.g. '3 March 1850', '1850s', '12±0.5') into data values, with the parsers of the Wikibase instance and the wbparsevalue API.
+
+    A value which can't be parsed (or isn't valid, with validate) doesn't raise an exception: its result has an 'error' key, with the error in 'messages' (and the
+    validation errors in 'validation-errors'), so that all the values can be checked at once.
+
+    :param values: One value or a list of values to parse. They are sent in batches of 50, the limit of the API.
+    :param datatype: The datatype of the values, e.g. 'time', 'quantity', 'globe-coordinate' or 'wikibase-item'. Use either datatype or prop_nr.
+    :param prop_nr: A property whose datatype is used (and whose constraints are checked by validate), e.g. 'P569'. Use either datatype or prop_nr.
+    :param options: Options for the parser, e.g. {'lang': 'fr'} to parse dates written in French, or {'precision': 9} for a time value.
+    :param validate: Also validate the parsed values against the datatype, e.g. that a URL has a scheme. A valid value has a 'valid' key.
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper()
+    :return: One result per value, in the same order: a dictionary with the 'raw' value, and the parsed 'value' and its 'type' (the datavalue of a snak), or an 'error'
+    :exception ValueError: if neither or both of datatype and prop_nr are given
+    """
+
+    if bool(datatype) == bool(prop_nr):
+        raise ValueError("Exactly one of the datatype and prop_nr parameters is required.")
+
+    if isinstance(values, str):
+        values = [values]
+
+    results: list[dict[str, Any]] = []
+    for start in range(0, len(values), 50):
+        batch = values[start:start + 50]
+
+        params: dict[str, Any] = {
+            'action': 'wbparsevalue',
+            # A value containing '|' needs the alternative multi-value separator of MediaWiki, U+001F
+            'values': '\x1f' + '\x1f'.join(batch) if any('|' in value for value in batch) else '|'.join(batch),
+            'format': 'json'
+        }
+
+        if datatype:
+            params.update({'datatype': datatype})
+        else:
+            params.update({'property': prop_nr})
+
+        if options:
+            params.update({'options': ujson.dumps(options)})
+
+        if validate:
+            params.update({'validate': ''})
+
+        try:
+            json_result = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+        except MWApiError as error:
+            # When a value can't be parsed, the API returns the error of the first one, along with the results of all the values
+            if not error.response or 'results' not in error.response:
+                raise
+            json_result = error.response
+
+        results.extend(json_result['results'])
+
+    return results
 
 
 def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:

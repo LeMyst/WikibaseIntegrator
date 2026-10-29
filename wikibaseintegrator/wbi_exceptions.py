@@ -10,6 +10,7 @@ class MWApiError(Exception):
     info: str
     messages: list[dict[str, Any]]
     messages_names: list[str]
+    response: dict[str, Any] | None
 
     @property
     def get_conflicting_entity_ids(self) -> list[str]:
@@ -41,8 +42,13 @@ class MWApiError(Exception):
             }
         )
 
-    def __init__(self, error_dict: dict[str, Any]):
+    def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None):
+        """
+        :param error_dict: The 'error' part of the API response
+        :param response: The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)
+        """
         self.error_dict = error_dict
+        self.response = response
 
         if 'info' in self.error_dict:
             self.info = self.error_dict['info']
@@ -81,8 +87,8 @@ class SaveFailed(MWApiError):
     When the API return a 'save-failed' error
     """
 
-    def __init__(self, error_dict: dict[str, Any]):
-        super().__init__(error_dict)
+    def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None):
+        super().__init__(error_dict, response=response)
 
 
 class NonExistentEntityError(MWApiError):
@@ -98,8 +104,8 @@ class MissingExtensionError(NonExistentEntityError):
     """
     extension: str
 
-    def __init__(self, error_dict: dict[str, Any], extension: str):
-        super().__init__(error_dict)
+    def __init__(self, error_dict: dict[str, Any], extension: str, response: dict[str, Any] | None = None):
+        super().__init__(error_dict, response=response)
         self.extension = extension
         self.info = (f"This request needs the {extension} extension, which is not installed or not enabled on the Wikibase instance "
                      f"(https://www.mediawiki.org/wiki/Extension:{extension}). API error: {error_dict.get('info', self.code)}")
