@@ -17,9 +17,10 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
                                                NonExistentEntityError, SaveFailed)
-from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount, fulltext_search,
-                                            generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense,
-                                            mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value, remove_claims, search_entities)
+from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount,
+                                            fulltext_search, generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form,
+                                            lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value, remove_claims,
+                                            search_entities)
 
 
 class FakeLogin:
@@ -878,6 +879,29 @@ class TestEditHelpers:
 
         merges = [request for request in wikibase.requests if request.get('action') == 'wbmergeitems']
         assert [request['fromid'] for request in merges] == ['Q2']
+
+    def test_create_redirect(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        result = create_redirect(from_id='Q1', to_id='Q2', login=login)
+
+        assert result == {'success': 1, 'redirect': 'Q2'}
+        request = wikibase.last_request
+        assert request['action'] == 'wbcreateredirect'
+        assert request['from'] == 'Q1'
+        assert request['to'] == 'Q2'
+        assert 'bot' not in request
+
+    def test_create_redirect_bot(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        create_redirect(from_id='Q1', to_id='Q2', login=login, is_bot=True)
+
+        assert 'bot' in wikibase.last_request
+
+    def test_create_redirect_origin_not_empty(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        wikibase.fail_next(code='origin-not-empty', info='The origin item is not empty.')
+        with pytest.raises(MWApiError):
+            create_redirect(from_id='Q1', to_id='Q2', login=login)
 
     def test_remove_claims(self, wikibase):
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)

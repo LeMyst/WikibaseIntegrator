@@ -409,6 +409,9 @@ class MockWikibase:
     def _action_wbmergeitems(self, params: dict[str, str]) -> dict:
         return {'success': 1, 'redirected': 1, 'from': {'id': params['fromid']}, 'to': {'id': params['toid']}}
 
+    def _action_wbcreateredirect(self, params: dict[str, str]) -> dict:
+        return {'success': 1, 'redirect': params['to']}
+
     def _action_wbremoveclaims(self, params: dict[str, str]) -> dict:
         return {'pageinfo': {'lastrevid': 1}, 'success': 1, 'claims': params['claim'].split('|')}
 
