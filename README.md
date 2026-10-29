@@ -111,6 +111,7 @@ wikibaseintegrator~=0.12.15
     - [Wikibase search entities](#wikibase-search-entities)
     - [Merge Wikibase items](#merge-wikibase-items)
     - [Check a Wikibase instance](#check-a-wikibase-instance)
+    - [Parse values](#parse-values)
     - [Other helpers](#other-helpers)
     - [Track the edits with EditGroups](#track-the-edits-with-editgroups)
 - [Examples (in "normal" mode)](#examples-in-normal-mode)
@@ -907,6 +908,29 @@ if not result.has_lexemes:
 The result also provides `has_mediainfo`, `has_search` (WikibaseCirrusSearch, needed by the `haswbstatement` search
 keyword), `has_quality_constraints` (needed by `check_constraints()`), `extensions`, `entity_types`, `datatypes` and
 `problems`.
+
+## Parse values ##
+
+`wbi_helpers.parse_value()` parses values written as text, like `'3 March 1850'`, `'1850s'` or `'12±0.5'`, into data
+values, with the parsers of the Wikibase instance (wbparsevalue API). It is useful to import data from files without
+parsing the dates, their precision or the quantities yourself. It takes one value or a list of values, and either the
+datatype of the values (datatype, e.g. `'time'`, `'quantity'`, `'globe-coordinate'`) or a property whose datatype is used
+(prop_nr). The options of the parser (options, e.g. `{'lang': 'fr'}` for dates written in French) and a validation of the
+parsed values (validate) are optional.
+
+It returns one result per value, in the same order. A value which can't be parsed doesn't raise an exception: its result
+has an `'error'` key, so that all the values can be checked at once.
+
+```python
+from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator.datatypes import Time
+
+for result in wbi_helpers.parse_value(['3 March 1850', '1850s', 'not a date'], datatype='time'):
+    if 'error' in result:
+        print(f"Can't parse {result['raw']}")
+    else:
+        claim = Time(prop_nr='P569', **result['value'])  # A time value has the arguments of Time()
+```
 
 ## Other helpers ##
 

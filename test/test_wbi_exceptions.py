@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from wikibaseintegrator.wbi_exceptions import ModificationFailed, SaveFailed, SearchError
+from wikibaseintegrator.wbi_exceptions import MissingExtensionError, ModificationFailed, MWApiError, SaveFailed, SearchError
 
 
 class TestWbiExceptions(TestCase):
@@ -162,3 +162,12 @@ class TestWbiExceptions(TestCase):
         assert 'wikibaseintegrator-missing-messages' in exception.messages_names
         assert exception.info == 'MWApiError'
         assert exception.code == 'wikibaseintegrator-missing-error-code'
+        assert exception.response is None
+
+    @staticmethod
+    def test_response():
+        response = {'error': {'code': 'failed-save', 'info': 'The save has failed.'}, 'results': []}
+
+        assert MWApiError(response['error'], response=response).response == response
+        assert SaveFailed(response['error'], response=response).response == response
+        assert MissingExtensionError(response['error'], extension='WikibaseLexeme', response=response).response == response
