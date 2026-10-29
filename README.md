@@ -109,6 +109,7 @@ wikibaseintegrator~=0.12.15
     - [Execute SPARQL queries](#execute-sparql-queries)
         - [Wikimedia Commons Query Service](#wikimedia-commons-query-service)
     - [Wikibase search entities](#wikibase-search-entities)
+    - [Write a single statement](#write-a-single-statement)
     - [Merge Wikibase items](#merge-wikibase-items)
     - [Check a Wikibase instance](#check-a-wikibase-instance)
     - [Parse values](#parse-values)
@@ -853,6 +854,30 @@ etc.
 from wikibaseintegrator import wbi_helpers
 
 print(wbi_helpers.search_entities(search_string='Earth', max_results=5))
+```
+
+## Write a single statement ##
+
+`wbi_helpers.set_claim()` creates or replaces a single statement, with its qualifiers and references, without loading
+or writing the whole entity. It is useful for large entities, and the edit doesn't conflict with the edits of the other
+statements. A claim with an ID replaces the statement with this ID. A claim without an ID is added to the entity given by
+entity_id, and the ID generated for it is set on the claim once the edit is saved. It also accepts the index of the
+statement in the list of statements of the entity (index), baserevid, summary, tags, is_bot and
+ignore_duplicate_mainsnak, which doesn't save the statement if the entity already has one with the same main snak.
+To delete a statement, use `wbi_helpers.remove_claims()` with its ID.
+
+```python
+from wikibaseintegrator import wbi_helpers, wbi_login
+from wikibaseintegrator.datatypes import ExternalID, Time
+
+login = wbi_login.Login(user='<bot user name>', password='<bot password>')
+
+claim = ExternalID(prop_nr='P214', value='113230702', references=[[Time(prop_nr='P813', time='now')]])
+wbi_helpers.set_claim(claim, entity_id='Q42', login=login)
+print(claim.id)  # The ID of the new statement, e.g. Q42$1c5e2f6b-...
+
+claim.mainsnak.datavalue['value'] = '113230703'
+wbi_helpers.set_claim(claim, login=login)  # Replace the statement
 ```
 
 ## Merge Wikibase items ##

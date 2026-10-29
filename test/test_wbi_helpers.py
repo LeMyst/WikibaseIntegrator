@@ -4,6 +4,7 @@ mapping), search, merge, SPARQL and the various pure helper functions.
 """
 import logging
 import threading
+import uuid
 from types import MappingProxyType
 from urllib.parse import quote_plus
 
@@ -20,7 +21,7 @@ from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, Emp
 from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount,
                                             fulltext_search, generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form,
                                             lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value, remove_claims,
-                                            search_entities)
+                                            search_entities, set_claim)
 
 
 class FakeLogin:
@@ -879,6 +880,83 @@ class TestEditHelpers:
 
         merges = [request for request in wikibase.requests if request.get('action') == 'wbmergeitems']
         assert [request['fromid'] for request in merges] == ['Q2']
+
+    def test_set_claim_new(self, wikibase, item_q582):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        claim = String(prop_nr='P1', value='foo')
+        result = set_claim(claim, entity_id='q582', login=login)
+
+        request = wikibase.last_request
+        assert request['action'] == 'wbsetclaim'
+        sent = ujson.loads(request['claim'])
+        entity_id, claim_uuid = sent['id'].split('$')
+        assert entity_id == 'Q582'
+        uuid.UUID(claim_uuid)
+        assert sent['mainsnak']['datavalue']['value'] == 'foo'
+        assert claim.id == sent['id']
+        assert result['claim']['id'] == sent['id']
+        assert [statement['id'] for statement in wikibase.entities['Q582']['claims']['P1']] == [sent['id']]
+        assert not {'index', 'baserevid', 'summary', 'tags', 'ignoreduplicatemainsnak', 'bot'} & request.keys()
+
+    def test_set_claim_replace(self, wikibase, item_q582):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        claim_id = 'Q582$F7F18824-9A1F-4FE2-BCB0-56EA3A32FFF3'
+        claim = Item(prop_nr='P31', value='Q5', id=claim_id)
+        set_claim(claim, entity_id='Q582', login=login)
+
+        assert ujson.loads(wikibase.last_request['claim'])['id'] == claim_id
+        assert claim.id == claim_id
+        statements = wikibase.entities['Q582']['claims']['P31']
+        assert len(statements) == 2
+        assert statements[0]['id'] == claim_id
+        assert statements[0]['mainsnak']['datavalue']['value']['id'] == 'Q5'
+
+    def test_set_claim_parameters(self, wikibase, item_q582):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        set_claim(String(prop_nr='P1', value='foo'), entity_id='Q582', index=0, baserevid=1234, summary='a summary', tags=['tag1', 'tag2'], ignore_duplicate_mainsnak=True,
+                  login=login, is_bot=True)
+
+        request = wikibase.last_request
+        assert request['index'] == '0'
+        assert request['baserevid'] == '1234'
+        assert request['summary'] == 'a summary'
+        assert request['tags'] == 'tag1|tag2'
+        assert 'ignoreduplicatemainsnak' in request
+        assert 'bot' in request
+
+    def test_set_claim_duplicate_ignored(self, wikibase, item_q582, monkeypatch):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        claim = String(prop_nr='P1', value='foo')
+        # With ignoreduplicatemainsnak, the API answers with a warning and no statement when the main snak already exists
+        monkeypatch.setattr(wikibase, '_action_wbsetclaim', lambda params: {'warnings': {'wbsetclaim': {'*': 'Duplicate main snak.'}}})
+        result = set_claim(claim, entity_id='Q582', ignore_duplicate_mainsnak=True, login=login)
+
+        assert 'claim' not in result
+        assert claim.id is None
+
+    @pytest.mark.parametrize('claim, entity_id', [
+        (String(prop_nr='P1', value='foo'), None),
+        (String(prop_nr='P1', value='foo', id='Q582$F7F18824-9A1F-4FE2-BCB0-56EA3A32FFF3'), 'Q1'),
+    ])
+    def test_set_claim_invalid(self, wikibase, claim, entity_id):
+        with pytest.raises(ValueError):
+            set_claim(claim, entity_id=entity_id)
+
+        assert not wikibase.requests
+
+    def test_set_claim_removed(self, wikibase):
+        claim = String(prop_nr='P1', value='foo', id='Q582$F7F18824-9A1F-4FE2-BCB0-56EA3A32FFF3')
+        claim.remove()
+        with pytest.raises(ValueError):
+            set_claim(claim)
+
+        assert not wikibase.requests
+
+    def test_set_claim_empty_value(self, wikibase):
+        with pytest.raises(EmptyValueError):
+            set_claim(String(prop_nr='P1'), entity_id='Q582')
+
+        assert not wikibase.requests
 
     def test_create_redirect(self, wikibase):
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
