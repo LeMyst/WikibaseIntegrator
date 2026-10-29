@@ -19,9 +19,9 @@ from wikibaseintegrator.wbi_enums import WikibaseSnakType
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
                                                NonExistentEntityError, SaveFailed)
 from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount,
-                                            fulltext_search, generate_entity_instances, get_user_agent, lexeme_add_form, lexeme_edit_sense, lexeme_remove_form,
-                                            lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value, remove_claims,
-                                            search_entities, set_claim)
+                                            fulltext_search, generate_entity_instances, get_available_badges, get_user_agent, lexeme_add_form, lexeme_edit_sense,
+                                            lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value,
+                                            remove_claims, search_entities, set_claim)
 
 
 class FakeLogin:
@@ -824,6 +824,17 @@ class TestParseValue:
         wikibase.fail_next(code='no-such-entity', info='Could not find an entity with the ID "P99999".')
         with pytest.raises(NonExistentEntityError):
             parse_value('foo', prop_nr='P99999')
+
+
+class TestGetAvailableBadges:
+    def test_get_available_badges(self, wikibase):
+        assert get_available_badges() == ['Q17437796', 'Q17437798']
+        assert wikibase.last_request['action'] == 'wbavailablebadges'
+
+    def test_get_available_badges_none(self, wikibase):
+        # An instance without badges configured returns an empty list
+        wikibase.badges = []
+        assert not get_available_badges()
 
 
 class TestFulltextSearch:

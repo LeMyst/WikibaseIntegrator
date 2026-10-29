@@ -81,6 +81,7 @@ class MockWikibase:
         self.sparql_bindings: list[dict] = []  # bindings returned by the SPARQL endpoint
         self.constraint_results: dict[str, list[dict]] = {}  # wbcheckconstraints results, keyed by entity id
         self.parsed_values: dict[str, dict] = {}  # wbparsevalue results ('value' and 'type'), keyed by raw value; the other values fail to parse
+        self.badges: list[str] = ['Q17437796', 'Q17437798']  # wbavailablebadges items
         self.entity_types: list[str] = ['item', 'property', 'lexeme', 'form', 'sense']  # entity types wbeditentity can create (paraminfo)
         self.datatypes: list[str] = ['external-id', 'quantity', 'string', 'time', 'url', 'wikibase-item', 'wikibase-lexeme', 'wikibase-property']  # wbformatvalue datatypes
         self.extensions: list[str] = ['CirrusSearch', 'WikibaseCirrusSearch', 'WikibaseClient', 'WikibaseLexeme', 'WikibaseRepository']  # meta=siteinfo extensions
@@ -456,6 +457,9 @@ class MockWikibase:
         if failed:
             response['error'] = {'code': failed['messages'][0]['name'], 'info': failed['messages'][0]['html']['*']}
         return response
+
+    def _action_wbavailablebadges(self, _params: dict[str, str]) -> dict:
+        return {'badges': list(self.badges)}
 
     def _action_wbcheckconstraints(self, params: dict[str, str]) -> dict:
         requested_ids = params['id'].split('|') if 'id' in params else list(self.constraint_results.keys())
