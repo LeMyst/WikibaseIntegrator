@@ -665,6 +665,34 @@ def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignor
     return to_id
 
 
+def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+    """
+    A static method to turn an item into a redirect to another item, with the wbcreateredirect API.
+
+    The source item must be empty, deleted or already a redirect (to change its target, e.g. to fix a double redirect).
+    To combine two items which both have content, use merge_items(), which creates the redirect itself.
+    Wikibase only supports redirects between items with this API, and it doesn't accept a summary or change tags.
+
+    :param from_id: The ID of the item to turn into a redirect. This parameter is required.
+    :param to_id: The ID of the item to redirect to. It must exist and not be a redirect itself. This parameter is required.
+    :param login: A wbi_login.Login instance
+    :param is_bot: Mark this edit as bot.
+    :return: The API response, with the ID of the target item in the 'redirect' key.
+    """
+
+    params = {
+        'action': 'wbcreateredirect',
+        'from': from_id,
+        'to': to_id,
+        'format': 'json'
+    }
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
+
+
 def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A static method to merge two lexemes

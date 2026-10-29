@@ -425,6 +425,9 @@ class MockWikibase:
         saved = next(statement for statement in entity[claims_key][claim['mainsnak']['property']] if statement['id'] == claim['id'])
         return {'pageinfo': {'lastrevid': entity['lastrevid']}, 'success': 1, 'claim': deepcopy(saved)}
 
+    def _action_wbcreateredirect(self, params: dict[str, str]) -> dict:
+        return {'success': 1, 'redirect': params['to']}
+
     def _action_wbremoveclaims(self, params: dict[str, str]) -> dict:
         return {'pageinfo': {'lastrevid': 1}, 'success': 1, 'claims': params['claim'].split('|')}
 

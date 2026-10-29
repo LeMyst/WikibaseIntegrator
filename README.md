@@ -896,6 +896,17 @@ It takes these arguments:
 Wikibase turns the emptied item into a redirect to the target item, so there is no need to create the redirect
 separately.
 
+To turn an item into a redirect without merging it, `wbi_helpers.create_redirect()` takes the same from_id, to_id,
+login and is_bot arguments. The source item must be empty, deleted or already a redirect (to change its target, for
+example to fix a double redirect), and the target item must exist and not be a redirect itself.
+
+```python
+from wikibaseintegrator import wbi_helpers, wbi_login
+
+login = wbi_login.Login(user='<bot user name>', password='<bot password>')
+wbi_helpers.create_redirect(from_id='Q30', to_id='Q5', login=login)  # Q30 now redirects to Q5
+```
+
 To merge more than two items at once, `wbi_helpers.merge_multiple_items()` takes a list of QIDs and merges all of them
 into the one with the lowest numeric ID, which it returns. It accepts the same login, ignore_conflicts, is_bot and tags
 arguments. The merges are done one by one: if one fails, its exception is raised and the merges already done are kept.
