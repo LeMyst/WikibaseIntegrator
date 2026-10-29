@@ -977,6 +977,8 @@ for result in wbi_helpers.parse_value(['3 March 1850', '1850s', 'not a date'], d
 * `check_constraints()`: check the constraint violations of entities or claims with the WikibaseQualityConstraints
   extension.
 * `fulltext_search()`: perform a fulltext search on the MediaWiki instance.
+* `get_available_badges()`: list the items which can be used as badges of sitelinks, e.g.
+  `item.sitelinks.set('enwiki', 'Douglas Adams', badges=['Q17437796'])` (featured article on Wikidata).
 * `delete_page()`: delete a page.
 * `download_entity_ttl()`: download the RDF (Turtle) representation of an entity.
 

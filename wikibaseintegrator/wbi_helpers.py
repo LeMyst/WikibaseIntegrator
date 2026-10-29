@@ -987,6 +987,23 @@ def parse_value(values: str | list[str], datatype: str | None = None, prop_nr: s
     return results
 
 
+def get_available_badges(allow_anonymous: bool = True, **kwargs: Any) -> list[str]:
+    """
+    Get the items which can be used as badges of sitelinks (e.g. 'Q17437796', featured article, on Wikidata), with the wbavailablebadges API.
+    Each Wikibase instance configures its own list of badges, which can be empty. A sitelink with another item as badge can't be saved.
+
+    :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper()
+    :return: The IDs of the badge items
+    """
+    params = {
+        'action': 'wbavailablebadges',
+        'format': 'json'
+    }
+
+    return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['badges']
+
+
 def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Adds Form to Lexeme
