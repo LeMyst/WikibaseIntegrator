@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import threading
+import uuid
 import warnings
 from dataclasses import dataclass, field
 from time import sleep
@@ -27,6 +28,7 @@ from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, Emp
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
     from wikibaseintegrator.entities.baseentity import BaseEntity
+    from wikibaseintegrator.models import Claim
     from wikibaseintegrator.wbi_login import _Login
 
 log = logging.getLogger(__name__)
@@ -744,6 +746,81 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
         params.update({'bot': ''})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
+
+
+def set_claim(claim: Claim, entity_id: str | None = None, index: int | None = None, baserevid: int | None = None, summary: str | None = None, tags: list[str] | None = None,
+              ignore_duplicate_mainsnak: bool = False, login: _Login | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+    """
+    Create or replace a single statement, with its qualifiers and references, with the wbsetclaim API.
+
+    Unlike a write of the whole entity, only this statement is sent: the entity doesn't need to be loaded first, and the edit doesn't conflict with the edits of the other
+    statements. A claim with an ID replaces the statement with this ID. A claim without an ID is added to the entity given by entity_id, and the ID generated for it is set on
+    the claim once the edit is saved.
+
+    :param claim: The claim to write, e.g. a datatype instance like String(prop_nr='P31', value='foo'). It can't be marked as removed, use remove_claims() instead.
+    :param entity_id: The ID of the entity of a new claim (without ID). Optional for a claim with an ID, which already contains the ID of its entity.
+    :param index: The position to move the statement to in the list of statements of the entity.
+    :param baserevid: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
+    :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
+    :param tags: Change tags to apply to the revision.
+    :param ignore_duplicate_mainsnak: Don't save the statement if the entity already has a statement with the same main snak. The API then answers with a warning instead of the
+        saved statement.
+    :param login: A wbi_login.Login instance
+    :param is_bot: Mark this edit as bot.
+    :param kwargs: More arguments for mediawiki_api_call_helper() and Python requests
+    :return: The API response, with the saved statement in the 'claim' key.
+    :exception ValueError: if the claim is marked as removed, if a new claim has no entity_id, or if the ID of the claim doesn't match entity_id
+    :exception EmptyValueError: if a snak of the claim has no value
+    """
+
+    if claim.removed:
+        raise ValueError("The claim is marked as removed, use remove_claims() to delete it.")
+
+    if claim.id:
+        claim_entity_id = claim.id.split('$', 1)[0]
+        if entity_id and entity_id.upper() != claim_entity_id.upper():
+            raise ValueError(f"The claim {claim.id} belongs to {claim_entity_id}, not to {entity_id}.")
+        guid = claim.id
+    elif entity_id:
+        # The API requires a GUID, made of the ID of the entity and a UUID, like Wikibase generates them
+        guid = f'{entity_id.upper()}${uuid.uuid4()}'
+    else:
+        raise ValueError("The claim has no ID, the entity_id parameter is required to add it to an entity.")
+
+    data = claim.get_json()
+    data['id'] = guid
+    _check_empty_values({'claims': [data]})
+
+    params = {
+        'action': 'wbsetclaim',
+        'claim': ujson.dumps(data),
+        'format': 'json'
+    }
+
+    if index is not None:
+        params.update({'index': str(index)})
+
+    if baserevid:
+        params.update({'baserevid': str(baserevid)})
+
+    if summary:
+        params.update({'summary': summary})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
+
+    if ignore_duplicate_mainsnak:
+        params.update({'ignoreduplicatemainsnak': ''})
+
+    if is_bot:
+        params.update({'bot': ''})
+
+    json_result = mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
+
+    if 'claim' in json_result:
+        claim.id = json_result['claim']['id']
+
+    return json_result
 
 
 def check_constraints(entity_id: str | list[str] | None = None, claim_id: str | list[str] | None = None, status: list[str] | None = None, allow_anonymous: bool = True,

@@ -408,6 +408,23 @@ class MockWikibase:
     def _action_wbmergeitems(self, params: dict[str, str]) -> dict:
         return {'success': 1, 'redirected': 1, 'from': {'id': params['fromid']}, 'to': {'id': params['toid']}}
 
+    def _action_wbsetclaim(self, params: dict[str, str]) -> dict:
+        claim = json.loads(params['claim'])
+        if not claim.get('id'):
+            return {'error': {'code': 'invalid-claim', 'info': 'GUID must be set when setting a claim'}}
+
+        entity_id = claim['id'].split('$', 1)[0]
+        if entity_id not in self.entities:
+            return {'error': {'code': 'no-such-entity', 'info': f'Could not find an entity with the ID "{entity_id}".'}}
+
+        entity = self.entities[entity_id]
+        claims_key = 'statements' if entity.get('type') == 'mediainfo' else 'claims'
+        entity[claims_key] = self._apply_claims(entity.get(claims_key, {}), [claim], entity_id)
+        entity['lastrevid'] = entity.get('lastrevid', 0) + 1
+
+        saved = next(statement for statement in entity[claims_key][claim['mainsnak']['property']] if statement['id'] == claim['id'])
+        return {'pageinfo': {'lastrevid': entity['lastrevid']}, 'success': 1, 'claim': deepcopy(saved)}
+
     def _action_wbcreateredirect(self, params: dict[str, str]) -> dict:
         return {'success': 1, 'redirect': params['to']}
 
