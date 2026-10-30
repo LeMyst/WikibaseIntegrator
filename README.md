@@ -2,6 +2,7 @@
 
 [![PyPi](https://img.shields.io/pypi/v/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
 [![Python pytest](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-pytest.yaml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-pytest.yaml)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/LeMyst/WikibaseIntegrator/badges/coverage.json)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-pytest.yaml)
 [![Python Code Quality and Lint](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-lint.yaml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/python-lint.yaml)
 [![CodeQL](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql.yml/badge.svg)](https://github.com/LeMyst/WikibaseIntegrator/actions/workflows/codeql.yml)
 [![Pyversions](https://img.shields.io/pypi/implementation/wikibaseintegrator.svg)](https://pypi.python.org/pypi/wikibaseintegrator)
@@ -481,6 +482,9 @@ The unit tests run offline (the HTTP calls are mocked) with:
 ```bash
 python -m pytest
 ```
+
+Add `--cov=wikibaseintegrator` to measure the test coverage (requires the `coverage` group), as the CI does on Python
+3.14 for the coverage badge.
 
 The integration tests, running against a real Wikibase instance, are deselected by default and can be run with
 `python -m pytest -m integration` (see [test/integration/README.md](test/integration/README.md)).
