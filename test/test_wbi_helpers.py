@@ -3,6 +3,7 @@ Tests for wbi_helpers: low-level API call machinery (retries, maxlag, error
 mapping), search, merge, SPARQL and the various pure helper functions.
 """
 import copy
+import inspect
 import logging
 import threading
 import uuid
@@ -95,6 +96,90 @@ class TestRetryBehaviour:
                                            allow_anonymous=True)
         assert result['success'] == 1
         assert requests_mock.call_count == 2
+
+    @pytest.fixture
+    def slept(self, monkeypatch):
+        """The waits between the tries."""
+        waits: list[float] = []
+        monkeypatch.setattr('wikibaseintegrator.wbi_helpers.sleep', waits.append)
+        return waits
+
+    def test_failure_waits_double_up_to_retry_after(self, requests_mock, slept):
+        url = 'https://unstable.example.org/w/api.php'
+        requests_mock.post(url, [{'status_code': 503, 'text': 'Service Unavailable'}] * 4 + [{'json': {'success': 1}, 'status_code': 200}])
+
+        assert mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=10, retry_after=3) == {'success': 1}
+        # Instead of retry_after (60 s by default) after each failure
+        assert slept == [1, 2, 3, 3]
+
+    def test_failures_are_limited_by_backoff_max_tries(self, requests_mock, slept):
+        url = 'https://unreachable.example.org/w/api.php'
+        requests_mock.post(url, exc=requests.exceptions.ConnectionError('unreachable'))
+        wbi_config['BACKOFF_MAX_TRIES'] = 3
+
+        with pytest.raises(MaxRetriesReachedException) as excinfo:
+            mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=20, retry_after=60)
+
+        # max_retries (20) is for the instance asking to slow down, a failure is tried BACKOFF_MAX_TRIES times
+        assert requests_mock.call_count == 3
+        assert isinstance(excinfo.value.__cause__, requests.exceptions.ConnectionError)
+        # No wait after the last try
+        assert slept == [1, 2]
+
+    def test_maxlag_is_not_limited_by_backoff_max_tries(self, requests_mock, slept):
+        url = 'https://lagging.example.org/w/api.php'
+        maxlag = {'json': {'error': {'code': 'maxlag', 'info': 'Waiting for a database server', 'lag': 3}}}
+        requests_mock.post(url, [maxlag] * 4 + [{'json': {'success': 1}}])
+        wbi_config['BACKOFF_MAX_TRIES'] = 2
+
+        assert mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=10, retry_after=60) == {'success': 1}
+        assert requests_mock.call_count == 5
+
+    def test_max_retries_without_wait_after_the_last_try(self, requests_mock, slept):
+        url = 'https://lagging.example.org/w/api.php'
+        requests_mock.post(url, json={'error': {'code': 'maxlag', 'info': 'Waiting for a database server', 'lag': 3}})
+
+        with pytest.raises(MaxRetriesReachedException):
+            mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=3, retry_after=60)
+
+        assert requests_mock.call_count == 3 and len(slept) == 2
+
+    def test_http_429_is_retried_after_the_delay_asked(self, requests_mock, slept):
+        url = 'https://throttled.example.org/w/api.php'
+        requests_mock.post(url, [{'status_code': 429, 'headers': {'Retry-After': '7'}, 'text': 'Too Many Requests'}, {'json': {'success': 1}}])
+
+        assert mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=3, retry_after=60) == {'success': 1}
+        assert slept == [7]
+
+    def test_retry_after_is_capped_by_backoff_max_value(self, requests_mock, slept):
+        url = 'https://throttled.example.org/w/api.php'
+        requests_mock.post(url, [{'status_code': 429, 'headers': {'Retry-After': '100000'}, 'text': 'Too Many Requests'}, {'json': {'success': 1}}])
+        wbi_config['BACKOFF_MAX_VALUE'] = 60
+
+        mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=3, retry_after=5)
+        assert slept == [60]
+
+    @pytest.mark.parametrize('retry_after_header', ['Wed, 21 Oct 2015 07:28:00 GMT', '-5', 'nan', ''])
+    def test_rate_limit_with_an_unusable_retry_after(self, requests_mock, slept, retry_after_header):
+        # int() of an HTTP date used to raise a ValueError
+        url = 'https://throttled.example.org/w/api.php'
+        throttled = {'error': {'code': 'ratelimited', 'info': 'Rate limited', 'messages': [{'name': 'actionthrottledtext'}]}}
+        requests_mock.post(url, [{'json': throttled, 'headers': {'Retry-After': retry_after_header}}, {'json': {'success': 1}}])
+
+        assert mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=3, retry_after=4) == {'success': 1}
+        assert slept == [4]
+
+    def test_readonly_is_waited_for(self, requests_mock, slept):
+        url = 'https://maintenance.example.org/w/api.php'
+        readonly = {'error': {'code': 'readonly', 'info': 'The wiki is currently in read-only mode.'}}
+        requests_mock.post(url, [{'json': readonly}, {'json': {'success': 1}}])
+
+        assert mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=3, retry_after=9) == {'success': 1}
+        assert slept == [9]
+
+    def test_default_max_retries(self):
+        assert inspect.signature(mediawiki_api_call).parameters['max_retries'].default == 20
+        assert inspect.signature(mediawiki_api_call_helper).parameters['max_retries'].default == 20
 
     def test_format_must_be_json(self):
         with pytest.raises(ValueError):
