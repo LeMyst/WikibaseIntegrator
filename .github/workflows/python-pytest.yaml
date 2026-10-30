@@ -9,6 +9,7 @@ on:
       - 'test/**'
       - 'pyproject.toml'
       - 'poetry.lock'
+      - '.github/workflows/python-pytest.yaml'
   pull_request:
     branches: [ '**' ]
     paths:
@@ -16,6 +17,7 @@ on:
       - 'test/**'
       - 'pyproject.toml'
       - 'poetry.lock'
+      - '.github/workflows/python-pytest.yaml'
 
 permissions:
   contents: read
