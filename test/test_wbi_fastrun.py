@@ -8,7 +8,7 @@ import re
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType, ExternalID, Item, Quantity, String, Time
+from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, Item, Property, Quantity, String, Time
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
@@ -16,8 +16,10 @@ from .conftest import literal, uri
 
 wbi = WikibaseIntegrator()
 
+PTYPE_ENTITY_SCHEMA = 'http://wikiba.se/ontology#WikibaseEntitySchema'
 PTYPE_EXTERNAL_ID = 'http://wikiba.se/ontology#ExternalId'
 PTYPE_ITEM = 'http://wikiba.se/ontology#WikibaseItem'
+PTYPE_PROPERTY = 'http://wikiba.se/ontology#WikibaseProperty'
 PTYPE_QUANTITY = 'http://wikiba.se/ontology#Quantity'
 PTYPE_STRING = 'http://wikiba.se/ontology#String'
 PTYPE_TIME = 'http://wikiba.se/ontology#Time'
@@ -251,6 +253,17 @@ class TestWriteRequired:
         assert frc.write_required(claims=claims, action_if_exists=ActionIfExists.FORCE_APPEND) is True
         # The check short-circuits without querying the endpoint
         assert len(wikibase.sparql_queries) == 0
+
+    @pytest.mark.parametrize('datatype,prop_nr,value,other_value,property_type', [
+        (EntitySchema, 'P12861', 'E10', 'E11', PTYPE_ENTITY_SCHEMA),
+        (Property, 'P1659', 'P31', 'P279', PTYPE_PROPERTY),
+    ], ids=['entity-schema', 'wikibase-property'])
+    def test_entity_uri_datatypes(self, wikibase, sparql_data, frc, datatype, prop_nr, value, other_value, property_type):
+        # EntitySchema used to raise a TypeError, and the statements of a Property were never matched (wrong PTYPE)
+        sparql_data.statement('Q99', prop_nr, uri(f'{wikibase.base_url}/entity/{value}'), property_type)
+
+        assert frc.write_required(claims=[datatype(value=value, prop_nr=prop_nr)]) is False
+        assert frc.write_required(claims=[datatype(value=other_value, prop_nr=prop_nr)]) is True
 
     def test_empty_claims(self, frc):
         with pytest.raises(ValueError):

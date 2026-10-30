@@ -6,8 +6,8 @@ interaction is involved.
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes
-from wikibaseintegrator.datatypes import (URL, BaseDataType, CommonsMedia, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText, MusicalNotation,
-                                          Property, Quantity, Sense, String, TabularData, Time)
+from wikibaseintegrator.datatypes import (URL, BaseDataType, CommonsMedia, EntitySchema, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText,
+                                          MusicalNotation, Property, Quantity, Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseRank, WikibaseSnakType, WikibaseTimePrecision
 from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
@@ -247,6 +247,7 @@ class TestFromSparqlValue:
         (ExternalID, {'type': 'literal', 'value': '123-456'}, '123-456'),
         (MusicalNotation, {'type': 'literal', 'value': '\\relative c { e f }'}, '\\relative c { e f }'),
         (Property, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/P31'}, 'P31'),
+        (EntitySchema, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/E10'}, 'E10'),
         (Lexeme, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/L5'}, 'L5'),
         (Form, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/L252248-F2'}, 'L252248-F2'),
         (Sense, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/L252248-S3'}, 'L252248-S3'),
@@ -289,3 +290,12 @@ class TestFromSparqlValue:
 
         with pytest.raises(ValueError, match='Invalid SPARQL value'):
             GeoShape(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': 'http://commons.wikimedia.org/data/main/Data:Paris.tab'})
+
+        with pytest.raises(ValueError, match='Invalid SPARQL value'):
+            EntitySchema(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': 'http://www.wikidata.org/entity/Q10'})
+
+    def test_property_types(self):
+        # The property types of the Wikibase ontology, as returned by wikibase:propertyType on Wikidata. Fastrun finds
+        # the data type of a loaded value from them: a wrong one makes the value never match.
+        assert Property.PTYPE == 'http://wikiba.se/ontology#WikibaseProperty'
+        assert EntitySchema.PTYPE == 'http://wikiba.se/ontology#WikibaseEntitySchema'
