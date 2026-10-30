@@ -17,6 +17,9 @@ on:
       - 'pyproject.toml'
       - 'poetry.lock'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: pytest ${{ matrix.python-version }}
@@ -26,6 +29,10 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.11', '3.12', '3.13', '3.14', '3.15' ]
+        include:
+          # Coverage is measured on a single version, the one used by the lint workflow
+          - python-version: '3.14'
+            coverage: true
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,8 +58,69 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m poetry install --with dev
+          python -m poetry install --with dev${{ matrix.coverage && ',coverage' || '' }}
 
       - name: Test with pytest
+        if: ${{ !matrix.coverage }}
         run: |
           python -m poetry run pytest
+
+      - name: Test with pytest and measure coverage
+        if: ${{ matrix.coverage }}
+        run: |
+          python -m poetry run pytest --cov=wikibaseintegrator --cov-report=term --cov-report=json
+
+      - name: Write the coverage report and badge
+        if: ${{ matrix.coverage }}
+        run: |
+          python -m poetry run coverage report --format=markdown --sort=cover >> "$GITHUB_STEP_SUMMARY"
+          python - <<'EOF'
+          import json
+
+          totals = json.load(open('coverage.json'))['totals']
+          percent = totals['percent_covered']
+          color = next(c for threshold, c in [(90, 'brightgreen'), (80, 'green'), (70, 'yellowgreen'), (60, 'yellow'), (50, 'orange'), (0, 'red')] if percent >= threshold)
+          badge = {'schemaVersion': 1, 'label': 'coverage', 'message': f"{totals['percent_covered_display']}%", 'color': color}
+          json.dump(badge, open('coverage-badge.json', 'w'))
+          print(badge)
+          EOF
+
+      - name: Upload the coverage badge
+        if: ${{ matrix.coverage }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-badge
+          path: coverage-badge.json
+
+  # Publishes the badge read by the README (through a shields.io endpoint badge) to the "badges" branch.
+  # The branch holds a single commit, replaced on each update. It runs in its own job so the tests never run with a write token.
+  coverage-badge:
+    name: Update the coverage badge
+    needs: build
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: coverage-badge
+      cancel-in-progress: true
+
+    steps:
+      - name: Download the coverage badge
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-badge
+
+      - name: Push the coverage badge to the badges branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir badges
+          mv coverage-badge.json badges/coverage.json
+          cd badges
+          git init --quiet --initial-branch=badges
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add coverage.json
+          git commit --quiet --message "Update the coverage badge from ${GITHUB_SHA}"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
