@@ -22,8 +22,8 @@ from requests.auth import AuthBase
 
 from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
-                                               NonExistentEntityError, SaveFailed, SearchError)
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
+                                               ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError)
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -1247,12 +1247,17 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     """
     A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the
     second is the new instance of a subclass of BaseEntity containing all the data of the entity. This is most useful for mass retrieval of entities.
+    The entities are requested by batches of 50, the limit of wbgetentities.
 
-    :param entities: A list of IDs. Item, Property or Lexeme.
-    :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+    :param entities: A list of IDs. Item, Property, Lexeme or MediaInfo.
+    :param allow_anonymous: Allow an anonymous request to the MediaWiki API. Enabled by default.
     :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
+    :raises NonExistentEntityError: If an ID doesn't exist on the Wikibase instance
+    :raises MissingEntityException: If an entity is missing, e.g. deleted
+    :raises ValueError: If an entity has a type that no subclass of BaseEntity implements
     """
 
+    from wikibaseintegrator import WikibaseIntegrator
     from wikibaseintegrator.entities.baseentity import BaseEntity
 
     if isinstance(entities, str):
@@ -1260,23 +1265,29 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
 
     assert isinstance(entities, list)
 
-    params = {
-        'action': 'wbgetentities',
-        'ids': '|'.join(entities),
-        'format': 'json'
-    }
-
-    reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
-
+    wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
     entity_instances = []
-    from wikibaseintegrator import WikibaseIntegrator
-    for qid, v in reply['entities'].items():
-        wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
-        # Use the recursive subclass registry (not __subclasses__(), which only returns direct subclasses) so that
-        # entities inheriting through an intermediate base (Item/Property/MediaInfo via TermsEntity) are found.
-        f = [x for x in BaseEntity.subclasses if x.ETYPE == v['type']][0]
-        ii = f(api=wbi).from_json(v)
-        entity_instances.append((qid, ii))
+    for start in range(0, len(entities), 50):
+        params = {
+            'action': 'wbgetentities',
+            'ids': '|'.join(entities[start:start + 50]),
+            'format': 'json'
+        }
+
+        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+
+        for entity_id, entity_json in reply['entities'].items():
+            # A deleted entity is returned as {'id': ..., 'missing': ''}, without its type
+            if 'missing' in entity_json:
+                raise MissingEntityException(f'The entity {entity_id} is missing (deleted?) on the Wikibase instance.')
+
+            # Use the recursive subclass registry (not __subclasses__(), which only returns direct subclasses) so that
+            # entities inheriting through an intermediate base (Item/Property/MediaInfo via TermsEntity) are found.
+            entity_class = next((x for x in BaseEntity.subclasses if x.ETYPE == entity_json['type']), None)
+            if entity_class is None:
+                raise ValueError(f"Unknown entity type '{entity_json['type']}' for the entity {entity_id}")
+
+            entity_instances.append((entity_id, entity_class(api=wbi).from_json(entity_json)))
 
     return entity_instances
 
