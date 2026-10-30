@@ -20,7 +20,7 @@ import ujson
 from requests import Session
 from requests.auth import AuthBase
 
-from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff
+from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff, wbi_backoff_wait
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
                                                ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError)
@@ -80,6 +80,11 @@ class BColors:
 # failing call can still look valid, since generate_edit_credentials() reads it off the very session
 # cookies that are now rejected; recovering requires a full re-login instead.
 SESSION_LOST_ERROR_CODES = {'assertuserfailed', 'assertbotfailed', 'notloggedin'}
+
+# The API actions that don't change anything. A read timeout is only retried for them: on a write, the edit may have been
+# saved before the timeout, and trying again could save it twice.
+READ_ONLY_ACTIONS = frozenset({'query', 'paraminfo', 'wbgetentities', 'wbgetclaims', 'wbsearchentities', 'wbparsevalue', 'wbformatvalue',
+                               'wbcheckconstraints', 'wbavailablebadges'})
 
 # The entity types provided by the WikibaseLexeme extension, and the IDs of these entities (L1, L1-F1, L1-S1),
 # optionally prefixed by a federated repository name.
@@ -152,11 +157,20 @@ def _check_failures(failures: int, failure: Exception) -> None:
         raise MaxRetriesReachedException(f'The request failed {failures} times (BACKOFF_MAX_TRIES): {failure}') from failure
 
 
-def _failure_wait(failures: int, retry_after: float) -> float:
+def _failure_wait(failures: int, failure: Exception, retry_after: float) -> float:
     """
-    The wait after a failure (connection error, HTTP 5xx): 1, 2, 4... seconds, up to retry_after.
+    The wait after a failure (connection error, read timeout of a read, HTTP 5xx): 1, 2, 4... seconds like wbi_backoff,
+    capped by config['BACKOFF_MAX_VALUE'] and by retry_after.
     """
-    return min(2 ** (failures - 1), retry_after)
+    return min(wbi_backoff_wait(failures, failure), retry_after)
+
+
+def _is_read_only(kwargs: dict[str, Any]) -> bool:
+    """
+    Whether the request is for one of the READ_ONLY_ACTIONS, given in its form data or its query string.
+    """
+    request_data = kwargs.get('data') or kwargs.get('params') or {}
+    return isinstance(request_data, dict) and request_data.get('action') in READ_ONLY_ACTIONS
 
 
 def _retry_after_delay(response: requests.Response, default: float) -> float:
@@ -182,7 +196,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                   SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying, once per call.
     :param max_retries: The maximum number of tries of the request. The instance asking to slow down (maxlag, rate limiting,
                         HTTP 429, readonly mode) is waited for up to this number of tries. The failures (connection errors,
-                        HTTP 5xx) are tried at most config['BACKOFF_MAX_TRIES'] times, with a wait doubling from 1 second.
+                        HTTP 5xx, and read timeouts of the READ_ONLY_ACTIONS) are tried at most config['BACKOFF_MAX_TRIES']
+                        times, with a wait doubling from 1 second, like wbi_backoff.
     :param retry_after: The maximum number of seconds to wait between two tries after a failure or a maxlag, and the wait
                         when the instance doesn't say how long to wait (rate limiting without Retry-After, readonly mode)
     :param kwargs: Any additional keyword arguments to pass to requests.request
@@ -221,14 +236,24 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             failures += 1
             last_failure = e
             _check_failures(failures, e)
-            wait = _failure_wait(failures, retry_after)
+            wait = _failure_wait(failures, e, retry_after)
             log.error("Connection error: %s. Retrying in %d seconds.", e, wait)
+            continue
+        except requests.exceptions.ReadTimeout as e:
+            # Raised as is for a write, which may have been saved before the timeout
+            if not _is_read_only(kwargs):
+                raise
+            failures += 1
+            last_failure = e
+            _check_failures(failures, e)
+            wait = _failure_wait(failures, e, retry_after)
+            log.error("Read timeout: %s. Retrying in %d seconds.", e, wait)
             continue
         if response.status_code in (500, 502, 503, 504):
             failures += 1
             last_failure = requests.HTTPError(f'{response.status_code} Server Error for url: {response.url}', response=response)
             _check_failures(failures, last_failure)
-            wait = _failure_wait(failures, retry_after)
+            wait = _failure_wait(failures, last_failure, retry_after)
             log.error("Service unavailable (HTTP Code %d). Retrying in %d seconds.", response.status_code, wait)
             continue
         if response.status_code == 429:

@@ -177,6 +177,42 @@ class TestRetryBehaviour:
         assert mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=3, retry_after=9) == {'success': 1}
         assert slept == [9]
 
+    def test_read_timeout_of_a_read_is_retried(self, requests_mock, slept):
+        url = 'https://slow.example.org/w/api.php'
+        requests_mock.post(url, [{'exc': requests.exceptions.ReadTimeout('read timed out')}, {'json': {'entities': {}, 'success': 1}}])
+
+        result = mediawiki_api_call('POST', mediawiki_api_url=url, data={'action': 'wbgetentities', 'ids': 'Q42'}, max_retries=5, retry_after=60)
+
+        assert result['success'] == 1 and slept == [1]
+
+    def test_read_timeout_of_a_write_is_not_retried(self, requests_mock, slept):
+        # The edit may have been saved before the timeout: trying again could save it twice
+        url = 'https://slow.example.org/w/api.php'
+        requests_mock.post(url, exc=requests.exceptions.ReadTimeout('read timed out'))
+
+        with pytest.raises(requests.exceptions.ReadTimeout):
+            mediawiki_api_call('POST', mediawiki_api_url=url, data={'action': 'wbeditentity', 'id': 'Q42', 'data': '{}'}, max_retries=5, retry_after=60)
+
+        assert requests_mock.call_count == 1 and slept == []
+
+    def test_read_timeouts_of_a_read_are_limited_by_backoff_max_tries(self, requests_mock, slept):
+        url = 'https://slow.example.org/w/api.php'
+        requests_mock.post(url, exc=requests.exceptions.ReadTimeout('read timed out'))
+        wbi_config['BACKOFF_MAX_TRIES'] = 2
+
+        with pytest.raises(MaxRetriesReachedException) as excinfo:
+            mediawiki_api_call('POST', mediawiki_api_url=url, data={'action': 'query', 'meta': 'siteinfo'}, max_retries=20, retry_after=60)
+
+        assert requests_mock.call_count == 2 and isinstance(excinfo.value.__cause__, requests.exceptions.ReadTimeout)
+
+    def test_failure_waits_are_capped_by_backoff_max_value(self, requests_mock, slept):
+        url = 'https://unstable.example.org/w/api.php'
+        requests_mock.post(url, [{'status_code': 503, 'text': 'Service Unavailable'}] * 3 + [{'json': {'success': 1}, 'status_code': 200}])
+        wbi_config['BACKOFF_MAX_VALUE'] = 2
+
+        mediawiki_api_call('POST', mediawiki_api_url=url, max_retries=10, retry_after=60)
+        assert slept == [1, 2, 2]
+
     def test_default_max_retries(self):
         assert inspect.signature(mediawiki_api_call).parameters['max_retries'].default == 20
         assert inspect.signature(mediawiki_api_call_helper).parameters['max_retries'].default == 20
