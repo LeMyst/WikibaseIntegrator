@@ -207,6 +207,16 @@ class MockWikibase:
 
         return {'entities': entities, 'success': 1}
 
+    def _action_wbgetclaims(self, params: dict[str, str]) -> dict:
+        entity = self.entities.get(params['entity'])
+        if entity is None:
+            return {'error': {'code': 'no-such-entity', 'info': f'Could not find an entity with the ID "{params["entity"]}".'}, 'servedby': 'mock'}
+
+        claims = entity.get('claims', entity.get('statements', {}))
+        if 'property' in params:
+            claims = {prop_nr: statements for prop_nr, statements in claims.items() if prop_nr == params['property']}
+        return {'claims': deepcopy(claims)}
+
     @staticmethod
     def _project(entity: dict, props: str | None) -> dict:
         """Apply the 'props' parameter filtering, like the real API does."""

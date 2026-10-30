@@ -219,6 +219,17 @@ class BaseEntity:
         return self._write(data={}, clear=True, **kwargs)
 
     def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
+        """
+        Load the claims of a property from the Wikibase instance. They replace the claims of this property already loaded,
+        unsaved changes included, so calling it again refreshes them instead of duplicating them.
+
+        :param property: The property number, e.g. 'P31'
+        :param login: A login instance
+        :param allow_anonymous: Allow an anonymous request
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for Python requests
+        :return: This entity
+        """
         params = {
             'action': 'wbgetclaims',
             'entity': self.id,
@@ -230,6 +241,8 @@ class BaseEntity:
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
         json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        # Claims.from_json() appends: drop the claims already loaded for the property first
+        self.claims.claims.pop(property, None)
         self.claims.from_json(json_data['claims'])
         return self
 

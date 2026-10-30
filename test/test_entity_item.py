@@ -64,6 +64,37 @@ class TestGet:
         assert len(item.labels) == 0
 
 
+class TestGetClaims:
+    def test_get_claims_does_not_duplicate_the_loaded_claims(self, item_q582):
+        item = wbi.item.get('Q582')
+        count = len(item.claims.get('P31'))
+
+        item.get_claims('P31')
+        item.get_claims('P31')
+
+        assert len(item.claims.get('P31')) == count
+
+    def test_get_claims_on_an_entity_not_loaded(self, item_q582):
+        item = wbi.item.new()
+        item.id = 'Q582'
+
+        item.get_claims('P31')
+
+        assert list(item.claims.claims.keys()) == ['P31']
+        assert [claim.id for claim in item.claims.get('P31')] == [claim['id'] for claim in item_q582['claims']['P31']]
+
+    def test_get_claims_replaces_only_the_claims_of_the_property(self, item_q582):
+        item = wbi.item.get('Q582')
+        item.claims.add(Item(prop_nr='P31', value='Q1234'))
+        item.claims.add(String(prop_nr='P1259', value='kept'))
+
+        item.get_claims('P31')
+
+        # The claims of the property are the ones of the Wikibase instance, the other properties are left as they are
+        assert 'Q1234' not in [claim.mainsnak.datavalue['value']['id'] for claim in item.claims.get('P31')]
+        assert [claim.mainsnak.datavalue['value'] for claim in item.claims.get('P1259')] == ['kept']
+
+
 class TestEntityUrl:
     def test_entity_url(self):
         assert wbi.item.new(id='Q582').get_entity_url() == 'http://www.wikidata.org/entity/Q582'
