@@ -92,7 +92,9 @@ def wbi_get_backoff_max_tries() -> int | None:
     return config.get('BACKOFF_MAX_TRIES')
 
 
-wbi_backoff_exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.HTTPError, JSONDecodeError)
+# ChunkedEncodingError: the connection was closed before the end of the response, e.g. when the SPARQL endpoint cuts
+# a long result. It is not a ConnectionError.
+wbi_backoff_exceptions = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError, requests.HTTPError, JSONDecodeError)
 
 
 def wbi_backoff() -> Callable[[Callable[P, R]], Callable[P, R]]:

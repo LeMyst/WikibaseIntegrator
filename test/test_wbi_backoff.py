@@ -176,6 +176,20 @@ def test_connection_error_is_retried(requests_mock):
     assert requests_mock.call_count == 2
 
 
+def test_truncated_response_is_retried(requests_mock):
+    # The server closed the connection before the end of a chunked response, e.g. a SPARQL result cut by the endpoint
+    requests_mock.get('https://unstable.example.org/api', exc=requests.exceptions.ChunkedEncodingError)
+
+    @wbi_backoff()
+    def truncated_response():
+        requests.get('https://unstable.example.org/api')
+
+    with pytest.raises(requests.exceptions.ChunkedEncodingError):
+        truncated_response()
+
+    assert requests_mock.call_count == 2
+
+
 def test_empty_json_payload_is_retried():
     import json
 
