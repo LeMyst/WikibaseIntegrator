@@ -4,6 +4,8 @@ Interaction tests for MediaInfoEntity against the simulated Wikibase instance.
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator.datatypes import String
+from wikibaseintegrator.wbi_enums import EntityField
 
 wbi = WikibaseIntegrator()
 
@@ -56,6 +58,36 @@ class TestGet:
         depicts = media.claims.get('P180')[0].mainsnak.datavalue
         assert depicts['type'] == 'wikibase-entityid'
         assert re.fullmatch(r'Q[0-9]+', depicts['value']['id'])
+
+
+class TestWrite:
+    # MediaInfo names the claims 'statements': limit_claims and fields_to_update used to only look at 'claims'
+
+    def test_write_limited_claims(self, wikibase, mediainfo_budapest):
+        media = wbi.mediainfo.get('M75908279')
+        media.claims.add(String(prop_nr='P1259', value='test'))
+
+        media.write(allow_anonymous=True, limit_claims=['P180'])
+
+        assert list(wikibase.last_edit['data']['statements'].keys()) == ['P180']
+
+    def test_write_fields_to_update_without_claims(self, wikibase, mediainfo_budapest):
+        media = wbi.mediainfo.get('M75908279')
+
+        media.write(allow_anonymous=True, fields_to_update=EntityField.LABELS)
+
+        payload = wikibase.last_edit['data']
+        assert 'labels' in payload
+        assert 'statements' not in payload and 'descriptions' not in payload
+
+    def test_write_fields_to_update_claims(self, wikibase, mediainfo_budapest):
+        media = wbi.mediainfo.get('M75908279')
+
+        media.write(allow_anonymous=True, fields_to_update=[EntityField.CLAIMS])
+
+        payload = wikibase.last_edit['data']
+        assert 'P180' in payload['statements']
+        assert 'labels' not in payload and 'descriptions' not in payload
 
 
 class TestEntityUrl:
