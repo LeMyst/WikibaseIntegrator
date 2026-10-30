@@ -63,6 +63,12 @@ class Qualifiers(BaseModel):
         return self
 
     def remove(self, qualifier: Snak | Claim) -> Self:
+        """
+        Remove a qualifier, given as a Snak or as a Claim of the same property and value. Nothing happens if it isn't there.
+
+        :param qualifier: The qualifier to remove
+        :return: This Qualifiers object
+        """
         from wikibaseintegrator.models.claim import Claim
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
@@ -70,10 +76,15 @@ class Qualifiers(BaseModel):
         if qualifier is not None:
             assert isinstance(qualifier, Snak)
 
-        if qualifier in self.qualifiers[qualifier.property_number]:
-            self.qualifiers[qualifier.property_number].remove(qualifier)
+        # Removing a qualifier that isn't there does nothing, whether its property has other qualifiers or none
+        qualifiers = self.qualifiers.get(qualifier.property_number)
+        if qualifiers is None:
+            return self
 
-        if len(self.qualifiers[qualifier.property_number]) == 0:
+        if qualifier in qualifiers:
+            qualifiers.remove(qualifier)
+
+        if len(qualifiers) == 0:
             del self.qualifiers[qualifier.property_number]
 
         return self

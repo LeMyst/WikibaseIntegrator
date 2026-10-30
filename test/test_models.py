@@ -450,6 +450,15 @@ class TestQualifiers:
         removed = copy.deepcopy(item)
         assert len(removed.claims.get('P443')[0].qualifiers.remove(Item(prop_nr='P407', value='Q150'))) == 0
 
+    def test_remove_absent_qualifier(self):
+        qualifiers = Qualifiers().add(String(prop_nr='P2', value='a'))
+
+        # Neither a property without qualifier nor a value missing from a property raises
+        qualifiers.remove(String(prop_nr='P3', value='x'))
+        qualifiers.remove(String(prop_nr='P2', value='b'))
+
+        assert [qualifier.datavalue['value'] for qualifier in qualifiers] == ['a']
+
     def test_count(self):
         claim = Item(prop_nr='P1')
         claim.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2'), Item(prop_nr='P3', value='Q3')])
