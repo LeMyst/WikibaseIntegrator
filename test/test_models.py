@@ -11,7 +11,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import ExternalID, Item, MonolingualText, String
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.models import Aliases, Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
+from wikibaseintegrator.models import Aliases, Claim, Claims, Descriptions, Form, Forms, Qualifiers, Sense, Senses
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import load_fixture
@@ -370,6 +370,42 @@ class TestClaims:
 
         assert len(claims.get('P1')) == 1
         assert len(claims.get('P1')[0].references) == 2
+
+    def test_merge_refs_or_append_keeps_new_qualifiers(self):
+        claims = Claims()
+        claims.add(Item(value='Q1', prop_nr='P1', qualifiers=[String(value='a', prop_nr='P2')]), action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+        # An extra qualifier on the same property makes a different statement: it must not be merged and lose 'b'
+        claims.add(Item(value='Q1', prop_nr='P1', qualifiers=[String(value='a', prop_nr='P2'), String(value='b', prop_nr='P2')]),
+                   action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+
+        assert [[qualifier.datavalue['value'] for qualifier in claim.qualifiers] for claim in claims.get('P1')] == [['a'], ['a', 'b']]
+
+    def test_merge_refs_or_append_adds_a_reference_subset(self):
+        claims = Claims()
+        claims.add(Item(value='Q1', prop_nr='P1', references=[[String(value='x', prop_nr='P3'), String(value='y', prop_nr='P3')]]))
+        # A reference block holding only part of an existing block is a new block
+        claims.add(Item(value='Q1', prop_nr='P1', references=[[String(value='x', prop_nr='P3')]]), action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
+
+        assert [[snak.datavalue['value'] for snak in reference] for reference in claims.get('P1')[0].references] == [['x', 'y'], ['x']]
+
+    def test_quals_equal_is_exact(self):
+        single = Item(value='Q1', prop_nr='P1', qualifiers=[String(value='a', prop_nr='P2')])
+        double = Item(value='Q1', prop_nr='P1', qualifiers=[String(value='a', prop_nr='P2'), String(value='b', prop_nr='P2')])
+        reordered = Item(value='Q1', prop_nr='P1', qualifiers=[String(value='b', prop_nr='P2'), String(value='a', prop_nr='P2')])
+
+        # len() of Qualifiers counts the properties, so these used to compare equal in one direction
+        assert not Claim.quals_equal(single, double) and not Claim.quals_equal(double, single)
+        assert Claim.quals_equal(double, reordered) and Claim.quals_equal(reordered, double)
+
+    def test_refs_equal_and_ref_present_are_exact(self):
+        single = Item(value='Q1', prop_nr='P1', references=[[String(value='x', prop_nr='P3')]])
+        double = Item(value='Q1', prop_nr='P1', references=[[String(value='x', prop_nr='P3'), String(value='y', prop_nr='P3')]])
+        reordered = Item(value='Q1', prop_nr='P1', references=[[String(value='y', prop_nr='P3'), String(value='x', prop_nr='P3')]])
+
+        assert not Claim.refs_equal(single, double) and not Claim.refs_equal(double, single)
+        assert Claim.refs_equal(double, reordered) and Claim.refs_equal(reordered, double)
+        assert not Claim.ref_present(olditem=double, newitem=single)
+        assert Claim.ref_present(olditem=double, newitem=reordered)
 
     def test_multiline_string_values_rejected(self):
         item = ItemEntity()
