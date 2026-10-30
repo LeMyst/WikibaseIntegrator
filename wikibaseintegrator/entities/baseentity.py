@@ -246,12 +246,13 @@ class BaseEntity:
         :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
         :param as_new: Write the entity as a new one
         :param is_bot: Add the bot flag to the query
-        :param field_to_update: A list or a single EntityField to update. If not set, all fields will be updated.
+        :param fields_to_update: A list or a single EntityField to update. If not set, all fields will be updated.
         :param kwargs: More arguments for Python requests
         :return: A dictionary representation of the edited Entity
         """
 
         data = data or {}
+        claims_key = 'claims' if 'claims' in data else 'statements'  # 'statements' for MediaInfo, see MediaInfoEntity.get_json()
 
         if fields_to_update is not None:
             if not isinstance(fields_to_update, list):
@@ -260,8 +261,8 @@ class BaseEntity:
             if EntityField.ALIASES not in fields_to_update and 'aliases' in data:
                 del data['aliases']
 
-            if EntityField.CLAIMS not in fields_to_update and 'claims' in data:
-                del data['claims']
+            if EntityField.CLAIMS not in fields_to_update and claims_key in data:
+                del data[claims_key]
 
             if EntityField.DESCRIPTIONS not in fields_to_update and 'descriptions' in data:
                 del data['descriptions']
@@ -288,7 +289,7 @@ class BaseEntity:
             if EntityField.SENSES not in fields_to_update and 'senses' in data:
                 del data['senses']
 
-        if limit_claims and 'claims' in data:
+        if limit_claims and claims_key in data:
             new_claims = {}
 
             if not isinstance(limit_claims, list):
@@ -298,10 +299,10 @@ class BaseEntity:
                 if isinstance(claim, int):
                     claim = 'P' + str(claim)
 
-                if claim in data['claims']:
-                    new_claims[claim] = data['claims'][claim]
+                if claim in data[claims_key]:
+                    new_claims[claim] = data[claims_key][claim]
 
-            data['claims'] = new_claims
+            data[claims_key] = new_claims
 
         is_bot = is_bot if is_bot is not None else self.api.is_bot
         login = login or self.api.login

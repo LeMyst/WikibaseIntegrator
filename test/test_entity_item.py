@@ -9,6 +9,7 @@ import pytest
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import Item, String
+from wikibaseintegrator.wbi_enums import EntityField
 from wikibaseintegrator.wbi_exceptions import ModificationFailed, MWApiError, NonExistentEntityError
 
 wbi = WikibaseIntegrator()
@@ -139,6 +140,23 @@ class TestWrite:
 
         payload = wikibase.last_edit['data']
         assert list(payload['claims'].keys()) == ['P31']
+
+    def test_write_fields_to_update(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.write(allow_anonymous=True, fields_to_update=[EntityField.LABELS, EntityField.DESCRIPTIONS])
+
+        payload = wikibase.last_edit['data']
+        assert 'labels' in payload and 'descriptions' in payload
+        assert not {'claims', 'aliases', 'sitelinks'} & payload.keys()
+
+    def test_write_single_field_to_update(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        # A single EntityField is accepted as well as a list
+        item.write(allow_anonymous=True, fields_to_update=EntityField.CLAIMS)
+
+        payload = wikibase.last_edit['data']
+        assert 'claims' in payload
+        assert not {'labels', 'descriptions', 'aliases', 'sitelinks'} & payload.keys()
 
     def test_write_clear(self, wikibase, item_q582):
         item = wbi.item.get('Q582')
