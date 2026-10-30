@@ -1,12 +1,13 @@
 """
 Config global options
-Options can be changed at run time. See tests/test_backoff.py for usage example
+Options can be changed at run time. See test/test_wbi_backoff.py for usage example
 
 Options:
-BACKOFF_MAX_TRIES: maximum number of times to retry failed request to wikidata endpoint.
-                   Default: None (retry indefinitely)
-                   To disable retry, set value to 1
-BACKOFF_MAX_VALUE: maximum number of seconds to wait before retrying. wait time will increase to this number
+BACKOFF_MAX_TRIES: maximum number of tries of a SPARQL query or a login failing with a transient error (see wbi_backoff).
+                   Default: 5
+                   Set to None to retry indefinitely, or to 1 to disable the retries
+BACKOFF_MAX_VALUE: maximum number of seconds to wait before retrying. The wait doubles after each try (1, 2, 4... seconds)
+                   up to this number. Also caps the delay asked by the SPARQL endpoint with an HTTP 429 response.
                    Default: 3600 (one hour)
 USER_AGENT:        Complementary user agent string used for http requests. Both to Wikibase api, query service and others.
                    See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy

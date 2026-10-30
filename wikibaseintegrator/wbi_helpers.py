@@ -20,7 +20,7 @@ import ujson
 from requests import Session
 from requests.auth import AuthBase
 
-from wikibaseintegrator.wbi_backoff import wbi_backoff
+from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
                                                NonExistentEntityError, SaveFailed, SearchError)
@@ -348,8 +348,9 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     """
     Static method which can be used to execute any SPARQL query
 
-    Server errors (HTTP 5xx), throttling (HTTP 429) and connection errors are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times.
-    If the Query Service still fails after that, the last exception (e.g. requests.HTTPError) is raised.
+    Server errors (HTTP 5xx), throttling (HTTP 429, after the delay asked by the Query Service), request timeouts (HTTP 408) and
+    connection errors are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times. If the Query Service still fails after that,
+    the last exception (e.g. requests.HTTPError) is raised. The other client errors (e.g. HTTP 400 for a malformed query) are raised at once.
 
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
@@ -400,13 +401,13 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     # Connection errors, and the requests.HTTPError raised below for 5xx and 429 responses, are retried by wbi_backoff
     response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
     if response.status_code == 429:
-        # Honour the delay asked by the Query Service before wbi_backoff retries
+        # wbi_backoff waits for the delay asked by the Query Service before the next try, instead of its own delay
         try:
             retry_after = int(response.headers.get('retry-after', retry_after))
         except ValueError:
             pass  # Retry-After given as an HTTP date, keep the default delay
-        log.error("Too Many Requests (429). Sleeping for %d seconds.", retry_after)
-        sleep(retry_after)
+        log.error("Too Many Requests (429). Retrying in %d seconds.", retry_after)
+        raise RetryAfterError(f'429 Client Error: Too Many Requests for url: {response.url}', response=response, retry_after=retry_after)
     response.raise_for_status()
 
     return response.json()
