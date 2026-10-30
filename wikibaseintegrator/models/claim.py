@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import warnings
 from abc import abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -13,6 +13,25 @@ from wikibaseintegrator.models.references import References
 from wikibaseintegrator.models.snak import Snak
 from wikibaseintegrator.models.snaks import Snaks
 from wikibaseintegrator.wbi_enums import WikibaseRank, WikibaseSnakType
+
+
+def _same_items(first: Iterable, second: Iterable, equal: Callable[[Any, Any], bool] = lambda x, y: x == y) -> bool:
+    """
+    Test if two collections hold the same items, whatever their order. Each item of one must match a distinct item of the
+    other, so a subset or a different number of duplicates is not equal.
+    """
+    remaining = list(second)
+    for item in first:
+        match = next((index for index, other in enumerate(remaining) if equal(item, other)), None)
+        if match is None:
+            return False
+        del remaining[match]
+
+    return not remaining
+
+
+def _ref_equal(oldref: Reference, newref: Reference) -> bool:
+    return _same_items(oldref, newref)
 
 
 class Claim(BaseModel):
@@ -266,10 +285,8 @@ class Claim(BaseModel):
         Tests for exactly identical qualifiers.
         """
 
-        oldqual = olditem.qualifiers
-        newqual = newitem.qualifiers
-
-        return (len(oldqual) == len(newqual)) and all(x in oldqual for x in newqual)
+        # Compare the individual snaks: len() of Qualifiers is the number of distinct properties
+        return _same_items(olditem.qualifiers, newitem.qualifiers)
 
     @staticmethod
     def refs_equal(olditem: Claim, newitem: Claim) -> bool:
@@ -277,13 +294,7 @@ class Claim(BaseModel):
         tests for exactly identical references
         """
 
-        oldrefs = olditem.references
-        newrefs = newitem.references
-
-        def ref_equal(oldref: References, newref: References) -> bool:
-            return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
-
-        return len(oldrefs) == len(newrefs) and all(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
+        return _same_items(olditem.references, newitem.references, equal=_ref_equal)
 
     @staticmethod
     def ref_present(olditem: Claim, newitem: Claim) -> bool:
@@ -299,10 +310,7 @@ class Claim(BaseModel):
             warnings.warn("New item has more or less than 1 reference block.")
             return False
 
-        def ref_equal(oldref: References, newref: References) -> bool:
-            return (len(oldref) == len(newref)) and all(x in oldref for x in newref)
-
-        return any(any(ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
+        return any(any(_ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)
 
     @abstractmethod
     def get_sparql_value(self, **kwargs: Any) -> str | None:
