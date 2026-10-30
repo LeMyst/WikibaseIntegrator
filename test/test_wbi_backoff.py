@@ -112,6 +112,34 @@ def test_other_exceptions_are_not_retried():
     assert len(attempts) == 1
 
 
+def test_nested_calls_are_retried_by_the_outermost_call_only():
+    inner_attempts = []
+    outer_attempts = []
+
+    @wbi_backoff()
+    def inner():
+        inner_attempts.append(1)
+        raise requests.exceptions.ConnectionError
+
+    @wbi_backoff()
+    def outer():
+        outer_attempts.append(1)
+        inner()
+
+    with pytest.raises(requests.exceptions.ConnectionError):
+        outer()
+
+    # BACKOFF_MAX_TRIES = 2: the outer call retries the whole operation once, the inner call is not retried on its own
+    # (it used to be: 2 x 2 tries)
+    assert len(outer_attempts) == 2 and len(inner_attempts) == 2
+
+    # The next call, not nested anymore, is retried again
+    inner_attempts.clear()
+    with pytest.raises(requests.exceptions.ConnectionError):
+        inner()
+    assert len(inner_attempts) == 2
+
+
 def test_decorated_function_keeps_its_metadata():
     @wbi_backoff()
     def documented(value: int) -> int:

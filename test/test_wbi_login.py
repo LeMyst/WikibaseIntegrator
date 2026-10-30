@@ -36,6 +36,24 @@ class TestBotPasswordLogin:
         assert credentials.requests[1]['lgname'] == 'TestUser@bot'
         assert credentials.requests[1]['lgtoken'] == credentials.login_token
 
+    def test_transient_error_retries_the_whole_login_once_per_try(self, credentials, monkeypatch):
+        # Login.__init__() and _Login.__init__() are both retried: the CSRF token request used to be tried
+        # BACKOFF_MAX_TRIES x BACKOFF_MAX_TRIES times
+        wbi_config['BACKOFF_MAX_TRIES'] = 3
+        token_requests = []
+
+        def unreachable(self):
+            token_requests.append(1)
+            raise requests.exceptions.ConnectionError
+
+        monkeypatch.setattr(wbi_login.Login, 'generate_edit_credentials', unreachable)
+
+        with pytest.raises(requests.exceptions.ConnectionError):
+            wbi_login.Login(user='TestUser@bot', password='botpassword')
+
+        logins = [request for request in credentials.requests if request.get('action') == 'login']
+        assert len(token_requests) == 3 and len(logins) == 3
+
     def test_wrong_credentials(self, credentials):
         with pytest.raises(LoginError):
             wbi_login.Login(user='wrong', password='wrong')
