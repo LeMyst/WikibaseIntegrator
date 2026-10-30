@@ -1504,7 +1504,7 @@ def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = Non
 
     datatype = properties_dt[prop_nr]
 
-    f = [x for x in BaseDataType.subclasses if x.DTYPE == datatype][0]
+    f = BaseDataType.get_datatype_class(datatype)
     if f.__name__ in ['CommonsMedia', 'ExternalID', 'Form', 'GeoShape', 'Item', 'Lexeme', 'Math', 'MusicalNotation', 'Property', 'Sense', 'String', 'TabularData', 'URL']:
         if isinstance(statement, dict):
             value = statement['value']

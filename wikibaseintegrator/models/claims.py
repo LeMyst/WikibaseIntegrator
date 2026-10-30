@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
+
+log = logging.getLogger(__name__)
 
 
 class Claims(BaseModel):
@@ -125,10 +129,13 @@ class Claims(BaseModel):
 
         for property in json_data:
             for claim in json_data[property]:
+                data_type: type[BaseDataType] = BaseDataType
                 if 'datatype' in claim['mainsnak']:
-                    data_type = [x for x in BaseDataType.subclasses if x.DTYPE == claim['mainsnak']['datatype']][0]
-                else:
-                    data_type = BaseDataType
+                    try:
+                        data_type = BaseDataType.get_datatype_class(claim['mainsnak']['datatype'])
+                    except UnknownDatatypeError:
+                        # Keep the claim as it is, so reading the entity doesn't fail and writing it back doesn't change it
+                        log.warning("Unknown datatype '%s' for claim %s of property %s, kept as a BaseDataType", claim['mainsnak']['datatype'], claim.get('id'), property)
                 self.add(claims=data_type().from_json(claim), action_if_exists=ActionIfExists.FORCE_APPEND)
 
         return self

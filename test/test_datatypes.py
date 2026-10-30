@@ -10,6 +10,7 @@ from wikibaseintegrator.datatypes import (URL, BaseDataType, CommonsMedia, Exter
                                           Property, Quantity, Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseRank, WikibaseSnakType, WikibaseTimePrecision
+from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
 
 
 class TestQuantity:
@@ -213,6 +214,20 @@ class TestDatatypeRegistry:
 
         for dtype in expected_datatypes:
             assert len([x for x in BaseDataType.subclasses if x.DTYPE == dtype]) == 1, f'datatype {dtype} is not registered exactly once'
+
+    def test_get_datatype_class(self):
+        assert BaseDataType.get_datatype_class('wikibase-item') is Item
+        assert BaseDataType.get_datatype_class(WikibaseDatatype.TIME) is Time
+        assert BaseDataType.get_datatype_class('edtf') is EDTF
+
+    def test_get_datatype_class_unknown(self):
+        with pytest.raises(UnknownDatatypeError, match=r"Unknown datatype 'foo-type'\. Supported datatypes: .*wikibase-item") as excinfo:
+            BaseDataType.get_datatype_class('foo-type')
+
+        assert excinfo.value.datatype == 'foo-type'
+        assert 'string' in excinfo.value.supported and excinfo.value.supported == sorted(excinfo.value.supported)
+        # Callers catching a ValueError for a bad datatype keep working
+        assert isinstance(excinfo.value, ValueError)
 
 
 class TestLexemeSubIdentifiers:

@@ -123,6 +123,20 @@ class EmptyValueError(ValueError):
     pass
 
 
+class UnknownDatatypeError(ValueError):
+    """
+    Raised when no data type class handles a datatype, like one added to the Wikibase instance by an extension that
+    WikibaseIntegrator doesn't support. The message lists the supported datatypes.
+
+    Reading an entity doesn't raise it: a claim of an unknown datatype is kept as a BaseDataType.
+    """
+
+    def __init__(self, datatype: str, supported: list[str]):
+        super().__init__(f"Unknown datatype '{datatype}'. Supported datatypes: {', '.join(supported)}")
+        self.datatype = datatype
+        self.supported = supported
+
+
 class WCQSAuthenticationError(Exception):
     """
     Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth:
