@@ -263,6 +263,22 @@ class TestFromSparqlValue:
 
         assert parsed.get_sparql_value() == datatype(value=local_value, prop_nr='P1').get_sparql_value()
 
+    # Values of Wikidata as returned by the Wikidata Query Service: CommonsMedia encodes the file name like PHP's
+    # rawurlencode(), GeoShape and TabularData encode the page title like MediaWiki's wfUrlencode() (a space is a '+')
+    commons_iris = [
+        (CommonsMedia, 'Marie Curie (1900) (cropped).jpg', 'http://commons.wikimedia.org/wiki/Special:FilePath/Marie%20Curie%20%281900%29%20%28cropped%29.jpg'),
+        (GeoShape, 'Data:Paris.map', 'http://commons.wikimedia.org/data/main/Data:Paris.map'),
+        (GeoShape, 'Data:Protected areas/Germany/NI/Naturschutzgebiet Großes Meer, Loppersumer Meer.map',
+         'http://commons.wikimedia.org/data/main/Data:Protected+areas/Germany/NI/Naturschutzgebiet+Gro%C3%9Fes+Meer,+Loppersumer+Meer.map'),
+        (TabularData, 'Data:Population FR Q1657686.tab', 'http://commons.wikimedia.org/data/main/Data:Population+FR+Q1657686.tab'),
+    ]
+
+    @pytest.mark.parametrize('datatype,local_value,iri', commons_iris)
+    def test_commons_values_use_the_rdf_iri(self, datatype, local_value, iri):
+        # get_sparql_value() is written into the SPARQL queries: a relative IRI like <Data:Paris.map> never matched
+        assert datatype(value=local_value, prop_nr='P1').get_sparql_value() == f'<{iri}>'
+        assert datatype(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': iri}).mainsnak.datavalue['value'] == local_value
+
     # The unknown value ("some value" snak) of every data type, literal ones included, is a skolem IRI under the concept URI of
     # the instance, or a blank node on older query services
     unknown_values = [

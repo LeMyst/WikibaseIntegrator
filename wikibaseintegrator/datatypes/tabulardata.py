@@ -14,6 +14,8 @@ class TabularData(BaseDataType):
     """
     DTYPE = WikibaseDatatype.TABULARDATA
     PTYPE = 'http://wikiba.se/ontology#TabularData'
+    # The RDF export identifies the value by the URL of its page on Wikimedia Commons
+    SPARQL_IRI_PREFIX = 'http://commons.wikimedia.org/data/main/'
 
     def __init__(self, value: str | None = None, **kwargs: Any):
         """
@@ -45,7 +47,7 @@ class TabularData(BaseDataType):
         Parse data returned by a SPARQL endpoint and set the value to the object
 
         The RDF representation is the full Wikimedia Commons URL of the file (e.g.
-        http://commons.wikimedia.org/data/main/Data:Taipei%20Population.tab), only the page title is kept.
+        http://commons.wikimedia.org/data/main/Data:Population+FR+Q1657686.tab), only the page title is kept.
 
         :param sparql_value: A SPARQL value composed of type and value
         :return:
@@ -61,7 +63,8 @@ class TabularData(BaseDataType):
             raise ValueError(f"Wrong SPARQL type {type}")
 
         pattern = re.compile(r'^.+/(Data:.+\.tab)$')
-        matches = pattern.match(urllib.parse.unquote(value))
+        # Encoded like MediaWiki's wfUrlencode(): a space is a '+'
+        matches = pattern.match(urllib.parse.unquote_plus(value))
         if not matches:
             raise ValueError(f"Invalid SPARQL value {value}")
 
@@ -69,6 +72,11 @@ class TabularData(BaseDataType):
 
         return self
 
-    # TODO: Does TabularData need a full URL to wikimedia commons?
-    def get_sparql_value(self, **kwargs: Any) -> str:
-        return '<' + self.mainsnak.datavalue['value'] + '>'
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
+        """
+        The IRI of the value in the RDF export: the URL of the page on Wikimedia Commons, with the page title encoded like
+        MediaWiki's wfUrlencode() (a space is a '+', ':' and '/' are kept), e.g. <http://commons.wikimedia.org/data/main/Data:Paris.map>
+        """
+        if self.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
+            return None
+        return '<' + self.SPARQL_IRI_PREFIX + urllib.parse.quote_plus(self.mainsnak.datavalue['value'], safe=";@$!*(),/~:") + '>'

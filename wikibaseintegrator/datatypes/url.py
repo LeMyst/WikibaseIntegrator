@@ -65,7 +65,9 @@ class URL(BaseDataType):
         self.set_value(value=value)
         return self
 
-    def get_sparql_value(self, **kwargs: Any) -> str:
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
+        if self.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
+            return None
         return '<' + self.mainsnak.datavalue['value'] + '>'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
