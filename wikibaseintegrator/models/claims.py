@@ -57,6 +57,8 @@ class Claims(BaseModel):
             KEEP: Add the new claim only if the property has no claim yet, otherwise do nothing.
             REPLACE_ALL: Remove the claims of the property that are not equal to one of the new claims, then add the new
             claims not already present. The equal claims are kept as they are.
+            A claim marked as removed (see Claim.remove()) doesn't count as existing for KEEP, and adding a claim equal to
+            it cancels the removal, whatever the action, except FORCE_APPEND, which adds a new claim.
         :return: Return the updated Claims object.
         """
 
@@ -90,19 +92,19 @@ class Claims(BaseModel):
                     self.claims[property] = []
 
                 if action_if_exists == ActionIfExists.KEEP:
-                    if len(self.claims[property]) == 0:
-                        self.claims[property].append(claim)
+                    # The removed claims will be deleted by the write: the property has no claim left
+                    if all(existing_claim.removed for existing_claim in self.claims[property]):
+                        self._append_or_replace(property=property, claim=claim)
                 elif action_if_exists == ActionIfExists.FORCE_APPEND:
                     self.claims[property].append(claim)
                 elif action_if_exists == ActionIfExists.APPEND_OR_REPLACE:
-                    if claim not in self.claims[property]:
+                    self._append_or_replace(property=property, claim=claim)
+                elif action_if_exists == ActionIfExists.REPLACE_ALL:
+                    equal_claim = self._find_equal(property=property, claim=claim)
+                    if equal_claim is None:
                         self.claims[property].append(claim)
                     else:
-                        # Force update the claim if already present
-                        self.claims[property][self.claims[property].index(claim)].update(claim)
-                elif action_if_exists == ActionIfExists.REPLACE_ALL:
-                    if claim not in self.claims[property]:
-                        self.claims[property].append(claim)
+                        equal_claim.removed = False
                 elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
                     claim_exists = False
                     for existing_claim in self.claims[property]:
@@ -110,6 +112,7 @@ class Claims(BaseModel):
                         # datavalue) and the qualifiers to decide if the statement already exists.
                         if claim.mainsnak == existing_claim.mainsnak and claim.quals_equal(claim, existing_claim):
                             claim_exists = True
+                            existing_claim.removed = False
 
                             # Check if current reference block is present on references
                             if not Claim.ref_present(newitem=claim, olditem=existing_claim):
@@ -122,6 +125,22 @@ class Claims(BaseModel):
                     if not claim_exists:
                         self.claims[property].append(claim)
         return self
+
+    def _find_equal(self, property: str, claim: Claim) -> Claim | None:
+        """
+        Find the claim of the property equal to the given claim, preferring one that isn't marked as removed.
+        """
+        equal_claims = [existing_claim for existing_claim in self.claims[property] if existing_claim == claim]
+        return next((equal_claim for equal_claim in equal_claims if not equal_claim.removed), equal_claims[0] if equal_claims else None)
+
+    def _append_or_replace(self, property: str, claim: Claim) -> None:
+        equal_claim = self._find_equal(property=property, claim=claim)
+        if equal_claim is None:
+            self.claims[property].append(claim)
+        else:
+            # Update the claim already present instead of adding a duplicate, and cancel its removal if any
+            equal_claim.update(claim)
+            equal_claim.removed = False
 
     def from_json(self, json_data: dict[str, Any]) -> Self:
         # Imported here because the datatypes subclass Claim, which would make a circular import at module level
