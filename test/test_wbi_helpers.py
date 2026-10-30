@@ -2,6 +2,7 @@
 Tests for wbi_helpers: low-level API call machinery (retries, maxlag, error
 mapping), search, merge, SPARQL and the various pure helper functions.
 """
+import copy
 import logging
 import threading
 import uuid
@@ -16,8 +17,8 @@ from wikibaseintegrator import WikibaseIntegrator, wbi_helpers
 from wikibaseintegrator.datatypes import Item, MonolingualText, Quantity, String, Time
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
-                                               NonExistentEntityError, SaveFailed)
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
+                                               ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed)
 from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount,
                                             fulltext_search, generate_entity_instances, get_available_badges, get_user_agent, lexeme_add_form, lexeme_edit_sense,
                                             lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value,
@@ -1055,6 +1056,36 @@ class TestGenerateEntityInstances:
         for entity_id, entity in entity_instances:
             assert entity_id == 'Q582'
             assert entity.ETYPE == 'item'
+
+    def test_entities_are_requested_by_batches_of_50(self, wikibase, item_q582):
+        # wbgetentities rejects more than 50 IDs with a 'toomanyvalues' error
+        ids = [f'Q{n}' for n in range(1, 121)]
+        for entity_id in ids:
+            wikibase.entities[entity_id] = dict(copy.deepcopy(item_q582), id=entity_id, title=entity_id)
+
+        entity_instances = generate_entity_instances(entities=ids)
+
+        assert [entity_id for entity_id, _ in entity_instances] == ids
+        batches = [request['ids'].split('|') for request in wikibase.requests if request.get('action') == 'wbgetentities']
+        assert [len(batch) for batch in batches] == [50, 50, 20]
+
+    def test_deleted_entity(self, wikibase, item_q582):
+        # A deleted entity is returned as {'id': ..., 'missing': ''}, without its type
+        wikibase.deleted_entities.add('Q9363993')
+
+        with pytest.raises(MissingEntityException, match='Q9363993'):
+            generate_entity_instances(entities=['Q582', 'Q9363993'])
+
+    def test_unknown_entity_type(self, wikibase):
+        wikibase.entities['X1'] = {'id': 'X1', 'type': 'unknown-type'}
+
+        with pytest.raises(ValueError, match="Unknown entity type 'unknown-type' for the entity X1"):
+            generate_entity_instances(entities='X1')
+
+    def test_non_existent_entity(self, wikibase, item_q582):
+        # An ID that never existed makes wbgetentities fail with 'no-such-entity'
+        with pytest.raises(NonExistentEntityError):
+            generate_entity_instances(entities=['Q582', 'Q999999999999'])
 
 
 class TestSparql:

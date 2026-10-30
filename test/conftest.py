@@ -68,6 +68,7 @@ class MockWikibase:
         self.sparql_endpoint_url = base_url + '/sparql'
 
         self.entities: dict[str, dict] = {}
+        self.deleted_entities: set[str] = set()  # IDs returned as {'id': ..., 'missing': ''} by wbgetentities, like a deleted entity
         self.next_entity_id = 100000
 
         # Recorded traffic, for assertions in tests
@@ -191,8 +192,15 @@ class MockWikibase:
             found = {entity_id: deepcopy(entity) for entity_id, entity in self.entities.items() if entity.get('title') in titles}
             return {'entities': found, 'success': 1}
 
+        ids = params['ids'].split('|')
+        if len(ids) > 50:
+            return {'error': {'code': 'toomanyvalues', 'info': 'Too many values supplied for parameter "ids". The limit is 50.'}, 'servedby': 'mock'}
+
         entities = {}
-        for entity_id in params['ids'].split('|'):
+        for entity_id in ids:
+            if entity_id in self.deleted_entities:
+                entities[entity_id] = {'id': entity_id, 'missing': ''}
+                continue
             if entity_id not in self.entities:
                 return {
                     'error': {
