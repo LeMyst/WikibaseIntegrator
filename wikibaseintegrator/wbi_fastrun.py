@@ -8,7 +8,6 @@ import collections
 import copy
 import json
 import logging
-import re
 from collections import defaultdict
 
 from wikibaseintegrator.datatypes import BaseDataType, Time
@@ -19,7 +18,7 @@ from wikibaseintegrator.models.reference import Reference
 from wikibaseintegrator.models.references import References
 from wikibaseintegrator.models.snak import Snak
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
 
 log = logging.getLogger(__name__)
@@ -114,8 +113,10 @@ class FastRunContainer:
         """
         The key indexing the value of the given claim in self.data, casefolded when case_insensitive is enabled.
         The normalized unit is part of the key for quantities: two amounts only differing by their unit must not
-        be considered equal.
+        be considered equal. An unknown value or no value has no key: it can't be compared through SPARQL.
         """
+        if claim.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
+            return None
         value = claim.get_sparql_value()
         if value is None:
             return None
@@ -232,7 +233,7 @@ class FastRunContainer:
                         'rank': 'normal'
                     }
                     f = self.base_data_type.get_datatype_class(qualifier.datatype)().from_json(json_data=fake_json)
-                    qualifiers_filter_string += f'?sid pq:{qualifier.property_number} {f.get_sparql_value()}.\n'
+                    qualifiers_filter_string += f'?sid <{wb_url}/prop/qualifier/{qualifier.property_number}> {f.get_sparql_value(wikibase_url=wb_url)}.\n'
 
             # We force a refresh of the data, remove the previous results
             self.data[prop_nr] = {}
@@ -534,31 +535,6 @@ class FastRunContainer:
 
         return rank
 
-    def _get_property_type(self, prop_nr: str | int) -> str:
-        """
-        Obtain the property type of the given property by looking at the SPARQL endpoint.
-
-        :param prop_nr: The property number.
-        :return: The SPARQL version of the property type.
-        """
-        if isinstance(prop_nr, int):
-            prop_nr = 'P' + str(prop_nr)
-        elif prop_nr is not None:
-            pattern = re.compile(r'^P?([0-9]+)$')
-            matches = pattern.match(prop_nr)
-
-            if not matches:
-                raise ValueError('Invalid prop_nr, format must be "P[0-9]+"')
-
-            prop_nr = 'P' + str(matches.group(1))
-
-        query = f'''#Tool: WikibaseIntegrator wbi_fastrun._get_property_type
-        SELECT ?property_type WHERE {{ wd:{prop_nr} wikibase:propertyType ?property_type. }}'''
-
-        results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings'][0]['property_type']['value']
-
-        return results
-
     def get_entities(self, claims: list[Claim] | Claims | Claim, cache: bool | None = None, query_limit: int | None = None) -> list[str]:
         """
         Return a list of entities who correspond to the specified claims.
@@ -705,7 +681,7 @@ class FastRunContainer:
                 statements = [statement for statement in statements if self._entity_id(statement['entity']) in entities_allowed]
 
             if not statements:
-                log.debug("Value '%s' does not exist for property '%s'", claim.get_sparql_value(), claim.mainsnak.property_number)
+                log.debug("Value '%s' does not exist for property '%s'", value_key, claim.mainsnak.property_number)
                 return True
 
             candidates.append((claim, statements))

@@ -60,21 +60,22 @@ class Item(BaseDataType):
         :param sparql_value: A SPARQL value composed of type and value
         :return: True if the parsing is successful
         """
+        if self._is_unknown_value(sparql_value):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+            return self
+
         type = sparql_value['type']
         value = sparql_value['value']
 
         if type != 'uri':
             raise ValueError('Wrong SPARQL type')
 
-        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
-            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
-        else:
-            pattern = re.compile(r'^.+/([PQLM]\d+)$')
-            matches = pattern.match(value)
-            if not matches:
-                raise ValueError(f"Invalid SPARQL value {value}")
+        pattern = re.compile(r'^.+/([PQLM]\d+)$')
+        matches = pattern.match(value)
+        if not matches:
+            raise ValueError(f"Invalid SPARQL value {value}")
 
-            self.set_value(value=str(matches.group(1)))
+        self.set_value(value=str(matches.group(1)))
 
         return self
 

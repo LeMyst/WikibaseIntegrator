@@ -52,16 +52,17 @@ class URL(BaseDataType):
         :param sparql_value: A SPARQL value composed of type and value
         :return:
         """
+        if self._is_unknown_value(sparql_value):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+            return self
+
         type = sparql_value['type']
         value = sparql_value['value']
 
         if type != 'uri':
             raise ValueError(f"Wrong SPARQL type {type}")
 
-        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
-            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
-        else:
-            self.set_value(value=value)
+        self.set_value(value=value)
         return self
 
     def get_sparql_value(self, **kwargs: Any) -> str:

@@ -92,6 +92,10 @@ class Quantity(BaseDataType):
         :param sparql_value: A SPARQL value composed of datatype, type and value
         :return: True if the parsing is successful
         """
+        if self._is_unknown_value(sparql_value):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+            return self
+
         datatype = sparql_value['datatype']
         type = sparql_value['type']
         value = sparql_value['value']
@@ -102,10 +106,7 @@ class Quantity(BaseDataType):
         if type != 'literal':
             raise ValueError(f"Wrong SPARQL type {type}")
 
-        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
-            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
-        else:
-            self.set_value(amount=value)
+        self.set_value(amount=value)
 
         return self
 

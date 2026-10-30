@@ -61,6 +61,20 @@ class BaseDataType(Claim):
 
         raise UnknownDatatypeError(datatype=str(datatype), supported=sorted(str(subclass.DTYPE) for subclass in cls.subclasses))
 
+    @staticmethod
+    def _is_unknown_value(sparql_value: dict) -> bool:
+        """
+        Whether a value returned by a SPARQL endpoint is an unknown value ("some value" snak), whatever the data type. The
+        RDF export represents it as a skolem IRI under the concept URI of the instance, e.g.
+        http://www.wikidata.org/.well-known/genid/<hash> on Wikidata or https://example.wikibase.cloud/.well-known/genid/<hash>,
+        or as a blank node on older query services.
+
+        :param sparql_value: A SPARQL value composed of type and value
+        """
+        if sparql_value.get('type') == 'bnode':
+            return True
+        return sparql_value.get('type') == 'uri' and '/.well-known/genid/' in sparql_value.get('value', '')
+
     def set_value(self, value: Any | None = None):
         pass
 
@@ -98,15 +112,16 @@ class BaseDataType(Claim):
         :param sparql_value: A SPARQL value composed of type and value
         :return:
         """
+        if self._is_unknown_value(sparql_value):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+            return self
+
         type = sparql_value['type']
         value = sparql_value['value']
 
         if type != 'literal':
             raise ValueError(f"Wrong SPARQL type {type}")
 
-        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
-            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
-        else:
-            self.set_value(value=value)
+        self.set_value(value=value)
 
         return self
