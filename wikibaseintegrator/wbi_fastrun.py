@@ -774,7 +774,9 @@ class FastRunContainer:
                 statements = [statement for statement in statements if self._entity_id(statement['entity']) in entities_allowed]
 
             if not statements:
-                log.debug("Value '%s' does not exist for property '%s'", claim.get_sparql_value(), claim.mainsnak.property_number)
+                # Not claim.get_sparql_value(): the arguments are evaluated even without debug logging, and get_sparql_value() of
+                # most data types raises without a known value
+                log.debug("Value '%s' does not exist for property '%s'", self._value_key(claim), claim.mainsnak.property_number)
                 return True
 
             candidates.append((claim, statements))

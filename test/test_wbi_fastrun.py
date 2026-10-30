@@ -10,7 +10,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, Item, Property, Quantity, String, TabularData, Time
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import literal, uri
 
@@ -536,6 +536,12 @@ class TestValueDetails:
     commune of France on Wikidata), so they are only loaded for the statements holding the value of a claim.
     """
     UNITLESS = 'http://www.wikidata.org/entity/Q199'
+
+    @pytest.mark.parametrize('claim', [Time(prop_nr='P570', snaktype=WikibaseSnakType.UNKNOWN_VALUE),
+                                       Quantity(prop_nr='P1082', snaktype=WikibaseSnakType.NO_VALUE)], ids=['time', 'quantity'])
+    def test_claim_without_a_known_value_requires_a_write(self, wikibase, sparql_data, frc, claim):
+        # Such a claim can't be compared through SPARQL: it used to raise a KeyError in a debug log
+        assert frc.write_required(claims=[claim]) is True
 
     @staticmethod
     def queries(wikibase, tool: str) -> list[str]:
