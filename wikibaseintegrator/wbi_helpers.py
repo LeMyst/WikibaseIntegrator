@@ -152,7 +152,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     :param mediawiki_api_url:
     :param session: If a session is passed, it will be used. Otherwise, the current thread's default session is used
     :param login: If provided and the API reports that the session is no longer authenticated (see
-                  SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying.
+                  SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying, once per call.
     :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
     :param retry_after: Number of seconds to wait before retrying request (see max_retries)
     :param kwargs: Any additional keyword arguments to pass to requests.request
@@ -176,6 +176,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
 
     response = None
     session = session or _get_default_session()
+    reauthenticated = False
     for n in range(max_retries):
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
@@ -220,10 +221,13 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 sleep(retry_after)
                 continue
 
-            # session no longer valid: re-authenticate and retry instead of failing outright (#902)
-            if 'code' in json_data['error'] and json_data['error']['code'] in SESSION_LOST_ERROR_CODES and login is not None:
+            # session no longer valid: re-authenticate and retry instead of failing outright (#902). Only once: the same
+            # error right after a fresh login doesn't come from a lost session, e.g. assertbotfailed for an account
+            # without the bot right, and is raised below instead of logging in again on every retry.
+            if 'code' in json_data['error'] and json_data['error']['code'] in SESSION_LOST_ERROR_CODES and login is not None and not reauthenticated:
                 log.warning("%s: session no longer valid (%s). Re-authenticating and retrying.", datetime.datetime.now(datetime.UTC), json_data['error']['code'])
                 login.reauthenticate()
+                reauthenticated = True
                 if 'data' in kwargs and kwargs['data'] and 'token' in kwargs['data']:
                     kwargs['data']['token'] = login.get_edit_token()
                 continue
