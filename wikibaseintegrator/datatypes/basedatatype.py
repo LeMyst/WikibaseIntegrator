@@ -5,6 +5,7 @@ from typing import Any, Self
 
 from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
 
 
 class BaseDataType(Claim):
@@ -44,6 +45,21 @@ class BaseDataType(Claim):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
+
+    @classmethod
+    def get_datatype_class(cls, datatype: str) -> type[BaseDataType]:
+        """
+        Find the data type class handling a datatype, as named by the Wikibase API.
+
+        :param datatype: The datatype, e.g. 'wikibase-item' or WikibaseDatatype.ITEM
+        :return: The data type class, e.g. Item
+        :raises UnknownDatatypeError: If no data type class handles this datatype
+        """
+        for subclass in cls.subclasses:
+            if subclass.DTYPE == datatype:
+                return subclass
+
+        raise UnknownDatatypeError(datatype=str(datatype), supported=sorted(str(subclass.DTYPE) for subclass in cls.subclasses))
 
     def set_value(self, value: Any | None = None):
         pass

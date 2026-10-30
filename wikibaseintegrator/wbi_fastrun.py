@@ -231,7 +231,7 @@ class FastRunContainer:
                         'id': 'Q0',
                         'rank': 'normal'
                     }
-                    f = [x for x in self.base_data_type.subclasses if x.DTYPE == qualifier.datatype][0]().from_json(json_data=fake_json)
+                    f = self.base_data_type.get_datatype_class(qualifier.datatype)().from_json(json_data=fake_json)
                     qualifiers_filter_string += f'?sid pq:{qualifier.property_number} {f.get_sparql_value()}.\n'
 
             # We force a refresh of the data, remove the previous results

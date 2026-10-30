@@ -338,6 +338,26 @@ class TestClaims:
             with pytest.raises(ValueError):
                 item.claims.add(MonolingualText(prop_nr=123, text=value))
 
+    def test_unknown_datatype_is_kept(self, caplog):
+        # A datatype added by an extension that WikibaseIntegrator doesn't support must not prevent reading the entity
+        fixture = load_fixture('item_Q582')
+        unknown_claim = {
+            'mainsnak': {'snaktype': 'value', 'property': 'P99999', 'datavalue': {'value': {'foo': 1}, 'type': 'foo-value'}, 'datatype': 'foo-type'},
+            'type': 'statement',
+            'id': 'Q582$00000000-0000-0000-0000-000000000000',
+            'rank': 'normal',
+        }
+        fixture['claims']['P99999'] = [unknown_claim]
+
+        with caplog.at_level('WARNING', logger='wikibaseintegrator.models.claims'):
+            entity = ItemEntity().from_json(fixture)
+
+        assert "Unknown datatype 'foo-type'" in caplog.text
+        # Every datatype is a BaseDataType: only an exact type check tells the fallback apart
+        assert type(entity.claims.get('P99999')[0]) is datatypes.BaseDataType  # pylint: disable=unidiomatic-typecheck
+        # Written back unchanged
+        assert entity.get_json()['claims']['P99999'] == [unknown_claim]
+
 
 class TestQualifiers:
     def test_clear(self, item):
