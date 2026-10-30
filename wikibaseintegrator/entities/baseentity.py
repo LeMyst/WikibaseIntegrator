@@ -34,7 +34,9 @@ class BaseEntity:
         else:
             self.api = copy(api)
 
-        self.api.is_bot = is_bot or self.api.is_bot
+        # is_bot=False must be able to override an api created with is_bot=True: only None keeps the value of the api
+        if is_bot is not None:
+            self.api.is_bot = is_bot
         self.api.login = login or self.api.login
 
         self.title = title
