@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import urllib.parse
-from typing import Self
+from typing import Any, Self
 
 from wikibaseintegrator.datatypes.url import URL
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
@@ -14,6 +14,8 @@ class CommonsMedia(URL):
     """
     DTYPE = WikibaseDatatype.COMMONSMEDIA
     PTYPE = 'http://wikiba.se/ontology#CommonsMedia'
+    # The RDF export identifies the file by its Special:FilePath URL on Wikimedia Commons
+    SPARQL_IRI_PREFIX = 'http://commons.wikimedia.org/wiki/Special:FilePath/'
 
     def set_value(self, value: str | None = None):
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
@@ -55,6 +57,15 @@ class CommonsMedia(URL):
         self.set_value(value=urllib.parse.unquote(value.rsplit('/', 1)[-1]))
 
         return self
+
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
+        """
+        The IRI of the file in the RDF export: its Special:FilePath URL on Wikimedia Commons, with the file name encoded like
+        PHP's rawurlencode() (a space is %20), e.g. <http://commons.wikimedia.org/wiki/Special:FilePath/Example%20file.jpg>
+        """
+        if self.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
+            return None
+        return '<' + self.SPARQL_IRI_PREFIX + urllib.parse.quote(self.mainsnak.datavalue['value'], safe='') + '>'
 
     def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
         pattern = re.compile(r'^<?.*?/?([^/]*?)>?$')

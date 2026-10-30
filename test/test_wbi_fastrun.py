@@ -8,7 +8,7 @@ import re
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, Item, Property, Quantity, String, Time
+from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, Item, Property, Quantity, String, TabularData, Time
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
@@ -18,10 +18,12 @@ wbi = WikibaseIntegrator()
 
 PTYPE_ENTITY_SCHEMA = 'http://wikiba.se/ontology#WikibaseEntitySchema'
 PTYPE_EXTERNAL_ID = 'http://wikiba.se/ontology#ExternalId'
+PTYPE_GEO_SHAPE = 'http://wikiba.se/ontology#GeoShape'
 PTYPE_ITEM = 'http://wikiba.se/ontology#WikibaseItem'
 PTYPE_PROPERTY = 'http://wikiba.se/ontology#WikibaseProperty'
 PTYPE_QUANTITY = 'http://wikiba.se/ontology#Quantity'
 PTYPE_STRING = 'http://wikiba.se/ontology#String'
+PTYPE_TABULAR_DATA = 'http://wikiba.se/ontology#TabularData'
 PTYPE_TIME = 'http://wikiba.se/ontology#Time'
 XSD_DATETIME = 'http://www.w3.org/2001/XMLSchema#dateTime'
 XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal'
@@ -277,6 +279,22 @@ class TestWriteRequired:
 
         assert frc.write_required(claims=[datatype(value=value, prop_nr=prop_nr)]) is False
         assert frc.write_required(claims=[datatype(value=other_value, prop_nr=prop_nr)]) is True
+
+    def test_commons_data_title_with_spaces(self, wikibase, sparql_data, frc):
+        # The RDF export encodes a space of the page title as a '+', which used to be kept and never matched
+        sparql_data.statement('Q99', 'P4179', uri('http://commons.wikimedia.org/data/main/Data:Population+FR+Q1657686.tab'), PTYPE_TABULAR_DATA)
+
+        assert frc.write_required(claims=[TabularData(value='Data:Population FR Q1657686.tab', prop_nr='P4179')]) is False
+
+    def test_partial_load_queries_the_commons_iri(self, wikibase, sparql_data):
+        queries = []
+        dispatch = sparql_data.dispatch
+        wikibase.sparql_bindings = lambda query: (queries.append(query), dispatch(query))[1]
+        sparql_data.statement('Q99', 'P3896', uri('http://commons.wikimedia.org/data/main/Data:Paris.map'), PTYPE_GEO_SHAPE)
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P3896')], base_data_type=BaseDataType, cache=False)
+
+        assert frc.write_required(claims=[GeoShape(value='Data:Paris.map', prop_nr='P3896')]) is False
+        assert any('<http://commons.wikimedia.org/data/main/Data:Paris.map>' in query for query in queries)
 
     def test_empty_claims(self, frc):
         with pytest.raises(ValueError):

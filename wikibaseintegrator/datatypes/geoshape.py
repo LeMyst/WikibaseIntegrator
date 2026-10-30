@@ -14,6 +14,8 @@ class GeoShape(BaseDataType):
     """
     DTYPE = WikibaseDatatype.GEOSHAPE
     PTYPE = 'http://wikiba.se/ontology#GeoShape'
+    # The RDF export identifies the value by the URL of its page on Wikimedia Commons
+    SPARQL_IRI_PREFIX = 'http://commons.wikimedia.org/data/main/'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
@@ -80,7 +82,8 @@ class GeoShape(BaseDataType):
             raise ValueError(f"Wrong SPARQL type {type}")
 
         pattern = re.compile(r'^.+/(Data:.+\.map)$')
-        matches = pattern.match(urllib.parse.unquote(value))
+        # Encoded like MediaWiki's wfUrlencode(): a space is a '+'
+        matches = pattern.match(urllib.parse.unquote_plus(value))
         if not matches:
             raise ValueError(f"Invalid SPARQL value {value}")
 
@@ -88,6 +91,11 @@ class GeoShape(BaseDataType):
 
         return self
 
-    # TODO: Does GeoShape need a full URL to wikimedia commons?
-    def get_sparql_value(self, **kwargs: Any) -> str:
-        return '<' + self.mainsnak.datavalue['value'] + '>'
+    def get_sparql_value(self, **kwargs: Any) -> str | None:
+        """
+        The IRI of the value in the RDF export: the URL of the page on Wikimedia Commons, with the page title encoded like
+        MediaWiki's wfUrlencode() (a space is a '+', ':' and '/' are kept), e.g. <http://commons.wikimedia.org/data/main/Data:Paris.map>
+        """
+        if self.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
+            return None
+        return '<' + self.SPARQL_IRI_PREFIX + urllib.parse.quote_plus(self.mainsnak.datavalue['value'], safe=";@$!*(),/~:") + '>'
