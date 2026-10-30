@@ -271,6 +271,48 @@ class TestClaims:
         assert len(item.claims.get('P2581')) == 1
         assert json_claim['rank'] == 'deprecated' and len(json_claim['references']) == 2
 
+    @pytest.mark.parametrize('action', [ActionIfExists.APPEND_OR_REPLACE, ActionIfExists.REPLACE_ALL, ActionIfExists.MERGE_REFS_OR_APPEND])
+    def test_add_cancels_the_removal_of_an_equal_claim(self, item, action):
+        # A removed claim added again must not be deleted by the write
+        existing = item.claims.get('P31')[0]
+        existing_id = existing.id
+        existing.remove()
+
+        item.claims.add(Item(prop_nr='P31', value=existing.mainsnak.datavalue['value']['id']), action_if_exists=action)
+
+        json_claim = next(claim for claim in item.claims.get_json()['P31'] if claim['id'] == existing_id)
+        assert 'remove' not in json_claim
+        # The existing statement is kept instead of being deleted and created again
+        assert len([claim for claim in item.claims.get('P31') if claim == existing]) == 1
+
+    def test_add_keep_when_every_claim_is_removed(self, item):
+        removed_values = [claim.mainsnak.datavalue['value']['id'] for claim in item.claims.get('P31')]
+        item.claims.remove('P31')
+
+        item.claims.add(Item(prop_nr='P31', value='Q1234'), action_if_exists=ActionIfExists.KEEP)
+
+        # The property has no claim left once the removed ones are deleted, so KEEP adds the new claim
+        assert [claim.mainsnak.datavalue['value']['id'] for claim in item.claims.get('P31') if not claim.removed] == ['Q1234']
+
+        item.claims.add(Item(prop_nr='P31', value='Q5'), action_if_exists=ActionIfExists.KEEP)
+        item.claims.add(Item(prop_nr='P31', value=removed_values[0]), action_if_exists=ActionIfExists.KEEP)
+
+        # The property has a claim again: KEEP does nothing, the removed claims stay removed
+        assert [claim.mainsnak.datavalue['value']['id'] for claim in item.claims.get('P31') if not claim.removed] == ['Q1234']
+
+    def test_add_prefers_the_equal_claim_not_removed(self, item):
+        existing = item.claims.get('P31')[0]
+        value = existing.mainsnak.datavalue['value']['id']
+        item.claims.add(Item(prop_nr='P31', value=value), action_if_exists=ActionIfExists.FORCE_APPEND)
+        existing.remove()
+
+        item.claims.add(Item(prop_nr='P31', value=value, rank=WikibaseRank.PREFERRED))
+
+        # The duplicate not removed is updated, the removed one stays removed
+        duplicate = item.claims.get('P31')[-1]
+        assert existing.removed and existing.rank == WikibaseRank.NORMAL
+        assert not duplicate.removed and duplicate.rank == WikibaseRank.PREFERRED
+
     def test_add_replace_all_removes_existing_claims(self, item):
         original_claim_count = len(item.claims.get('P31'))
 
