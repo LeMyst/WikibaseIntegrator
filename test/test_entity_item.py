@@ -9,6 +9,7 @@ import pytest
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import Item, String
+from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import EntityField
 from wikibaseintegrator.wbi_exceptions import ModificationFailed, MWApiError, NonExistentEntityError
 
@@ -155,6 +156,21 @@ class TestWrite:
         params = wikibase.last_edit['params']
         assert params['summary'] == 'update item'
         assert params['bot'] == ''
+
+    def test_entity_is_bot_overrides_the_api(self, wikibase, item_q582):
+        bot_api = WikibaseIntegrator(is_bot=True)
+
+        # is_bot=False on the entity used to be ignored when the api had is_bot=True
+        not_bot = ItemEntity(api=bot_api, is_bot=False)
+        assert not_bot.api.is_bot is False
+        assert ItemEntity(api=bot_api).api.is_bot is True
+        assert ItemEntity(api=WikibaseIntegrator(), is_bot=True).api.is_bot is True
+        # The entity works on a copy: the shared api is unchanged
+        assert bot_api.is_bot is True
+
+        not_bot.id = 'Q582'
+        not_bot.write(allow_anonymous=True)
+        assert 'bot' not in wikibase.last_edit['params']
 
     def test_write_as_new(self, wikibase, item_q582):
         item = wbi.item.get('Q582')
