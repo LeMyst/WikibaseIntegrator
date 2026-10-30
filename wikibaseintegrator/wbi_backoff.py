@@ -8,6 +8,7 @@ each retry, so they can be changed at run time.
 import functools
 import logging
 import sys
+import threading
 import time
 from collections.abc import Callable
 from json import JSONDecodeError
@@ -21,6 +22,9 @@ log = logging.getLogger(__name__)
 
 P = ParamSpec('P')
 R = TypeVar('R')
+
+# Set while a retried call runs in the thread, so that the retried calls it makes are not retried on their own
+_retrying = threading.local()
 
 # Keyword arguments that may hold credentials and must not be written to the logs
 SENSITIVE_KWARGS = {'auth', 'headers', 'login'}
@@ -96,24 +100,35 @@ def wbi_backoff() -> Callable[[Callable[P, R]], Callable[P, R]]:
     Decorator retrying the call on the transient errors: the wbi_backoff_exceptions for which wbi_backoff_giveup()
     is False. The call is tried up to config['BACKOFF_MAX_TRIES'] times (None for no limit), then the last exception
     is raised.
+
+    A decorated function called by another one, e.g. the __init__() of _Login called by the __init__() of a login
+    class, is not retried on its own: its error goes up to the outermost decorated call, which retries the whole
+    operation. Otherwise the tries would multiply at each level (5 x 5 token requests for a login).
     """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def retried(*args: P.args, **kwargs: P.kwargs) -> R:
-            tries = 0
-            while True:
-                tries += 1
-                try:
-                    return func(*args, **kwargs)
-                except wbi_backoff_exceptions as e:
-                    max_tries = wbi_get_backoff_max_tries()
-                    if wbi_backoff_giveup(e) or (max_tries is not None and tries >= max_tries):
-                        raise
+            if getattr(_retrying, 'active', False):
+                return func(*args, **kwargs)
 
-                    wait = wbi_backoff_wait(tries, e)
-                    wbi_backoff_backoff_hdlr({'target': func, 'args': args, 'kwargs': kwargs, 'tries': tries, 'wait': wait})
-                    time.sleep(wait)
+            _retrying.active = True
+            try:
+                tries = 0
+                while True:
+                    tries += 1
+                    try:
+                        return func(*args, **kwargs)
+                    except wbi_backoff_exceptions as e:
+                        max_tries = wbi_get_backoff_max_tries()
+                        if wbi_backoff_giveup(e) or (max_tries is not None and tries >= max_tries):
+                            raise
+
+                        wait = wbi_backoff_wait(tries, e)
+                        wbi_backoff_backoff_hdlr({'target': func, 'args': args, 'kwargs': kwargs, 'tries': tries, 'wait': wait})
+                        time.sleep(wait)
+            finally:
+                _retrying.active = False
 
         return retried
 
