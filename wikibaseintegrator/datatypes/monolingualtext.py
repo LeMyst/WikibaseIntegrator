@@ -58,6 +58,10 @@ class MonolingualText(BaseDataType):
         :param sparql_value: A SPARQL value composed of datatype, type and value
         :return: True if the parsing is successful
         """
+        if self._is_unknown_value(sparql_value):
+            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
+            return self
+
         xml_lang = sparql_value['xml:lang']
         type = sparql_value['type']
         value = sparql_value['value']
@@ -65,10 +69,7 @@ class MonolingualText(BaseDataType):
         if type != 'literal':
             raise ValueError(f"Wrong SPARQL type {type}")
 
-        if value.startswith('http://www.wikidata.org/.well-known/genid/'):
-            self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
-        else:
-            self.set_value(text=value, language=xml_lang)
+        self.set_value(text=value, language=xml_lang)
 
         return self
 

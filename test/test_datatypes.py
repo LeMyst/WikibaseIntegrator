@@ -263,15 +263,17 @@ class TestFromSparqlValue:
 
         assert parsed.get_sparql_value() == datatype(value=local_value, prop_nr='P1').get_sparql_value()
 
-    @pytest.mark.parametrize('datatype,sparql_value,local_value', round_trips, ids=[x[0].DTYPE for x in round_trips])
-    def test_unknown_value(self, datatype, sparql_value, local_value):
-        # A somevalue snak is exposed as a genid URI by the endpoint
-        sparql_value = dict(sparql_value, value='http://www.wikidata.org/.well-known/genid/deadbeef')
+    # The unknown value ("some value" snak) of every data type, literal ones included, is a skolem IRI under the concept URI of
+    # the instance, or a blank node on older query services
+    unknown_values = [
+        {'type': 'uri', 'value': 'http://www.wikidata.org/.well-known/genid/deadbeef'},
+        {'type': 'uri', 'value': 'https://wikibase.example.org/.well-known/genid/deadbeef'},
+        {'type': 'bnode', 'value': 't123'},
+    ]
 
-        # The literal data types keep their own type, only the URI ones can carry a genid
-        if sparql_value['type'] != 'uri':
-            pytest.skip('literal data type')
-
+    @pytest.mark.parametrize('sparql_value', unknown_values, ids=['wikidata', 'other-wikibase', 'blank-node'])
+    @pytest.mark.parametrize('datatype', BaseDataType.subclasses, ids=[x.DTYPE for x in BaseDataType.subclasses])
+    def test_unknown_value(self, datatype, sparql_value):
         assert datatype(prop_nr='P1').from_sparql_value(sparql_value).mainsnak.snaktype == WikibaseSnakType.UNKNOWN_VALUE
 
     def test_wrong_type_is_rejected(self):

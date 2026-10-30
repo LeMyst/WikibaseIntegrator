@@ -172,6 +172,19 @@ class TestLoadStatements:
 
         assert len(frc.data['P580']) == 1
 
+    def test_unknown_values_of_another_wikibase(self, wikibase, sparql_data, frc):
+        """
+        An unknown value of this instance (not Wikidata) is recognized: a time used to raise a KeyError, as its skolem IRI
+        has no XSD datatype.
+        """
+        genid = f'{wikibase.base_url}/.well-known/genid/deadbeef'
+        sparql_data.statement('Q99', 'P580', uri(genid), PTYPE_TIME)
+        sparql_data.statement('Q99', 'P580', literal('2020-02-08T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, index=1, precision=11)
+
+        frc.load_statements(claims=Time(time='+2020-02-08T00:00:00Z', prop_nr='P580'))
+
+        assert frc.write_required(claims=[Time(time='+2020-02-08T00:00:00Z', prop_nr='P580')]) is False
+
     def test_invalid_claims(self, frc):
         with pytest.raises(ValueError):
             frc.load_statements(claims='not a claim')
@@ -291,6 +304,18 @@ class TestWriteRequiredQualifiers:
 
         claim = ExternalID(value='P40095', prop_nr='P352', qualifiers=[Item(value='Q43', prop_nr='P642')])
         assert frc.write_required(claims=[claim]) is True
+
+    def test_partial_load_qualifier_filter_uses_the_instance_iris(self, wikibase, sparql_data):
+        # The qualifier filter of a partial load used the Wikidata pq: prefix and the default WIKIBASE_URL
+        queries = []
+        dispatch = sparql_data.dispatch
+        wikibase.sparql_bindings = lambda query: (queries.append(query), dispatch(query))[1]
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType, cache=False, wikibase_url='https://other.example.org')
+
+        frc.write_required(claims=[ExternalID(value='P40095', prop_nr='P352', qualifiers=[Item(value='Q42', prop_nr='P1')])])
+
+        assert any('?sid <https://other.example.org/prop/qualifier/P1> <https://other.example.org/entity/Q42>.' in query for query in queries)
+        assert not any(' pq:' in query for query in queries)
 
     def test_qualifiers_can_be_ignored(self, wikibase, sparql_data, frc):
         sid = sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
