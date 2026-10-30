@@ -13,7 +13,7 @@ class Property(BaseDataType):
     Implements the Wikibase data type 'property'
     """
     DTYPE = WikibaseDatatype.PROPERTY
-    PTYPE = 'http://wikiba.se/ontology#Property'
+    PTYPE = 'http://wikiba.se/ontology#WikibaseProperty'
     sparql_query = '''
         SELECT * WHERE {{
           ?item_id <{wb_url}/prop/{pid}> ?s .
