@@ -143,7 +143,34 @@ def _lexeme_support_missing(data: dict[str, Any], error: dict[str, Any], mediawi
     return False
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 100, retry_after: int = 60,
+def _check_failures(failures: int, failure: Exception) -> None:
+    """
+    Raise a MaxRetriesReachedException, from the given failure, once the request failed config['BACKOFF_MAX_TRIES'] times.
+    """
+    max_tries = config.get('BACKOFF_MAX_TRIES')
+    if max_tries is not None and failures >= max_tries:
+        raise MaxRetriesReachedException(f'The request failed {failures} times (BACKOFF_MAX_TRIES): {failure}') from failure
+
+
+def _failure_wait(failures: int, retry_after: float) -> float:
+    """
+    The wait after a failure (connection error, HTTP 5xx): 1, 2, 4... seconds, up to retry_after.
+    """
+    return min(2 ** (failures - 1), retry_after)
+
+
+def _retry_after_delay(response: requests.Response, default: float) -> float:
+    """
+    The delay asked by the instance with a Retry-After header, in seconds, capped by config['BACKOFF_MAX_VALUE']. The default
+    is used without header, or with a header that isn't a number of seconds (e.g. an HTTP date, see RFC 9110).
+    """
+    header = str(response.headers.get('retry-after', '')).strip()
+    delay: float = int(header) if header.isdigit() else default
+    max_value = config.get('BACKOFF_MAX_VALUE')
+    return delay if max_value is None else min(delay, max_value)
+
+
+def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 20, retry_after: int = 60,
                        **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
@@ -153,8 +180,11 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     :param session: If a session is passed, it will be used. Otherwise, the current thread's default session is used
     :param login: If provided and the API reports that the session is no longer authenticated (see
                   SESSION_LOST_ERROR_CODES), it is used to fully re-authenticate before retrying, once per call.
-    :param max_retries: If api request fails due to rate limiting, maxlag, or readonly mode, retry up to `max_retries` times
-    :param retry_after: Number of seconds to wait before retrying request (see max_retries)
+    :param max_retries: The maximum number of tries of the request. The instance asking to slow down (maxlag, rate limiting,
+                        HTTP 429, readonly mode) is waited for up to this number of tries. The failures (connection errors,
+                        HTTP 5xx) are tried at most config['BACKOFF_MAX_TRIES'] times, with a wait doubling from 1 second.
+    :param retry_after: The maximum number of seconds to wait between two tries after a failure or a maxlag, and the wait
+                        when the instance doesn't say how long to wait (rate limiting without Retry-After, readonly mode)
     :param kwargs: Any additional keyword arguments to pass to requests.request
     :return: The data returned by the API as a dictionary
     """
@@ -177,16 +207,33 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     response = None
     session = session or _get_default_session()
     reauthenticated = False
+    failures = 0  # Connection errors and server errors (HTTP 5xx), limited by config['BACKOFF_MAX_TRIES']
+    wait: float = 0  # Seconds to wait before the next try, only waited if there is one
+    last_failure: Exception | None = None
     for n in range(max_retries):
+        if wait:
+            sleep(wait)
+            wait = 0
+
         try:
             response = session.request(method=method, url=mediawiki_api_url, **kwargs)
         except requests.exceptions.ConnectionError as e:
-            log.exception("Connection error: %s. Sleeping for %d seconds.", e, retry_after)
-            sleep(retry_after)
+            failures += 1
+            last_failure = e
+            _check_failures(failures, e)
+            wait = _failure_wait(failures, retry_after)
+            log.error("Connection error: %s. Retrying in %d seconds.", e, wait)
             continue
         if response.status_code in (500, 502, 503, 504):
-            log.error("Service unavailable (HTTP Code %d). Sleeping for %d seconds.", response.status_code, retry_after)
-            sleep(retry_after)
+            failures += 1
+            last_failure = requests.HTTPError(f'{response.status_code} Server Error for url: {response.url}', response=response)
+            _check_failures(failures, last_failure)
+            wait = _failure_wait(failures, retry_after)
+            log.error("Service unavailable (HTTP Code %d). Retrying in %d seconds.", response.status_code, wait)
+            continue
+        if response.status_code == 429:
+            wait = _retry_after_delay(response, retry_after)
+            log.error("Too Many Requests (429). Retrying in %d seconds.", wait)
             continue
 
         response.raise_for_status()
@@ -196,10 +243,9 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         # https://phabricator.wikimedia.org/T172293
         if 'error' in json_data:
             # rate limiting
-            if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:  # pragma: no cover
-                sleep_sec = int(response.headers.get('retry-after', retry_after))
-                log.error("%s: rate limited. sleeping for %d seconds", datetime.datetime.now(datetime.UTC), sleep_sec)
-                sleep(sleep_sec)
+            if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:
+                wait = _retry_after_delay(response, retry_after)
+                log.error("%s: rate limited. Retrying in %d seconds", datetime.datetime.now(datetime.UTC), wait)
                 continue
 
             # maxlag
@@ -210,15 +256,14 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 # The number of second can't be less than 5
                 sleep_sec = max(sleep_sec, 5)
                 # The number of second can't be more than retry_after
-                sleep_sec = min(sleep_sec, retry_after)
-                log.error("%s: maxlag. sleeping for %d seconds", datetime.datetime.now(datetime.UTC), sleep_sec)
-                sleep(sleep_sec)
+                wait = min(sleep_sec, retry_after)
+                log.error("%s: maxlag. Retrying in %d seconds", datetime.datetime.now(datetime.UTC), wait)
                 continue
 
             # readonly
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':  # pragma: no cover
-                log.error("The Wikibase instance is currently in readonly mode, waiting for %s seconds", retry_after)
-                sleep(retry_after)
+            if 'code' in json_data['error'] and json_data['error']['code'] == 'readonly':
+                wait = retry_after
+                log.error("The Wikibase instance is currently in readonly mode, retrying in %s seconds", wait)
                 continue
 
             # session no longer valid: re-authenticate and retry instead of failing outright (#902). Only once: the same
@@ -257,16 +302,14 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         # there is no error or waiting. break out of this loop and parse response
         break
     else:
-        # the first time I've ever used "for - else!!"
-        # else executes if the for loop completes normally. i.e. does not encounter a `break`
-        # in this case, that means it tried this api call 10 times
-        raise MaxRetriesReachedException(f'The number of retries ({max_retries}) have been reached.')
+        # The loop ended without a break: each of the max_retries tries failed or was asked to wait
+        raise MaxRetriesReachedException(f'The number of retries ({max_retries}) have been reached.') from last_failure
 
     return json_data
 
 
 def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
-                              max_retries: int = 100, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
+                              max_retries: int = 20, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
@@ -276,8 +319,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
     :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
-    :param max_retries: The maximum number of retries
-    :param retry_after: The timeout between each retry
+    :param max_retries: The maximum number of tries of the request, see mediawiki_api_call()
+    :param retry_after: The maximum wait between two tries, see mediawiki_api_call()
     :param maxlag: If applicable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)
     :param is_bot: Flag the edit as a bot
     :param kwargs: Any additional keyword arguments to pass to requests.request
@@ -402,12 +445,9 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
     if response.status_code == 429:
         # wbi_backoff waits for the delay asked by the Query Service before the next try, instead of its own delay
-        try:
-            retry_after = int(response.headers.get('retry-after', retry_after))
-        except ValueError:
-            pass  # Retry-After given as an HTTP date, keep the default delay
-        log.error("Too Many Requests (429). Retrying in %d seconds.", retry_after)
-        raise RetryAfterError(f'429 Client Error: Too Many Requests for url: {response.url}', response=response, retry_after=retry_after)
+        delay = _retry_after_delay(response, retry_after)
+        log.error("Too Many Requests (429). Retrying in %d seconds.", delay)
+        raise RetryAfterError(f'429 Client Error: Too Many Requests for url: {response.url}', response=response, retry_after=delay)
     response.raise_for_status()
 
     return response.json()
