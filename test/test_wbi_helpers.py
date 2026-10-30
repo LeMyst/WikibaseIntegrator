@@ -296,6 +296,19 @@ class TestSessionRecovery:
         with pytest.raises(MWApiError):
             mediawiki_api_call_helper(data={'action': 'query', 'format': 'json'}, allow_anonymous=True)
 
+    def test_error_persisting_after_reauthentication_is_raised(self, wikibase, error_code):
+        # The same error right after a fresh login doesn't come from a lost session (e.g. assertbotfailed for an
+        # account without the bot right): it must be raised instead of logging in again on every retry.
+        for _ in range(3):
+            wikibase.fail_next(code=error_code, info='You do not have the "bot" right, so the action could not be completed.')
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+
+        with pytest.raises(MWApiError) as excinfo:
+            mediawiki_api_call_helper(data={'action': 'query', 'format': 'json'}, login=login, is_bot=True)
+
+        assert excinfo.value.code == error_code
+        assert login.reauthenticate_calls == 1
+
 
 class TestAuthenticationGuards:
     def test_anonymous_must_be_explicit(self, wikibase):
