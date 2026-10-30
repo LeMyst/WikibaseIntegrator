@@ -1101,10 +1101,20 @@ class TestSparql:
             {'json': {'results': {'bindings': []}}, 'status_code': 200},
         ])
         slept = []
+        # wbi_backoff waits between the tries: only the delay asked by the Query Service, no exponential delay on top
+        monkeypatch.setattr('time.sleep', slept.append)
         monkeypatch.setattr('wikibaseintegrator.wbi_helpers.sleep', slept.append)
 
         execute_sparql_query('SELECT * WHERE { ?a ?b ?c . }', endpoint=url, retry_after=3)
         assert slept == [expected_sleep]
+
+    def test_sparql_malformed_query_is_not_retried(self, requests_mock):
+        url = 'https://example.org/sparql'
+        requests_mock.post(url, status_code=400, text='MalformedQueryException')
+
+        with pytest.raises(requests.HTTPError):
+            execute_sparql_query('SELECT * WHERE {', endpoint=url)
+        assert requests_mock.call_count == 1
 
     @pytest.mark.parametrize('status_code', [500, 502, 503, 504])
     def test_sparql_retry_on_server_error(self, requests_mock, status_code):
