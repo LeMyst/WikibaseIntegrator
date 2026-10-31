@@ -607,12 +607,14 @@
 <span class="sd">        :param json_data: A specific dictionary from MediaWiki API</span>
 <span class="sd">        :return:</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># TODO: 1.35 compatibility</span>
+        <span class="c1"># wbgetentities answers {'id': ..., 'missing': ''} for an entity that doesn't exist (or was deleted)</span>
+        <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="s1">'The MW API returned that the entity was missing.'</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">'title'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># TODO: 1.35 compatibility</span>
+        <span class="c1"># Absent from the entity JSON of older MediaWiki versions (1.35)</span>
+        <span class="k">if</span> <span class="s1">'title'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'title'</span><span class="p">])</span>
-        <span class="k">if</span> <span class="s1">'pageid'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># TODO: 1.35 compatibility</span>
+        <span class="k">if</span> <span class="s1">'pageid'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'pageid'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastrevid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'lastrevid'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">])</span>

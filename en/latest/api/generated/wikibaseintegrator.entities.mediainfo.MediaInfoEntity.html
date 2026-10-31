@@ -716,10 +716,20 @@ The entity will be updated with an empty dictionary.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.entities.mediainfo.MediaInfoEntity.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/entities/mediainfo.html#MediaInfoEntity.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.entities.mediainfo.MediaInfoEntity.get" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wikibaseintegrator.entities.mediainfo.MediaInfoEntity" title="wikibaseintegrator.entities.mediainfo.MediaInfoEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">MediaInfoEntity</span></code></a></span></p>
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/entities/mediainfo.html#MediaInfoEntity.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.entities.mediainfo.MediaInfoEntity.get" title="Link to this definition">#</a></dt>
+<dd><p>Request the MediaWiki API to get data for the entity specified in argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity_id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The ID of the entity to load, starting with ‘M’. By default, the ID of this entity, to reload it.</p></li>
+<li><p><strong>kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wikibaseintegrator.entities.mediainfo.MediaInfoEntity" title="wikibaseintegrator.entities.mediainfo.MediaInfoEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">MediaInfoEntity</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a MediaInfoEntity instance</p>
 </dd>
 </dl>
 </dd></dl>

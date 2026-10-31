@@ -475,7 +475,6 @@
                 <span class="n">prop_nr</span> <span class="o">=</span> <span class="n">prop_nr</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">property_number</span> <span class="o">=</span> <span class="n">prop_nr</span>
-        <span class="c1"># self.subclasses.append(self)</span>
 
     <span class="c1"># Allow registration of subclasses of BaseDataType into BaseDataType.subclasses</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

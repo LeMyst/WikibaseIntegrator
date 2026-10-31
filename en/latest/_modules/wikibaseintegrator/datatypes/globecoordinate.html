@@ -434,13 +434,39 @@
   <h1>Source code for wikibaseintegrator.datatypes.globecoordinate</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.basedatatype</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDataType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
+
+<span class="c1">#: The globe Wikibase omits from the WKT literal of a coordinate (GlobeCoordinateValue::GLOBE_EARTH), on every Wikibase instance</span>
+<span class="n">GLOBE_EARTH</span> <span class="o">=</span> <span class="s1">'http://www.wikidata.org/entity/Q2'</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_wdqs_number</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    A latitude or a longitude as the Wikidata Query Service returns it in a WKT literal.</span>
+
+<span class="sd">    Wikibase writes it with 14 significant digits (the PHP float format), the query service stores it as a fixed-point</span>
+<span class="sd">    number with 9 decimals, truncated (the multiplier 1000000000 of its geospatial configuration), and returns that number</span>
+<span class="sd">    formatted by Java's Double.toString(): 2.352222222222222 -&gt; '2.352222222', 47 -&gt; '47.0', 0.0005 -&gt; '5.0E-4'.</span>
+<span class="sd">    """</span>
+    <span class="n">stored</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">trunc</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s1">.14G</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1_000_000_000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1_000_000_000</span>
+    <span class="k">if</span> <span class="n">stored</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">'0.0'</span>
+    <span class="k">if</span> <span class="mf">1e-3</span> <span class="o">&lt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stored</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e7</span><span class="p">:</span>
+        <span class="c1"># Like Java, the shortest decimal representation, with at least one decimal</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">stored</span><span class="p">)</span>
+    <span class="c1"># Java switches to the computerized scientific notation below 10^-3</span>
+    <span class="n">sign</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">exponent</span> <span class="o">=</span> <span class="n">Decimal</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">stored</span><span class="p">))</span><span class="o">.</span><span class="n">as_tuple</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exponent</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="n">mantissa</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'0'</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'-'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">sign</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}{</span><span class="n">mantissa</span><span class="si">}</span><span class="s2">E</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">exponent</span><span class="si">}</span><span class="s2">"</span>
 
 
 <div class="viewcode-block" id="GlobeCoordinate">
@@ -463,8 +489,8 @@
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Constructor, calls the superclass BaseDataType</span>
 
-<span class="sd">        :param latitude: Latitude in decimal format</span>
-<span class="sd">        :param longitude: Longitude in decimal format</span>
+<span class="sd">        :param latitude: Latitude in decimal format, between -90 and 90 on Earth, -360 and 360 on another globe (like Wikibase)</span>
+<span class="sd">        :param longitude: Longitude in decimal format, between -180 and 180 on Earth, -360 and 360 on another globe (like Wikibase)</span>
 <span class="sd">        :param altitude: Altitude (in decimal format?) (Always None at this moment)</span>
 <span class="sd">        :param precision: Precision of the position measurement, default 1 / 3600</span>
 <span class="sd">        :param globe: The globe entity concept URI (ex: http://www.wikidata.org/entity/Q2) or 'Q2'</span>
@@ -488,10 +514,16 @@
             <span class="n">globe</span> <span class="o">=</span> <span class="n">wikibase_url</span> <span class="o">+</span> <span class="s1">'/entity/'</span> <span class="o">+</span> <span class="n">globe</span>
 
         <span class="k">if</span> <span class="n">latitude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">longitude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">latitude</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">90</span> <span class="ow">or</span> <span class="n">latitude</span> <span class="o">&gt;</span> <span class="mi">90</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"latitude must be between -90 and 90, got '</span><span class="si">{</span><span class="n">latitude</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">longitude</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">180</span> <span class="ow">or</span> <span class="n">longitude</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"longitude must be between -180 and 180, got '</span><span class="si">{</span><span class="n">longitude</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+            <span class="c1"># Wikibase accepts -360 to 360 for both, which the coordinates of other globes use (e.g. Mars longitudes go from 0</span>
+            <span class="c1"># to 360). On Earth, the geographic ranges are kept, catching a latitude and a longitude swapped.</span>
+            <span class="k">if</span> <span class="n">globe</span> <span class="ow">in</span> <span class="p">(</span><span class="n">GLOBE_EARTH</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'COORDINATE_GLOBE_QID'</span><span class="p">])):</span>
+                <span class="n">max_latitude</span><span class="p">,</span> <span class="n">max_longitude</span> <span class="o">=</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">180</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">max_latitude</span><span class="p">,</span> <span class="n">max_longitude</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">360</span>
+            <span class="k">if</span> <span class="n">latitude</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">max_latitude</span> <span class="ow">or</span> <span class="n">latitude</span> <span class="o">&gt;</span> <span class="n">max_latitude</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"latitude must be between -</span><span class="si">{</span><span class="n">max_latitude</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">max_latitude</span><span class="si">}</span><span class="s2">, got '</span><span class="si">{</span><span class="n">latitude</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">longitude</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">max_longitude</span> <span class="ow">or</span> <span class="n">longitude</span> <span class="o">&gt;</span> <span class="n">max_longitude</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"longitude must be between -</span><span class="si">{</span><span class="n">max_longitude</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">max_longitude</span><span class="si">}</span><span class="s2">, got '</span><span class="si">{</span><span class="n">longitude</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">'value'</span><span class="p">:</span> <span class="p">{</span>
@@ -543,12 +575,15 @@
         <span class="k">if</span> <span class="nb">type</span> <span class="o">!=</span> <span class="s1">'literal'</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Wrong SPARQL type'</span><span class="p">)</span>
 
-        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^Point\((.*) (.*)\)$'</span><span class="p">)</span>
+        <span class="c1"># The globe prefixes the point, except Earth: '&lt;http://www.wikidata.org/entity/Q111&gt; Point(354.5 -1.9)' (Mars)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^(?:&lt;([^&gt;]*)&gt; )?Point\((\S+) (\S+)\)$'</span><span class="p">)</span>
         <span class="n">matches</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Invalid SPARQL value'</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">longitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="n">latitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+        <span class="c1"># Wikibase writes a '&gt;' of the globe IRI as '%3E'</span>
+        <span class="n">globe</span> <span class="o">=</span> <span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'</span><span class="si">%3E</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'&gt;'</span><span class="p">)</span> <span class="k">if</span> <span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="n">GLOBE_EARTH</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">longitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">latitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)),</span> <span class="n">globe</span><span class="o">=</span><span class="n">globe</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -556,7 +591,18 @@
 <div class="viewcode-block" id="GlobeCoordinate.get_sparql_value">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.html#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.get_sparql_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">'"Point('</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'longitude'</span><span class="p">])</span> <span class="o">+</span> <span class="s1">' '</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'latitude'</span><span class="p">])</span> <span class="o">+</span> <span class="s1">')"^^geo:wktLiteral'</span></div>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The WKT literal of the coordinate, in the form returned by the Wikidata Query Service: the globe prefixes the point</span>
+<span class="sd">        when it isn't Earth, and the numbers are truncated to 9 decimals. The query service normalizes the literals of a</span>
+<span class="sd">        query the same way, so the literal matches the stored value, and the values loaded by the fast run mode are</span>
+<span class="sd">        indexed by the same string as the local claims.</span>
+<span class="sd">        """</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Point(</span><span class="si">{</span><span class="n">_wdqs_number</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s1">'longitude'</span><span class="p">])</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_wdqs_number</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s1">'latitude'</span><span class="p">])</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="n">globe</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'globe'</span><span class="p">)</span> <span class="ow">or</span> <span class="n">GLOBE_EARTH</span>
+        <span class="k">if</span> <span class="n">globe</span> <span class="o">!=</span> <span class="n">GLOBE_EARTH</span><span class="p">:</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;</span><span class="si">{</span><span class="n">globe</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'&gt;'</span><span class="p">,</span><span class="w"> </span><span class="s1">'</span><span class="si">%3E</span><span class="s1">'</span><span class="p">)</span><span class="si">}</span><span class="s2">&gt; </span><span class="si">{</span><span class="n">point</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'"</span><span class="si">{</span><span class="n">point</span><span class="si">}</span><span class="s1">"^^geo:wktLiteral'</span></div>
 
 
 <div class="viewcode-block" id="GlobeCoordinate.parse_sparql_value">

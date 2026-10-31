@@ -432,7 +432,11 @@
                 <article class="bd-article">
                   
   <h1>Source code for wikibaseintegrator.datatypes.extra.edtf</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.string</span><span class="w"> </span><span class="kn">import</span> <span class="n">String</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.string</span><span class="w"> </span><span class="kn">import</span> <span class="n">String</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span>
 
 
@@ -443,7 +447,29 @@
 <span class="sd">    Implements the Wikibase data type for Wikibase Extended Date/Time Format extension.</span>
 <span class="sd">    More info at https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF</span>
 <span class="sd">    """</span>
-    <span class="n">DTYPE</span> <span class="o">=</span> <span class="n">WikibaseDatatype</span><span class="o">.</span><span class="n">EDTF</span></div>
+    <span class="n">DTYPE</span> <span class="o">=</span> <span class="n">WikibaseDatatype</span><span class="o">.</span><span class="n">EDTF</span>
+    <span class="c1"># Wikibase builds the URI from the data type ID ('edtf'), the extension doesn't set one</span>
+    <span class="n">PTYPE</span> <span class="o">=</span> <span class="s1">'http://wikiba.se/ontology#Edtf'</span>
+    <span class="c1">#: The datatype of the EDTF literal in the RDF export</span>
+    <span class="n">XSD_EDTF</span> <span class="o">=</span> <span class="s1">'http://www.w3.org/2001/XMLSchema#edtf'</span>
+
+<div class="viewcode-block" id="EDTF.from_sparql_value">
+<a class="viewcode-back" href="../../../../api/generated/wikibaseintegrator.datatypes.extra.edtf.EDTF.html#wikibaseintegrator.datatypes.extra.edtf.EDTF.from_sparql_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sparql_value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Parse data returned by a SPARQL endpoint and set the value to the object</span>
+
+<span class="sd">        The extension writes the EDTF string as an xsd:edtf literal, then the dates it covers as xsd:dateTime values of the</span>
+<span class="sd">        same statement: only the EDTF literal is the value of the claim.</span>
+
+<span class="sd">        :param sparql_value: A SPARQL value composed of datatype, type and value</span>
+<span class="sd">        :return: The object itself</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_unknown_value</span><span class="p">(</span><span class="n">sparql_value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sparql_value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'datatype'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">XSD_EDTF</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XSD_EDTF</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Not the EDTF literal of the statement, but one of the dates it covers (</span><span class="si">{</span><span class="n">sparql_value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'datatype'</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">from_sparql_value</span><span class="p">(</span><span class="n">sparql_value</span><span class="p">)</span></div>
+</div>
 
 </pre></div>
 

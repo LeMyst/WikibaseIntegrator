@@ -700,7 +700,9 @@ where each reference is a list of statements</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.claim.Claim.has_equal_qualifiers">
 <span class="sig-name descname"><span class="pre">has_equal_qualifiers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/claim.html#Claim.has_equal_qualifiers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.claim.Claim.has_equal_qualifiers" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Test if the two claims have the same qualifiers, whatever their order. Each qualifier must match a distinct qualifier
+of the other claim: P2: [a, a] and P2: [a, b] differ.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>

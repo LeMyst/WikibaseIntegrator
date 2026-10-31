@@ -607,10 +607,40 @@ More info at <a class="reference external" href="https://www.mediawiki.org/wiki/
 <dd class="field-odd"><p><strong>value</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The string to be used as the value</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.edtf.EDTF.from_sparql_value">
+<span class="sig-name descname"><span class="pre">from_sparql_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparql_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/datatypes/extra/edtf.html#EDTF.from_sparql_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.from_sparql_value" title="Link to this definition">#</a></dt>
+<dd><p>Parse data returned by a SPARQL endpoint and set the value to the object</p>
+<p>The extension writes the EDTF string as an xsd:edtf literal, then the dates it covers as xsd:dateTime values of the
+same statement: only the EDTF literal is the value of the claim.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sparql_value</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span>) – A SPARQL value composed of datatype, type and value</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The object itself</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.edtf.EDTF.DTYPE">
 <span class="sig-name descname"><span class="pre">DTYPE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'edtf'</span></span><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.DTYPE" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.edtf.EDTF.PTYPE">
+<span class="sig-name descname"><span class="pre">PTYPE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'http://wikiba.se/ontology#Edtf'</span></span><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.PTYPE" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.edtf.EDTF.XSD_EDTF">
+<span class="sig-name descname"><span class="pre">XSD_EDTF</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'http://www.w3.org/2001/XMLSchema#edtf'</span></span><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.XSD_EDTF" title="Link to this definition">#</a></dt>
+<dd><p>The datatype of the EDTF literal in the RDF export</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -664,7 +694,10 @@ More info at <a class="reference external" href="https://www.mediawiki.org/wiki/
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF"><code class="docutils literal notranslate"><span class="pre">EDTF</span></code></a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.from_sparql_value"><code class="docutils literal notranslate"><span class="pre">EDTF.from_sparql_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.DTYPE"><code class="docutils literal notranslate"><span class="pre">EDTF.DTYPE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.PTYPE"><code class="docutils literal notranslate"><span class="pre">EDTF.PTYPE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.edtf.EDTF.XSD_EDTF"><code class="docutils literal notranslate"><span class="pre">EDTF.XSD_EDTF</span></code></a></li>
 </ul>
 </li>
 </ul>

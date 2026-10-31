@@ -607,9 +607,36 @@ More info at <a class="reference external" href="https://www.mediawiki.org/wiki/
 <dd class="field-odd"><p><strong>value</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The string to be used as the value</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.from_sparql_value">
+<span class="sig-name descname"><span class="pre">from_sparql_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparql_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/datatypes/extra/localmedia.html#LocalMedia.from_sparql_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.from_sparql_value" title="Link to this definition">#</a></dt>
+<dd><p>Parse data returned by a SPARQL endpoint and set the value to the object</p>
+<p>The extension writes the URL of the file page on the instance (e.g. <a class="reference external" href="https://wiki.example.org/wiki/File:Bunny_rabbit.jpg">https://wiki.example.org/wiki/File:Bunny_rabbit.jpg</a>,
+or index.php?title=File:Bunny_rabbit.jpg), only the file name is kept: without the namespace, which can be localized
+(Fichier:…), and with spaces instead of underscores.</p>
+<p>The partial load of the fast run mode (without cache) still queries the file name as a literal, which matches
+nothing: building the URL needs the article path of the instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sparql_value</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span>) – A SPARQL value composed of type and value</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The object itself</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.DTYPE">
 <span class="sig-name descname"><span class="pre">DTYPE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'localMedia'</span></span><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.DTYPE" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.PTYPE">
+<span class="sig-name descname"><span class="pre">PTYPE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'http://wikiba.se/ontology#LocalMedia'</span></span><a class="headerlink" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.PTYPE" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -664,7 +691,9 @@ More info at <a class="reference external" href="https://www.mediawiki.org/wiki/
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia"><code class="docutils literal notranslate"><span class="pre">LocalMedia</span></code></a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.from_sparql_value"><code class="docutils literal notranslate"><span class="pre">LocalMedia.from_sparql_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.DTYPE"><code class="docutils literal notranslate"><span class="pre">LocalMedia.DTYPE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.PTYPE"><code class="docutils literal notranslate"><span class="pre">LocalMedia.PTYPE</span></code></a></li>
 </ul>
 </li>
 </ul>

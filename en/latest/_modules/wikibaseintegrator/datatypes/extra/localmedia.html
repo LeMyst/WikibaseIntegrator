@@ -432,8 +432,13 @@
                 <article class="bd-article">
                   
   <h1>Source code for wikibaseintegrator.datatypes.extra.localmedia</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.string</span><span class="w"> </span><span class="kn">import</span> <span class="n">String</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.string</span><span class="w"> </span><span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
 
 
 <div class="viewcode-block" id="LocalMedia">
@@ -443,7 +448,45 @@
 <span class="sd">    Implements the Wikibase data type for Wikibase Local Media extension.</span>
 <span class="sd">    More info at https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media</span>
 <span class="sd">    """</span>
-    <span class="n">DTYPE</span> <span class="o">=</span> <span class="n">WikibaseDatatype</span><span class="o">.</span><span class="n">LOCALMEDIA</span></div>
+    <span class="n">DTYPE</span> <span class="o">=</span> <span class="n">WikibaseDatatype</span><span class="o">.</span><span class="n">LOCALMEDIA</span>
+    <span class="c1"># Wikibase builds the URI from the data type ID ('localMedia'), the extension doesn't set one</span>
+    <span class="n">PTYPE</span> <span class="o">=</span> <span class="s1">'http://wikiba.se/ontology#LocalMedia'</span>
+
+<div class="viewcode-block" id="LocalMedia.from_sparql_value">
+<a class="viewcode-back" href="../../../../api/generated/wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.html#wikibaseintegrator.datatypes.extra.localmedia.LocalMedia.from_sparql_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sparql_value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Parse data returned by a SPARQL endpoint and set the value to the object</span>
+
+<span class="sd">        The extension writes the URL of the file page on the instance (e.g. https://wiki.example.org/wiki/File:Bunny_rabbit.jpg,</span>
+<span class="sd">        or index.php?title=File:Bunny_rabbit.jpg), only the file name is kept: without the namespace, which can be localized</span>
+<span class="sd">        (Fichier:...), and with spaces instead of underscores.</span>
+
+<span class="sd">        The partial load of the fast run mode (without cache) still queries the file name as a literal, which matches</span>
+<span class="sd">        nothing: building the URL needs the article path of the instance.</span>
+
+<span class="sd">        :param sparql_value: A SPARQL value composed of type and value</span>
+<span class="sd">        :return: The object itself</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_unknown_value</span><span class="p">(</span><span class="n">sparql_value</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">=</span> <span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">UNKNOWN_VALUE</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="nb">type</span> <span class="o">=</span> <span class="n">sparql_value</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">sparql_value</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">!=</span> <span class="s1">'uri'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wrong SPARQL type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="p">[</span><span class="s1">''</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">':'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">title</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Not the URL of a file page: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">title</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">':'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_'</span><span class="p">,</span> <span class="s1">' '</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+</div>
 
 </pre></div>
 

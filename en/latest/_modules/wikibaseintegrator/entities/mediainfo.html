@@ -504,7 +504,20 @@
 
 <div class="viewcode-block" id="MediaInfoEntity.get">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.mediainfo.MediaInfoEntity.html#wikibaseintegrator.entities.mediainfo.MediaInfoEntity.get">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MediaInfoEntity</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MediaInfoEntity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Request the MediaWiki API to get data for the entity specified in argument.</span>
+
+<span class="sd">        :param entity_id: The ID of the entity to load, starting with 'M'. By default, the ID of this entity, to reload it.</span>
+<span class="sd">        :param kwargs:</span>
+<span class="sd">        :return: a MediaInfoEntity instance</span>
+<span class="sd">        """</span>
+
+        <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">entity_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">elif</span> <span class="n">entity_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"You must provide an entity_id"</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^M?([0-9]+)$'</span><span class="p">)</span>
             <span class="n">matches</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>

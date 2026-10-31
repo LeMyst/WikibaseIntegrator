@@ -603,6 +603,9 @@ that just happened may not be visible yet, and the same write could be reported 
 the precision of a globe coordinate, the timezone and calendar model of a time, etc. Statements using non-default
 attributes are always reported as requiring a write. The precision of a time and the unit of a quantity are loaded
 from the value nodes, so they are compared.</p></li>
+<li><p>The globe coordinates are compared at the precision stored by the query service: 9 decimals of a degree (truncated,
+about 0.1 mm), whatever the number of decimals of the local claim. The coordinates of other globes (Mars, the Moon…)
+are compared with their globe.</p></li>
 <li><p>Math statements are always reported as requiring a write: the RDF export holds the formula rendered as MathML, not
 its TeX source, so the values can’t be compared.</p></li>
 <li><p>The qualifiers, references and ranks are loaded lazily with one SPARQL query per statement to check, and the units

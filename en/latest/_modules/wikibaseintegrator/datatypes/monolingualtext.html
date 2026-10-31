@@ -505,14 +505,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">=</span> <span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">UNKNOWN_VALUE</span>
             <span class="k">return</span> <span class="bp">self</span>
 
-        <span class="n">xml_lang</span> <span class="o">=</span> <span class="n">sparql_value</span><span class="p">[</span><span class="s1">'xml:lang'</span><span class="p">]</span>
         <span class="nb">type</span> <span class="o">=</span> <span class="n">sparql_value</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">sparql_value</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="nb">type</span> <span class="o">!=</span> <span class="s1">'literal'</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wrong SPARQL type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">xml_lang</span><span class="p">)</span>
+        <span class="c1"># A ValueError rather than a KeyError, which the fast run mode doesn't expect</span>
+        <span class="k">if</span> <span class="s1">'xml:lang'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sparql_value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No language for the monolingual text </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">sparql_value</span><span class="p">[</span><span class="s1">'xml:lang'</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
