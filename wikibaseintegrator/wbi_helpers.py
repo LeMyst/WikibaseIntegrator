@@ -312,7 +312,7 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
                 raise NonExistentEntityError(json_data['error'], response=json_data)
 
             # duplicate error
-            if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':  # pragma: no cover
+            if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':
                 raise ModificationFailed(json_data['error'], response=json_data)
 
             # sitelink conflict

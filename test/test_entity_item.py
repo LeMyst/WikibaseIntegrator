@@ -65,6 +65,43 @@ class TestGet:
         assert len(item.labels) == 0
 
 
+class TestDelete:
+    def test_delete_uses_the_pageid(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        item.delete(allow_anonymous=True, reason='test')
+
+        request = wikibase.last_request
+        assert (request['action'], request['pageid'], request['reason']) == ('delete', str(item_q582['pageid']), 'test')
+        assert 'title' not in request
+
+    def test_delete_falls_back_to_the_title(self, wikibase):
+        item = wbi.item.new()
+        item.title = 'Item:Q1'
+
+        item.delete(allow_anonymous=True)
+
+        assert wikibase.last_request['title'] == 'Item:Q1' and 'pageid' not in wikibase.last_request
+
+    def test_delete_without_pageid_nor_title(self, wikibase):
+        with pytest.raises(ValueError, match='A pageid or a page title'):
+            wbi.item.new().delete(allow_anonymous=True)
+
+    def test_delete_with_a_pageid_as_string(self, wikibase):
+        # The pageid setter converts a numeric string to an int
+        item = wbi.item.new()
+        item.pageid = '42'
+
+        item.delete(allow_anonymous=True)
+        assert wikibase.last_request['pageid'] == '42'
+
+    def test_delete_with_an_invalid_pageid(self, wikibase):
+        item = wbi.item.new()
+        item.pageid = 4.2
+
+        with pytest.raises(ValueError, match='pageid attribute correctly set'):
+            item.delete(allow_anonymous=True)
+
+
 class TestGetClaims:
     def test_get_claims_does_not_duplicate_the_loaded_claims(self, item_q582):
         item = wbi.item.get('Q582')

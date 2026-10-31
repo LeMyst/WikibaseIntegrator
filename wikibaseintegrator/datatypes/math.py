@@ -17,6 +17,10 @@ class Math(String):
         """
         Parse data returned by a SPARQL endpoint and set the value to the object
 
+        Only an unknown value can be parsed: the RDF export holds a formula rendered as MathML (e.g. <math ...><msup><mi>c</mi>...),
+        not its TeX source, which is the value of the claim (c^2=a^2+b^2). The two can't be compared, so a known value raises a
+        ValueError and is left out of the fast run data.
+
         :param sparql_value: A SPARQL value composed of type and value
         :return:
         """
@@ -24,19 +28,11 @@ class Math(String):
             self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
             return self
 
-        datatype = sparql_value['datatype']
-        type = sparql_value['type']
-        value = sparql_value['value']
+        datatype = sparql_value.get('datatype')
+        if datatype != 'http://www.w3.org/1998/Math/MathML':
+            raise ValueError(f"Wrong SPARQL datatype {datatype}")
 
-        if datatype != 'http://www.w3.org/2001/XMLSchema#dateTime':
-            raise ValueError('Wrong SPARQL datatype')
-
-        if type != 'literal':
-            raise ValueError('Wrong SPARQL type')
-
-        self.set_value(value=value)
-
-        return self
+        raise ValueError("A Math value can't be compared through SPARQL: the RDF export holds its MathML rendering, not its TeX source")
 
     def get_sparql_value(self, **kwargs: Any) -> str:
         return '"' + self.mainsnak.datavalue['value'] + '"^^<http://www.w3.org/1998/Math/MathML>'

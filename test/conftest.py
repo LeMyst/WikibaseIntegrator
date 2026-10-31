@@ -425,6 +425,9 @@ class MockWikibase:
 
         return response
 
+    def _action_wblmergelexemes(self, params: dict[str, str]) -> dict:
+        return {'success': 1}
+
     def _action_wbmergeitems(self, params: dict[str, str]) -> dict:
         return {'success': 1, 'redirected': 1, 'from': {'id': params['fromid']}, 'to': {'id': params['toid']}}
 
