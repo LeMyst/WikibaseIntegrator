@@ -730,7 +730,7 @@ def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignor
 
     for from_id in ids[1:]:
         merge_items(from_id=from_id, to_id=to_id, login=login, ignore_conflicts=ignore_conflicts, is_bot=is_bot, tags=tags, **kwargs)
-        log.info(f"Merged {from_id} into {to_id}")
+        log.info("Merged %s into %s", from_id, to_id)
 
     return to_id
 

@@ -16,6 +16,7 @@ from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
+from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 
@@ -93,9 +94,9 @@ class MediaInfoEntity(TermsEntity):
         json_data = mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
 
         if len(json_data['entities'].keys()) == 0:
-            raise Exception('Title not found')
+            raise MissingEntityException('Title not found')
         if len(json_data['entities'].keys()) > 1:
-            raise Exception('More than one element for this title')
+            raise ValueError('More than one element for this title')
 
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
 
@@ -110,7 +111,7 @@ class MediaInfoEntity(TermsEntity):
             json_data['statements'] = json_data.pop('claims')
 
         if isinstance(json_data, dict) and 'statements' in json_data and isinstance(json_data['statements'], dict):
-            for prop_nr, statements in json_data['statements'].items():
+            for statements in json_data['statements'].values():
                 for statement in statements:
                     if isinstance(statement, dict) and 'mainsnak' in statement:
                         if isinstance(statement['mainsnak'], dict) and 'datatype' in statement['mainsnak']:

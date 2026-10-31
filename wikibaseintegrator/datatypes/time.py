@@ -44,6 +44,8 @@ class Time(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
 
+    # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
+    # pylint: disable-next=arguments-renamed
     def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
                   calendarmodel: str | None = None, wikibase_url: str | None = None):
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])

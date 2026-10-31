@@ -33,6 +33,8 @@ class MonolingualText(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(text=text, language=language)
 
+    # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
+    # pylint: disable-next=arguments-renamed
     def set_value(self, text: str | None = None, language: str | None = None):
         language = language or str(config['DEFAULT_LANGUAGE'])
 

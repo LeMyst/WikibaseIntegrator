@@ -10,7 +10,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, Item, Property, Quantity, String, TabularData, Time
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
 
 from .conftest import literal, uri
 

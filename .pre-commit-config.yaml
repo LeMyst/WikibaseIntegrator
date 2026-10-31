@@ -55,8 +55,16 @@ repos:
         stages: [ pre-push, manual ]
       - id: pylint
         name: pylint
-        # Like `pylint-exit` in CI: only fatal messages (and usage errors) fail the hook
-        entry: pylint --fail-under=0 --fail-on=F wikibaseintegrator test
+        # Like CI: errors and warnings fail the hook, conventions and refactoring suggestions are only reported
+        entry: pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator
+        language: system
+        pass_filenames: false
+        types: [ python ]
+        stages: [ pre-push, manual ]
+      - id: pylint-tests
+        name: pylint (tests)
+        # The pytest fixtures make redefined-outer-name and unused-argument false positives
+        entry: pylint --fail-under=0 --fail-on=E,W,F --disable=redefined-outer-name,unused-argument,protected-access test
         language: system
         pass_filenames: false
         types: [ python ]

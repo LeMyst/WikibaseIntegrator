@@ -57,7 +57,7 @@ class TestWbiExceptions(TestCase):
     def test_modification_failed_no_dict(self):
         error_dict = {}
         with self.assertRaises(KeyError):
-            ModificationFailed(error_dict['error'])
+            _ = ModificationFailed(error_dict['error'])
 
     def test_modification_failed_no_message(self):
         error_dict = {'error': {'*': 'See https://test.wikidata.org/w/api.php for API usage. '

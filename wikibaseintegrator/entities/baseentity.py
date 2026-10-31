@@ -179,7 +179,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None, **kwargs: Any) -> dict:  # pylint: disable=no-self-use
+    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None, **kwargs: Any) -> dict:
         """
         Retrieve an entity in json representation from the Wikibase instance
 

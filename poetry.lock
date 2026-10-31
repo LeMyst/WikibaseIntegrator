@@ -2554,18 +2554,6 @@ spelling = ["pyenchant (>=3.2,<4.0)"]
 testutils = ["gitpython (>3)"]
 
 [[package]]
-name = "pylint-exit"
-version = "1.2.0"
-description = "Exit code handler for pylint command line utility."
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "pylint-exit-1.2.0.zip", hash = "sha256:b6ad02884c01c5560a5275079fe5a6c792afff90ecccf0c02513e1547ee280b0"},
-    {file = "pylint_exit-1.2.0-py2.py3-none-any.whl", hash = "sha256:65c9e7856e9058705a92d7c45628d604b2a4b8ee2b3c18a7303be77f9ed87cbe"},
-]
-
-[[package]]
 name = "pytest"
 version = "9.2.0"
 description = "pytest: simple powerful testing with Python"
@@ -3938,4 +3926,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "28c22700281d11e7be7bbbbaf9e32c5e9aeb98f4c99c20d7da4d0ff703715388"
+content-hash = "b6bf7bd8def718bb92c94f5a7dcfa044a83771a99621611d077e724e1a28103e"

@@ -55,7 +55,6 @@ optional = true
 pytest = "*"
 requests-mock = "*"
 pylint = "*"
-pylint-exit = "*"
 mypy = "*"
 codespell = "*"
 flynt = "*"

@@ -19,6 +19,8 @@ class Senses(BaseModel):
         return None
 
     # TODO: implement action_if_exists
+    # action_if_exists is accepted for symmetry with Claims.add() but not implemented yet
+    # pylint: disable-next=unused-argument
     def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         self.senses.append(sense)
 

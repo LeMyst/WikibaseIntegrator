@@ -81,7 +81,8 @@ class BaseDataType(Claim):
     def get_sparql_value(self, **kwargs: Any) -> str | None:
         return '"' + self.mainsnak.datavalue['value'] + '"'
 
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    # The unit is only used by the Quantity implementation of this legacy method
+    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:  # pylint: disable=unused-argument
         if type == 'uri':
             pattern = re.compile(r'^<?(.*?)>?$')
             matches = pattern.match(value)
