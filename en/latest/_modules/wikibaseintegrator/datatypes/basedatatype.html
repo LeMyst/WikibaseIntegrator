@@ -441,6 +441,22 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseSnakType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnknownDatatypeError</span>
 
+<span class="c1">#: The escape sequences of a SPARQL string literal (ECHAR), the backslash first</span>
+<span class="n">SPARQL_ESCAPES</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'</span><span class="se">\\</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\\\</span><span class="s1">'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'"'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">"'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">n'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'</span><span class="se">\r</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">r'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'</span><span class="se">\t</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">t'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'</span><span class="se">\b</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">b'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'</span><span class="se">\f</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">f'</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">sparql_string</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The SPARQL string literal of a text, between double quotes: its backslashes, double quotes and control characters are</span>
+<span class="sd">    escaped (e.g. a LilyPond score or a TeX formula), which would otherwise end the literal or make the query invalid.</span>
+
+<span class="sd">    :param text: The text</span>
+<span class="sd">    :return: The quoted and escaped literal, e.g. '"say \\"hi\\""' for 'say "hi"'</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">character</span><span class="p">,</span> <span class="n">escape</span> <span class="ow">in</span> <span class="n">SPARQL_ESCAPES</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">character</span><span class="p">,</span> <span class="n">escape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s1">'"'</span>
+
 
 <div class="viewcode-block" id="BaseDataType">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.basedatatype.BaseDataType.html#wikibaseintegrator.datatypes.basedatatype.BaseDataType">[docs]</a>
@@ -522,7 +538,7 @@
 <div class="viewcode-block" id="BaseDataType.get_sparql_value">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.basedatatype.BaseDataType.html#wikibaseintegrator.datatypes.basedatatype.BaseDataType.get_sparql_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="o">+</span> <span class="s1">'"'</span></div>
+        <span class="k">return</span> <span class="n">sparql_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">])</span></div>
 
 
     <span class="c1"># The unit is only used by the Quantity implementation of this legacy method</span>
