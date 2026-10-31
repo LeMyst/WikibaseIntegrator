@@ -11,6 +11,10 @@ on:
   release:
     types: [ published ]
 
+# The publish jobs ask for the extra permissions they need
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build Python 🐍 distributions 📦

@@ -1620,22 +1620,11 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
     """
     Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.
 
-    Args:
-    - entity (str): The identifier of the entity to download the TTL content for.
-    - wikibase_url (str | None): The base URL of the Wikibase instance. If None, the default URL from the configuration
-                                  will be used.
-    - user_agent (str | None): The user agent string to be used in the HTTP request headers. If None, the default user
-                                agent from the configuration will be used if available.
-
-    Returns:
-    - str: The TTL content of the requested entity.
-
-    Raises:
-    - HTTPError: If the HTTP request to retrieve the TTL content fails (status code other than 2xx).
-
-    Note:
-    The function relies on a configuration setup (presumably a 'config' dictionary) containing at least the keys
-    'WIKIBASE_URL' and 'USER_AGENT' for the default Wikibase URL and user agent respectively.
+    :param entity: The identifier of the entity to download the TTL content for.
+    :param wikibase_url: The base URL of the Wikibase instance. Default: config['WIKIBASE_URL']
+    :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set
+    :return: The TTL content of the requested entity.
+    :raises requests.HTTPError: If the HTTP request to retrieve the TTL content fails (status code other than 2xx).
     """
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)

@@ -31,12 +31,12 @@ The fixtures are pruned copies of real entities (Q582, P50, L5, M75908279). Refr
 Run all checks in the same order as CI:
 
 ```bash
-poetry run isort --check --diff wikibaseintegrator test
+poetry run isort --check --diff wikibaseintegrator test scripts
 poetry run mypy --install-types --non-interactive
-poetry run pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator
+poetry run pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator scripts
 poetry run pylint --fail-under=0 --fail-on=E,W,F --disable=redefined-outer-name,unused-argument,protected-access test
-poetry run codespell wikibaseintegrator test
-poetry run flynt -f wikibaseintegrator test
+poetry run codespell wikibaseintegrator test scripts
+poetry run flynt -f wikibaseintegrator test scripts
 ```
 
 The same checks are available as [pre-commit](https://pre-commit.com/) hooks ([.pre-commit-config.yaml](.pre-commit-config.yaml)): isort/flynt/codespell on commit, mypy/pylint on push. They are `local` hooks that run the Poetry-installed tools (so versions follow `poetry.lock`), which requires the project virtualenv to be active. Run them all with `pre-commit run --all-files --hook-stage pre-push`.
@@ -87,6 +87,7 @@ notebooks/                  # Jupyter usage examples
 |---|---|---|
 | `python-pytest.yaml` | push/PR to master | Matrix test on Python 3.11–3.15 |
 | `python-lint.yaml` | push/PR to master | isort, mypy, pylint, codespell, flynt |
+| `docs.yaml` | push/PR to master | Build the Sphinx documentation, warnings as errors |
 | `update-test-fixtures.yaml` | monthly / manual | Refresh `test/fixtures/` from live APIs (`scripts/update_test_fixtures.py`), open a PR if changed |
 | `codeql.yml` | push/PR/schedule | Static security analysis |
 | `trivy-scan.yaml` | push/PR/schedule | Vulnerability scanning |

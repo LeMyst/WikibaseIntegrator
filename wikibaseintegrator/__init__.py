@@ -1,6 +1,6 @@
 """
 WikibaseIntegrator Library
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 WikibaseIntegrator is a Wikibase library, written in Python, for human beings.
 Basic read usage:

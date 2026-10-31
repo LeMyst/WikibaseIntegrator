@@ -6,15 +6,22 @@ on:
     paths:
       - 'wikibaseintegrator/**.py'
       - 'test/**.py'
+      - 'scripts/**.py'
       - 'pyproject.toml'
       - 'poetry.lock'
+      - '.github/workflows/python-lint.yaml'
   pull_request:
     branches: [ '**' ]
     paths:
       - 'wikibaseintegrator/**.py'
       - 'test/**.py'
+      - 'scripts/**.py'
       - 'pyproject.toml'
       - 'poetry.lock'
+      - '.github/workflows/python-lint.yaml'
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -42,7 +49,7 @@ jobs:
 
       - name: isort imports check
         run: |
-          python -m poetry run isort --check --diff wikibaseintegrator test
+          python -m poetry run isort --check --diff wikibaseintegrator test scripts
 
       - name: mypy typing check
         run: |
@@ -52,13 +59,13 @@ jobs:
         # Errors and warnings fail the build, conventions and refactoring suggestions are only reported. In the tests, the
         # pytest fixtures make redefined-outer-name and unused-argument false positives, and testing private helpers is fine.
         run: |
-          python -m poetry run pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator
+          python -m poetry run pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator scripts
           python -m poetry run pylint --fail-under=0 --fail-on=E,W,F --disable=redefined-outer-name,unused-argument,protected-access test
 
       - name: codespell spell checking
         run: |
-          python -m poetry run codespell wikibaseintegrator test
+          python -m poetry run codespell wikibaseintegrator test scripts
 
       - name: flynt string formatter converting
         run: |
-          python -m poetry run flynt -f wikibaseintegrator test
+          python -m poetry run flynt -f wikibaseintegrator test scripts

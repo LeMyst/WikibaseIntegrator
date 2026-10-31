@@ -31,19 +31,19 @@ repos:
         entry: isort
         language: system
         types: [ python ]
-        files: ^(wikibaseintegrator|test)/
+        files: ^(wikibaseintegrator|test|scripts)/
       - id: flynt
         name: flynt
         entry: flynt --fail-on-change
         language: system
         types: [ python ]
-        files: ^(wikibaseintegrator|test)/
+        files: ^(wikibaseintegrator|test|scripts)/
       - id: codespell
         name: codespell
         entry: codespell
         language: system
         types: [ python ]
-        files: ^(wikibaseintegrator|test)/
+        files: ^(wikibaseintegrator|test|scripts)/
 
       # Slower whole-project checks, on push only
       - id: mypy
@@ -56,7 +56,7 @@ repos:
       - id: pylint
         name: pylint
         # Like CI: errors and warnings fail the hook, conventions and refactoring suggestions are only reported
-        entry: pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator
+        entry: pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator scripts
         language: system
         pass_filenames: false
         types: [ python ]

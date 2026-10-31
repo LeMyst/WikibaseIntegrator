@@ -87,6 +87,9 @@ language = 'en'
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = []
 
+# The builtin 'type' of the annotations (e.g. type[BaseDataType]) collides with the many 'type' attributes of the classes
+suppress_warnings = ['ref.python']
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
