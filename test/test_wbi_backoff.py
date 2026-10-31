@@ -25,7 +25,7 @@ def test_transient_http_error_is_retried_then_raised(requests_mock, status_code)
 
     @wbi_backoff()
     def bad_http_code():
-        result = requests.get('https://unstable.example.org/api')
+        result = requests.get('https://unstable.example.org/api', timeout=5)
         result.raise_for_status()
 
     with pytest.raises(requests.HTTPError):
@@ -42,7 +42,7 @@ def test_client_error_gives_up_immediately(requests_mock, status_code):
 
     @wbi_backoff()
     def bad_http_code():
-        result = requests.get('https://unstable.example.org/api')
+        result = requests.get('https://unstable.example.org/api', timeout=5)
         result.raise_for_status()
 
     with pytest.raises(requests.HTTPError):
@@ -155,7 +155,7 @@ def test_success_is_not_retried(requests_mock):
 
     @wbi_backoff()
     def good_http_code():
-        result = requests.get('https://stable.example.org/api')
+        result = requests.get('https://stable.example.org/api', timeout=5)
         result.raise_for_status()
         return result.status_code
 
@@ -168,7 +168,7 @@ def test_connection_error_is_retried(requests_mock):
 
     @wbi_backoff()
     def bad_request():
-        requests.get('https://unreachable.example.org/api')
+        requests.get('https://unreachable.example.org/api', timeout=5)
 
     with pytest.raises(requests.RequestException):
         bad_request()
@@ -182,7 +182,7 @@ def test_truncated_response_is_retried(requests_mock):
 
     @wbi_backoff()
     def truncated_response():
-        requests.get('https://unstable.example.org/api')
+        requests.get('https://unstable.example.org/api', timeout=5)
 
     with pytest.raises(requests.exceptions.ChunkedEncodingError):
         truncated_response()

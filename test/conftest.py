@@ -175,7 +175,7 @@ class MockWikibase:
 
         bindings = self.sparql_bindings
         if callable(bindings):
-            bindings = bindings(query)
+            bindings = bindings(query)  # pylint: disable=not-callable  # a test can set a function instead of a list
 
         return {
             'head': {'vars': ['sid', 'item', 'v', 'unit', 'pq', 'qval', 'qunit', 'ref', 'pr', 'rval', 'label']},

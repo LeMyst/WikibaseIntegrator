@@ -11,7 +11,7 @@ import uuid
 
 import pytest
 
-from wikibaseintegrator.datatypes import Item, String
+from wikibaseintegrator.datatypes import String
 from wikibaseintegrator.models import Form, Sense
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, search_entities

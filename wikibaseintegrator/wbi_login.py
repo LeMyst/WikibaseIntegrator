@@ -329,7 +329,7 @@ class Login(_Login):
         if 'warnings' in login_result:
             log.warning("MediaWiki login warnings messages:")
             for message in login_result['warnings']:
-                log.warning(f"* {message}: {login_result['warnings'][message]['*']}")
+                log.warning("* %s: %s", message, login_result['warnings'][message]['*'])
 
     def reauthenticate(self) -> None:
         """
@@ -419,7 +419,7 @@ class Clientlogin(_Login):
         if 'warnings' in login_result:
             log.warning("MediaWiki login warnings messages:")
             for message in login_result['warnings']:
-                log.warning(f"* {message}: {login_result['warnings'][message]['*']}")
+                log.warning("* %s: %s", message, login_result['warnings'][message]['*'])
 
     def reauthenticate(self) -> None:
         """

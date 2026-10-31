@@ -79,7 +79,6 @@ class ModificationFailed(MWApiError):
     """
     When the API return a 'modification-failed' error
     """
-    pass
 
 
 class SaveFailed(MWApiError):
@@ -120,7 +119,6 @@ class EmptyValueError(ValueError):
 
     Set a value, or use the WikibaseSnakType.NO_VALUE or WikibaseSnakType.UNKNOWN_VALUE snak type.
     """
-    pass
 
 
 class UnknownDatatypeError(ValueError):
@@ -143,7 +141,6 @@ class WCQSAuthenticationError(Exception):
     it answers with the HTML login page of Wikimedia Commons instead of the query results. The cookie is invalid, or was
     revoked. It is not retried, as retrying with the same cookie cannot succeed.
     """
-    pass
 
 
 class MaxRetriesReachedException(Exception):
@@ -164,4 +161,3 @@ class AnonymousEditNotAllowedError(Exception):
 
     Set ``allow_anonymous=True`` or provide a valid ``login`` object to edit the MediaWiki instance.
     """
-    pass

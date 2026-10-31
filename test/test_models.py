@@ -642,7 +642,7 @@ class TestSenses:
 
 class TestTermsEntity:
     def test_term_setters_validate_type_across_entities(self):
-        from wikibaseintegrator.entities import ItemEntity, MediaInfoEntity, PropertyEntity
+        from wikibaseintegrator.entities import MediaInfoEntity, PropertyEntity
 
         # The shared labels/descriptions/aliases setters (now on the TermsEntity base) still validate their type
         for entity_cls in (ItemEntity, PropertyEntity, MediaInfoEntity):

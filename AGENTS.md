@@ -33,7 +33,8 @@ Run all checks in the same order as CI:
 ```bash
 poetry run isort --check --diff wikibaseintegrator test
 poetry run mypy --install-types --non-interactive
-poetry run pylint wikibaseintegrator test
+poetry run pylint --fail-under=0 --fail-on=E,W,F wikibaseintegrator
+poetry run pylint --fail-under=0 --fail-on=E,W,F --disable=redefined-outer-name,unused-argument,protected-access test
 poetry run codespell wikibaseintegrator test
 poetry run flynt -f wikibaseintegrator test
 ```
@@ -44,7 +45,7 @@ Key style rules (from [pyproject.toml](pyproject.toml)):
 - Max line length: **179/180** characters (isort/pylint)
 - isort profile: `black` with `force_sort_within_sections = true`
 - mypy: `ignore_missing_imports = true`; type annotations are expected throughout
-- Pylint: `fixme`, `invalid-name`, `too-few-public-methods`, `too-many-arguments`, and several other checks are disabled — check the `[tool.pylint]` section before suppressing new warnings
+- Pylint: errors and warnings fail CI, conventions and refactoring suggestions are only reported. `fixme`, `invalid-name`, `too-few-public-methods`, `too-many-arguments`, and several other checks are disabled — check the `[tool.pylint]` section before suppressing new warnings, and prefer a scoped `# pylint: disable-next=<check>` with a reason over a broad disable
 
 ## Project layout
 

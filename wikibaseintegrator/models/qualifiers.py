@@ -44,6 +44,8 @@ class Qualifiers(BaseModel):
         return []
 
     # TODO: implement action_if_exists
+    # action_if_exists is accepted for symmetry with Claims.add() but not implemented yet
+    # pylint: disable-next=unused-argument
     def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         # Imported here because Claim holds Qualifiers, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim

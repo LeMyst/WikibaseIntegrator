@@ -37,6 +37,8 @@ class Quantity(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(amount=amount, upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
 
+    # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
+    # pylint: disable-next=arguments-renamed
     def set_value(self, amount: str | int | float | None = None, upper_bound: str | int | float | None = None, lower_bound: str | int | float | None = None, unit: str | int = '1',
                   wikibase_url: str | None = None):
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
