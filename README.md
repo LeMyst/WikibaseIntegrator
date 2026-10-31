@@ -35,29 +35,29 @@ item = wbi.item.get('Q582')
 print(item.labels.get('en'))  # Villeurbanne
 ```
 
-To log in and write, see [Login](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/login.html) and [Entities](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/entities.html).
+To log in and write, see [Login](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/login.html) and [Entities](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/entities.html).
 
 ## Documentation
 
 The documentation is on **[GitHub Pages](https://lemyst.github.io/WikibaseIntegrator/)**, for the latest release and for the
 development version:
 
-- [Installation and configuration](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/installation.html): using another Wikibase instance, the User-Agent
+- [Installation and configuration](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/installation.html): using another Wikibase instance, the User-Agent
   policy, debugging
-- [Entities](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/entities.html): read, create and edit items, properties, lexemes, labels, claims, qualifiers
+- [Entities](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/entities.html): read, create and edit items, properties, lexemes, labels, claims, qualifiers
   and references
-- [Login](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/login.html): OAuth 2.0, OAuth 1.0a, bot passwords
-- [Data types](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/datatypes.html), [Structured Data on Commons](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/mediainfo.html)
-- [Helpers](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/helpers.html): SPARQL queries, search, merges, the MediaWiki API, EditGroups
-- [Fast run](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/fastrun.html) and [examples](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/examples.html), including a bot for mass import
-- [API reference](https://lemyst.github.io/WikibaseIntegrator/en/latest/api/index.html)
+- [Login](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/login.html): OAuth 2.0, OAuth 1.0a, bot passwords
+- [Data types](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/datatypes.html), [Structured Data on Commons](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/mediainfo.html)
+- [Helpers](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/helpers.html): SPARQL queries, search, merges, the MediaWiki API, EditGroups
+- [Fast run](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/fastrun.html) and [examples](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/examples.html), including a bot for mass import
+- [API reference](https://lemyst.github.io/WikibaseIntegrator/en/stable/api/index.html)
 
-Upgrading from an older version (v0.13, v0.12, v0.11)? See the [breaking changes](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/upgrading.html).
+Upgrading from an older version (v0.13, v0.12, v0.11)? See the [breaking changes](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/upgrading.html).
 
 ## Contributing
 
-See [Contributing](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/contributing.html) to set up the development environment and run the tests.
+See [Contributing](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/contributing.html) to set up the development environment and run the tests.
 
 WikibaseIntegrator is a fork of [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator), see
-[About](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/about.html). To port a WikidataIntegrator script, see
-the [migration guide](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/wikidataintegrator.html).
+[About](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/about.html). To port a WikidataIntegrator script, see
+the [migration guide](https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/wikidataintegrator.html).
