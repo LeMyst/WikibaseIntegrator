@@ -63,7 +63,20 @@ class MediaInfoEntity(TermsEntity):
     def new(self, **kwargs: Any) -> MediaInfoEntity:
         return MediaInfoEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: str | int, **kwargs: Any) -> MediaInfoEntity:
+    def get(self, entity_id: str | int | None = None, **kwargs: Any) -> MediaInfoEntity:
+        """
+        Request the MediaWiki API to get data for the entity specified in argument.
+
+        :param entity_id: The ID of the entity to load, starting with 'M'. By default, the ID of this entity, to reload it.
+        :param kwargs:
+        :return: a MediaInfoEntity instance
+        """
+
+        if entity_id is None and self.id is not None:
+            entity_id = self.id
+        elif entity_id is None:
+            raise ValueError("You must provide an entity_id")
+
         if isinstance(entity_id, str):
             pattern = re.compile(r'^M?([0-9]+)$')
             matches = pattern.match(entity_id)
