@@ -39,7 +39,6 @@ class BaseDataType(Claim):
                 prop_nr = prop_nr.rsplit('/', 1)[-1]
 
         self.mainsnak.property_number = prop_nr
-        # self.subclasses.append(self)
 
     # Allow registration of subclasses of BaseDataType into BaseDataType.subclasses
     def __init_subclass__(cls, **kwargs: Any) -> None:

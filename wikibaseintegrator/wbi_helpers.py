@@ -333,6 +333,22 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
     return json_data
 
 
+#: The Wikimedia hosts already warned about a missing user agent, to log the warning once per host
+_user_agent_warned_hosts: set[str] = set()
+
+#: The parameters of a MediaWiki API call left out of the debug log
+_SECRET_PARAMETERS = frozenset({'token', 'lgtoken', 'lgpassword', 'password', 'logintoken'})
+
+
+def _warn_missing_user_agent(url: str, user_agent: str | None) -> None:
+    """Log a warning, once per host, when a Wikimedia Foundation instance is called without a user agent."""
+    hostname = urlparse(url).hostname
+    if user_agent is None and hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and hostname not in _user_agent_warned_hosts:
+        _user_agent_warned_hosts.add(hostname)
+        log.warning("Please set a user agent (wbi_config['USER_AGENT']) to interact with '%s', an instance of the Wikimedia Foundation: "
+                    "https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy", hostname)
+
+
 def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
                               max_retries: int = 20, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
@@ -355,10 +371,7 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
     data = dict(data) if data is not None else None
 
-    hostname = urlparse(mediawiki_api_url).hostname
-    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
-        log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        log.warning('More information in the README.md and https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy')
+    _warn_missing_user_agent(mediawiki_api_url, user_agent)
 
     if not allow_anonymous:
         if login is None:
@@ -405,7 +418,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     else:
         session = None
 
-    log.debug(data)
+    if log.isEnabledFor(logging.DEBUG) and data is not None:
+        log.debug({key: ('***' if key in _SECRET_PARAMETERS and value != '+\\' else value) for key, value in data.items()})
 
     return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, login=login, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
 
@@ -441,16 +455,13 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     auth = auth if auth is not None else config['SPARQL_AUTH']
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
-    hostname = urlparse(sparql_endpoint_url).hostname
-    if hostname is not None and hostname.endswith(('wikidata.org', 'wikipedia.org', 'wikimedia.org')) and user_agent is None:
-        log.warning('WARNING: Please set an user agent if you interact with a Wikibase instance from the Wikimedia Foundation.')
-        log.warning('More information in the README.md and https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy')
+    _warn_missing_user_agent(sparql_endpoint_url, user_agent)
 
     if prefix:
         query = prefix + '\n' + query
 
     body = {
-        'query': '#Tool: WikibaseIntegrator wbi_functions.execute_sparql_query\n' + query,
+        'query': '#Tool: WikibaseIntegrator wbi_helpers.execute_sparql_query\n' + query,
         'format': 'json'
     }
 
@@ -1443,7 +1454,6 @@ def format_amount(amount: int | str | float) -> str:
     if not str(amount).startswith('+') and float(amount) >= 0:
         amount = str(f'+{amount}')
 
-    # return as string
     return str(amount)
 
 
@@ -1760,11 +1770,4 @@ def check_wikibase(mediawiki_api_url: str | None = None, sparql_endpoint_url: st
             result.problems.append(f"The SPARQL endpoint '{result.sparql_endpoint_url}' is not available: {exception}")
 
     return result
-
-# def __deepcopy__(memo):
-#     # Don't return a copy of the module
-#     # Deepcopy don't allow copy of modules (https://bugs.python.org/issue43093)
-#     # It's really the good way to solve this?
-#     from wikibaseintegrator import wikibaseintegrator
-#     return wikibaseintegrator.wbi_helpers
 

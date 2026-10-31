@@ -163,12 +163,14 @@ class BaseEntity:
         :param json_data: A specific dictionary from MediaWiki API
         :return:
         """
-        if 'missing' in json_data:  # TODO: 1.35 compatibility
+        # wbgetentities answers {'id': ..., 'missing': ''} for an entity that doesn't exist (or was deleted)
+        if 'missing' in json_data:
             raise MissingEntityException('The MW API returned that the entity was missing.')
 
-        if 'title' in json_data:  # TODO: 1.35 compatibility
+        # Absent from the entity JSON of older MediaWiki versions (1.35)
+        if 'title' in json_data:
             self.title = str(json_data['title'])
-        if 'pageid' in json_data:  # TODO: 1.35 compatibility
+        if 'pageid' in json_data:
             self.pageid = int(json_data['pageid'])
         self.lastrevid = int(json_data['lastrevid'])
         self.type = str(json_data['type'])

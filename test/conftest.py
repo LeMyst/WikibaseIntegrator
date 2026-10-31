@@ -523,9 +523,11 @@ def preserve_config():
 def reset_library_state():
     """Reset the module-level caches of the library between tests."""
     wbi_helpers.properties_dt.clear()
+    wbi_helpers._user_agent_warned_hosts.clear()
     wbi_fastrun.fastrun_store.clear()
     yield
     wbi_helpers.properties_dt.clear()
+    wbi_helpers._user_agent_warned_hosts.clear()
     wbi_fastrun.fastrun_store.clear()
 
 
