@@ -443,7 +443,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.entities.baseentity</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEntity</span><span class="p">,</span> <span class="n">TermsEntity</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.aliases</span><span class="w"> </span><span class="kn">import</span> <span class="n">Aliases</span>
@@ -452,6 +452,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingEntityException</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">mediawiki_api_call_helper</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Login</span>
 
 
 <div class="viewcode-block" id="MediaInfoEntity">
@@ -537,7 +540,21 @@
 
 <div class="viewcode-block" id="MediaInfoEntity.get_by_title">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.mediainfo.MediaInfoEntity.html#wikibaseintegrator.entities.mediainfo.MediaInfoEntity.get_by_title">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_by_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">titles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sites</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'commonswiki'</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MediaInfoEntity</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_by_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">titles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sites</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'commonswiki'</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MediaInfoEntity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Request the MediaWiki API to get the MediaInfo entity of a file, from the title of its page.</span>
+
+<span class="sd">        :param titles: The title of the file page, e.g. 'File:Example.jpg'</span>
+<span class="sd">        :param sites: The site of the page. Wikimedia Commons ('commonswiki') by default.</span>
+<span class="sd">        :param login: A login instance. The login of the WikibaseIntegrator instance by default.</span>
+<span class="sd">        :param allow_anonymous: Allow an anonymous request. Enabled by default.</span>
+<span class="sd">        :param is_bot: Add the bot flag to the request. The is_bot of the WikibaseIntegrator instance by default.</span>
+<span class="sd">        :param kwargs: More arguments for mediawiki_api_call_helper()</span>
+<span class="sd">        :return: a MediaInfoEntity instance</span>
+<span class="sd">        :exception MissingEntityException: If the page doesn't exist.</span>
+<span class="sd">        :exception ValueError: If the titles match more than one entity.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">titles</span> <span class="o">=</span> <span class="s1">'|'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">titles</span><span class="p">)</span>
 
@@ -548,14 +565,20 @@
             <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span>
         <span class="p">}</span>
 
-        <span class="n">json_data</span> <span class="o">=</span> <span class="n">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
+        <span class="n">is_bot</span> <span class="o">=</span> <span class="n">is_bot</span> <span class="k">if</span> <span class="n">is_bot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">is_bot</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="s1">'Title not found'</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">json_data</span> <span class="o">=</span> <span class="n">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">entities</span> <span class="o">=</span> <span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">]</span>
+        <span class="c1"># The API answers {'-1': {'title': ..., 'missing': ''}} for a page that doesn't exist</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">entity</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Title not found: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">titles</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'More than one element for this title'</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">MediaInfoEntity</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="p">)</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">][</span><span class="nb">list</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]])</span></div>
+        <span class="k">return</span> <span class="n">MediaInfoEntity</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="p">)</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">entities</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span></div>
 
 
 <div class="viewcode-block" id="MediaInfoEntity.get_json">
