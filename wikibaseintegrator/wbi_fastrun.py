@@ -29,6 +29,9 @@ fastrun_store: list[FastRunContainer] = []
 # with the Wikidata entity Q199 (the number one), whatever the instance.
 UNITLESS_UNIT_URIS = ('1', 'http://www.wikidata.org/entity/Q199', 'https://www.wikidata.org/entity/Q199')
 
+# The number of statements whose unit and precision are loaded by one SPARQL query
+VALUE_DETAILS_BATCH_SIZE = 100
+
 
 class FastRunContainer:
     """
@@ -79,6 +82,9 @@ class FastRunContainer:
         self._qualifiers_cache: dict[str, Qualifiers] = {}
         self._references_cache: dict[str, References] = {}
         self._rank_cache: dict[str, WikibaseRank | None] = {}
+        # The lazily loaded unit and precision of the values: property number -> statement ID -> (unit, precision).
+        # Reset with the statements of the property, so that they are never older than the statements.
+        self._value_details: dict[str, dict[str, tuple[str | None, int | None]]] = {}
 
     @staticmethod
     def _entity_id(entity: str) -> str:
@@ -112,8 +118,11 @@ class FastRunContainer:
     def _value_key(self, claim: Claim) -> str | None:
         """
         The key indexing the value of the given claim in self.data, casefolded when case_insensitive is enabled.
-        The normalized unit is part of the key for quantities: two amounts only differing by their unit must not
-        be considered equal. An unknown value or no value has no key: it can't be compared through SPARQL.
+        An unknown value or no value has no key: it can't be compared through SPARQL.
+
+        The key is the simple value, which holds neither the unit of a quantity nor the precision of a time: two
+        amounts only differing by their unit, or '1987' and '1987-01-01', share the same key. They are told apart by
+        _filter_value_details().
         """
         if claim.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
             return None
@@ -122,13 +131,21 @@ class FastRunContainer:
             return None
         if self.case_insensitive:
             value = value.casefold()
-        datavalue = claim.mainsnak.datavalue
-        if isinstance(datavalue, dict) and datavalue.get('type') == 'quantity':
-            value += '@' + self._normalize_unit(datavalue['value'].get('unit', '1'))
-        # The simple value of a time drops the precision: '1987' and '1987-01-01' share the same timestamp
-        if isinstance(datavalue, dict) and datavalue.get('type') == 'time':
-            value += '@' + str(datavalue['value'].get('precision'))
         return value
+
+    @staticmethod
+    def _value_type(claim: Claim) -> str | None:
+        """The type of the datavalue of the claim (e.g. 'quantity' or 'time'), or None if it has no datavalue."""
+        datavalue = claim.mainsnak.datavalue
+        if isinstance(datavalue, dict):
+            return datavalue.get('type')
+        return None
+
+    def _value_details_from_result(self, result: dict) -> tuple[str | None, int | None]:
+        """The normalized unit and the precision of a value, from a SPARQL result binding ?unit and ?precision."""
+        unit = self._normalize_unit(result['unit']['value']) if 'unit' in result else None
+        precision = int(result['precision']['value']) if 'precision' in result else None
+        return unit, precision
 
     @staticmethod
     def _snak_key(snak: Snak) -> str:
@@ -184,6 +201,11 @@ class FastRunContainer:
         cache is disabled and the claim carries a value, only the statements holding the same value (and the same
         qualifiers if use_qualifiers is enabled) are loaded; such a partial load is never reused as a cache.
 
+        A complete load only reads the simple values: joining the value node of every statement, for the unit of a
+        quantity or the precision of a time, makes the query of a large dataset exceed the time limit of the SPARQL
+        endpoint. The unit and the precision are loaded later, only for the statements holding the value of a claim
+        (see _filter_value_details()). A partial load, restricted to one value, reads them directly.
+
         :param claims: A Claim, Claims or list of Claim
         :param cache: Put data returned by the SPARQL endpoint in cache. Enabled by default.
         :param wb_url: The first part of the concept URI of entities.
@@ -237,6 +259,7 @@ class FastRunContainer:
 
             # We force a refresh of the data, remove the previous results
             self.data[prop_nr] = {}
+            self._value_details[prop_nr] = {}
             self.loaded_complete.discard(prop_nr)
 
             while True:
@@ -265,18 +288,15 @@ class FastRunContainer:
                     query = query.format(base_filter_string=base_filter_string, wb_url=wb_url, prop_nr=prop_nr, offset=str(offset), limit=str(limit),
                                          value=claim.get_sparql_value(wikibase_url=wb_url), qualifiers_filter_string=qualifiers_filter_string)
                 else:
+                    # Without the unit and the precision, which are on the value node: see the docstring
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
-                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision WHERE {{
+                    SELECT ?entity ?sid ?value ?property_type WHERE {{
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
                       <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type.
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
-                      # The unit of a quantity value, only bound for quantities
-                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:quantityUnit ?unit ] . }}
-                      # The precision of a time value, only bound for times
-                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:timePrecision ?precision ] . }}
                     }}
                     ORDER BY ?sid
                     OFFSET {offset}
@@ -308,12 +328,6 @@ class FastRunContainer:
                         log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the value", prop_nr)
                         continue
 
-                    # The simple value of a quantity does not carry the unit, set it from the value node
-                    if 'unit' in result and isinstance(f.mainsnak.datavalue, dict) and f.mainsnak.datavalue.get('type') == 'quantity':
-                        f.mainsnak.datavalue['value']['unit'] = result['unit']['value']
-
-                    self._set_precision(f, result, 'precision')
-
                     sparql_value = self._value_key(f)
                     if sparql_value is not None:
                         if sparql_value not in self.data[prop_nr]:
@@ -323,6 +337,10 @@ class FastRunContainer:
                             self.properties_type[prop_nr] = property_type
 
                         self.data[prop_nr][sparql_value].append({'entity': entity, 'sid': sid})
+
+                        # Only the query of a partial load reads the unit and the precision
+                        if partial_load:
+                            self._value_details[prop_nr][sid] = self._value_details_from_result(result)
 
                 if len(results) == 0 or len(results) < limit:
                     break
@@ -535,6 +553,78 @@ class FastRunContainer:
 
         return rank
 
+    def _load_value_details(self, prop_nr: str, sids: list[str]) -> None:
+        """
+        Load the unit (of a quantity) and the precision (of a time) of the values of the given statements, which are
+        on the value node, not on the simple value loaded by load_statements(). The statements already known are not
+        queried again.
+
+        :param prop_nr: The property of the statements.
+        :param sids: The statement IDs.
+        """
+        details = self._value_details.setdefault(prop_nr, {})
+        missing = [sid for sid in dict.fromkeys(sids) if sid not in details]
+
+        for start in range(0, len(missing), VALUE_DETAILS_BATCH_SIZE):
+            batch = missing[start:start + VALUE_DETAILS_BATCH_SIZE]
+            values = ' '.join(f'<{sid}>' for sid in batch)
+            query = f'''
+            #Tool: WikibaseIntegrator wbi_fastrun._load_value_details
+            SELECT ?sid ?unit ?precision WHERE {{
+              VALUES ?sid {{ {values} }}
+              ?sid ?value_predicate ?value_node.
+              ?property wikibase:statementValue ?value_predicate.
+              # The unit of a quantity value, only bound for quantities
+              OPTIONAL {{ ?value_node wikibase:quantityUnit ?unit . }}
+              # The precision of a time value, only bound for times
+              OPTIONAL {{ ?value_node wikibase:timePrecision ?precision . }}
+            }}
+            '''
+
+            results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+
+            # A statement without a value node has neither unit nor precision: its value won't match any claim
+            for sid in batch:
+                details[sid] = (None, None)
+            for result in results:
+                details[result['sid']['value']] = self._value_details_from_result(result)
+
+    def _statements_with_value(self, claim: Claim) -> list[dict[str, str]]:
+        """The loaded statements holding the simple value of the claim, whatever the unit or the precision of the value."""
+        value_key = self._value_key(claim)
+        if value_key is None:
+            return []
+        return list(self.data.get(claim.mainsnak.property_number, {}).get(value_key, []))
+
+    def _filter_value_details(self, claim: Claim, statements: list[dict[str, str]]) -> list[dict[str, str]]:
+        """
+        Keep the statements whose value has the same unit as the claim, for a quantity, or the same precision, for a
+        time. The statements of the other data types are returned unchanged.
+
+        The unit and the precision are loaded for the given statements only: pass the statements holding the value of
+        the claim, restricted as much as possible (e.g. to the entities holding the other claims).
+
+        :param claim: The claim.
+        :param statements: Statements holding the simple value of the claim, from self.data.
+        :return: The matching statements.
+        """
+        value_type = self._value_type(claim)
+        if value_type not in ('quantity', 'time') or not statements:
+            return statements
+
+        prop_nr = claim.mainsnak.property_number
+        self._load_value_details(prop_nr, [statement['sid'] for statement in statements])
+        details = self._value_details[prop_nr]
+        datavalue = claim.mainsnak.datavalue
+
+        if value_type == 'quantity':
+            unit = self._normalize_unit(datavalue['value'].get('unit', '1'))
+            return [statement for statement in statements if details[statement['sid']][0] == unit]
+
+        # The simple value of a time drops the precision: '1987' and '1987-01-01' share the same timestamp
+        precision = datavalue['value'].get('precision')
+        return [statement for statement in statements if details[statement['sid']][1] == precision]
+
     def get_entities(self, claims: list[Claim] | Claims | Claim, cache: bool | None = None, query_limit: int | None = None) -> list[str]:
         """
         Return a list of entities who correspond to the specified claims.
@@ -552,14 +642,18 @@ class FastRunContainer:
         if len(claims) == 0:
             raise ValueError("claims must have at least one claim")
 
-        entity_sets: list[set[str]] = []
+        candidates: list[tuple[Claim, list[dict[str, str]]]] = []
         for claim in claims:
             self.load_statements(claims=claim, cache=cache, limit=query_limit)
-            value_key = self._value_key(claim)
-            statements = self.data.get(claim.mainsnak.property_number, {}).get(value_key, []) if value_key is not None else []
-            entity_sets.append({self._entity_id(statement['entity']) for statement in statements})
+            candidates.append((claim, self._statements_with_value(claim)))
 
-        return sorted(set.intersection(*entity_sets))
+        # The entities holding every simple value, then among them only, the ones with the same unit or precision
+        entities = set.intersection(*({self._entity_id(statement['entity']) for statement in statements} for _, statements in candidates))
+        for claim, statements in candidates:
+            statements = self._filter_value_details(claim, [statement for statement in statements if self._entity_id(statement['entity']) in entities])
+            entities = {self._entity_id(statement['entity']) for statement in statements}
+
+        return sorted(entities)
 
     def _statement_matches(self, claim: Claim, sid: str, use_qualifiers: bool, use_references: bool, use_rank: bool, cache: bool | None = None) -> bool:
         """
@@ -670,24 +764,29 @@ class FastRunContainer:
             log.debug("No claim matches the property filter: write required")
             return True
 
-        # Find, for each claim, the statements holding the same value
+        # Find, for each claim, the statements holding the same simple value
         candidates: list[tuple[Claim, list[dict[str, str]]]] = []
         for claim in claims_to_check:
             self.load_statements(claims=claim, cache=cache, limit=query_limit)
 
-            value_key = self._value_key(claim)
-            statements = list(self.data.get(claim.mainsnak.property_number, {}).get(value_key, [])) if value_key is not None else []
+            statements = self._statements_with_value(claim)
             if entities_allowed is not None:
                 statements = [statement for statement in statements if self._entity_id(statement['entity']) in entities_allowed]
 
             if not statements:
-                log.debug("Value '%s' does not exist for property '%s'", value_key, claim.mainsnak.property_number)
+                # Not claim.get_sparql_value(): the arguments are evaluated even without debug logging, and get_sparql_value() of
+                # most data types raises without a known value
+                log.debug("Value '%s' does not exist for property '%s'", self._value_key(claim), claim.mainsnak.property_number)
                 return True
 
             candidates.append((claim, statements))
 
-        # The entities holding every claim value
+        # The entities holding every simple value, then among them only, the ones with the same unit or precision
         common_entities = set.intersection(*({self._entity_id(statement['entity']) for statement in statements} for _, statements in candidates))
+        if common_entities:
+            candidates = [(claim, self._filter_value_details(claim, [statement for statement in statements if self._entity_id(statement['entity']) in common_entities]))
+                          for claim, statements in candidates]
+            common_entities = set.intersection(*({self._entity_id(statement['entity']) for statement in statements} for _, statements in candidates))
         if not common_entities:
             log.debug("No entity holds all the claim values: write required")
             return True
@@ -816,6 +915,7 @@ class FastRunContainer:
         self._qualifiers_cache = {}
         self._references_cache = {}
         self._rank_cache = {}
+        self._value_details = {}
 
     def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""

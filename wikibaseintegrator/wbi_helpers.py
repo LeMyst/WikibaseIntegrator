@@ -416,8 +416,8 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     """
     Static method which can be used to execute any SPARQL query
 
-    Server errors (HTTP 5xx), throttling (HTTP 429, after the delay asked by the Query Service), request timeouts (HTTP 408) and
-    connection errors are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times. If the Query Service still fails after that,
+    Server errors (HTTP 5xx), throttling (HTTP 429, after the delay asked by the Query Service), request timeouts (HTTP 408),
+    connection errors and responses cut before their end are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times. If the Query Service still fails after that,
     the last exception (e.g. requests.HTTPError) is raised. The other client errors (e.g. HTTP 400 for a malformed query) are raised at once.
 
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
@@ -466,7 +466,7 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     log.debug("SPARQL query:\n%s", body['query'])
 
-    # Connection errors, and the requests.HTTPError raised below for 5xx and 429 responses, are retried by wbi_backoff
+    # Connection errors, truncated responses, and the requests.HTTPError raised below for 5xx and 429 responses, are retried by wbi_backoff
     response = _get_default_session().post(sparql_endpoint_url, data=body, headers=request_headers, auth=auth, timeout=config['TIMEOUT'])
     if response.status_code == 429:
         # wbi_backoff waits for the delay asked by the Query Service before the next try, instead of its own delay

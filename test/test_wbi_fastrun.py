@@ -10,7 +10,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, Item, Property, Quantity, String, TabularData, Time
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import literal, uri
 
@@ -49,19 +49,30 @@ class SparqlData:
         wikibase.sparql_bindings = self.dispatch
 
     def dispatch(self, query: str) -> list[dict]:
-        if 'wbi_fastrun._load_qualifiers' in query:
-            return self.qualifiers.get(self._sid(query), [])
-        if 'wbi_fastrun._load_references' in query:
-            return self.references.get(self._sid(query), [])
-        if 'wbi_fastrun._load_rank' in query:
-            return self.ranks.get(self._sid(query), [])
+        for tool, bindings_by_sid in (('_load_qualifiers', self.qualifiers), ('_load_references', self.references), ('_load_rank', self.ranks)):
+            if f'wbi_fastrun.{tool}' in query:
+                return bindings_by_sid.get(self._sid(query), [])
         if 'wbi_fastrun._query_lang' in query:
             return self.labels
+        if 'wbi_fastrun._load_value_details' in query:
+            return self._value_details(query)
         if 'wbi_fastrun.load_statements' in query:
             match = re.search(r'/prop/(P\d+)> \?sid', query)
             assert match is not None
-            return self.statements.get(match.group(1), [])
+            bindings = self.statements.get(match.group(1), [])
+            # Like a real endpoint, only bind the unit and the precision when the query selects them
+            if '?unit' not in query.split('WHERE', 1)[0]:
+                bindings = [{k: v for k, v in binding.items() if k not in ('unit', 'precision')} for binding in bindings]
+            return bindings
         return []
+
+    def _value_details(self, query: str) -> list[dict]:
+        """The unit and the precision of the statements listed in the VALUES clause of the query."""
+        match = re.search(r'VALUES \?sid \{ ([^}]+) \}', query)
+        assert match is not None
+        sids = set(re.findall(r'<([^>]+)>', match.group(1)))
+        return [{k: v for k, v in binding.items() if k in ('sid', 'unit', 'precision')}
+                for bindings in self.statements.values() for binding in bindings if binding['sid']['value'] in sids]
 
     @staticmethod
     def _sid(query: str) -> str:
@@ -516,6 +527,96 @@ class TestWriteRequiredTimePrecision:
         item.claims.add(String(value='The secret war against Sweden', prop_nr='P1476'))
         item.claims.add(Time(time='+1988-00-00T00:00:00Z', prop_nr='P577', qualifiers=[Time(time='+2022-07-00T00:00:00Z', prop_nr='P585')]))
         assert item.write_required(base_filter=[BaseDataType(prop_nr='P1476'), BaseDataType(prop_nr='P577')]) is False
+
+
+class TestValueDetails:
+    """
+    The unit of a quantity and the precision of a time are on the value node. Joining it for every statement makes the
+    complete load of a large dataset exceed the query time limit of the SPARQL endpoint (e.g. the population of every
+    commune of France on Wikidata), so they are only loaded for the statements holding the value of a claim.
+    """
+    UNITLESS = 'http://www.wikidata.org/entity/Q199'
+
+    @pytest.mark.parametrize('claim', [Time(prop_nr='P570', snaktype=WikibaseSnakType.UNKNOWN_VALUE),
+                                       Quantity(prop_nr='P1082', snaktype=WikibaseSnakType.NO_VALUE)], ids=['time', 'quantity'])
+    def test_claim_without_a_known_value_requires_a_write(self, wikibase, sparql_data, frc, claim):
+        # Such a claim can't be compared through SPARQL: it used to raise a KeyError in a debug log
+        assert frc.write_required(claims=[claim]) is True
+
+    @staticmethod
+    def queries(wikibase, tool: str) -> list[str]:
+        return [query for query in wikibase.sparql_queries if f'#Tool: WikibaseIntegrator wbi_fastrun.{tool}\n' in query]
+
+    def population(self, sparql_data, entity_id: str, index: int = 0, unit: str = UNITLESS) -> str:
+        return sparql_data.statement(entity_id, 'P1082', literal('+1234', datatype=XSD_DECIMAL), PTYPE_QUANTITY, index=index, unit=unit)
+
+    def test_complete_load_does_not_join_the_value_nodes(self, wikibase, sparql_data, frc):
+        self.population(sparql_data, 'Q99')
+
+        frc.load_statements(claims=Quantity(amount=1234, prop_nr='P1082'))
+
+        [query] = self.queries(wikibase, 'load_statements')
+        assert '/prop/statement/value/' not in query
+        assert 'OPTIONAL' not in query
+
+    def test_only_the_statements_of_the_entity_filter_are_checked(self, wikibase, sparql_data, frc):
+        sid = self.population(sparql_data, 'Q99')
+        other_sid = self.population(sparql_data, 'Q100', index=1)
+
+        assert frc.write_required(claims=[Quantity(amount=1234, prop_nr='P1082')], entity_filter='Q99') is False
+
+        [query] = self.queries(wikibase, '_load_value_details')
+        assert f'<{sid}>' in query
+        assert f'<{other_sid}>' not in query
+
+    def test_get_entities_only_checks_the_common_entities(self, wikibase, sparql_data, frc):
+        sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
+        sid = self.population(sparql_data, 'Q99')
+        other_sid = self.population(sparql_data, 'Q100', index=1)
+
+        assert frc.get_entities(claims=[ExternalID(value='P40095', prop_nr='P352'), Quantity(amount=1234, prop_nr='P1082')]) == ['Q99']
+
+        [query] = self.queries(wikibase, '_load_value_details')
+        assert f'<{sid}>' in query
+        assert f'<{other_sid}>' not in query
+
+    def test_value_details_are_cached(self, wikibase, sparql_data, frc):
+        self.population(sparql_data, 'Q99')
+        claim = Quantity(amount=1234, prop_nr='P1082')
+
+        assert frc.write_required(claims=[claim]) is False
+        assert frc.write_required(claims=[claim]) is False
+
+        assert len(self.queries(wikibase, '_load_value_details')) == 1
+
+    def test_value_details_are_loaded_in_batches(self, wikibase, sparql_data, frc, monkeypatch):
+        monkeypatch.setattr(wbi_fastrun, 'VALUE_DETAILS_BATCH_SIZE', 2)
+        for index in range(5):
+            self.population(sparql_data, f'Q{100 + index}', index=index)
+
+        assert frc.get_entities(claims=Quantity(amount=1234, prop_nr='P1082')) == [f'Q{100 + index}' for index in range(5)]
+
+        assert len(self.queries(wikibase, '_load_value_details')) == 3
+
+    def test_partial_load_reads_the_value_details(self, wikibase, sparql_data):
+        self.population(sparql_data, 'Q99')
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P1082')], base_data_type=BaseDataType, cache=False)
+        assert frc.write_required(claims=[Quantity(amount=1234, prop_nr='P1082')]) is False
+        assert frc.write_required(claims=[Quantity(amount=1234, unit='Q712226', prop_nr='P1082')]) is True
+
+        assert not self.queries(wikibase, '_load_value_details')
+
+    def test_clear_resets_the_value_details(self, wikibase, sparql_data, frc):
+        self.population(sparql_data, 'Q99')
+        claim = Quantity(amount=1234, prop_nr='P1082')
+        assert frc.write_required(claims=[claim]) is False
+
+        # The unit changed on the instance: the container must not keep the previous one once cleared
+        sparql_data.statements['P1082'][0]['unit'] = uri(f'{wikibase.base_url}/entity/Q712226')
+        frc.clear()
+
+        assert frc.write_required(claims=[claim]) is True
 
 
 class TestCaseInsensitive:
