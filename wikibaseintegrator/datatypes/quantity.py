@@ -5,7 +5,25 @@ from typing import Any, Self
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
-from wikibaseintegrator.wbi_helpers import format_amount
+
+
+# Here rather than in wbi_helpers (which re-exports it): the data types don't depend on the HTTP layer
+def format_amount(amount: int | str | float) -> str:
+    """
+    A formatting function mostly used for Quantity datatype.
+    :param amount: A int, float or str you want to pass to Quantity value.
+    :return: A correctly formatted string amount by Wikibase standard.
+    """
+    # Remove .0 by casting to int
+    if float(amount) % 1 == 0:
+        amount = int(float(amount))
+
+    # Adding prefix + for positive number and 0
+    if not str(amount).startswith('+') and float(amount) >= 0:
+        amount = str(f'+{amount}')
+
+    # return as string
+    return str(amount)
 
 
 class Quantity(BaseDataType):
