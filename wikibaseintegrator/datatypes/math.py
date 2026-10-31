@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Self
 
+from wikibaseintegrator.datatypes.basedatatype import sparql_string
 from wikibaseintegrator.datatypes.string import String
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
@@ -35,4 +36,4 @@ class Math(String):
         raise ValueError("A Math value can't be compared through SPARQL: the RDF export holds its MathML rendering, not its TeX source")
 
     def get_sparql_value(self, **kwargs: Any) -> str:
-        return '"' + self.mainsnak.datavalue['value'] + '"^^<http://www.w3.org/1998/Math/MathML>'
+        return sparql_string(self.mainsnak.datavalue['value']) + '^^<http://www.w3.org/1998/Math/MathML>'

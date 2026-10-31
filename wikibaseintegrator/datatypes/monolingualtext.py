@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any, Self
 
-from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.datatypes.basedatatype import BaseDataType, sparql_string
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
@@ -79,7 +79,7 @@ class MonolingualText(BaseDataType):
         return self
 
     def get_sparql_value(self, **kwargs: Any) -> str:
-        return '"' + self.mainsnak.datavalue['value']['text'].replace('"', r'\"') + '"@' + self.mainsnak.datavalue['value']['language']
+        return sparql_string(self.mainsnak.datavalue['value']['text']) + '@' + self.mainsnak.datavalue['value']['language']
 
     def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^"(.*?)"@([a-z\-]*)$')
