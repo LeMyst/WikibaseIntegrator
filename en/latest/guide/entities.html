@@ -539,6 +539,9 @@ see <a class="reference internal" href="mediainfo.html"><span class="std std-doc
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">entity</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'en'</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">labels.get()</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code> without a label in this language. On Wikidata, a label shared by many languages, like the
+name of a person, is stored under the language code <code class="docutils literal notranslate"><span class="pre">mul</span></code> (multiple languages) rather than in each language: the item
+Q42 (Douglas Adams) only has <code class="docutils literal notranslate"><span class="pre">entity.labels.get('mul')</span></code>.</p>
 </section>
 <section id="add-aliases">
 <h3>Add aliases<a class="headerlink" href="#add-aliases" title="Link to this heading">#</a></h3>
