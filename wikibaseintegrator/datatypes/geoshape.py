@@ -23,7 +23,7 @@ class GeoShape(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: str | None = None, **kwargs: Any):
+    def __init__(self, value: str | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -46,7 +46,7 @@ class GeoShape(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: str | None = None):
+    def set_value(self, value: str | None = None) -> None:
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:

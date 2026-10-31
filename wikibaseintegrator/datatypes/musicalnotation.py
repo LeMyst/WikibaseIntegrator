@@ -9,7 +9,7 @@ class MusicalNotation(String):
     DTYPE = WikibaseDatatype.MUSICALNOTATION
     PTYPE = 'http://wikiba.se/ontology#MusicalNotation'
 
-    def set_value(self, value: str | None = None):
+    def set_value(self, value: str | None = None) -> None:
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:

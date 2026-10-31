@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -20,7 +21,7 @@ class LanguageValues(BaseModel):
         return self.__values
 
     @values.setter
-    def values(self, value: dict[str, LanguageValue]):
+    def values(self, value: dict[str, LanguageValue]) -> None:
         self.__values = value
 
     def add(self, language_value: LanguageValue) -> Self:
@@ -102,8 +103,8 @@ class LanguageValues(BaseModel):
     def __contains__(self, language: str) -> bool:
         return language in self.values
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[LanguageValue]:
         return iter(self.values.values())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.values)

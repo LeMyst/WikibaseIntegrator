@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 class Aliases(BaseModel):
-    def __init__(self, language: str | None = None, value: str | None = None):
+    def __init__(self, language: str | None = None, value: str | None = None) -> None:
         self.aliases: dict[str, list[Alias]] = {}
 
         if language is not None:
@@ -20,7 +20,7 @@ class Aliases(BaseModel):
         return self.__aliases
 
     @aliases.setter
-    def aliases(self, value: dict[str, list[Alias]]):
+    def aliases(self, value: dict[str, list[Alias]]) -> None:
         self.__aliases = value
 
     def get(self, language: str | None = None) -> list[Alias] | None:
@@ -117,7 +117,7 @@ class Aliases(BaseModel):
 
         return self
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.aliases)
 
     # def __contains__(self, item):

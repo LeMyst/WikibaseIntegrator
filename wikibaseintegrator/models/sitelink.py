@@ -2,10 +2,10 @@ from wikibaseintegrator.models.basemodel import BaseModel
 
 
 class Sitelink(BaseModel):
-    def __init__(self, site: str | None = None, title: str | None = None, badges: list[str] | None = None):
+    def __init__(self, site: str | None = None, title: str | None = None, badges: list[str] | None = None) -> None:
         self.site = site
         self.title = title
         self.badges: list[str] = badges or []
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title or ''

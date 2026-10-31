@@ -20,7 +20,7 @@ class URL(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: str | None = None, **kwargs: Any):
+    def __init__(self, value: str | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -30,7 +30,7 @@ class URL(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: str | None = None):
+    def set_value(self, value: str | None = None) -> None:
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
@@ -70,7 +70,7 @@ class URL(BaseDataType):
             return None
         return '<' + self.mainsnak.datavalue['value'] + '>'
 
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?(.*?)>?$')
         matches = pattern.match(value)
         if not matches:

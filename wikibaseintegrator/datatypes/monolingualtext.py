@@ -22,7 +22,7 @@ class MonolingualText(BaseDataType):
         }}
     '''
 
-    def __init__(self, text: str | None = None, language: str | None = None, **kwargs: Any):
+    def __init__(self, text: str | None = None, language: str | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -35,7 +35,7 @@ class MonolingualText(BaseDataType):
 
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
-    def set_value(self, text: str | None = None, language: str | None = None):
+    def set_value(self, text: str | None = None, language: str | None = None) -> None:
         language = language or str(config['DEFAULT_LANGUAGE'])
 
         assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
@@ -78,7 +78,7 @@ class MonolingualText(BaseDataType):
     def get_sparql_value(self, **kwargs: Any) -> str:
         return '"' + self.mainsnak.datavalue['value']['text'].replace('"', r'\"') + '"@' + self.mainsnak.datavalue['value']['language']
 
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^"(.*?)"@([a-z\-]*)$')
         matches = pattern.match(value)
         if not matches:

@@ -25,7 +25,7 @@ class Time(BaseDataType):
     '''
 
     def __init__(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
-                 calendarmodel: str | None = None, wikibase_url: str | None = None, **kwargs: Any):
+                 calendarmodel: str | None = None, wikibase_url: str | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -47,7 +47,7 @@ class Time(BaseDataType):
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
     def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
-                  calendarmodel: str | None = None, wikibase_url: str | None = None):
+                  calendarmodel: str | None = None, wikibase_url: str | None = None) -> None:
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
@@ -156,7 +156,7 @@ class Time(BaseDataType):
     def get_day(self) -> int:
         return self._time_parts()[2]
 
-    def __lt__(self, other):
+    def __lt__(self, other: Time) -> bool:
         return self._time_parts() < other._time_parts()
 
     def from_sparql_value(self, sparql_value: dict) -> Self:

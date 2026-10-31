@@ -37,5 +37,5 @@ class Sitelinks(BaseModel):
 
         return self
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.sitelinks)

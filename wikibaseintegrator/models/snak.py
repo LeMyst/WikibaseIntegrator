@@ -9,7 +9,7 @@ from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 class Snak(BaseModel):
     def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str | None = None, hash: str | None = None, datavalue: dict | None = None,
-                 datatype: str | WikibaseDatatype | None = None):
+                 datatype: str | WikibaseDatatype | None = None) -> None:
         self.snaktype = snaktype
         self.property_number = property_number
         self.hash = hash
@@ -21,7 +21,7 @@ class Snak(BaseModel):
         return self.__snaktype
 
     @snaktype.setter
-    def snaktype(self, value: WikibaseSnakType):
+    def snaktype(self, value: WikibaseSnakType) -> None:
         """Parse the snaktype. The enum throws an error if it is not one of the recognized values"""
         self.__snaktype = WikibaseSnakType(value)
 
@@ -30,9 +30,9 @@ class Snak(BaseModel):
         return self.__property_number
 
     @property_number.setter
-    def property_number(self, value):
+    def property_number(self, value: str | int | None) -> None:
         if isinstance(value, int):
-            self.__property_number = 'P' + str(value)
+            self.__property_number: str | None = 'P' + str(value)
         elif value is not None:
             pattern = re.compile(r'^P?([0-9]+)$')
             matches = pattern.match(value)
@@ -49,7 +49,7 @@ class Snak(BaseModel):
         return self.__hash
 
     @hash.setter
-    def hash(self, value):
+    def hash(self, value: str | None) -> None:
         self.__hash = value
 
     @property
@@ -57,7 +57,7 @@ class Snak(BaseModel):
         return self.__datavalue
 
     @datavalue.setter
-    def datavalue(self, value):
+    def datavalue(self, value: dict | None) -> None:
         if value is not None and value != {}:
             self.snaktype = WikibaseSnakType.KNOWN_VALUE
         self.__datavalue = value
@@ -67,7 +67,7 @@ class Snak(BaseModel):
         return self.__datatype
 
     @datatype.setter
-    def datatype(self, value: str | WikibaseDatatype | None):
+    def datatype(self, value: str | WikibaseDatatype | None) -> None:
         # A known datatype is stored as a WikibaseDatatype member, which is also equal to its string value
         self.__datatype = WikibaseDatatype.from_value(value)
 
@@ -102,7 +102,7 @@ class Snak(BaseModel):
 
         return json_data
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Snak):
             return NotImplemented
 

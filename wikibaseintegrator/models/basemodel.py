@@ -1,5 +1,5 @@
 class BaseModel:
-    def __repr__(self):
+    def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
             klass=self.__class__.__name__,

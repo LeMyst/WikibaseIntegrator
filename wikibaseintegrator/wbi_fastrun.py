@@ -54,7 +54,7 @@ class FastRunContainer:
 
     def __init__(self, base_filter: list[BaseDataType | list[BaseDataType]], base_data_type: type[BaseDataType] | None = None, use_qualifiers: bool = True,
                  use_references: bool = False, use_rank: bool = False, cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None,
-                 wikibase_url: str | None = None):
+                 wikibase_url: str | None = None) -> None:
 
         for k in base_filter:
             if not isinstance(k, BaseDataType) and not (isinstance(k, list) and len(k) == 2 and isinstance(k[0], BaseDataType) and isinstance(k[1], BaseDataType)):
@@ -222,7 +222,7 @@ class FastRunContainer:
 
         wb_url = wb_url or self.wikibase_url
 
-        limit = limit or int(config['SPARQL_QUERY_LIMIT'])  # type: ignore
+        limit = limit or int(config['SPARQL_QUERY_LIMIT'])
 
         for claim in claims:
             prop_nr = claim.mainsnak.property_number
@@ -368,7 +368,7 @@ class FastRunContainer:
 
         offset = 0
 
-        limit = limit or int(config['SPARQL_QUERY_LIMIT'])  # type: ignore
+        limit = limit or int(config['SPARQL_QUERY_LIMIT'])
 
         qualifiers: Qualifiers = Qualifiers()
         while True:
@@ -444,7 +444,7 @@ class FastRunContainer:
 
         offset = 0
 
-        limit = limit or int(config['SPARQL_QUERY_LIMIT'])  # type: ignore
+        limit = limit or int(config['SPARQL_QUERY_LIMIT'])
 
         # The references are grouped by reference node URI, across the result pages
         reference: dict[str, Reference] = {}

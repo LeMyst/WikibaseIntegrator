@@ -40,7 +40,7 @@ class RetryAfterError(requests.HTTPError):
     before the next try, instead of its exponential delay.
     """
 
-    def __init__(self, *args: Any, retry_after: float, **kwargs: Any):
+    def __init__(self, *args: Any, retry_after: float, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.retry_after = retry_after
 

@@ -10,7 +10,7 @@ from wikibaseintegrator.models.representations import Representations
 
 
 class Form(BaseModel):
-    def __init__(self, form_id: str | None = None, representations: Representations | None = None, grammatical_features: str | int | list[str] | None = None, claims: Claims | None = None):
+    def __init__(self, form_id: str | None = None, representations: Representations | None = None, grammatical_features: str | int | list[str] | None = None, claims: Claims | None = None) -> None:
         self.id = form_id
         self.representations = representations or Representations()
         self.grammatical_features = grammatical_features or []
@@ -21,7 +21,7 @@ class Form(BaseModel):
         return self.__id
 
     @id.setter
-    def id(self, value: str | None):
+    def id(self, value: str | None) -> None:
         self.__id = value
 
     @property
@@ -29,7 +29,7 @@ class Form(BaseModel):
         return self.__representations
 
     @representations.setter
-    def representations(self, value: LanguageValues):
+    def representations(self, value: LanguageValues) -> None:
         self.__representations = value
 
     @property
@@ -37,7 +37,7 @@ class Form(BaseModel):
         return self.__grammatical_features
 
     @grammatical_features.setter
-    def grammatical_features(self, value: str | int | list[str] | None):
+    def grammatical_features(self, value: str | int | list[str] | None) -> None:
         if value is None:
             self.__grammatical_features: list[str] = []
         elif isinstance(value, bool):
@@ -57,7 +57,7 @@ class Form(BaseModel):
         return self.__claims
 
     @claims.setter
-    def claims(self, value: Claims):
+    def claims(self, value: Claims) -> None:
         self.__claims = value
 
     def from_json(self, json_data: dict[str, Any]) -> Self:
@@ -86,12 +86,12 @@ class Form(BaseModel):
         # The id is assigned by the Wikibase instance, so two forms are considered equal when they hold the same content
         return json.dumps([self.representations.get_json(), self.grammatical_features, self.claims.get_json()], sort_keys=True)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Form):
             return NotImplemented
 
         return self._content() == other._content()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         # Based on the content, like __eq__: a Form modified after being added to a set or used as a dict key won't be found anymore
         return hash(self._content())

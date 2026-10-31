@@ -27,7 +27,7 @@ class BaseEntity:
     subclasses: list[type[BaseEntity]] = []
 
     def __init__(self, api: WikibaseIntegrator | None = None, title: str | None = None, pageid: int | None = None, lastrevid: int | None = None, type: str | None = None,
-                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: _Login | None = None):
+                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: _Login | None = None) -> None:
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -47,7 +47,7 @@ class BaseEntity:
         self.claims = claims or Claims()
 
     # Allow registration of subclasses of BaseEntity into BaseEntity.subclasses
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
 
@@ -56,7 +56,7 @@ class BaseEntity:
         return self.__api
 
     @api.setter
-    def api(self, value: WikibaseIntegrator):
+    def api(self, value: WikibaseIntegrator) -> None:
         from wikibaseintegrator import WikibaseIntegrator
         if not isinstance(value, WikibaseIntegrator):
             raise TypeError
@@ -67,7 +67,7 @@ class BaseEntity:
         return self.__title
 
     @title.setter
-    def title(self, value: str | None):
+    def title(self, value: str | None) -> None:
         self.__title = value
 
     @property
@@ -75,7 +75,7 @@ class BaseEntity:
         return self.__pageid
 
     @pageid.setter
-    def pageid(self, value: str | int | None):
+    def pageid(self, value: str | int | None) -> None:
         if isinstance(value, str):
             self.__pageid: str | int | None = int(value)
         else:
@@ -86,7 +86,7 @@ class BaseEntity:
         return self.__lastrevid
 
     @lastrevid.setter
-    def lastrevid(self, value: int | None):
+    def lastrevid(self, value: int | None) -> None:
         self.__lastrevid = value
 
     @property
@@ -94,7 +94,7 @@ class BaseEntity:
         return self.__type
 
     @type.setter
-    def type(self, value: str):
+    def type(self, value: str) -> None:
         self.__type = value
 
     @property
@@ -102,7 +102,7 @@ class BaseEntity:
         return self.__id
 
     @id.setter
-    def id(self, value: str | None):
+    def id(self, value: str | None) -> None:
         self.__id = value
 
     @property
@@ -110,7 +110,7 @@ class BaseEntity:
         return self.__claims
 
     @claims.setter
-    def claims(self, value: Claim | Claims):
+    def claims(self, value: Claim | Claims) -> None:
         if not isinstance(value, Claims) and not isinstance(value, Claim):
             raise TypeError
 
@@ -338,7 +338,7 @@ class BaseEntity:
 
         return json_result['entity']
 
-    def delete(self, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any):
+    def delete(self, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:
         """
         Delete the current entity. Use the pageid first if available and fallback to the page title.
 
@@ -399,14 +399,14 @@ class BaseEntity:
 
         raise ValueError('wikibase_url or entity ID is null')
 
-    def download_entity_ttl(self, **kwargs) -> str:
+    def download_entity_ttl(self, **kwargs: Any) -> str:
         from wikibaseintegrator.wbi_helpers import download_entity_ttl
         if self.id:
             return download_entity_ttl(self.id, **kwargs)
 
         raise ValueError('entity ID is null')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
             klass=self.__class__.__name__,
@@ -432,7 +432,7 @@ class TermsEntity(BaseEntity):
         return self.__labels
 
     @labels.setter
-    def labels(self, labels: Labels):
+    def labels(self, labels: Labels) -> None:
         if not isinstance(labels, Labels):
             raise TypeError
         self.__labels = labels
@@ -442,7 +442,7 @@ class TermsEntity(BaseEntity):
         return self.__descriptions
 
     @descriptions.setter
-    def descriptions(self, descriptions: Descriptions):
+    def descriptions(self, descriptions: Descriptions) -> None:
         if not isinstance(descriptions, Descriptions):
             raise TypeError
         self.__descriptions = descriptions
@@ -452,7 +452,7 @@ class TermsEntity(BaseEntity):
         return self.__aliases
 
     @aliases.setter
-    def aliases(self, aliases: Aliases):
+    def aliases(self, aliases: Aliases) -> None:
         if not isinstance(aliases, Aliases):
             raise TypeError
         self.__aliases = aliases

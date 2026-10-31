@@ -23,7 +23,7 @@ class GlobeCoordinate(BaseDataType):
     '''
 
     def __init__(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None, wikibase_url: str | None = None,
-                 **kwargs: Any):
+                 **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -40,7 +40,7 @@ class GlobeCoordinate(BaseDataType):
 
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
-    def set_value(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None, wikibase_url: str | None = None):
+    def set_value(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None, wikibase_url: str | None = None) -> None:
         # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
         precision = precision or 1 / 3600
         globe = globe or str(config['COORDINATE_GLOBE_QID'])
@@ -66,7 +66,7 @@ class GlobeCoordinate(BaseDataType):
                 'type': 'globecoordinate'
             }
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Claim) and self.mainsnak.datavalue.get('type') == 'globecoordinate' and other.mainsnak.datavalue.get('type') == 'globecoordinate':
             # Compare rounded copies to ignore precision noise without mutating the claims
             def rounded(datavalue: dict) -> dict:
@@ -114,7 +114,7 @@ class GlobeCoordinate(BaseDataType):
     def get_sparql_value(self, **kwargs: Any) -> str:
         return '"Point(' + str(self.mainsnak.datavalue['value']['longitude']) + ' ' + str(self.mainsnak.datavalue['value']['latitude']) + ')"^^geo:wktLiteral'
 
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^"?Point\((.*) (.*)\)"?(?:\^\^geo:wktLiteral)?$')
         matches = pattern.match(value)
         if not matches:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Reference(BaseModel):
-    def __init__(self, snaks: Snaks | None = None, snaks_order: list[str] | None = None):
+    def __init__(self, snaks: Snaks | None = None, snaks_order: list[str] | None = None) -> None:
         self.hash = None
         self.snaks = snaks or Snaks()
         self.snaks_order = snaks_order or []
@@ -22,7 +23,7 @@ class Reference(BaseModel):
         return self.__hash
 
     @hash.setter
-    def hash(self, value: str | None):
+    def hash(self, value: str | None) -> None:
         self.__hash = value
 
     @property
@@ -30,7 +31,7 @@ class Reference(BaseModel):
         return self.__snaks
 
     @snaks.setter
-    def snaks(self, value: Snaks):
+    def snaks(self, value: Snaks) -> None:
         self.__snaks = value
 
     @property
@@ -38,7 +39,7 @@ class Reference(BaseModel):
         return self.__snaks_order
 
     @snaks_order.setter
-    def snaks_order(self, value: list[str]):
+    def snaks_order(self, value: list[str]) -> None:
         self.__snaks_order = value
 
     # TODO: implement action_if_exists
@@ -70,13 +71,13 @@ class Reference(BaseModel):
         }
         return json_data
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Snak]:
         return iter(self.snaks)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.snaks)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reference):
             return NotImplemented
 

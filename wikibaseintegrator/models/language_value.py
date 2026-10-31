@@ -6,7 +6,7 @@ from wikibaseintegrator.models.basemodel import BaseModel
 
 
 class LanguageValue(BaseModel):
-    def __init__(self, language: str, value: str | None = None):
+    def __init__(self, language: str, value: str | None = None) -> None:
         self.language = language
         self.value = value
         self.removed = False
@@ -16,7 +16,7 @@ class LanguageValue(BaseModel):
         return self.__language
 
     @language.setter
-    def language(self, value: str | None):
+    def language(self, value: str | None) -> None:
         if value is None:
             raise ValueError("language can't be None")
 
@@ -37,7 +37,7 @@ class LanguageValue(BaseModel):
         return self.__value
 
     @value.setter
-    def value(self, value: str | None):
+    def value(self, value: str | None) -> None:
         self.__value = value
 
     @property
@@ -45,7 +45,7 @@ class LanguageValue(BaseModel):
         return self.__removed
 
     @removed.setter
-    def removed(self, value: bool):
+    def removed(self, value: bool) -> None:
         self.__removed = value
 
     def remove(self) -> Self:
@@ -68,17 +68,17 @@ class LanguageValue(BaseModel):
             json_data['remove'] = ''
         return json_data
 
-    def __contains__(self, item):
-        return item in (self.value or '')
+    def __contains__(self, item: object) -> bool:
+        return isinstance(item, str) and item in (self.value or '')
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, LanguageValue):
             return self.value == other.value and self.language == other.language
 
         return self.value == other
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.value or '')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value or ''

@@ -29,7 +29,7 @@ class _Login:
     """
 
     @wbi_backoff()
-    def __init__(self, session: Session | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None):
+    def __init__(self, session: Session | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None) -> None:
         """
         This class handles several types of login procedures. Either use user and pwd authentication or OAuth.
         Wikidata clientlogin can also be used. If using one method, do NOT pass parameters for another method.
@@ -125,7 +125,7 @@ class _Login:
 class OAuth2(_Login):
     @wbi_backoff()
     def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, mediawiki_api_url: str | None = None, mediawiki_rest_url: str | None = None, token_renew_period: int = 1800,
-                 user_agent: str | None = None):
+                 user_agent: str | None = None) -> None:
         """
         This class is used to interact with the OAuth2 API.
 
@@ -172,7 +172,7 @@ class OAuth1(_Login):
 
     @wbi_backoff()
     def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, access_token: str | None = None, access_secret: str | None = None, callback_url: str = 'oob',
-                 mediawiki_api_url: str | None = None, mediawiki_index_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None):
+                 mediawiki_api_url: str | None = None, mediawiki_index_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None) -> None:
         """
         This class is used to interact with the OAuth1 API.
 
@@ -265,7 +265,7 @@ class OAuth1(_Login):
 
 class Login(_Login):
     @wbi_backoff()
-    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None, **kwargs: Any):
+    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None, **kwargs: Any) -> None:
         """
         This class is used to log in with a bot password
 
@@ -346,7 +346,7 @@ class Login(_Login):
 
 class Clientlogin(_Login):
     @wbi_backoff()
-    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None, **kwargs: Any):
+    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None, **kwargs: Any) -> None:
         """
         This class is used to log in with a user account
 
@@ -452,7 +452,7 @@ class WCQSAuth(AuthBase):
     An invalid or revoked cookie raises a WCQSAuthenticationError.
     """
 
-    def __init__(self, oauth_cookie: str):
+    def __init__(self, oauth_cookie: str) -> None:
         """
         :param oauth_cookie: The value of the 'wcqsOauth' cookie, two hexadecimal strings separated by a period.
         """

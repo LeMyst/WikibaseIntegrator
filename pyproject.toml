@@ -98,7 +98,13 @@ line_length = 179
 
 [tool.mypy]
 ignore_missing_imports = true
-files = "wikibaseintegrator/**/*.py,test/*.py"
+files = "wikibaseintegrator/**/*.py,test/*.py,test/integration/*.py"
+warn_unused_ignores = true
+
+# The package ships type hints (py.typed): every function of it must be annotated. The tests are exempt.
+[[tool.mypy.overrides]]
+module = "wikibaseintegrator.*"
+disallow_untyped_defs = true
 
 [tool.pylint.MASTER]
 extension-pkg-allow-list = [
