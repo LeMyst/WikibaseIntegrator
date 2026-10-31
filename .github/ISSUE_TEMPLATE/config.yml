@@ -1,0 +1,9 @@
+# Links shown on the "New issue" page, before the blank issue form
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://lemyst.github.io/WikibaseIntegrator/
+    about: The user guide (login, entities, data types, fast run, helpers...) and the API reference.
+  - name: Ask a question
+    url: https://github.com/LeMyst/WikibaseIntegrator/discussions/categories/q-a
+    about: For questions on how to use WikibaseIntegrator, please use the Q&A discussions rather than an issue.
