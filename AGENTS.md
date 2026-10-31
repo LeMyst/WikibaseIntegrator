@@ -43,7 +43,7 @@ The same checks are available as [pre-commit](https://pre-commit.com/) hooks ([.
 
 Key style rules (from [pyproject.toml](pyproject.toml)):
 - Max line length: **179/180** characters (isort/pylint)
-- isort profile: `black` with `force_sort_within_sections = true`
+- isort: the default profile with `line_length = 179`: in each section, the `import x` lines come first, then the `from x import y` lines, each group alphabetical
 - mypy: `ignore_missing_imports = true`, `warn_unused_ignores = true`, and `disallow_untyped_defs` for the package (it ships `py.typed`): every function of `wikibaseintegrator/` must be annotated; the tests are exempt
 - Pylint: errors and warnings fail CI, conventions and refactoring suggestions are only reported. `fixme`, `invalid-name`, `too-few-public-methods`, `too-many-arguments`, and several other checks are disabled — check the `[tool.pylint]` section before suppressing new warnings, and prefer a scoped `# pylint: disable-next=<check>` with a reason over a broad disable
 
@@ -111,5 +111,5 @@ Publishing to PyPI can't be undone: leave step 3 to the maintainer.
 - Work in a dedicated git worktree under `.claude/worktrees/` (git-ignored; e.g. `git worktree add .claude/worktrees/<topic> -b <topic> master`) rather than switching branches in the main checkout, so the user's working copy is never disturbed. Each worktree needs its own environment (`poetry install --with dev`).
 - `wbi_config.py` holds the default `mediawiki_api_url` (`https://www.wikidata.org/w/api.php`). Unit tests must never hit a real API: use the `wikibase` fixture (MockWikibase) or `requests_mock` directly; real-instance scenarios belong in `test/integration/`.
 - The `fastrun` module caches entity data before bulk writes to avoid redundant API calls — changes there require careful testing to avoid stale cache issues.
-- `datatypes/extra/` contains optional extensions with their own dependencies; do not import them unconditionally from core modules.
+- `datatypes/extra/` holds the data types of Wikibase extensions (EDTF, LocalMedia). They have no dependency of their own and are exported by `wikibaseintegrator.datatypes` like the others.
 - Version string is in `pyproject.toml` (`version`: the release, e.g. `0.13.0`, or a `.dev0` version between releases); `wikibaseintegrator/__init__.py` exposes it as `__version__` by reading the installed package metadata (`importlib.metadata`), so there is nothing to update there.
