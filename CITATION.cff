@@ -1,0 +1,73 @@
+# Citation metadata: GitHub shows a "Cite this repository" button from it, and Zenodo reads it when it archives a
+# release (title, authors, license). The authors are the creators Zenodo listed from the GitHub contributors until
+# v0.14.1, WikidataIntegrator's included: add the new contributors here, Zenodo no longer lists them by itself.
+cff-version: 1.2.0
+message: If you use WikibaseIntegrator in your work, please cite it as below.
+title: WikibaseIntegrator
+type: software
+authors:
+  - family-names: "Myst"
+  - family-names: "sebotic"
+    affiliation: "Boehringer Ingelheim, code my own."
+  - family-names: "andrawaag"
+  - given-names: "Gregory"
+    family-names: "Stupp"
+  - given-names: "Thomas"
+    family-names: "Arrow"
+  - family-names: "konsti"
+  - given-names: "Charles Tapley"
+    family-names: "Hoyt"
+    affiliation: "RWTH Aachen University"
+  - family-names: "jleong-ndn"
+  - given-names: "Nizo"
+    family-names: "Priskorn"
+  - given-names: "Eloi"
+    family-names: "Ferrer"
+  - given-names: "Dani"
+    family-names: "Fdez"
+  - given-names: "Christian"
+    family-names: "Clauss"
+  - given-names: "Andrew"
+    family-names: "Su"
+    affiliation: "Scripps Research"
+  - given-names: "Daniel"
+    family-names: "Mietchen"
+  - given-names: "Tim"
+    family-names: "Putman"
+    affiliation: "University of Colorado"
+  - family-names: "tholzheim"
+  - family-names: "sammasak"
+  - given-names: "Paul-Olivier"
+    family-names: "Dehaye"
+    affiliation: "hestia.ai"
+  - family-names: "etlel"
+  - given-names: "Igor"
+    family-names: "Leturia"
+    affiliation: "@orai-nlp"
+  - family-names: "dabu1111"
+  - given-names: "Timothy John Perisho"
+    family-names: "Eccleston"
+    affiliation: "@code-for-nashville"
+  - given-names: "Peter"
+    family-names: "Li"
+  - given-names: "Peter"
+    family-names: "Grond"
+    affiliation: "Grondtonen"
+  - given-names: "Moritz"
+    family-names: "Schubotz"
+    affiliation: "@uni-konstanz"
+  - given-names: "Lukas"
+    family-names: "Günther"
+    affiliation: "@TIBHannover"
+  - given-names: "John"
+    family-names: "Samuel"
+    affiliation: "@UDL-LIRIS"
+doi: 10.5281/zenodo.5594623
+repository-code: https://github.com/LeMyst/WikibaseIntegrator
+url: https://lemyst.github.io/WikibaseIntegrator/
+license: MIT
+keywords:
+  - wikibase
+  - wikidata
+  - mediawiki
+  - sparql
