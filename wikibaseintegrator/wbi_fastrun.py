@@ -32,6 +32,12 @@ UNITLESS_UNIT_URIS = ('1', 'http://www.wikidata.org/entity/Q199', 'https://www.w
 # The number of statements whose unit and precision are loaded by one SPARQL query
 VALUE_DETAILS_BATCH_SIZE = 100
 
+# The number of statements whose qualifiers, references and rank are loaded by one SPARQL query
+STATEMENT_DETAILS_BATCH_SIZE = 100
+
+# The ranks of the RDF export
+RANKS = {'PreferredRank': WikibaseRank.PREFERRED, 'NormalRank': WikibaseRank.NORMAL, 'DeprecatedRank': WikibaseRank.DEPRECATED}
+
 
 class FastRunContainer:
     """
@@ -348,6 +354,147 @@ class FastRunContainer:
             if not partial_load:
                 self.loaded_complete.add(prop_nr)
 
+    def _load_statement_details(self, sids: list[str], *, use_qualifiers: bool, use_references: bool, use_rank: bool, cache: bool | None = None,
+                                limit: int | None = None) -> None:
+        """
+        Load the qualifiers, the references and the rank of statements into the per-statement caches. They are loaded
+        together, with one SPARQL query per STATEMENT_DETAILS_BATCH_SIZE statements, instead of one query per statement
+        and per kind.
+
+        :param sids: The statement IDs.
+        :param use_qualifiers: Load the qualifiers.
+        :param use_references: Load the references.
+        :param use_rank: Load the rank.
+        :param cache: Skip the statements whose requested details are already loaded. Enabled by default.
+        :param limit: The limit to request at one time.
+        """
+        if cache is None:
+            cache = self.cache
+
+        requested: list[dict] = [details for details, used in ((self._qualifiers_cache, use_qualifiers), (self._references_cache, use_references), (self._rank_cache, use_rank))
+                                 if used]
+        missing = [sid for sid in dict.fromkeys(sids) if not cache or any(sid not in details for details in requested)]
+        if not missing or not requested:
+            return
+
+        limit = limit or int(config['SPARQL_QUERY_LIMIT'])
+
+        patterns = []
+        if use_qualifiers:
+            patterns.append('''{
+                    ?sid ?predicate ?value.
+                    ?property wikibase:qualifier ?predicate.
+                    ?property wikibase:propertyType ?property_type.
+                    # The precision of a time value, from the value node holding the same timestamp
+                    OPTIONAL {
+                      ?property wikibase:qualifierValue ?value_predicate.
+                      ?sid ?value_predicate ?value_node.
+                      ?value_node wikibase:timeValue ?value;
+                                  wikibase:timePrecision ?precision.
+                    }
+                  }''')
+        if use_references:
+            patterns.append('''{
+                    ?sid prov:wasDerivedFrom ?srid.
+                    ?srid ?ref_predicate ?ref_value.
+                    ?ref_property wikibase:reference ?ref_predicate.
+                    ?ref_property wikibase:propertyType ?property_type.
+                    # The precision of a time value, from the value node holding the same timestamp
+                    OPTIONAL {
+                      ?ref_property wikibase:referenceValue ?ref_value_predicate.
+                      ?srid ?ref_value_predicate ?ref_value_node.
+                      ?ref_value_node wikibase:timeValue ?ref_value;
+                                      wikibase:timePrecision ?ref_precision.
+                    }
+                  }''')
+        if use_rank:
+            patterns.append('{ ?sid wikibase:rank ?rank. }')
+        # The branches are put in the query, with its indentation
+        union = '\n                  UNION\n                  '.join(patterns)
+
+        for start in range(0, len(missing), STATEMENT_DETAILS_BATCH_SIZE):
+            batch = missing[start:start + STATEMENT_DETAILS_BATCH_SIZE]
+            values = ' '.join(f'<{sid}>' for sid in batch)
+
+            qualifiers: dict[str, Qualifiers] = {sid: Qualifiers() for sid in batch}
+            # The references are grouped by reference node URI, across the result pages
+            references: dict[str, dict[str, Reference]] = {sid: {} for sid in batch}
+            ranks: dict[str, WikibaseRank | None] = dict.fromkeys(batch)
+
+            offset = 0
+            while True:
+                # Ordered by every variable: ordered by ?sid only, the rows of a statement came in any order, which could
+                # change from one page to the next, so that a page could repeat a qualifier or a reference snak and skip another
+                query = f'''
+                #Tool: WikibaseIntegrator wbi_fastrun._load_statement_details
+                SELECT ?sid ?property ?value ?property_type ?precision ?srid ?ref_property ?ref_value ?ref_precision ?rank WHERE {{
+                  VALUES ?sid {{ {values} }}
+                  {union}
+                }}
+                ORDER BY ?sid ?srid ?ref_property ?ref_value ?ref_precision ?property ?value ?precision ?rank
+                OFFSET {offset}
+                LIMIT {limit}
+                '''
+
+                offset += limit  # We increase the offset for the next iteration
+                results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+
+                for result in results:
+                    sid = result['sid']['value']
+                    if 'rank' in result:
+                        ranks[sid] = RANKS.get(result['rank']['value'].rsplit('#', 1)[-1])
+                    elif 'srid' in result:
+                        snak = self._snak_from_result(result, sid, reference=True)
+                        if snak is not None:
+                            references[sid].setdefault(result['srid']['value'], Reference()).add(snak)
+                    else:
+                        snak = self._snak_from_result(result, sid, reference=False)
+                        if snak is not None:
+                            qualifiers[sid].add(snak)
+
+                if len(results) == 0 or len(results) < limit:
+                    break
+
+            for sid in batch:
+                if use_qualifiers:
+                    self._qualifiers_cache[sid] = qualifiers[sid]
+                if use_references:
+                    self._references_cache[sid] = References()
+                    for reference in references[sid].values():
+                        self._references_cache[sid].add(reference)
+                if use_rank:
+                    self._rank_cache[sid] = ranks[sid]
+
+    def _snak_from_result(self, result: dict, sid: str, reference: bool) -> BaseDataType | None:
+        """
+        Build a qualifier or a reference snak from a result of _load_statement_details().
+
+        :param result: The result, whose variables of a reference snak start with 'ref_'.
+        :param sid: The statement ID.
+        :param reference: Whether the result is a reference snak, else a qualifier.
+        :return: The snak, or None if it can't be compared: it is then left out, so that the comparison fails safely.
+        """
+        prefix, kind = ('ref_', 'reference snak') if reference else ('', 'qualifier')
+        prop_nr = self._entity_id(result[f'{prefix}property']['value'])
+        property_type = result['property_type']['value']
+
+        if prop_nr not in self.properties_type:
+            self.properties_type[prop_nr] = property_type
+
+        try:
+            f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result[f'{prefix}value'])
+        except ValueError as exception:
+            log.warning("Skipping a %s of statement '%s': %s", kind, sid, exception)
+            return None
+
+        if f is None:
+            log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the %s", prop_nr, kind)
+            return None
+
+        self._set_precision(f, result, f'{prefix}precision')
+
+        return f
+
     def _load_qualifiers(self, sid: str, limit: int | None = None, cache: bool | None = None) -> Qualifiers:
         """
         Load the qualifiers of a statement.
@@ -360,69 +507,8 @@ class FastRunContainer:
         if not isinstance(sid, str):
             raise ValueError('sid must be a string')
 
-        if cache is None:
-            cache = self.cache
-
-        if cache and sid in self._qualifiers_cache:
-            return self._qualifiers_cache[sid]
-
-        offset = 0
-
-        limit = limit or int(config['SPARQL_QUERY_LIMIT'])
-
-        qualifiers: Qualifiers = Qualifiers()
-        while True:
-            query = f'''
-            #Tool: WikibaseIntegrator wbi_fastrun._load_qualifiers
-            SELECT ?property ?value ?property_type ?precision WHERE {{
-              VALUES ?sid {{ <{sid}> }}
-              ?sid ?predicate ?value.
-              ?property wikibase:qualifier ?predicate.
-              ?property wikibase:propertyType ?property_type.
-              # The precision of a time value, from the value node holding the same timestamp
-              OPTIONAL {{
-                ?property wikibase:qualifierValue ?value_predicate.
-                ?sid ?value_predicate ?value_node.
-                ?value_node wikibase:timeValue ?value;
-                            wikibase:timePrecision ?precision.
-              }}
-            }}
-            ORDER BY ?sid
-            OFFSET {offset}
-            LIMIT {limit}
-            '''
-
-            offset += limit  # We increase the offset for the next iteration
-            results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
-
-            for result in results:
-                prop_nr = self._entity_id(result['property']['value'])
-                property_type = result['property_type']['value']
-
-                if prop_nr not in self.properties_type:
-                    self.properties_type[prop_nr] = property_type
-
-                try:
-                    f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result['value'])
-                except ValueError as exception:
-                    # An unparsable qualifier can't be compared, leave it out so that the comparison fails safely
-                    log.warning("Skipping a qualifier of statement '%s': %s", sid, exception)
-                    continue
-
-                if f is None:
-                    log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the qualifier", prop_nr)
-                    continue
-
-                self._set_precision(f, result, 'precision')
-
-                qualifiers.add(f)
-
-            if len(results) == 0 or len(results) < limit:
-                break
-
-        self._qualifiers_cache[sid] = qualifiers
-
-        return qualifiers
+        self._load_statement_details([sid], use_qualifiers=True, use_references=False, use_rank=False, cache=cache, limit=limit)
+        return self._qualifiers_cache[sid]
 
     def _load_references(self, sid: str, limit: int | None = None, cache: bool | None = None) -> References:
         """
@@ -436,80 +522,8 @@ class FastRunContainer:
         if not isinstance(sid, str):
             raise ValueError('sid must be a string')
 
-        if cache is None:
-            cache = self.cache
-
-        if cache and sid in self._references_cache:
-            return self._references_cache[sid]
-
-        offset = 0
-
-        limit = limit or int(config['SPARQL_QUERY_LIMIT'])
-
-        # The references are grouped by reference node URI, across the result pages
-        reference: dict[str, Reference] = {}
-        while True:
-            query = f'''
-            #Tool: WikibaseIntegrator wbi_fastrun._load_references
-            SELECT ?srid ?ref_property ?ref_value ?property_type ?ref_precision WHERE {{
-              VALUES ?sid {{ <{sid}> }}
-
-              ?sid prov:wasDerivedFrom ?srid.
-              ?srid ?ref_predicate ?ref_value.
-              ?ref_property wikibase:reference ?ref_predicate.
-              ?ref_property wikibase:propertyType ?property_type.
-              # The precision of a time value, from the value node holding the same timestamp
-              OPTIONAL {{
-                ?ref_property wikibase:referenceValue ?ref_value_predicate.
-                ?srid ?ref_value_predicate ?ref_value_node.
-                ?ref_value_node wikibase:timeValue ?ref_value;
-                                wikibase:timePrecision ?ref_precision.
-              }}
-            }}
-            ORDER BY ?srid
-            OFFSET {offset}
-            LIMIT {limit}
-            '''
-
-            offset += limit  # We increase the offset for the next iteration
-            results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
-
-            for result in results:
-                prop_nr = self._entity_id(result['ref_property']['value'])
-                srid = result['srid']['value']
-                property_type = result['property_type']['value']
-
-                if prop_nr not in self.properties_type:
-                    self.properties_type[prop_nr] = property_type
-
-                try:
-                    f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result['ref_value'])
-                except ValueError as exception:
-                    # An unparsable reference snak can't be compared, leave it out so that the comparison fails safely
-                    log.warning("Skipping a reference snak of statement '%s': %s", sid, exception)
-                    continue
-
-                if f is None:
-                    log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the reference snak", prop_nr)
-                    continue
-
-                self._set_precision(f, result, 'ref_precision')
-
-                if srid not in reference:
-                    reference[srid] = Reference()
-
-                reference[srid].add(f)
-
-            if len(results) == 0 or len(results) < limit:
-                break
-
-        references: References = References()
-        for _, ref in reference.items():
-            references.add(ref)
-
-        self._references_cache[sid] = references
-
-        return references
+        self._load_statement_details([sid], use_qualifiers=False, use_references=True, use_rank=False, cache=cache, limit=limit)
+        return self._references_cache[sid]
 
     def _load_rank(self, sid: str, cache: bool | None = None) -> WikibaseRank | None:
         """
@@ -522,36 +536,8 @@ class FastRunContainer:
         if not isinstance(sid, str):
             raise ValueError('sid must be a string')
 
-        if cache is None:
-            cache = self.cache
-
-        if cache and sid in self._rank_cache:
-            return self._rank_cache[sid]
-
-        query = f'''
-        #Tool: WikibaseIntegrator wbi_fastrun._load_rank
-        SELECT ?rank WHERE {{
-          VALUES ?sid {{ <{sid}> }}
-          ?sid wikibase:rank ?rank.
-        }}
-        '''
-
-        results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
-
-        rank: WikibaseRank | None = None
-        for result in results:
-            rank_raw = result['rank']['value'].rsplit('#', 1)[-1]
-
-            if rank_raw == 'PreferredRank':
-                rank = WikibaseRank.PREFERRED
-            elif rank_raw == 'NormalRank':
-                rank = WikibaseRank.NORMAL
-            elif rank_raw == 'DeprecatedRank':
-                rank = WikibaseRank.DEPRECATED
-
-        self._rank_cache[sid] = rank
-
-        return rank
+        self._load_statement_details([sid], use_qualifiers=False, use_references=False, use_rank=True, cache=cache)
+        return self._rank_cache[sid]
 
     def _load_value_details(self, prop_nr: str, sids: list[str]) -> None:
         """
@@ -792,16 +778,26 @@ class FastRunContainer:
             return True
 
         # Deep comparison: no write is needed if at least one entity holds, for every claim, a statement also
-        # matching the qualifiers, references and rank, depending on the flags
-        for entity in sorted(common_entities):
-            for claim, statements in candidates:
-                entity_statements = [statement for statement in statements if self._entity_id(statement['entity']) == entity]
-                if not any(self._statement_matches(claim, statement['sid'], use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank, cache=cache)
-                           for statement in entity_statements):
-                    break
-            else:
-                log.debug("Entity '%s' already holds all the claims: no write required", entity)
-                return False
+        # matching the qualifiers, references and rank, depending on the flags. They are loaded for the statements of
+        # several entities at once, STATEMENT_DETAILS_BATCH_SIZE entities at a time, so that the first entity holding
+        # the claims still ends the check.
+        entities = sorted(common_entities)
+        for start in range(0, len(entities), STATEMENT_DETAILS_BATCH_SIZE):
+            chunk = entities[start:start + STATEMENT_DETAILS_BATCH_SIZE]
+            chunk_entities = set(chunk)
+            self._load_statement_details([statement['sid'] for _, statements in candidates for statement in statements if self._entity_id(statement['entity']) in chunk_entities],
+                                         use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank, cache=cache)
+
+            for entity in chunk:
+                for claim, statements in candidates:
+                    entity_statements = [statement for statement in statements if self._entity_id(statement['entity']) == entity]
+                    # The details were just loaded, even without cache
+                    if not any(self._statement_matches(claim, statement['sid'], use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank, cache=True)
+                               for statement in entity_statements):
+                        break
+                else:
+                    log.debug("Entity '%s' already holds all the claims: no write required", entity)
+                    return False
 
         return True
 

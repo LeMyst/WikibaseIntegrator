@@ -3,6 +3,7 @@ Tests for the fastrun container. The SPARQL endpoint is served by the simulated
 Wikibase instance, so the whole pipeline (statement loading, lazy qualifier /
 reference / rank loading, comparison) runs offline and deterministically.
 """
+import random
 import re
 
 import pytest
@@ -10,7 +11,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, GlobeCoordinate, Item, Property, Quantity, String, TabularData, Time
 from wikibaseintegrator.entities import ItemEntity
-from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 
 from .conftest import literal, uri
 
@@ -37,7 +38,7 @@ class SparqlData:
     Serve the SPARQL queries of the fastrun container from in-memory data.
 
     Each query type issued by the container (statement loading, qualifiers,
-    references, rank, language data) is recognized through its #Tool comment
+    references and ranks, language data) is recognized through its #Tool comment
     and answered from the matching attribute.
     """
 
@@ -51,9 +52,8 @@ class SparqlData:
         wikibase.sparql_bindings = self.dispatch
 
     def dispatch(self, query: str) -> list[dict]:
-        for tool, bindings_by_sid in (('_load_qualifiers', self.qualifiers), ('_load_references', self.references), ('_load_rank', self.ranks)):
-            if f'wbi_fastrun.{tool}' in query:
-                return bindings_by_sid.get(self._sid(query), [])
+        if 'wbi_fastrun._load_statement_details' in query:
+            return self._statement_details(query)
         if 'wbi_fastrun._query_lang' in query:
             return self.labels
         if 'wbi_fastrun._load_value_details' in query:
@@ -76,11 +76,31 @@ class SparqlData:
         return [{k: v for k, v in binding.items() if k in ('sid', 'unit', 'precision')}
                 for bindings in self.statements.values() for binding in bindings if binding['sid']['value'] in sids]
 
-    @staticmethod
-    def _sid(query: str) -> str:
-        match = re.search(r'VALUES \?sid \{ <([^>]+)> \}', query)
+    def _statement_details(self, query: str) -> list[dict]:
+        """The qualifiers, references and ranks requested by the query, of the statements listed in its VALUES clause."""
+        match = re.search(r'VALUES \?sid \{ ([^}]+) \}', query)
         assert match is not None
-        return match.group(1)
+        bindings = []
+        for sid in re.findall(r'<([^>]+)>', match.group(1)):
+            for pattern, bindings_by_sid in (('wikibase:qualifier', self.qualifiers), ('prov:wasDerivedFrom', self.references), ('wikibase:rank', self.ranks)):
+                if pattern in query:
+                    bindings += [{'sid': uri(sid), **binding} for binding in bindings_by_sid.get(sid, [])]
+        return self._page(query, bindings)
+
+    def _page(self, query: str, bindings: list[dict]) -> list[dict]:
+        """
+        Sort the rows like the ORDER BY of the query, then cut the page of its OFFSET and LIMIT. Like a real endpoint, the
+        order of the rows the ORDER BY doesn't tell apart may change from one query to the next: here they are shuffled
+        before the (stable) sort, differently for each query.
+        """
+        order = re.search(r'ORDER BY ([^\n]+)', query)
+        keys = re.findall(r'\?(\w+)', order.group(1)) if order else []
+        random.Random(len(self.wikibase.sparql_queries)).shuffle(bindings)
+        bindings.sort(key=lambda binding: tuple(binding.get(key, {}).get('value', '') for key in keys))
+        offset = re.search(r'OFFSET (\d+)', query)
+        limit = re.search(r'LIMIT (\d+)', query)
+        start = int(offset.group(1)) if offset else 0
+        return bindings[start:start + int(limit.group(1))] if limit else bindings[start:]
 
     def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None, precision: int | None = None) -> str:
         """Register a statement binding and return its statement URI."""
@@ -658,6 +678,139 @@ class TestValueDetails:
         frc.clear()
 
         assert frc.write_required(claims=[claim]) is True
+
+
+class TestStatementDetails:
+    """
+    The qualifiers, references and ranks of the statements to compare are loaded together, for several statements at
+    once, instead of one query per statement and per kind.
+    """
+
+    @staticmethod
+    def queries(wikibase) -> list[str]:
+        return [query for query in wikibase.sparql_queries if '#Tool: WikibaseIntegrator wbi_fastrun._load_statement_details\n' in query]
+
+    @staticmethod
+    def sids(query: str) -> list[str]:
+        match = re.search(r'VALUES \?sid \{ ([^}]+) \}', query)
+        assert match is not None
+        return re.findall(r'<([^>]+)>', match.group(1))
+
+    @staticmethod
+    def claim(qualifier: str = 'Q42') -> ExternalID:
+        return ExternalID(value='P40095', prop_nr='P352', qualifiers=[Item(value=qualifier, prop_nr='P642')], references=[[Item(value='Q1234', prop_nr='P248')]])
+
+    def statement(self, wikibase, sparql_data, entity_id: str, index: int = 0, qualifier: str = 'Q42', rank: str = 'NormalRank') -> str:
+        sid = sparql_data.statement(entity_id, 'P352', literal('P40095'), PTYPE_EXTERNAL_ID, index=index)
+        sparql_data.qualifier(sid, 'P642', uri(f'{wikibase.base_url}/entity/{qualifier}'), PTYPE_ITEM)
+        sparql_data.reference(sid, 'P248', uri(f'{wikibase.base_url}/entity/Q1234'), PTYPE_ITEM)
+        sparql_data.rank(sid, rank)
+        return sid
+
+    def test_one_query_for_the_qualifiers_references_and_rank(self, wikibase, sparql_data, frc):
+        self.statement(wikibase, sparql_data, 'Q99')
+
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
+
+        [query] = self.queries(wikibase)
+        assert 'wikibase:qualifier' in query and 'prov:wasDerivedFrom' in query and 'wikibase:rank' in query
+
+    @pytest.mark.parametrize('use_references, use_rank', [(False, False), (True, False), (False, True)])
+    def test_only_the_requested_details_are_queried(self, wikibase, sparql_data, frc, use_references, use_rank):
+        self.statement(wikibase, sparql_data, 'Q99')
+
+        assert frc.write_required(claims=[self.claim()], use_references=use_references, use_rank=use_rank) is False
+
+        [query] = self.queries(wikibase)
+        assert 'wikibase:qualifier' in query
+        assert ('prov:wasDerivedFrom' in query) is use_references
+        assert ('wikibase:rank' in query) is use_rank
+
+    def test_different_rank_in_the_same_query(self, wikibase, sparql_data, frc):
+        self.statement(wikibase, sparql_data, 'Q99', rank='PreferredRank')
+
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is True
+        assert len(self.queries(wikibase)) == 1
+
+    def test_statements_are_loaded_in_batches(self, wikibase, sparql_data, frc, monkeypatch):
+        monkeypatch.setattr(wbi_fastrun, 'STATEMENT_DETAILS_BATCH_SIZE', 2)
+        sids = [self.statement(wikibase, sparql_data, f'Q{100 + index}', index=index, qualifier='Q43') for index in range(5)]
+
+        # No entity holds the qualifier of the claim: every statement is compared
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is True
+
+        queries = self.queries(wikibase)
+        assert len(queries) == 3
+        assert sorted(sid for query in queries for sid in self.sids(query)) == sorted(sids)
+
+    def test_the_first_entity_holding_the_claims_ends_the_check(self, wikibase, sparql_data, frc, monkeypatch):
+        monkeypatch.setattr(wbi_fastrun, 'STATEMENT_DETAILS_BATCH_SIZE', 2)
+        sids = [self.statement(wikibase, sparql_data, f'Q{100 + index}', index=index) for index in range(5)]
+
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
+
+        [query] = self.queries(wikibase)
+        assert self.sids(query) == sids[:2]
+
+    def test_a_reference_node_shared_by_two_statements(self, wikibase, sparql_data, frc):
+        # Identical references share their node in the RDF export: each statement keeps its own copy
+        self.statement(wikibase, sparql_data, 'Q100', index=0, qualifier='Q43')
+        self.statement(wikibase, sparql_data, 'Q101', index=1)
+
+        assert frc.write_required(claims=[self.claim()], use_references=True) is False
+        assert len(self.queries(wikibase)) == 1
+
+    def test_details_are_cached(self, wikibase, sparql_data, frc):
+        self.statement(wikibase, sparql_data, 'Q99')
+
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
+
+        assert len(self.queries(wikibase)) == 1
+
+    def test_details_missing_from_the_cache_are_loaded(self, wikibase, sparql_data, frc):
+        self.statement(wikibase, sparql_data, 'Q99', rank='PreferredRank')
+
+        assert frc.write_required(claims=[self.claim()]) is False
+        # The rank wasn't loaded by the first check
+        assert frc.write_required(claims=[self.claim()], use_rank=True) is True
+
+        queries = self.queries(wikibase)
+        assert len(queries) == 2
+        assert 'wikibase:rank' in queries[1]
+
+    def test_details_are_loaded_again_without_cache(self, wikibase, sparql_data):
+        self.statement(wikibase, sparql_data, 'Q99')
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType, cache=False)
+
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
+        assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
+
+        assert len(self.queries(wikibase)) == 2
+
+    def test_pages_hold_every_detail_once(self, wikibase, sparql_data, frc):
+        sid = self.statement(wikibase, sparql_data, 'Q99')
+        for qualifier in ('Q43', 'Q44', 'Q45', 'Q46'):
+            sparql_data.qualifier(sid, 'P642', uri(f'{wikibase.base_url}/entity/{qualifier}'), PTYPE_ITEM)
+        sparql_data.reference(sid, 'P854', uri('https://example.org/'), 'http://wikiba.se/ontology#Url', ref_node='cafe')
+
+        # 8 rows, 2 per page: with ORDER BY ?sid only, the rows of the statement were all tied, and the pages repeated
+        # some of them and skipped others
+        frc._load_statement_details([sid], use_qualifiers=True, use_references=True, use_rank=True, limit=2)
+
+        assert len(self.queries(wikibase)) == 5
+        assert sorted(qualifier.datavalue['value']['id'] for qualifier in frc._qualifiers_cache[sid]) == ['Q42', 'Q43', 'Q44', 'Q45', 'Q46']
+        assert sorted(snak.property_number for reference in frc._references_cache[sid] for snak in reference) == ['P248', 'P854']
+        assert frc._rank_cache[sid] == WikibaseRank.NORMAL
+
+    def test_single_statement_loaders(self, wikibase, sparql_data, frc):
+        sid = self.statement(wikibase, sparql_data, 'Q99', rank='DeprecatedRank')
+
+        assert [qualifier.datavalue['value']['id'] for qualifier in frc._load_qualifiers(sid)] == ['Q42']
+        assert len(frc._load_references(sid)) == 1
+        assert frc._load_rank(sid) == WikibaseRank.DEPRECATED
+        assert frc._load_rank(f'{wikibase.base_url}/entity/statement/Q99-missing') is None
+        assert len(self.queries(wikibase)) == 4
 
 
 class TestCaseInsensitive:
