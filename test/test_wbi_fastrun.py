@@ -415,6 +415,29 @@ class TestWriteRequiredRank:
         assert frc.write_required(claims=[ExternalID(value='P40095', prop_nr='P352')]) is False
 
 
+class TestWriteRequiredExtensionDataTypes:
+    """The data types of the Wikibase EDTF and Wikibase Local Media extensions."""
+
+    def test_edtf(self, wikibase, sparql_data, frc):
+        from wikibaseintegrator.datatypes.extra import EDTF
+
+        # The EDTF literal, then the dates it covers: the statement has several ps: values. The property type used to
+        # have no data type class, every value was skipped and a write always reported as required.
+        sparql_data.statement('Q99', 'P1', literal('1985-04', datatype='http://www.w3.org/2001/XMLSchema#edtf'), 'http://wikiba.se/ontology#Edtf')
+        sparql_data.statement('Q99', 'P1', literal('1985-04-01T00:00:00Z', datatype=XSD_DATETIME), 'http://wikiba.se/ontology#Edtf')
+
+        assert frc.write_required(claims=[EDTF(value='1985-04', prop_nr='P1')]) is False
+        assert frc.write_required(claims=[EDTF(value='1985-04-01T00:00:00Z', prop_nr='P1')]) is True
+
+    def test_local_media(self, wikibase, sparql_data, frc):
+        from wikibaseintegrator.datatypes.extra import LocalMedia
+
+        sparql_data.statement('Q99', 'P2', uri('https://wiki.example.org/wiki/File:Bunny_rabbit.jpg'), 'http://wikiba.se/ontology#LocalMedia')
+
+        assert frc.write_required(claims=[LocalMedia(value='Bunny rabbit.jpg', prop_nr='P2')]) is False
+        assert frc.write_required(claims=[LocalMedia(value='Other.jpg', prop_nr='P2')]) is True
+
+
 class TestWriteRequiredQuantityUnits:
     def test_different_unit_requires_write(self, wikibase, sparql_data, frc):
         """Two amounts only differing by their unit must not be considered equal."""

@@ -343,3 +343,39 @@ class TestFromSparqlValue:
         # the data type of a loaded value from them: a wrong one makes the value never match.
         assert Property.PTYPE == 'http://wikiba.se/ontology#WikibaseProperty'
         assert EntitySchema.PTYPE == 'http://wikiba.se/ontology#WikibaseEntitySchema'
+
+    def test_property_types_of_the_extensions(self):
+        # Wikibase builds the URI from the data type ID of the extension: they used to inherit the type of String
+        assert EDTF.PTYPE == 'http://wikiba.se/ontology#Edtf'
+        assert LocalMedia.PTYPE == 'http://wikiba.se/ontology#LocalMedia'
+
+
+class TestExtraDataTypesSparql:
+    def test_edtf_literal(self):
+        edtf = EDTF(prop_nr='P1').from_sparql_value({'datatype': 'http://www.w3.org/2001/XMLSchema#edtf', 'type': 'literal', 'value': '1985-04-12/..'})
+
+        assert edtf.mainsnak.datavalue['value'] == '1985-04-12/..'
+
+    def test_edtf_covered_dates_are_not_the_value(self):
+        # The extension also writes the dates covered by the EDTF value, as xsd:dateTime values of the same statement
+        with pytest.raises(ValueError, match='Not the EDTF literal'):
+            EDTF(prop_nr='P1').from_sparql_value({'datatype': 'http://www.w3.org/2001/XMLSchema#dateTime', 'type': 'literal', 'value': '1985-04-12T00:00:00Z'})
+
+    @pytest.mark.parametrize('url,file_name', [
+        ('https://wiki.example.org/wiki/File:Bunny.jpg', 'Bunny.jpg'),
+        ('https://wiki.example.org/wiki/File:Bunny_rabbit_%28white%29.jpg', 'Bunny rabbit (white).jpg'),
+        ('https://wiki.example.org/w/index.php?title=File:Bunny_rabbit.jpg', 'Bunny rabbit.jpg'),
+        ('https://wiki.example.org/wiki/Fichier:Lapin.jpg', 'Lapin.jpg'),  # a localized namespace
+        ('https://wiki.example.org/wiki/File:Map:2024.png', 'Map:2024.png'),
+    ])
+    def test_local_media_file_page_url(self, url, file_name):
+        local_media = LocalMedia(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': url})
+
+        assert local_media.mainsnak.datavalue['value'] == file_name
+        assert local_media.get_sparql_value() == LocalMedia(value=file_name, prop_nr='P1').get_sparql_value()
+
+    def test_local_media_not_a_file_page(self):
+        with pytest.raises(ValueError, match='Not the URL of a file page'):
+            LocalMedia(prop_nr='P1').from_sparql_value({'type': 'uri', 'value': 'https://wiki.example.org/wiki/Bunny'})
+        with pytest.raises(ValueError, match='Wrong SPARQL type'):
+            LocalMedia(prop_nr='P1').from_sparql_value({'type': 'literal', 'value': 'Bunny.jpg'})
