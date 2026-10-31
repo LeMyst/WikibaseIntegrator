@@ -13,7 +13,7 @@ Basic read usage:
    >>> q42.labels.get('en').value
    'Douglas Adams'
 
-Full documentation is available at <https://wikibaseintegrator.readthedocs.io/>.
+Full documentation is available at <https://lemyst.github.io/WikibaseIntegrator/>.
 """
 
 import importlib.metadata

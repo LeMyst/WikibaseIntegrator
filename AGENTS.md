@@ -87,7 +87,7 @@ notebooks/                  # Jupyter usage examples
 |---|---|---|
 | `python-pytest.yaml` | push/PR to master | Matrix test on Python 3.11–3.15 |
 | `python-lint.yaml` | push/PR to master | isort, mypy, pylint, codespell, flynt |
-| `docs.yaml` | push/PR to master | Build the Sphinx documentation, warnings as errors |
+| `docs.yaml` | push/PR to master, release published, manual | Build the Sphinx documentation (warnings as errors) and publish it on GitHub Pages: `en/latest/` from master, `en/stable/` from the latest release, stored in the `gh-pages` branch |
 | `update-test-fixtures.yaml` | monthly / manual | Refresh `test/fixtures/` from live APIs (`scripts/update_test_fixtures.py`), open a PR if changed |
 | `codeql.yml` | push/PR/schedule | Static security analysis |
 | `trivy-scan.yaml` | push/PR/schedule | Vulnerability scanning |

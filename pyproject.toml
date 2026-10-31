@@ -17,7 +17,7 @@ include = [
 ]
 homepage = "https://github.com/LeMyst/WikibaseIntegrator"
 repository = "https://github.com/LeMyst/WikibaseIntegrator"
-documentation = "https://wikibaseintegrator.readthedocs.io"
+documentation = "https://lemyst.github.io/WikibaseIntegrator/"
 keywords = ["wikibase", "wikidata", "mediawiki", "sparql"]
 classifiers = [
     "Programming Language :: Python",
@@ -65,7 +65,6 @@ optional = true
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"
-readthedocs-sphinx-ext = "*"
 sphinx-rtd-theme = "*"
 sphinx-github-changelog = "*"
 sphinx-autodoc-typehints = "*"

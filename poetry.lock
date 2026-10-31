@@ -2834,23 +2834,6 @@ files = [
 cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
-name = "readthedocs-sphinx-ext"
-version = "2.2.5"
-description = "Sphinx extension for Read the Docs overrides"
-optional = false
-python-versions = "*"
-groups = ["docs"]
-files = [
-    {file = "readthedocs-sphinx-ext-2.2.5.tar.gz", hash = "sha256:ee5fd5b99db9f0c180b2396cbce528aa36671951b9526bb0272dbfce5517bd27"},
-    {file = "readthedocs_sphinx_ext-2.2.5-py2.py3-none-any.whl", hash = "sha256:f8c56184ea011c972dd45a90122568587cc85b0127bc9cf064d17c68bc809daa"},
-]
-
-[package.dependencies]
-Jinja2 = ">=2.9"
-packaging = "*"
-requests = "*"
-
-[[package]]
 name = "referencing"
 version = "0.37.0"
 description = "JSON Referencing + Python"
@@ -3926,4 +3909,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "faa0648edcf643702d910853b148c76806ec3c9b874f9025ebe1da3c7e20fdce"
+content-hash = "4fcb4832a5547707dca148b8fab48543f2ee979e96da23fe597caeabccd7dbd0"
