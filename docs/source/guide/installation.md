@@ -69,6 +69,29 @@ wbi_config['WIKIBASE_URL'] = 'http://wikibase.svc'
 
 You can find more default settings in the file wbi_config.py
 
+### From the manifest of the instance
+
+An instance with the [WikibaseManifest](https://www.mediawiki.org/wiki/Extension:WikibaseManifest) extension, like the
+instances of [Wikibase.cloud](https://www.wikibase.cloud/), describes itself: its API endpoints, its query service and its
+concept URIs. `wbi_manifest.get_manifest()` reads this description from the MediaWiki REST API of the instance, and
+`apply()` sets the matching options of wbi_config (`MEDIAWIKI_API_URL`, `MEDIAWIKI_REST_URL`, `MEDIAWIKI_INDEX_URL`,
+`WIKIBASE_URL` and `SPARQL_ENDPOINT_URL`):
+
+```python
+from wikibaseintegrator import WikibaseIntegrator, wbi_manifest
+
+manifest = wbi_manifest.get_manifest('https://wikibase.world/w/rest.php')
+manifest.apply()
+
+wbi = WikibaseIntegrator()
+item = wbi.item.get('Q1')
+```
+
+The manifest also maps some Wikidata entities to their local ID, when the administrators configured it:
+`manifest.local_id('P31')` gives the local property for "instance of" (P31 on Wikidata), or `None` without an
+equivalent. `get_manifest()` raises a `MissingExtensionError` if the instance doesn't have the extension, which is the
+case of Wikidata.
+
 ### Request size limit
 
 Some Wikibase instances (e.g. Wikibase.cloud) reject a request larger than a given size with an

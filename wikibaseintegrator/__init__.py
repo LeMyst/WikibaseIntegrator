@@ -30,7 +30,7 @@ __version__ = importlib.metadata.version('wikibaseintegrator')
 # The submodules, loaded on first access: importing the data model (wikibaseintegrator.models, .datatypes) doesn't load
 # the HTTP and OAuth stack (requests, oauthlib), which only the entities, the login and the helpers need
 _SUBMODULES = frozenset({'datatypes', 'entities', 'models', 'wbi_backoff', 'wbi_config', 'wbi_editgroups', 'wbi_enums', 'wbi_exceptions', 'wbi_fastrun', 'wbi_helpers',
-                         'wbi_login', 'wikibaseintegrator'})
+                         'wbi_login', 'wbi_manifest', 'wikibaseintegrator'})
 
 
 def __getattr__(name: str) -> Any:

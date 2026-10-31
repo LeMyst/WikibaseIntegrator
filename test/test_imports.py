@@ -53,9 +53,10 @@ print(wikibaseintegrator.WikibaseIntegrator is WikibaseIntegrator)
 # A submodule stays reachable as an attribute of the package, as when the package imported them all
 print(wikibaseintegrator.wbi_helpers.format_amount is wikibaseintegrator.datatypes.quantity.format_amount)
 print('WikibaseIntegrator' in dir(wikibaseintegrator))
+print(wikibaseintegrator.wbi_manifest.MANIFEST_PATH == '/wikibase-manifest/v0/manifest')
 ''')
 
-    assert output.split() == ['True', 'True', 'True']
+    assert output.split() == ['True', 'True', 'True', 'True']
 
 
 def test_unknown_attribute():

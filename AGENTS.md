@@ -58,6 +58,7 @@ wikibaseintegrator/
 ├── wbi_fastrun.py          # Fast-run mode for bulk writes
 ├── wbi_backoff.py          # Retry/backoff decorator
 ├── wbi_editgroups.py       # EditGroups batch links for edit summaries
+├── wbi_manifest.py         # WikibaseManifest: configure an instance from its manifest
 ├── wbi_enums.py            # Enumerations shared across modules
 ├── wbi_exceptions.py       # Custom exception hierarchy
 ├── py.typed                # PEP 561 marker — keep it (ships type hints)
