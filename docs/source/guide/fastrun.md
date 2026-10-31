@@ -138,9 +138,10 @@ frc.check_language_data(qid=qids[0], lang_data=['CDK7'], lang='en', lang_data_ty
   from the value nodes, so they are compared.
 * Math statements are always reported as requiring a write: the RDF export holds the formula rendered as MathML, not
   its TeX source, so the values can't be compared.
-* The qualifiers, references and ranks are loaded lazily with one SPARQL query per statement to check, and the units
-  and precisions with one query per 100 statements to check. This is fast when most entities are up to date, but can
-  slow down the run when many entities hold the same values.
+* The units and precisions, then the qualifiers, references and ranks, are loaded lazily, only for the statements to
+  check: one SPARQL query per 100 statements for the units and precisions, and one per 100 statements for the
+  qualifiers, references and ranks together. This is fast when most entities are up to date, but can slow down the run
+  when many entities hold the same values.
 
 ## Performance statistics
 
