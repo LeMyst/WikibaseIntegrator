@@ -8,6 +8,7 @@ import collections
 import copy
 import json
 import logging
+import re
 from collections import defaultdict
 
 from wikibaseintegrator.datatypes import BaseDataType, Time
@@ -34,6 +35,12 @@ VALUE_DETAILS_BATCH_SIZE = 100
 
 # The number of statements whose qualifiers, references and rank are loaded by one SPARQL query
 STATEMENT_DETAILS_BATCH_SIZE = 100
+
+# The RDF predicates of the language data
+LANGUAGE_DATA_PREDICATES = {'label': 'rdfs:label', 'description': 'schema:description', 'aliases': 'skos:altLabel'}
+
+# A language code of MediaWiki (e.g. 'fr', 'zh-hans', 'be-tarask'): letters, digits and hyphens, put as is in the queries
+LANGUAGE_CODE_PATTERN = re.compile(r'^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$')
 
 # The ranks of the RDF export
 RANKS = {'PreferredRank': WikibaseRank.PREFERRED, 'NormalRank': WikibaseRank.NORMAL, 'DeprecatedRank': WikibaseRank.DEPRECATED}
@@ -285,7 +292,7 @@ class FastRunContainer:
                       # The precision of a time value, only bound for times
                       OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:timePrecision ?precision ] . }}
                     }}
-                    ORDER BY ?sid
+                    ORDER BY ?sid ?value ?unit ?precision
                     OFFSET {offset}
                     LIMIT {limit}
                     '''
@@ -304,7 +311,7 @@ class FastRunContainer:
                       <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type.
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
                     }}
-                    ORDER BY ?sid
+                    ORDER BY ?sid ?value
                     OFFSET {offset}
                     LIMIT {limit}
                     '''
@@ -327,11 +334,6 @@ class FastRunContainer:
                         # A value the data type can't represent (e.g. a timestamp whose precision can't be inferred).
                         # The value stays out of the dataset, a write will be reported as required for it.
                         log.warning("Skipping a value of property '%s': %s", prop_nr, exception)
-                        continue
-
-                    if f is None:
-                        # The data type does not implement from_sparql_value() yet
-                        log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the value", prop_nr)
                         continue
 
                     sparql_value = self._value_key(f)
@@ -485,10 +487,6 @@ class FastRunContainer:
             f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result[f'{prefix}value'])
         except ValueError as exception:
             log.warning("Skipping a %s of statement '%s': %s", kind, sid, exception)
-            return None
-
-        if f is None:
-            log.warning("The data type of property '%s' does not support from_sparql_value(), skipping the %s", prop_nr, kind)
             return None
 
         self._set_precision(f, result, f'{prefix}precision')
@@ -849,7 +847,8 @@ class FastRunContainer:
         all_lang_strings = {x.strip().casefold() for x in self.get_language_data(qid, lang, lang_data_type)}
 
         if action_if_exists == ActionIfExists.REPLACE_ALL:
-            return collections.Counter(all_lang_strings) != collections.Counter(map(lambda x: x.casefold(), lang_data))
+            # Compared like the strings of the entity: stripped, case insensitive and without duplicates
+            return {x.strip().casefold() for x in lang_data} != all_lang_strings
 
         for s in lang_data:
             if s.strip().casefold() not in all_lang_strings:
@@ -866,11 +865,7 @@ class FastRunContainer:
         :param lang_data_type: 'label', 'description' or 'aliases'
         """
 
-        lang_data_type_dict = {
-            'label': 'rdfs:label',
-            'description': 'schema:description',
-            'aliases': 'skos:altLabel'
-        }
+        predicate = self._language_predicate(lang, lang_data_type)
 
         query = f'''
         #Tool: WikibaseIntegrator wbi_fastrun._query_lang
@@ -878,7 +873,7 @@ class FastRunContainer:
             {self._base_filter_string()}
 
             OPTIONAL {{
-                ?entity {lang_data_type_dict[lang_data_type]} ?label FILTER (lang(?label) = "{lang}") .
+                ?entity {predicate} ?label FILTER (lang(?label) = "{lang}") .
             }}
         }}
         '''
@@ -886,6 +881,21 @@ class FastRunContainer:
         log.debug(query)
 
         return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+
+    @staticmethod
+    def _language_predicate(lang: str, lang_data_type: str) -> str:
+        """
+        The RDF predicate of a kind of language data, after checking the arguments that go in the query.
+
+        :param lang: language code, e.g. 'fr' or 'zh-hans'
+        :param lang_data_type: 'label', 'description' or 'aliases'
+        :exception ValueError: if the kind of language data is unknown, or the language code is not one
+        """
+        if lang_data_type not in LANGUAGE_DATA_PREDICATES:
+            raise ValueError(f"Unknown language data type {lang_data_type!r}, expected one of {', '.join(map(repr, LANGUAGE_DATA_PREDICATES))}")
+        if not LANGUAGE_CODE_PATTERN.match(lang):
+            raise ValueError(f"Invalid language code {lang!r}")
+        return LANGUAGE_DATA_PREDICATES[lang_data_type]
 
     @staticmethod
     def _process_lang(result: list) -> defaultdict[str, set]:
