@@ -329,6 +329,16 @@ class TestWriteRequired:
         # The same point on the Moon (Q405)
         assert frc.write_required(claims=[GlobeCoordinate(latitude=-1.9, longitude=354.5, globe='Q405', prop_nr='P625')]) is True
 
+    @pytest.mark.parametrize('cache', [True, False], ids=['complete-load', 'partial-load'])
+    def test_statement_loads_are_totally_ordered(self, wikibase, sparql_data, cache):
+        # Paged with OFFSET and LIMIT: ordered by ?sid only, the values of a statement (an EDTF value and the dates it
+        # covers) could come in another order on the next page
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P352')], base_data_type=BaseDataType, cache=cache)
+        frc.write_required(claims=[ExternalID(value='P40095', prop_nr='P352')])
+
+        [query] = [query for query in wikibase.sparql_queries if 'wbi_fastrun.load_statements' in query]
+        assert re.search(r'ORDER BY \?sid \?value\b', query)
+
     def test_commons_data_title_with_spaces(self, wikibase, sparql_data, frc):
         # The RDF export encodes a space of the page title as a '+', which used to be kept and never matched
         sparql_data.statement('Q99', 'P4179', uri('http://commons.wikimedia.org/data/main/Data:Population+FR+Q1657686.tab'), PTYPE_TABULAR_DATA)
@@ -897,6 +907,31 @@ class TestLanguageData:
 
         assert frc.check_language_data('Q582', ['Villeurbanne'], 'fr', 'label', action_if_exists=ActionIfExists.REPLACE_ALL) is False
         assert frc.check_language_data('Q582', ['Villeurbanne', 'Lyon'], 'fr', 'label', action_if_exists=ActionIfExists.REPLACE_ALL) is True
+
+    def test_replace_all_cleans_the_new_strings_too(self, wikibase, sparql_data, frc):
+        sparql_data.label('Q582', 'Villeurbanne', 'fr')
+
+        # The strings of the entity are stripped and deduplicated, the new ones used to be compared raw
+        assert frc.check_language_data('Q582', [' Villeurbanne '], 'fr', 'label', action_if_exists=ActionIfExists.REPLACE_ALL) is False
+        assert frc.check_language_data('Q582', ['Villeurbanne', 'villeurbanne'], 'fr', 'label', action_if_exists=ActionIfExists.REPLACE_ALL) is False
+
+    @pytest.mark.parametrize('lang', ['fr', 'zh-hans', 'be-tarask', 'en-x-Q123'])
+    def test_valid_language_codes(self, wikibase, sparql_data, frc, lang):
+        frc.get_language_data('Q582', lang, 'label')
+
+        assert f'FILTER (lang(?label) = "{lang}")' in wikibase.sparql_queries[-1]
+
+    @pytest.mark.parametrize('lang', ['fr") . ?entity ?p ?o FILTER ("1', 'fr fr', '', 'fr_FR'])
+    def test_invalid_language_code(self, wikibase, sparql_data, frc, lang):
+        # The language code goes as is in the query
+        with pytest.raises(ValueError, match='Invalid language code'):
+            frc.get_language_data('Q582', lang, 'label')
+        assert not wikibase.sparql_queries
+
+    def test_unknown_language_data_type(self, wikibase, sparql_data, frc):
+        # Used to raise a KeyError
+        with pytest.raises(ValueError, match="Unknown language data type 'labels'"):
+            frc.get_language_data('Q582', 'fr', 'labels')
 
 
 class TestClear:
