@@ -509,7 +509,7 @@ class TestUserAgent:
         data = {'action': 'wbgetentities', 'ids': 'Q582', 'format': 'json'}
         with caplog.at_level(logging.WARNING):
             mediawiki_api_call_helper(data=data, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')
-        assert 'Please set an user agent' not in caplog.text
+        assert 'Please set a user agent' not in caplog.text
 
     def test_warning_on_wikimedia_instance_without_user_agent(self, requests_mock, caplog):
         # The warning only triggers for Wikimedia Foundation instances.
@@ -519,7 +519,31 @@ class TestUserAgent:
         with caplog.at_level(logging.WARNING):
             mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': 'Q42', 'format': 'json'}, mediawiki_api_url='https://www.wikidata.org/w/api.php',
                                       allow_anonymous=True)
-        assert 'Please set an user agent' in caplog.text
+        assert 'Please set a user agent' in caplog.text
+
+    def test_warning_logged_once_per_host(self, requests_mock, caplog):
+        # The warning used to be logged on two lines at every call
+        requests_mock.post('https://www.wikidata.org/w/api.php', json={'entities': {}, 'success': 1})
+        wbi_config['USER_AGENT'] = None
+
+        with caplog.at_level(logging.WARNING):
+            for _ in range(3):
+                mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': 'Q42', 'format': 'json'}, mediawiki_api_url='https://www.wikidata.org/w/api.php',
+                                          allow_anonymous=True)
+
+        warnings = [record for record in caplog.records if 'Please set a user agent' in record.getMessage()]
+        assert len(warnings) == 1
+        assert "'www.wikidata.org'" in warnings[0].getMessage()
+
+    def test_edit_token_not_in_the_debug_log(self, wikibase, item_q582, caplog):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url, edit_token='secret-edit-token+\\')
+
+        with caplog.at_level(logging.DEBUG, logger='wikibaseintegrator.wbi_helpers'):
+            mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': 'Q582', 'format': 'json', 'token': '+\\'}, login=login, mediawiki_api_url=wikibase.mediawiki_api_url)
+
+        assert wikibase.last_request['token'] == 'secret-edit-token+\\'
+        assert 'secret-edit-token' not in caplog.text
+        assert "'token': '***'" in caplog.text
 
     def test_user_agent_sent_in_headers(self, wikibase, item_q582, requests_mock):
         mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': 'Q582', 'format': 'json'}, allow_anonymous=True, user_agent='MyWikibaseBot/0.5')

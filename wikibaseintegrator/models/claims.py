@@ -71,7 +71,6 @@ class Claims(BaseModel):
         elif claims is None or ((not isinstance(claims, list) or not all(isinstance(n, Claim) for n in claims)) and not isinstance(claims, Claims)):
             raise TypeError("claims must be an instance of Claim or Claims or a list of Claim")
 
-        # TODO: Don't replace if claim is the same
         # This code is separated from the rest to avoid looping multiple over `self.claims`.
         if action_if_exists == ActionIfExists.REPLACE_ALL:
             for claim in claims:

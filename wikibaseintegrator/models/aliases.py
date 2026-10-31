@@ -25,7 +25,7 @@ class Aliases(BaseModel):
 
     def get(self, language: str | None = None) -> list[Alias] | None:
         if language is None:
-            # TODO: Don't return a list of list, just a list
+            # The aliases of every language, in a flat list
             return [item for sublist in self.aliases.values() for item in sublist]
 
         if language in self.aliases:
@@ -119,7 +119,3 @@ class Aliases(BaseModel):
 
     def __len__(self) -> int:
         return len(self.aliases)
-
-    # def __contains__(self, item):
-    #     all_aliases = [item for sublist in list(self.aliases.values()) for item in sublist]
-    #     return item in list(map(lambda x: x.value, all_aliases))
