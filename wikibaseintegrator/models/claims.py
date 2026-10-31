@@ -105,7 +105,7 @@ class Claims(BaseModel):
                         self.claims[property].append(claim)
                     else:
                         equal_claim.removed = False
-                elif action_if_exists == ActionIfExists.MERGE_REFS_OR_APPEND:
+                else:  # ActionIfExists.MERGE_REFS_OR_APPEND
                     claim_exists = False
                     for existing_claim in self.claims[property]:
                         # Compare the main snaks (which also handles no-value/some-value snaks that have no
@@ -162,13 +162,10 @@ class Claims(BaseModel):
     def get_json(self) -> dict[str, list]:
         json_data: dict[str, list] = {}
         for property, claims in self.claims.items():
-            if property not in json_data:
-                json_data[property] = []
-            for claim in claims:
-                if not claim.removed or claim.id:
-                    json_data[property].append(claim.get_json())
-            if len(json_data[property]) == 0:
-                del json_data[property]
+            # A claim removed before being written is left out, a property without claim too
+            claims_json = [claim.get_json() for claim in claims if not claim.removed or claim.id]
+            if claims_json:
+                json_data[property] = claims_json
         return json_data
 
     def count(self) -> int:

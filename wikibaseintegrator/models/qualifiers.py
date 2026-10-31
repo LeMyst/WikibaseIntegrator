@@ -110,12 +110,8 @@ class Qualifiers(BaseModel):
 
     def get_json(self) -> dict[str, list]:
         json_data: dict[str, list] = {}
-        for property in self.qualifiers:
-            if property not in json_data:
-                json_data[property] = []
-
-            for qualifier in self.qualifiers[property]:
-                json_data[property].append(qualifier.get_json())
+        for property, qualifiers in self.qualifiers.items():
+            json_data[property] = [qualifier.get_json() for qualifier in qualifiers]
         return json_data
 
     def count(self) -> int:

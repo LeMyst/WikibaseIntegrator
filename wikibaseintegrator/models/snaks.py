@@ -40,10 +40,7 @@ class Snaks(BaseModel):
     def get_json(self) -> dict[str, list]:
         json_data: dict[str, list] = {}
         for property, snaks in self.snaks.items():
-            if property not in json_data:
-                json_data[property] = []
-            for snak in snaks:
-                json_data[property].append(snak.get_json())
+            json_data[property] = [snak.get_json() for snak in snaks]
         return json_data
 
     def __eq__(self, other: object) -> bool:

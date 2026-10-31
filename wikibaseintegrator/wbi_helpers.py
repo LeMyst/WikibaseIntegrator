@@ -393,9 +393,9 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
     if data is not None:
         if not allow_anonymous:
-            # Get edit token if there is a login instance
-            if login is not None:
-                data.update({'token': login.get_edit_token()})
+            # The edit token of the login, required above when allow_anonymous is False
+            assert login is not None
+            data.update({'token': login.get_edit_token()})
 
             # Always assert user if allow_anonymous is False
             if 'assert' not in data:
