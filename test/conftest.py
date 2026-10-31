@@ -190,6 +190,9 @@ class MockWikibase:
         if 'titles' in params:
             titles = params['titles'].split('|')
             found = {entity_id: deepcopy(entity) for entity_id, entity in self.entities.items() if entity.get('title') in titles}
+            # Like the API, a page that doesn't exist is answered with a negative key
+            for index, title in enumerate(title for title in titles if title not in {entity.get('title') for entity in found.values()}):
+                found[str(-1 - index)] = {'title': title, 'missing': ''}
             return {'entities': found, 'success': 1}
 
         ids = params['ids'].split('|')
