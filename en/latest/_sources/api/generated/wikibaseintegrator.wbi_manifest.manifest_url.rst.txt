@@ -1,0 +1,6 @@
+﻿manifest\_url
+=============
+
+.. currentmodule:: wikibaseintegrator.wbi_manifest
+
+.. autofunction:: manifest_url

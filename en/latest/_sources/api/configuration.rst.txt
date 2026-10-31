@@ -1,7 +1,7 @@
 Configuration, enums and exceptions
 ===================================
 
-The global options, the enumerations of the API values, the exceptions, the retries and the EditGroups.
+The global options, the enumerations of the API values, the exceptions, the retries, the WikibaseManifest of an instance and the EditGroups.
 
 Configuration
 -------------
@@ -60,6 +60,22 @@ Retries
    ~RetryAfterError
    ~wbi_backoff_wait
    ~wbi_backoff_giveup
+
+WikibaseManifest
+----------------
+
+.. automodule:: wikibaseintegrator.wbi_manifest
+   :no-members:
+
+.. currentmodule:: wikibaseintegrator.wbi_manifest
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   ~get_manifest
+   ~WikibaseManifest
+   ~manifest_url
 
 EditGroups
 ----------

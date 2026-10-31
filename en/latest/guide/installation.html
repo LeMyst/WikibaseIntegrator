@@ -527,6 +527,27 @@ script:</p>
 </pre></div>
 </div>
 <p>You can find more default settings in the file wbi_config.py</p>
+<section id="from-the-manifest-of-the-instance">
+<h3>From the manifest of the instance<a class="headerlink" href="#from-the-manifest-of-the-instance" title="Link to this heading">#</a></h3>
+<p>An instance with the <a class="reference external" href="https://www.mediawiki.org/wiki/Extension:WikibaseManifest">WikibaseManifest</a> extension, like the
+instances of <a class="reference external" href="https://www.wikibase.cloud/">Wikibase.cloud</a>, describes itself: its API endpoints, its query service and its
+concept URIs. <code class="docutils literal notranslate"><span class="pre">wbi_manifest.get_manifest()</span></code> reads this description from the MediaWiki REST API of the instance, and
+<code class="docutils literal notranslate"><span class="pre">apply()</span></code> sets the matching options of wbi_config (<code class="docutils literal notranslate"><span class="pre">MEDIAWIKI_API_URL</span></code>, <code class="docutils literal notranslate"><span class="pre">MEDIAWIKI_REST_URL</span></code>, <code class="docutils literal notranslate"><span class="pre">MEDIAWIKI_INDEX_URL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">WIKIBASE_URL</span></code> and <code class="docutils literal notranslate"><span class="pre">SPARQL_ENDPOINT_URL</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseIntegrator</span><span class="p">,</span> <span class="n">wbi_manifest</span>
+
+<span class="n">manifest</span> <span class="o">=</span> <span class="n">wbi_manifest</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">(</span><span class="s1">'https://wikibase.world/w/rest.php'</span><span class="p">)</span>
+<span class="n">manifest</span><span class="o">.</span><span class="n">apply</span><span class="p">()</span>
+
+<span class="n">wbi</span> <span class="o">=</span> <span class="n">WikibaseIntegrator</span><span class="p">()</span>
+<span class="n">item</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'Q1'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The manifest also maps some Wikidata entities to their local ID, when the administrators configured it:
+<code class="docutils literal notranslate"><span class="pre">manifest.local_id('P31')</span></code> gives the local property for “instance of” (P31 on Wikidata), or <code class="docutils literal notranslate"><span class="pre">None</span></code> without an
+equivalent. <code class="docutils literal notranslate"><span class="pre">get_manifest()</span></code> raises a <code class="docutils literal notranslate"><span class="pre">MissingExtensionError</span></code> if the instance doesn’t have the extension, which is the
+case of Wikidata.</p>
+</section>
 <section id="request-size-limit">
 <h3>Request size limit<a class="headerlink" href="#request-size-limit" title="Link to this heading">#</a></h3>
 <p>Some Wikibase instances (e.g. Wikibase.cloud) reject a request larger than a given size with an
@@ -621,6 +642,7 @@ of the Wikimedia Meta-Wiki.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-a-wikibase-instance">Using a Wikibase instance</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-the-manifest-of-the-instance">From the manifest of the instance</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#request-size-limit">Request size limit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikimedia-foundation-user-agent-policy">Wikimedia Foundation User-Agent policy</a></li>
 </ul>

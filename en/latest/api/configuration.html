@@ -527,6 +527,9 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.RetryAfterError.html">RetryAfterError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html">wbi_backoff_wait</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html">wbi_backoff_giveup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.get_manifest.html">get_manifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html">WikibaseManifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.manifest_url.html">manifest_url</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_editgroups.EditGroup.html">EditGroup</a></li>
 </ul>
 </details></li>
@@ -592,7 +595,7 @@
                   
   <section id="configuration-enums-and-exceptions">
 <h1>Configuration, enums and exceptions<a class="headerlink" href="#configuration-enums-and-exceptions" title="Link to this heading">#</a></h1>
-<p>The global options, the enumerations of the API values, the exceptions, the retries and the EditGroups.</p>
+<p>The global options, the enumerations of the API values, the exceptions, the retries, the WikibaseManifest of an instance and the EditGroups.</p>
 <section id="module-wikibaseintegrator.wbi_config">
 <span id="configuration"></span><h2>Configuration<a class="headerlink" href="#module-wikibaseintegrator.wbi_config" title="Link to this heading">#</a></h2>
 <p>Config global options
@@ -710,6 +713,35 @@ Options can be changed at run time. See test/test_wbi_backoff.py for usage examp
 </table>
 </div>
 </section>
+<section id="module-wikibaseintegrator.wbi_manifest">
+<span id="wikibasemanifest"></span><h2>WikibaseManifest<a class="headerlink" href="#module-wikibaseintegrator.wbi_manifest" title="Link to this heading">#</a></h2>
+<p>Support of the WikibaseManifest extension (<a class="reference external" href="https://www.mediawiki.org/wiki/Extension:WikibaseManifest">https://www.mediawiki.org/wiki/Extension:WikibaseManifest</a>), which describes a
+Wikibase instance for the tools: its API endpoints, query service, RDF namespaces, entity types and the local IDs of
+some Wikidata entities. It is installed on the instances of Wikibase.cloud, for example.</p>
+<p>Configure WikibaseIntegrator for an instance from its manifest:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_manifest</span>
+
+<span class="n">manifest</span> <span class="o">=</span> <span class="n">wbi_manifest</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">(</span><span class="s1">'https://wikibase.world/w/rest.php'</span><span class="p">)</span>
+<span class="n">manifest</span><span class="o">.</span><span class="n">apply</span><span class="p">()</span>  <span class="c1"># sets wbi_config['MEDIAWIKI_API_URL'], ['SPARQL_ENDPOINT_URL'], ['WIKIBASE_URL']...</span>
+
+<span class="n">instance_of</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">local_id</span><span class="p">(</span><span class="s1">'P31'</span><span class="p">)</span>  <span class="c1"># the local property equivalent to P31 on Wikidata, e.g. 'P3'</span>
+</pre></div>
+</div>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.get_manifest.html#wikibaseintegrator.wbi_manifest.get_manifest" title="wikibaseintegrator.wbi_manifest.get_manifest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_manifest</span></code></a></p></td>
+<td><p>Download the manifest of a Wikibase instance with the WikibaseManifest extension.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html#wikibaseintegrator.wbi_manifest.WikibaseManifest" title="wikibaseintegrator.wbi_manifest.WikibaseManifest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WikibaseManifest</span></code></a></p></td>
+<td><p>The manifest of a Wikibase instance, as returned by get_manifest().</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.manifest_url.html#wikibaseintegrator.wbi_manifest.manifest_url" title="wikibaseintegrator.wbi_manifest.manifest_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">manifest_url</span></code></a></p></td>
+<td><p>The URL of the manifest, from the MediaWiki REST API of the instance (rest.php) or the URL of the manifest itself.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="editgroups">
 <h2>EditGroups<a class="headerlink" href="#editgroups" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
@@ -774,6 +806,7 @@ Options can be changed at run time. See test/test_wbi_backoff.py for usage examp
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enums">Enums</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exceptions">Exceptions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#retries">Retries</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wikibaseintegrator.wbi_manifest">WikibaseManifest</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#editgroups">EditGroups</a></li>
 </ul>
   </nav></div>

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wikibaseintegrator.wbi_manifest &#8212; WikibaseIntegrator</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../../_static/documentation_options.js?v=7add809c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/wbi_manifest';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://lemyst.github.io/WikibaseIntegrator/en/latest/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/_modules/wikibaseintegrator/wbi_manifest.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.14.2.dev0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WikibaseIntegrator</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">wikibaseintegrator.wbi_manifest</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for wikibaseintegrator.wbi_manifest</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Support of the WikibaseManifest extension (https://www.mediawiki.org/wiki/Extension:WikibaseManifest), which describes a</span>
+<span class="sd">Wikibase instance for the tools: its API endpoints, query service, RDF namespaces, entity types and the local IDs of</span>
+<span class="sd">some Wikidata entities. It is installed on the instances of Wikibase.cloud, for example.</span>
+
+<span class="sd">Configure WikibaseIntegrator for an instance from its manifest::</span>
+
+<span class="sd">    from wikibaseintegrator import wbi_manifest</span>
+
+<span class="sd">    manifest = wbi_manifest.get_manifest('https://wikibase.world/w/rest.php')</span>
+<span class="sd">    manifest.apply()  # sets wbi_config['MEDIAWIKI_API_URL'], ['SPARQL_ENDPOINT_URL'], ['WIKIBASE_URL']...</span>
+
+<span class="sd">    instance_of = manifest.local_id('P31')  # the local property equivalent to P31 on Wikidata, e.g. 'P3'</span>
+<span class="sd">"""</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingExtensionError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">_get_default_session</span><span class="p">,</span> <span class="n">get_user_agent</span>
+
+<span class="c1">#: The path of the manifest, relative to the MediaWiki REST API (rest.php)</span>
+<span class="n">MANIFEST_PATH</span> <span class="o">=</span> <span class="s1">'/wikibase-manifest/v0/manifest'</span>
+
+<span class="c1">#: The key of the Wikidata mappings in equiv_entities, the only hub the format defines</span>
+<span class="n">WIKIDATA</span> <span class="o">=</span> <span class="s1">'wikidata.org'</span>
+
+
+<div class="viewcode-block" id="WikibaseManifest">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html#wikibaseintegrator.wbi_manifest.WikibaseManifest">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">WikibaseManifest</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The manifest of a Wikibase instance, as returned by get_manifest(). The optional parts of the format are omitted by</span>
+<span class="sd">    the instances which don't have them (e.g. no query service): their attribute is then None or empty.</span>
+<span class="sd">    """</span>
+    <span class="c1">#: The name of the instance, e.g. 'Wikibase World'</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The URL of the MediaWiki scripts (index.php, api.php...), e.g. 'https://wikibase.world/w'</span>
+    <span class="n">root_script_url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The URL of the main page</span>
+    <span class="n">main_page_url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The MediaWiki Action API (api.php)</span>
+    <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The MediaWiki REST API (rest.php)</span>
+    <span class="n">mediawiki_rest_url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The maxlag recommended by the administrators, in seconds</span>
+    <span class="n">max_lag</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The SPARQL endpoint of the Wikibase query service, if any</span>
+    <span class="n">sparql_endpoint_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The external services: queryservice, queryservice_ui, quickstatements, openrefine_reconcile...</span>
+    <span class="n">external_services</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The local IDs of entities of other Wikibase instances, e.g. {'wikidata.org': {'properties': {'P31': 'P1'}}}</span>
+    <span class="n">equiv_entities</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The RDF namespaces of the instance, by prefix ('' for the entities, 'p', 'ps', 'wdt'...)</span>
+    <span class="n">local_rdf_namespaces</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The entity types of the instance and their namespace, e.g. {'item': {'namespace_id': 120, 'namespace_name': 'Item'}}</span>
+    <span class="n">local_entities</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The page to register an OAuth consumer, if the OAuth extension is installed</span>
+    <span class="n">oauth_registration_page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The manifest, as returned by the instance</span>
+    <span class="n">raw</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WikibaseManifest.from_json">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html#wikibaseintegrator.wbi_manifest.WikibaseManifest.from_json">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">WikibaseManifest</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Build the manifest from the JSON returned by the instance.</span>
+
+<span class="sd">        :param json_data: The decoded JSON of the manifest</span>
+<span class="sd">        :return: The manifest</span>
+<span class="sd">        """</span>
+        <span class="n">external_services</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'external_services'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'name'</span><span class="p">],</span>
+            <span class="n">root_script_url</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'root_script_url'</span><span class="p">],</span>
+            <span class="n">main_page_url</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'main_page_url'</span><span class="p">],</span>
+            <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'api'</span><span class="p">][</span><span class="s1">'action'</span><span class="p">],</span>
+            <span class="n">mediawiki_rest_url</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'api'</span><span class="p">][</span><span class="s1">'rest'</span><span class="p">],</span>
+            <span class="n">max_lag</span><span class="o">=</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'max_lag'</span><span class="p">),</span>
+            <span class="n">sparql_endpoint_url</span><span class="o">=</span><span class="n">external_services</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'queryservice'</span><span class="p">),</span>
+            <span class="n">external_services</span><span class="o">=</span><span class="n">external_services</span><span class="p">,</span>
+            <span class="n">equiv_entities</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'equiv_entities'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="n">local_rdf_namespaces</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'local_rdf_namespaces'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="n">local_entities</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'local_entities'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="n">oauth_registration_page</span><span class="o">=</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'oauth'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'registration_page'</span><span class="p">),</span>
+            <span class="n">raw</span><span class="o">=</span><span class="n">json_data</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mediawiki_index_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The index.php of the instance."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_script_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">'/'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'/index.php'</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wikibase_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The Wikibase URL, as wbi_config['WIKIBASE_URL'] expects it: the concept URI of the entities without '/entity/',</span>
+<span class="sd">        e.g. 'https://wikibase.world' for 'https://wikibase.world/entity/'. None if the concept namespace</span>
+<span class="sd">        doesn't end with '/entity/'.</span>
+<span class="sd">        """</span>
+        <span class="n">concept_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_rdf_namespaces</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">concept_uri</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">concept_uri</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'/entity/'</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">concept_uri</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s1">'/entity/'</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="WikibaseManifest.local_id">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html#wikibaseintegrator.wbi_manifest.WikibaseManifest.local_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">local_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hub</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">WIKIDATA</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The local ID of an entity of another Wikibase instance, from the equivalences of the manifest.</span>
+
+<span class="sd">        :param entity_id: The ID on the other instance, e.g. 'P31'</span>
+<span class="sd">        :param hub: The other instance, as named by the manifest. Wikidata by default, the only one of the format.</span>
+<span class="sd">        :return: The local ID, e.g. 'P3', or None without a known equivalent</span>
+<span class="sd">        """</span>
+        <span class="k">for</span> <span class="n">entities</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">equiv_entities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hub</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">entities</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="WikibaseManifest.config">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html#wikibaseintegrator.wbi_manifest.WikibaseManifest.config">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The wbi_config values to use this instance: MEDIAWIKI_API_URL, MEDIAWIKI_REST_URL, MEDIAWIKI_INDEX_URL,</span>
+<span class="sd">        WIKIBASE_URL and SPARQL_ENDPOINT_URL. The last two are left out when the manifest doesn't give them.</span>
+<span class="sd">        """</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mediawiki_api_url</span><span class="p">,</span>
+            <span class="s1">'MEDIAWIKI_REST_URL'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mediawiki_rest_url</span><span class="p">,</span>
+            <span class="s1">'MEDIAWIKI_INDEX_URL'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mediawiki_index_url</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">values</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">values</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span>
+        <span class="k">return</span> <span class="n">values</span></div>
+
+
+<div class="viewcode-block" id="WikibaseManifest.apply">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html#wikibaseintegrator.wbi_manifest.WikibaseManifest.apply">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Set the wbi_config values of this instance (see config()), the other options are kept.</span>
+
+<span class="sd">        :param target: The configuration to update. wbi_config by default.</span>
+<span class="sd">        """</span>
+        <span class="p">(</span><span class="n">config</span> <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">target</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">())</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="manifest_url">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.manifest_url.html#wikibaseintegrator.wbi_manifest.manifest_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">manifest_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The URL of the manifest, from the MediaWiki REST API of the instance (rest.php) or the URL of the manifest itself.</span>
+
+<span class="sd">    :param url: The REST API URL (e.g. 'https://wikibase.world/w/rest.php') or the manifest URL. Use</span>
+<span class="sd">        wbi_config['MEDIAWIKI_REST_URL'] by default.</span>
+<span class="sd">    :return: The URL of the manifest</span>
+<span class="sd">    """</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_REST_URL'</span><span class="p">])</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">'/'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">MANIFEST_PATH</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">url</span>
+    <span class="k">return</span> <span class="n">url</span> <span class="o">+</span> <span class="n">MANIFEST_PATH</span></div>
+
+
+
+<div class="viewcode-block" id="get_manifest">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_manifest.get_manifest.html#wikibaseintegrator.wbi_manifest.get_manifest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WikibaseManifest</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Download the manifest of a Wikibase instance with the WikibaseManifest extension.</span>
+
+<span class="sd">    :param url: The MediaWiki REST API of the instance (e.g. 'https://wikibase.world/w/rest.php') or the URL of the</span>
+<span class="sd">        manifest. Use wbi_config['MEDIAWIKI_REST_URL'] by default.</span>
+<span class="sd">    :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set</span>
+<span class="sd">    :return: The manifest</span>
+<span class="sd">    :raises MissingExtensionError: If the instance doesn't have the WikibaseManifest extension.</span>
+<span class="sd">    :raises requests.HTTPError: If the request fails for another reason.</span>
+<span class="sd">    """</span>
+    <span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">])</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">_get_default_session</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">manifest_url</span><span class="p">(</span><span class="n">url</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">'User-Agent'</span><span class="p">:</span> <span class="n">get_user_agent</span><span class="p">(</span><span class="n">user_agent</span><span class="p">),</span> <span class="s1">'Accept'</span><span class="p">:</span> <span class="s1">'application/json'</span><span class="p">},</span> <span class="n">timeout</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+        <span class="c1"># The REST API answers rest-no-match for a path that no extension handles</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'messageTranslations'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'en'</span><span class="p">)</span> <span class="ow">or</span> <span class="n">error</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'message'</span><span class="p">)</span> <span class="ow">or</span> <span class="n">response</span><span class="o">.</span><span class="n">reason</span>
+        <span class="k">raise</span> <span class="n">MissingExtensionError</span><span class="p">({</span><span class="s1">'code'</span><span class="p">:</span> <span class="n">error</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'errorKey'</span><span class="p">,</span> <span class="s1">'rest-no-match'</span><span class="p">),</span> <span class="s1">'info'</span><span class="p">:</span> <span class="n">info</span><span class="p">},</span> <span class="n">extension</span><span class="o">=</span><span class="s1">'WikibaseManifest'</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">WikibaseManifest</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, LeMyst.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
