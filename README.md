@@ -11,6 +11,34 @@
 Wikibase Integrator is a python package whose purpose is to manipulate data present on a Wikibase instance (like
 Wikidata).
 
+# Breaking changes in v0.14 #
+
+v0.14 changes some behaviors of v0.13 that your code may rely on:
+
+- **The MediaWiki API calls retry by cause** (`mediawiki_api_call()` and `mediawiki_api_call_helper()`):
+    - A failure (connection error, HTTP 5xx, read timeout of a read-only action) is tried at most
+      `wbi_config['BACKOFF_MAX_TRIES']` times (5 by default), waiting 1, 2, 4... seconds, instead of up to 100 times
+      every 60 seconds. An unreachable instance now fails after about 15 seconds instead of about 100 minutes. A read
+      timeout of a write is never retried, as the edit may have been saved.
+    - The instance asking to slow down (maxlag, rate limiting, HTTP 429, read-only mode) is still waited for, with the
+      delay it gives, but `max_retries` defaults to 20 instead of 100. HTTP 429 used to be raised at once.
+    - Once the tries are exhausted, `MaxRetriesReachedException` is raised as before, chained to the last error.
+- **`backoff` is no longer a dependency**: `wbi_backoff` implements the retries of the SPARQL queries and of the logins
+  itself, with the same `BACKOFF_MAX_TRIES` and `BACKOFF_MAX_VALUE` settings. Install `backoff` yourself if your own
+  code imports it. `wbi_backoff()` no longer accepts the keyword arguments of `backoff.on_exception()`. Client errors
+  (HTTP 4xx) other than 408 and 429 are no longer retried, and a login is tried `BACKOFF_MAX_TRIES` times in all
+  (it was up to `BACKOFF_MAX_TRIES` squared CSRF token requests).
+- **Some values compared through SPARQL changed**: `Property.PTYPE` is `http://wikiba.se/ontology#WikibaseProperty`
+  (it was `#Property`, which never matched), and `get_sparql_value()` of `CommonsMedia`, `GeoShape` and
+  `TabularData` returns the full Wikimedia Commons IRI of the value (e.g.
+  `<http://commons.wikimedia.org/data/main/Data:Paris.map>` instead of `<Data:Paris.map>`).
+
+If you want to stay on v0.13.x, you can put this line in your requirements.txt:
+
+```
+wikibaseintegrator~=0.13.0
+```
+
 # Breaking changes in v0.13 #
 
 v0.13 contains changes that are not backward compatible with v0.12:
@@ -440,10 +468,10 @@ python -m pip install .
 If you want to install a specific branch or tag from the repository, you can use the following command:
 
 ```bash
-python -m pip install git+https://github.com/LeMyst/WikibaseIntegrator.git@v0.13.0
+python -m pip install git+https://github.com/LeMyst/WikibaseIntegrator.git@v0.14.0
 ```
 
-where `v0.13.0` is the tag or branch you want to install.
+where `v0.14.0` is the tag or branch you want to install.
 
 You can also use Poetry:
 
