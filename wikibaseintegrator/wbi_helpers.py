@@ -20,6 +20,8 @@ import ujson
 from requests import Session
 from requests.auth import AuthBase
 
+# format_amount() lives with the Quantity data type, so that the data model doesn't import this module: re-exported here
+from wikibaseintegrator.datatypes.quantity import format_amount  # pylint: disable=unused-import
 from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff, wbi_backoff_wait
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
@@ -1442,24 +1444,6 @@ def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = 
     }
 
     return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['query']['search']
-
-
-def format_amount(amount: int | str | float) -> str:
-    """
-    A formatting function mostly used for Quantity datatype.
-    :param amount: A int, float or str you want to pass to Quantity value.
-    :return: A correctly formatted string amount by Wikibase standard.
-    """
-    # Remove .0 by casting to int
-    if float(amount) % 1 == 0:
-        amount = int(float(amount))
-
-    # Adding prefix + for positive number and 0
-    if not str(amount).startswith('+') and float(amount) >= 0:
-        amount = str(f'+{amount}')
-
-    # return as string
-    return str(amount)
 
 
 def get_user_agent(user_agent: str | None = None) -> str:
