@@ -9,7 +9,7 @@ MediaInfo entity, used by Structured Data on Commons (SDC).
 from __future__ import annotations
 
 import re
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from wikibaseintegrator.entities.baseentity import BaseEntity, TermsEntity
 from wikibaseintegrator.models.aliases import Aliases
@@ -18,6 +18,9 @@ from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
+
+if TYPE_CHECKING:
+    from wikibaseintegrator.wbi_login import _Login
 
 
 class MediaInfoEntity(TermsEntity):
@@ -93,7 +96,21 @@ class MediaInfoEntity(TermsEntity):
         json_data = super()._get(entity_id=entity_id, **kwargs)
         return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
 
-    def get_by_title(self, titles: list[str] | str, sites: str = 'commonswiki', **kwargs: Any) -> MediaInfoEntity:
+    def get_by_title(self, titles: list[str] | str, sites: str = 'commonswiki', login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None,
+                     **kwargs: Any) -> MediaInfoEntity:
+        """
+        Request the MediaWiki API to get the MediaInfo entity of a file, from the title of its page.
+
+        :param titles: The title of the file page, e.g. 'File:Example.jpg'
+        :param sites: The site of the page. Wikimedia Commons ('commonswiki') by default.
+        :param login: A login instance. The login of the WikibaseIntegrator instance by default.
+        :param allow_anonymous: Allow an anonymous request. Enabled by default.
+        :param is_bot: Add the bot flag to the request. The is_bot of the WikibaseIntegrator instance by default.
+        :param kwargs: More arguments for mediawiki_api_call_helper()
+        :return: a MediaInfoEntity instance
+        :exception MissingEntityException: If the page doesn't exist.
+        :exception ValueError: If the titles match more than one entity.
+        """
         if isinstance(titles, list):
             titles = '|'.join(titles)
 
@@ -104,14 +121,20 @@ class MediaInfoEntity(TermsEntity):
             'format': 'json'
         }
 
-        json_data = mediawiki_api_call_helper(data=params, allow_anonymous=True, **kwargs)
+        login = login or self.api.login
+        is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        if len(json_data['entities'].keys()) == 0:
-            raise MissingEntityException('Title not found')
-        if len(json_data['entities'].keys()) > 1:
+        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+
+        entities = json_data['entities']
+        # The API answers {'-1': {'title': ..., 'missing': ''}} for a page that doesn't exist
+        missing = [entity.get('title', entity_id) for entity_id, entity in entities.items() if 'missing' in entity]
+        if len(entities) == 0 or missing:
+            raise MissingEntityException(f"Title not found: {', '.join(missing) or titles}")
+        if len(entities) > 1:
             raise ValueError('More than one element for this title')
 
-        return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][list(json_data['entities'].keys())[0]])
+        return MediaInfoEntity(api=self.api).from_json(json_data=next(iter(entities.values())))
 
     def get_json(self) -> dict[str, str | dict]:
         json_data = {

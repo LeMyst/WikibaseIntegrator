@@ -3,9 +3,10 @@ Interaction tests for MediaInfoEntity against the simulated Wikibase instance.
 """
 import pytest
 
-from wikibaseintegrator import WikibaseIntegrator
+from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.datatypes import String
 from wikibaseintegrator.wbi_enums import EntityField
+from wikibaseintegrator.wbi_exceptions import MissingEntityException
 
 wbi = WikibaseIntegrator()
 
@@ -41,8 +42,29 @@ class TestGet:
         assert request['sites'] == 'commonswiki'
 
     def test_get_by_title_not_found(self, wikibase):
-        with pytest.raises(Exception, match='Title not found'):
+        # The API answers {'-1': {'title': 'File:Missing.jpg', 'missing': ''}}, as Wikimedia Commons does
+        with pytest.raises(MissingEntityException, match='Title not found: File:Missing.jpg'):
             wbi.mediainfo.get_by_title(titles='File:Missing.jpg')
+
+    def test_get_by_title_one_title_missing(self, wikibase, mediainfo_budapest):
+        with pytest.raises(MissingEntityException, match='Title not found: File:Missing.jpg'):
+            wbi.mediainfo.get_by_title(titles=['File:2018-07-05-budapest-buda-hill.jpg', 'File:Missing.jpg'])
+
+    def test_get_by_title_uses_the_login(self, wikibase, mediainfo_budapest):
+        # The request used to be anonymous whatever the login of the WikibaseIntegrator instance
+        wikibase.valid_credentials['BotUser@pytest'] = 'botpassword'
+        login = wbi_login.Login(user='BotUser@pytest', password='botpassword', mediawiki_api_url=wikibase.mediawiki_api_url)
+
+        mediainfo = WikibaseIntegrator(login=login, is_bot=True).mediainfo.get_by_title(titles='File:2018-07-05-budapest-buda-hill.jpg', allow_anonymous=False)
+
+        assert mediainfo.id == 'M75908279'
+        # A request that isn't anonymous asserts the login and the bot flag of the WikibaseIntegrator instance
+        assert wikibase.last_request['assert'] == 'bot'
+
+    def test_get_by_title_allow_anonymous(self, wikibase, mediainfo_budapest):
+        # allow_anonymous was forced to True: passing it raised a TypeError (multiple values for the keyword argument)
+        with pytest.raises(ValueError, match="allow_anonymous can't be False and login is None"):
+            wbi.mediainfo.get_by_title(titles='File:2018-07-05-budapest-buda-hill.jpg', allow_anonymous=False)
 
     def test_get_json_uses_statements_key(self, mediainfo_budapest):
         media_json = wbi.mediainfo.get('M75908279').get_json()
