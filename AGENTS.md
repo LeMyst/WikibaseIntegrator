@@ -66,7 +66,7 @@ wikibaseintegrator/
 ├── entities/               # Item, Property, Lexeme, MediaInfo, BaseEntity
 └── models/                 # Claims, Qualifiers, References, Labels, etc.
 test/                       # pytest test files (mirrors wikibaseintegrator/ loosely)
-docs/                       # Sphinx source
+docs/                       # Sphinx source: user guide (source/guide/, Markdown) and API reference (source/api/)
 scripts/                    # Maintenance scripts (test fixture refresh)
 notebooks/                  # Jupyter usage examples
 ```
@@ -98,8 +98,8 @@ notebooks/                  # Jupyter usage examples
 
 Publishing a GitHub release publishes the package. Pushing a tag by hand doesn't.
 
-1. Label the PRs merged since the previous release. `.github/release.yml` groups the generated release notes by label: `breaking change` (matching the README "Breaking changes" section), `enhancement`, `bug`, `documentation`, `dependencies`. Unlabelled PRs go to "Other changes".
-2. Merge a PR setting the release version in `pyproject.toml` (e.g. `0.13.0`, dropping `.dev0`) and the tag of the README install example.
+1. Label the PRs merged since the previous release. `.github/release.yml` groups the generated release notes by label: `breaking change` (matching the "Breaking changes" sections of `docs/source/guide/upgrading.md`), `enhancement`, `bug`, `documentation`, `dependencies`. Unlabelled PRs go to "Other changes".
+2. Merge a PR setting the release version in `pyproject.toml` (e.g. `0.13.0`, dropping `.dev0`) and the tag of the install example in `docs/source/guide/installation.md`.
 3. On GitHub, draft a new release: create the tag `vX.Y.Z` on `master`, click "Generate release notes", review them, then publish. The `publish-to-pypi.yaml` workflow checks that the tag matches the version of `pyproject.toml`, publishes to TestPyPI then PyPI, and attaches the Sigstore-signed files to the release.
 4. Merge a PR bumping `pyproject.toml` to the next `.dev0` version (e.g. `0.13.1.dev0`).
 

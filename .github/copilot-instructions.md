@@ -181,7 +181,7 @@ Located in `.github/workflows/`:
 ### Repository Files and Structure
 
 **Root Level:**
-- `README.md` - Comprehensive usage documentation and examples
+- `README.md` - Short presentation; the usage guides are in `docs/source/guide/`
 - `poetry.lock` - Locked dependency versions
 - `pyproject.toml` - Project configuration and dependencies
 - `LICENSE` - MIT license

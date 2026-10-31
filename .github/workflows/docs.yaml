@@ -78,13 +78,13 @@ jobs:
         run: |
           python -m poetry run python -m sphinx -b html --keep-going -w sphinx-warnings.log docs/source docs/_build/html
 
-      # A pull request or a push to master fails on any warning (e.g. an autodoc import error or a malformed docstring),
-      # except the [myst.header] ones: the release notes rendered by the changelog page have Markdown headings starting at
-      # H2. A manual build of an older ref is published as it is.
+      # A pull request or a push to master fails on any warning (e.g. an autodoc import error, a malformed docstring or a
+      # heading level skipped in a guide page), except the [myst.header] ones of the changelog page: the GitHub release notes
+      # it renders have Markdown headings starting at H2. A manual build of an older ref is published as it is.
       - name: Check the warnings
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
-          if grep -v '\[myst.header\]' sphinx-warnings.log | grep .; then
+          if grep -vE '^changelog_text:[0-9]+: .*\[myst\.header\]$' sphinx-warnings.log | grep .; then
             echo "::error::The documentation build has warnings"
             exit 1
           fi
