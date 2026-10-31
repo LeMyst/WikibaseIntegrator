@@ -7,6 +7,22 @@ from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
 
+#: The escape sequences of a SPARQL string literal (ECHAR), the backslash first
+SPARQL_ESCAPES = (('\\', '\\\\'), ('"', '\\"'), ('\n', '\\n'), ('\r', '\\r'), ('\t', '\\t'), ('\b', '\\b'), ('\f', '\\f'))
+
+
+def sparql_string(text: str) -> str:
+    """
+    The SPARQL string literal of a text, between double quotes: its backslashes, double quotes and control characters are
+    escaped (e.g. a LilyPond score or a TeX formula), which would otherwise end the literal or make the query invalid.
+
+    :param text: The text
+    :return: The quoted and escaped literal, e.g. '"say \\"hi\\""' for 'say "hi"'
+    """
+    for character, escape in SPARQL_ESCAPES:
+        text = text.replace(character, escape)
+    return '"' + text + '"'
+
 
 class BaseDataType(Claim):
     """
@@ -78,7 +94,7 @@ class BaseDataType(Claim):
         pass
 
     def get_sparql_value(self, **kwargs: Any) -> str | None:
-        return '"' + self.mainsnak.datavalue['value'] + '"'
+        return sparql_string(self.mainsnak.datavalue['value'])
 
     # The unit is only used by the Quantity implementation of this legacy method
     def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:  # pylint: disable=unused-argument
