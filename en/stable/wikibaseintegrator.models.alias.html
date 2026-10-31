@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wikibaseintegrator.models.alias module &mdash; WikibaseIntegrator 0.14.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx_autodoc_typehints.css?v=057ac668" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=9e420a66"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wikibaseintegrator.models.aliases module" href="wikibaseintegrator.models.aliases.html" />
+    <link rel="prev" title="wikibaseintegrator.models package" href="wikibaseintegrator.models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WikibaseIntegrator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="wikibaseintegrator.html">wikibaseintegrator package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="wikibaseintegrator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.datatypes.html">wikibaseintegrator.datatypes package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#module-wikibaseintegrator.datatypes">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.entities.html">wikibaseintegrator.entities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.entities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.entities.html#module-wikibaseintegrator.entities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="wikibaseintegrator.models.html">wikibaseintegrator.models package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="wikibaseintegrator.models.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.models.html#module-wikibaseintegrator.models">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html">wikibaseintegrator.wbi_backoff module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.RetryAfterError"><code class="docutils literal notranslate"><span class="pre">RetryAfterError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff"><code class="docutils literal notranslate"><span class="pre">wbi_backoff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_backoff_hdlr"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_backoff_hdlr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_check_json_decode_error"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_check_json_decode_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_giveup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_wait"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_wait()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_get_backoff_max_tries"><code class="docutils literal notranslate"><span class="pre">wbi_get_backoff_max_tries()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_config.html">wikibaseintegrator.wbi_config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.html">wikibaseintegrator.wbi_editgroups module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.html#wikibaseintegrator.wbi_editgroups.EditGroup"><code class="docutils literal notranslate"><span class="pre">EditGroup</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html">wikibaseintegrator.wbi_enums module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.ActionIfExists"><code class="docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.EntityField"><code class="docutils literal notranslate"><span class="pre">EntityField</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseDatatype"><code class="docutils literal notranslate"><span class="pre">WikibaseDatatype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseRank"><code class="docutils literal notranslate"><span class="pre">WikibaseRank</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseSnakType"><code class="docutils literal notranslate"><span class="pre">WikibaseSnakType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseTimePrecision"><code class="docutils literal notranslate"><span class="pre">WikibaseTimePrecision</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html">wikibaseintegrator.wbi_exceptions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MWApiError"><code class="docutils literal notranslate"><span class="pre">MWApiError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.ModificationFailed"><code class="docutils literal notranslate"><span class="pre">ModificationFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.SaveFailed"><code class="docutils literal notranslate"><span class="pre">SaveFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.SearchError"><code class="docutils literal notranslate"><span class="pre">SearchError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html">wikibaseintegrator.wbi_fastrun module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.FastRunContainer"><code class="docutils literal notranslate"><span class="pre">FastRunContainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.get_fastrun_container"><code class="docutils literal notranslate"><span class="pre">get_fastrun_container()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html">wikibaseintegrator.wbi_helpers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.BColors"><code class="docutils literal notranslate"><span class="pre">BColors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.WikibaseCheck"><code class="docutils literal notranslate"><span class="pre">WikibaseCheck</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_constraints"><code class="docutils literal notranslate"><span class="pre">check_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_wikibase"><code class="docutils literal notranslate"><span class="pre">check_wikibase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.create_redirect"><code class="docutils literal notranslate"><span class="pre">create_redirect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.delete_page"><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.download_entity_ttl"><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.edit_entity"><code class="docutils literal notranslate"><span class="pre">edit_entity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.execute_sparql_query"><code class="docutils literal notranslate"><span class="pre">execute_sparql_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format2wbi"><code class="docutils literal notranslate"><span class="pre">format2wbi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format_amount"><code class="docutils literal notranslate"><span class="pre">format_amount()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.fulltext_search"><code class="docutils literal notranslate"><span class="pre">fulltext_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.generate_entity_instances"><code class="docutils literal notranslate"><span class="pre">generate_entity_instances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_available_badges"><code class="docutils literal notranslate"><span class="pre">get_available_badges()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_user_agent"><code class="docutils literal notranslate"><span class="pre">get_user_agent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_form"><code class="docutils literal notranslate"><span class="pre">lexeme_add_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_add_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_form"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_form"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call_helper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_items"><code class="docutils literal notranslate"><span class="pre">merge_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_lexemes"><code class="docutils literal notranslate"><span class="pre">merge_lexemes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_multiple_items"><code class="docutils literal notranslate"><span class="pre">merge_multiple_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.parse_value"><code class="docutils literal notranslate"><span class="pre">parse_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.remove_claims"><code class="docutils literal notranslate"><span class="pre">remove_claims()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.search_entities"><code class="docutils literal notranslate"><span class="pre">search_entities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.set_claim"><code class="docutils literal notranslate"><span class="pre">set_claim()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_login.html">wikibaseintegrator.wbi_login module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Clientlogin"><code class="docutils literal notranslate"><span class="pre">Clientlogin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Login"><code class="docutils literal notranslate"><span class="pre">Login</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.LoginError"><code class="docutils literal notranslate"><span class="pre">LoginError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth1"><code class="docutils literal notranslate"><span class="pre">OAuth1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth2"><code class="docutils literal notranslate"><span class="pre">OAuth2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.WCQSAuth"><code class="docutils literal notranslate"><span class="pre">WCQSAuth</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wikibaseintegrator.html">wikibaseintegrator.wikibaseintegrator module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wikibaseintegrator.html#wikibaseintegrator.wikibaseintegrator.WikibaseIntegrator"><code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#module-wikibaseintegrator">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.html#wikibaseintegrator-library">WikibaseIntegrator Library</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-14-0">v0.14.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#breaking-changes">Breaking changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#new-features-and-improvements">New features and improvements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#other-changes">Other changes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-13-0">v0.13.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#breaking-changes">Breaking changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#new-features-and-improvements">New features and improvements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#other-changes">Other changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-15">v0.12.15</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-14">v0.12.14</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-13">v0.12.13</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-12">v0.12.12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-11">v0.12.11</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-10">v0.12.10</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-9">v0.12.9</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-8">v0.12.8</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-7">v0.12.7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-6">v0.12.6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-5">v0.12.5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-4">v0.12.4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-3">v0.12.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-2">v0.12.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-1">v0.12.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0">v0.12.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#complete-rewrite-of-the-library">Complete rewrite of the library</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-3">v0.11.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc5">v0.12.0rc5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc4">v0.12.0rc4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-2">v0.11.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc3">v0.12.0rc3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc2">v0.12.0rc2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc1">v0.12.0rc1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev7">v0.12.0.dev7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev6">v0.12.0.dev6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-1">v0.11.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev5">v0.12.0.dev5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev4">v0.12.0.dev4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#changes-since-v0-12-0-dev3">Changes since v0.12.0.dev3</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev3">v0.12.0.dev3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#changes-since-v0-12-0-dev2">Changes since v0.12.0.dev2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev2">v0.12.0.dev2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-0">v0.11.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#breaking-changes">BREAKING CHANGES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-10-1">v0.10.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-10-0">v0.10.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#breaking-changes">BREAKING CHANGES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-9-0">v0.9.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-8-2">v0.8.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#move-from-wikidataintegrator-to-wikibaseintegrator">Move from WikidataIntegrator to WikibaseIntegrator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-8-1">v0.8.1</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WikibaseIntegrator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="wikibaseintegrator.html">wikibaseintegrator package</a></li>
+          <li class="breadcrumb-item"><a href="wikibaseintegrator.models.html">wikibaseintegrator.models package</a></li>
+      <li class="breadcrumb-item active">wikibaseintegrator.models.alias module</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/LeMyst/WikibaseIntegrator/blob/master/docs/source/wikibaseintegrator.models.alias.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-wikibaseintegrator.models.alias">
+<span id="wikibaseintegrator-models-alias-module"></span><h1>wikibaseintegrator.models.alias module<a class="headerlink" href="#module-wikibaseintegrator.models.alias" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.models.alias.</span></span><span class="sig-name descname"><span class="pre">Alias</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">language</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/models/alias.html#Alias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="wikibaseintegrator.models.language_value.html#wikibaseintegrator.models.language_value.LanguageValue" title="wikibaseintegrator.models.language_value.LanguageValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">LanguageValue</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>language</strong> (<em>str</em>)</p></li>
+<li><p><strong>value</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">language</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>language</strong> (<em>str</em>)</p></li>
+<li><p><strong>value</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.from_json">
+<span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.from_json" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>json_data</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.get_json">
+<span class="sig-name descname"><span class="pre">get_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.get_json" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.language">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">language</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.language" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Setter accepts<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.remove" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.removed">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">removed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.removed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.models.alias.Alias.value">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#wikibaseintegrator.models.alias.Alias.value" title="Link to this definition"></a></dt>
+<dd><p>The value of the LanguageValue instance.
+:return: A string with the value of the LanguageValue instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wikibaseintegrator.models.html" class="btn btn-neutral float-left" title="wikibaseintegrator.models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wikibaseintegrator.models.aliases.html" class="btn btn-neutral float-right" title="wikibaseintegrator.models.aliases module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, LeMyst.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

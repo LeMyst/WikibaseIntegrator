@@ -1,0 +1,1451 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changelog &mdash; WikibaseIntegrator 0.14.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx_autodoc_typehints.css?v=057ac668" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=9e420a66"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="wikibaseintegrator.wikibaseintegrator module" href="wikibaseintegrator.wikibaseintegrator.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WikibaseIntegrator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="wikibaseintegrator.html">wikibaseintegrator package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.datatypes.html">wikibaseintegrator.datatypes package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#module-wikibaseintegrator.datatypes">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.entities.html">wikibaseintegrator.entities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.entities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.entities.html#module-wikibaseintegrator.entities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.models.html">wikibaseintegrator.models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.models.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.models.html#module-wikibaseintegrator.models">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html">wikibaseintegrator.wbi_backoff module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.RetryAfterError"><code class="docutils literal notranslate"><span class="pre">RetryAfterError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff"><code class="docutils literal notranslate"><span class="pre">wbi_backoff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_backoff_hdlr"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_backoff_hdlr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_check_json_decode_error"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_check_json_decode_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_giveup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_wait"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_wait()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_get_backoff_max_tries"><code class="docutils literal notranslate"><span class="pre">wbi_get_backoff_max_tries()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_config.html">wikibaseintegrator.wbi_config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.html">wikibaseintegrator.wbi_editgroups module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.html#wikibaseintegrator.wbi_editgroups.EditGroup"><code class="docutils literal notranslate"><span class="pre">EditGroup</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html">wikibaseintegrator.wbi_enums module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.ActionIfExists"><code class="docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.EntityField"><code class="docutils literal notranslate"><span class="pre">EntityField</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseDatatype"><code class="docutils literal notranslate"><span class="pre">WikibaseDatatype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseRank"><code class="docutils literal notranslate"><span class="pre">WikibaseRank</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseSnakType"><code class="docutils literal notranslate"><span class="pre">WikibaseSnakType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseTimePrecision"><code class="docutils literal notranslate"><span class="pre">WikibaseTimePrecision</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html">wikibaseintegrator.wbi_exceptions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MWApiError"><code class="docutils literal notranslate"><span class="pre">MWApiError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.ModificationFailed"><code class="docutils literal notranslate"><span class="pre">ModificationFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.SaveFailed"><code class="docutils literal notranslate"><span class="pre">SaveFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.SearchError"><code class="docutils literal notranslate"><span class="pre">SearchError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html">wikibaseintegrator.wbi_fastrun module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.FastRunContainer"><code class="docutils literal notranslate"><span class="pre">FastRunContainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.get_fastrun_container"><code class="docutils literal notranslate"><span class="pre">get_fastrun_container()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html">wikibaseintegrator.wbi_helpers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.BColors"><code class="docutils literal notranslate"><span class="pre">BColors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.WikibaseCheck"><code class="docutils literal notranslate"><span class="pre">WikibaseCheck</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_constraints"><code class="docutils literal notranslate"><span class="pre">check_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_wikibase"><code class="docutils literal notranslate"><span class="pre">check_wikibase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.create_redirect"><code class="docutils literal notranslate"><span class="pre">create_redirect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.delete_page"><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.download_entity_ttl"><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.edit_entity"><code class="docutils literal notranslate"><span class="pre">edit_entity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.execute_sparql_query"><code class="docutils literal notranslate"><span class="pre">execute_sparql_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format2wbi"><code class="docutils literal notranslate"><span class="pre">format2wbi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format_amount"><code class="docutils literal notranslate"><span class="pre">format_amount()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.fulltext_search"><code class="docutils literal notranslate"><span class="pre">fulltext_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.generate_entity_instances"><code class="docutils literal notranslate"><span class="pre">generate_entity_instances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_available_badges"><code class="docutils literal notranslate"><span class="pre">get_available_badges()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_user_agent"><code class="docutils literal notranslate"><span class="pre">get_user_agent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_form"><code class="docutils literal notranslate"><span class="pre">lexeme_add_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_add_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_form"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_form"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call_helper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_items"><code class="docutils literal notranslate"><span class="pre">merge_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_lexemes"><code class="docutils literal notranslate"><span class="pre">merge_lexemes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_multiple_items"><code class="docutils literal notranslate"><span class="pre">merge_multiple_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.parse_value"><code class="docutils literal notranslate"><span class="pre">parse_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.remove_claims"><code class="docutils literal notranslate"><span class="pre">remove_claims()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.search_entities"><code class="docutils literal notranslate"><span class="pre">search_entities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.set_claim"><code class="docutils literal notranslate"><span class="pre">set_claim()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_login.html">wikibaseintegrator.wbi_login module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Clientlogin"><code class="docutils literal notranslate"><span class="pre">Clientlogin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Login"><code class="docutils literal notranslate"><span class="pre">Login</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.LoginError"><code class="docutils literal notranslate"><span class="pre">LoginError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth1"><code class="docutils literal notranslate"><span class="pre">OAuth1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth2"><code class="docutils literal notranslate"><span class="pre">OAuth2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.WCQSAuth"><code class="docutils literal notranslate"><span class="pre">WCQSAuth</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wikibaseintegrator.html">wikibaseintegrator.wikibaseintegrator module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wikibaseintegrator.html#wikibaseintegrator.wikibaseintegrator.WikibaseIntegrator"><code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#module-wikibaseintegrator">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.html#wikibaseintegrator-library">WikibaseIntegrator Library</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-14-0">v0.14.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#breaking-changes">Breaking changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#new-features-and-improvements">New features and improvements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-changes">Other changes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-13-0">v0.13.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#breaking-changes">Breaking changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#new-features-and-improvements">New features and improvements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-changes">Other changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-15">v0.12.15</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-14">v0.12.14</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-13">v0.12.13</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-12">v0.12.12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-11">v0.12.11</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-10">v0.12.10</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-9">v0.12.9</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-8">v0.12.8</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-7">v0.12.7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-6">v0.12.6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-5">v0.12.5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-4">v0.12.4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-3">v0.12.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-2">v0.12.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-1">v0.12.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0">v0.12.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#complete-rewrite-of-the-library">Complete rewrite of the library</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-11-3">v0.11.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0rc5">v0.12.0rc5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0rc4">v0.12.0rc4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-11-2">v0.11.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0rc3">v0.12.0rc3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0rc2">v0.12.0rc2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0rc1">v0.12.0rc1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0-dev7">v0.12.0.dev7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0-dev6">v0.12.0.dev6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-11-1">v0.11.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0-dev5">v0.12.0.dev5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0-dev4">v0.12.0.dev4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#changes-since-v0-12-0-dev3">Changes since v0.12.0.dev3</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0-dev3">v0.12.0.dev3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#changes-since-v0-12-0-dev2">Changes since v0.12.0.dev2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-12-0-dev2">v0.12.0.dev2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-11-0">v0.11.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#breaking-changes">BREAKING CHANGES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-10-1">v0.10.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-10-0">v0.10.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#breaking-changes">BREAKING CHANGES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-9-0">v0.9.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-8-2">v0.8.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#move-from-wikidataintegrator-to-wikibaseintegrator">Move from WikidataIntegrator to WikibaseIntegrator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-0-8-1">v0.8.1</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WikibaseIntegrator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Changelog</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/LeMyst/WikibaseIntegrator/blob/master/docs/source/changelog.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="changelog">
+<span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
+<section id="release-0-14-0">
+<h2>v0.14.0<a class="headerlink" href="#release-0-14-0" title="Link to this heading"></a></h2>
+<p><em>Released on 2026-10-31 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.14.0">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.14.0/">PyPI</a></em></p>
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<section id="breaking-changes">
+<h4>Breaking changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Replace the archived backoff library with a small retry decorator by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1087">https://github.com/LeMyst/WikibaseIntegrator/pull/1087</a></p></li>
+<li><p>Split the MediaWiki API retries by cause and lower their default by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1095">https://github.com/LeMyst/WikibaseIntegrator/pull/1095</a></p></li>
+</ul>
+</section>
+<section id="new-features-and-improvements">
+<h4>New features and improvements<a class="headerlink" href="#new-features-and-improvements" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Split writes larger than a maximum request size into several edits by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1072">https://github.com/LeMyst/WikibaseIntegrator/pull/1072</a></p></li>
+<li><p>Add create_redirect() helper for wbcreateredirect by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1074">https://github.com/LeMyst/WikibaseIntegrator/pull/1074</a></p></li>
+<li><p>Add set_claim() helper for wbsetclaim by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1075">https://github.com/LeMyst/WikibaseIntegrator/pull/1075</a></p></li>
+<li><p>Add parse_value() helper for wbparsevalue by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1078">https://github.com/LeMyst/WikibaseIntegrator/pull/1078</a></p></li>
+<li><p>Add get_available_badges() helper for wbavailablebadges (#309) by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1079">https://github.com/LeMyst/WikibaseIntegrator/pull/1079</a></p></li>
+<li><p>Retry the read timeouts of read-only MediaWiki API actions by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1096">https://github.com/LeMyst/WikibaseIntegrator/pull/1096</a></p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h4>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Keep claims of an unknown datatype instead of failing with IndexError by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1081">https://github.com/LeMyst/WikibaseIntegrator/pull/1081</a></p></li>
+<li><p>Cancel the removal of a claim when an equal claim is added again by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1082">https://github.com/LeMyst/WikibaseIntegrator/pull/1082</a></p></li>
+<li><p>Compare qualifiers and references exactly in MERGE_REFS_OR_APPEND by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1083">https://github.com/LeMyst/WikibaseIntegrator/pull/1083</a></p></li>
+<li><p>Support EntitySchema in fastrun and fix the Property type URI by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1084">https://github.com/LeMyst/WikibaseIntegrator/pull/1084</a></p></li>
+<li><p>Apply limit_claims and fields_to_update to MediaInfo statements by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1085">https://github.com/LeMyst/WikibaseIntegrator/pull/1085</a></p></li>
+<li><p>Re-authenticate only once per API call on a lost session by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1086">https://github.com/LeMyst/WikibaseIntegrator/pull/1086</a></p></li>
+<li><p>Replace instead of duplicating the claims loaded by get_claims() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1088">https://github.com/LeMyst/WikibaseIntegrator/pull/1088</a></p></li>
+<li><p>Batch generate_entity_instances() and handle deleted entities by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1089">https://github.com/LeMyst/WikibaseIntegrator/pull/1089</a></p></li>
+<li><p>Don’t raise KeyError when removing a qualifier of an absent property by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1090">https://github.com/LeMyst/WikibaseIntegrator/pull/1090</a></p></li>
+<li><p>Let is_bot=False override an api created with is_bot=True by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1091">https://github.com/LeMyst/WikibaseIntegrator/pull/1091</a></p></li>
+<li><p>Recognize unknown values from any Wikibase in fastrun by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1092">https://github.com/LeMyst/WikibaseIntegrator/pull/1092</a></p></li>
+<li><p>Use the RDF IRIs of the Commons values in SPARQL queries by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1093">https://github.com/LeMyst/WikibaseIntegrator/pull/1093</a></p></li>
+<li><p>Don’t multiply the retries of nested retried calls by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1094">https://github.com/LeMyst/WikibaseIntegrator/pull/1094</a></p></li>
+<li><p>Load the units and precisions of fastrun values lazily by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1098">https://github.com/LeMyst/WikibaseIntegrator/pull/1098</a></p></li>
+</ul>
+</section>
+<section id="documentation">
+<h4>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Document the ActionIfExists modes of Claims.add() and add_claims() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1073">https://github.com/LeMyst/WikibaseIntegrator/pull/1073</a></p></li>
+<li><p>Add a self-hosted coverage badge to the README (#895) by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1080">https://github.com/LeMyst/WikibaseIntegrator/pull/1080</a></p></li>
+</ul>
+</section>
+<section id="other-changes">
+<h4>Other changes<a class="headerlink" href="#other-changes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Bump version to 0.13.1.dev0 and fix the release upload step by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1071">https://github.com/LeMyst/WikibaseIntegrator/pull/1071</a></p></li>
+<li><p>Use Trivy’s default DB sources and pin trivy-action by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1076">https://github.com/LeMyst/WikibaseIntegrator/pull/1076</a></p></li>
+<li><p>Pin every GitHub Action to a commit SHA by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1077">https://github.com/LeMyst/WikibaseIntegrator/pull/1077</a></p></li>
+<li><p>Prepare the 0.14.0 release by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1099">https://github.com/LeMyst/WikibaseIntegrator/pull/1099</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.13.0...v0.14.0">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.13.0…v0.14.0</a></p>
+</section>
+</section>
+</section>
+<section id="release-0-13-0">
+<h2>v0.13.0<a class="headerlink" href="#release-0-13-0" title="Link to this heading"></a></h2>
+<p><em>Released on 2026-10-28 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.13.0">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.13.0/">PyPI</a></em></p>
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<section id="breaking-changes">
+<h4>Breaking changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Drop Python 3.9 support and update type hints by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/906">https://github.com/LeMyst/WikibaseIntegrator/pull/906</a></p></li>
+<li><p>Fix bugs and refactor entity architecture by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/996">https://github.com/LeMyst/WikibaseIntegrator/pull/996</a></p></li>
+<li><p>Drop mwoauth dependency, use oauthlib directly by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/998">https://github.com/LeMyst/WikibaseIntegrator/pull/998</a></p></li>
+<li><p>Rewrite the fast run mode with scoped SPARQL queries by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/333">https://github.com/LeMyst/WikibaseIntegrator/pull/333</a></p></li>
+<li><p>More write methods by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/479">https://github.com/LeMyst/WikibaseIntegrator/pull/479</a></p></li>
+<li><p>Use a per-thread requests.Session instead of module-level sessions by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/981">https://github.com/LeMyst/WikibaseIntegrator/pull/981</a></p></li>
+<li><p>Drop support for Python 3.10 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1051">https://github.com/LeMyst/WikibaseIntegrator/pull/1051</a></p></li>
+<li><p>Rely on wbi_backoff for SPARQL query retries by &#64;etlel in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/834">https://github.com/LeMyst/WikibaseIntegrator/pull/834</a></p></li>
+<li><p>Fix Claims.add() default to preserve existing claims instead of replacing them by &#64;LeMyst with &#64;Copilot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/926">https://github.com/LeMyst/WikibaseIntegrator/pull/926</a></p></li>
+<li><p>Reject empty values before writing, with an explicit error by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1065">https://github.com/LeMyst/WikibaseIntegrator/pull/1065</a></p></li>
+<li><p>Use the WikibaseDatatype enum for the datatypes by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1066">https://github.com/LeMyst/WikibaseIntegrator/pull/1066</a></p></li>
+<li><p>Make WikibaseRank and WikibaseSnakType StrEnum, WikibaseTimePrecision IntEnum by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1067">https://github.com/LeMyst/WikibaseIntegrator/pull/1067</a></p></li>
+</ul>
+</section>
+<section id="new-features-and-improvements">
+<h4>New features and improvements<a class="headerlink" href="#new-features-and-improvements" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Add check_constraints() helper for constraint checking by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/997">https://github.com/LeMyst/WikibaseIntegrator/pull/997</a></p></li>
+<li><p>Add PEP 561 py.typed marker by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1011">https://github.com/LeMyst/WikibaseIntegrator/pull/1011</a></p></li>
+<li><p>Add authentication support to execute_sparql_query by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1030">https://github.com/LeMyst/WikibaseIntegrator/pull/1030</a></p></li>
+<li><p>Align unused action_if_exists defaults on APPEND_OR_REPLACE by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1055">https://github.com/LeMyst/WikibaseIntegrator/pull/1055</a></p></li>
+<li><p>Add support for merging multiple items and creating redirects by default by &#64;dpriskorn in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/917">https://github.com/LeMyst/WikibaseIntegrator/pull/917</a></p></li>
+<li><p>Split model classes into their own file by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1056">https://github.com/LeMyst/WikibaseIntegrator/pull/1056</a></p></li>
+<li><p>Add Aliases.add() to add aliases without removing existing ones by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1057">https://github.com/LeMyst/WikibaseIntegrator/pull/1057</a></p></li>
+<li><p>Raise a clear error for Lexeme requests without WikibaseLexeme by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1061">https://github.com/LeMyst/WikibaseIntegrator/pull/1061</a></p></li>
+<li><p>Add EditGroups support for custom bots by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1063">https://github.com/LeMyst/WikibaseIntegrator/pull/1063</a></p></li>
+<li><p>Add check_wikibase() to report the features of a Wikibase instance by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1064">https://github.com/LeMyst/WikibaseIntegrator/pull/1064</a></p></li>
+<li><p>Add WCQSAuth to query the Wikimedia Commons Query Service by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1068">https://github.com/LeMyst/WikibaseIntegrator/pull/1068</a></p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h4>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Recover from lost sessions instead of failing writes by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/999">https://github.com/LeMyst/WikibaseIntegrator/pull/999</a></p></li>
+<li><p>Fix mypy errors in reauthenticate() and run lint on dependency bumps by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1010">https://github.com/LeMyst/WikibaseIntegrator/pull/1010</a></p></li>
+<li><p>Avoid mutating passed-in request data by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/982">https://github.com/LeMyst/WikibaseIntegrator/pull/982</a></p></li>
+<li><p>Compare time values at their precision in fastrun by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1058">https://github.com/LeMyst/WikibaseIntegrator/pull/1058</a></p></li>
+</ul>
+</section>
+<section id="documentation">
+<h4>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Fix outdated fastrun claim in README and version note in AGENTS.md by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1012">https://github.com/LeMyst/WikibaseIntegrator/pull/1012</a></p></li>
+<li><p>Update AGENTS.md and ignore agent worktrees by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1032">https://github.com/LeMyst/WikibaseIntegrator/pull/1032</a></p></li>
+<li><p>Update README to match the current code by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1033">https://github.com/LeMyst/WikibaseIntegrator/pull/1033</a></p></li>
+<li><p>Prepare for the 0.13.0 release by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1054">https://github.com/LeMyst/WikibaseIntegrator/pull/1054</a></p></li>
+<li><p>Mark the MediaInfo / Structured Data on Commons support as beta by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1060">https://github.com/LeMyst/WikibaseIntegrator/pull/1060</a></p></li>
+<li><p>Add a README example to replace a property by another by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1062">https://github.com/LeMyst/WikibaseIntegrator/pull/1062</a></p></li>
+<li><p>Fix the v0.13 retries entry for execute_sparql_query() in the README by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1069">https://github.com/LeMyst/WikibaseIntegrator/pull/1069</a></p></li>
+</ul>
+</section>
+<section id="dependencies">
+<h4>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Bump pytest from 8.4.1 to 8.4.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/901">https://github.com/LeMyst/WikibaseIntegrator/pull/901</a></p></li>
+<li><p>Bump pytest-cov from 6.2.1 to 7.0.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/904">https://github.com/LeMyst/WikibaseIntegrator/pull/904</a></p></li>
+<li><p>Bump mypy from 1.17.1 to 1.18.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/905">https://github.com/LeMyst/WikibaseIntegrator/pull/905</a></p></li>
+<li><p>Bump mypy from 1.18.1 to 1.18.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/909">https://github.com/LeMyst/WikibaseIntegrator/pull/909</a></p></li>
+<li><p>Bump jupyterlab from 4.4.7 to 4.4.8 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/910">https://github.com/LeMyst/WikibaseIntegrator/pull/910</a></p></li>
+<li><p>Bump pylint from 3.3.8 to 3.3.9 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/914">https://github.com/LeMyst/WikibaseIntegrator/pull/914</a></p></li>
+<li><p>Bump jupyterlab from 4.4.8 to 4.4.9 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/913">https://github.com/LeMyst/WikibaseIntegrator/pull/913</a></p></li>
+<li><p>Bump github/codeql-action from 3 to 4 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/915">https://github.com/LeMyst/WikibaseIntegrator/pull/915</a></p></li>
+<li><p>Bump jupyterlab from 4.4.9 to 4.4.10 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/919">https://github.com/LeMyst/WikibaseIntegrator/pull/919</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.0.1 to 3.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/918">https://github.com/LeMyst/WikibaseIntegrator/pull/918</a></p></li>
+<li><p>Bump actions/download-artifact from 5 to 6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/920">https://github.com/LeMyst/WikibaseIntegrator/pull/920</a></p></li>
+<li><p>Bump urllib3 from 2.5.0 to 2.6.0 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/933">https://github.com/LeMyst/WikibaseIntegrator/pull/933</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.1.0 to 3.2.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/932">https://github.com/LeMyst/WikibaseIntegrator/pull/932</a></p></li>
+<li><p>Bump mypy from 1.18.2 to 1.19.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/931">https://github.com/LeMyst/WikibaseIntegrator/pull/931</a></p></li>
+<li><p>Bump actions/setup-python from 6.0.0 to 6.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/930">https://github.com/LeMyst/WikibaseIntegrator/pull/930</a></p></li>
+<li><p>Bump actions/checkout from 5 to 6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/929">https://github.com/LeMyst/WikibaseIntegrator/pull/929</a></p></li>
+<li><p>Bump actions/upload-artifact from 4 to 5 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/921">https://github.com/LeMyst/WikibaseIntegrator/pull/921</a></p></li>
+<li><p>Bump jupyterlab from 4.4.10 to 4.5.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/928">https://github.com/LeMyst/WikibaseIntegrator/pull/928</a></p></li>
+<li><p>Bump jupyterlab from 4.5.0 to 4.5.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/937">https://github.com/LeMyst/WikibaseIntegrator/pull/937</a></p></li>
+<li><p>Bump mypy from 1.19.0 to 1.19.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/936">https://github.com/LeMyst/WikibaseIntegrator/pull/936</a></p></li>
+<li><p>Bump actions/download-artifact from 6 to 7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/935">https://github.com/LeMyst/WikibaseIntegrator/pull/935</a></p></li>
+<li><p>Bump actions/upload-artifact from 5 to 6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/934">https://github.com/LeMyst/WikibaseIntegrator/pull/934</a></p></li>
+<li><p>Bump urllib3 from 2.6.0 to 2.6.3 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/940">https://github.com/LeMyst/WikibaseIntegrator/pull/940</a></p></li>
+<li><p>Bump sphinx-rtd-theme from 3.0.2 to 3.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/942">https://github.com/LeMyst/WikibaseIntegrator/pull/942</a></p></li>
+<li><p>Bump actions/setup-python from 6.1.0 to 6.2.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/943">https://github.com/LeMyst/WikibaseIntegrator/pull/943</a></p></li>
+<li><p>Bump jupyterlab from 4.5.1 to 4.5.4 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/946">https://github.com/LeMyst/WikibaseIntegrator/pull/946</a></p></li>
+<li><p>Bump nbconvert from 7.16.6 to 7.17.0 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/945">https://github.com/LeMyst/WikibaseIntegrator/pull/945</a></p></li>
+<li><p>Bump actions/upload-artifact from 6 to 7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/948">https://github.com/LeMyst/WikibaseIntegrator/pull/948</a></p></li>
+<li><p>Bump actions/download-artifact from 7 to 8 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/949">https://github.com/LeMyst/WikibaseIntegrator/pull/949</a></p></li>
+<li><p>Bump dependencies in poetry.lock by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/954">https://github.com/LeMyst/WikibaseIntegrator/pull/954</a></p></li>
+<li><p>Bump pytest from 9.0.2 to 9.0.3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/962">https://github.com/LeMyst/WikibaseIntegrator/pull/962</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.2.0 to 3.3.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/959">https://github.com/LeMyst/WikibaseIntegrator/pull/959</a></p></li>
+<li><p>Bump sphinx-github-changelog from 1.7.1 to 1.7.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/957">https://github.com/LeMyst/WikibaseIntegrator/pull/957</a></p></li>
+<li><p>Bump pytest-cov from 7.0.0 to 7.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/956">https://github.com/LeMyst/WikibaseIntegrator/pull/956</a></p></li>
+<li><p>Bump requests from 2.32.5 to 2.33.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/958">https://github.com/LeMyst/WikibaseIntegrator/pull/958</a></p></li>
+<li><p>Bump mypy from 1.19.1 to 1.20.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/961">https://github.com/LeMyst/WikibaseIntegrator/pull/961</a></p></li>
+<li><p>Bump mypy from 1.20.0 to 1.20.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/964">https://github.com/LeMyst/WikibaseIntegrator/pull/964</a></p></li>
+<li><p>Bump mypy from 1.20.1 to 1.20.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/966">https://github.com/LeMyst/WikibaseIntegrator/pull/966</a></p></li>
+<li><p>Bump pozil/auto-assign-issue from 2 to 3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/967">https://github.com/LeMyst/WikibaseIntegrator/pull/967</a></p></li>
+<li><p>Bump requests from 2.32.5 to 2.33.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/960">https://github.com/LeMyst/WikibaseIntegrator/pull/960</a></p></li>
+<li><p>Bump actions/setup-python from 6.2.0 to 6.3.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/992">https://github.com/LeMyst/WikibaseIntegrator/pull/992</a></p></li>
+<li><p>Bump actions/checkout from 6 to 7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/989">https://github.com/LeMyst/WikibaseIntegrator/pull/989</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.3.0 to 3.4.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/984">https://github.com/LeMyst/WikibaseIntegrator/pull/984</a></p></li>
+<li><p>Bump pozil/auto-assign-issue from 3 to 4 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/978">https://github.com/LeMyst/WikibaseIntegrator/pull/978</a></p></li>
+<li><p>Bump jupyterlab from 4.5.6 to 4.6.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/993">https://github.com/LeMyst/WikibaseIntegrator/pull/993</a></p></li>
+<li><p>Bump pylint from 4.0.5 to 4.0.6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/987">https://github.com/LeMyst/WikibaseIntegrator/pull/987</a></p></li>
+<li><p>Bump pytest from 9.0.3 to 9.1.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/990">https://github.com/LeMyst/WikibaseIntegrator/pull/990</a></p></li>
+<li><p>Bump ujson from 5.12.0 to 5.13.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/985">https://github.com/LeMyst/WikibaseIntegrator/pull/985</a></p></li>
+<li><p>Bump mypy from 1.20.2 to 2.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/974">https://github.com/LeMyst/WikibaseIntegrator/pull/974</a></p></li>
+<li><p>Bump requests from 2.33.1 to 2.34.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/977">https://github.com/LeMyst/WikibaseIntegrator/pull/977</a></p></li>
+<li><p>Update poetry.lock by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/995">https://github.com/LeMyst/WikibaseIntegrator/pull/995</a></p></li>
+<li><p>Bump actions/checkout from 6 to 7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1004">https://github.com/LeMyst/WikibaseIntegrator/pull/1004</a></p></li>
+<li><p>Bump peter-evans/create-pull-request from 7 to 8 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1003">https://github.com/LeMyst/WikibaseIntegrator/pull/1003</a></p></li>
+<li><p>Bump actions/setup-python from 6.2.0 to 6.3.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1002">https://github.com/LeMyst/WikibaseIntegrator/pull/1002</a></p></li>
+<li><p>Bump mypy from 2.1.0 to 2.2.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1005">https://github.com/LeMyst/WikibaseIntegrator/pull/1005</a></p></li>
+<li><p>Bump mypy from 2.2.0 to 2.3.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1006">https://github.com/LeMyst/WikibaseIntegrator/pull/1006</a></p></li>
+<li><p>Bump actions/setup-python from 6.3.0 to 7.0.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1008">https://github.com/LeMyst/WikibaseIntegrator/pull/1008</a></p></li>
+<li><p>Bump codespell from 2.4.2 to 2.4.3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1007">https://github.com/LeMyst/WikibaseIntegrator/pull/1007</a></p></li>
+<li><p>Bump jupyterlab from 4.6.1 to 4.6.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1009">https://github.com/LeMyst/WikibaseIntegrator/pull/1009</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.4.0 to 3.5.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1014">https://github.com/LeMyst/WikibaseIntegrator/pull/1014</a></p></li>
+<li><p>Bump github/codeql-action from 4 to 4.37.3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1015">https://github.com/LeMyst/WikibaseIntegrator/pull/1015</a></p></li>
+<li><p>Bump github/codeql-action from 4.37.3 to 4.37.4 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1016">https://github.com/LeMyst/WikibaseIntegrator/pull/1016</a></p></li>
+<li><p>Bump github/codeql-action from 4.37.4 to 4.37.5 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1017">https://github.com/LeMyst/WikibaseIntegrator/pull/1017</a></p></li>
+<li><p>Bump github/codeql-action from 4.37.5 to 4.37.6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1018">https://github.com/LeMyst/WikibaseIntegrator/pull/1018</a></p></li>
+<li><p>Bump pylint from 4.0.6 to 4.0.7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1019">https://github.com/LeMyst/WikibaseIntegrator/pull/1019</a></p></li>
+<li><p>Bump jupyterlab from 4.6.2 to 4.6.3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1020">https://github.com/LeMyst/WikibaseIntegrator/pull/1020</a></p></li>
+<li><p>Bump github/codeql-action from 4.37.6 to 4.37.7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1021">https://github.com/LeMyst/WikibaseIntegrator/pull/1021</a></p></li>
+<li><p>Bump mypy from 2.3.0 to 2.3.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1022">https://github.com/LeMyst/WikibaseIntegrator/pull/1022</a></p></li>
+<li><p>Bump tornado from 6.5.7 to 6.5.8 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1025">https://github.com/LeMyst/WikibaseIntegrator/pull/1025</a></p></li>
+<li><p>Bump github/codeql-action from 4.37.7 to 4.37.9 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1024">https://github.com/LeMyst/WikibaseIntegrator/pull/1024</a></p></li>
+<li><p>Bump pylint from 4.0.7 to 4.0.8 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1026">https://github.com/LeMyst/WikibaseIntegrator/pull/1026</a></p></li>
+<li><p>Bump ujson from 5.13.0 to 6.0.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1027">https://github.com/LeMyst/WikibaseIntegrator/pull/1027</a></p></li>
+<li><p>Bump github/codeql-action from 4.37.9 to 4.38.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1028">https://github.com/LeMyst/WikibaseIntegrator/pull/1028</a></p></li>
+<li><p>Bump the pip group across 1 directory with 2 updates by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1029">https://github.com/LeMyst/WikibaseIntegrator/pull/1029</a></p></li>
+<li><p>Bump anyio from 4.14.1 to 4.15.1 (security) by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1031">https://github.com/LeMyst/WikibaseIntegrator/pull/1031</a></p></li>
+<li><p>Bump jupyterlab from 4.6.3 to 4.6.4 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1035">https://github.com/LeMyst/WikibaseIntegrator/pull/1035</a></p></li>
+<li><p>Bump github/codeql-action from 4.38.0 to 4.38.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1034">https://github.com/LeMyst/WikibaseIntegrator/pull/1034</a></p></li>
+<li><p>Bump pylint from 4.0.8 to 4.0.9 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1036">https://github.com/LeMyst/WikibaseIntegrator/pull/1036</a></p></li>
+<li><p>Bump github/codeql-action from 4.38.1 to 4.38.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1037">https://github.com/LeMyst/WikibaseIntegrator/pull/1037</a></p></li>
+<li><p>Bump oauthlib from 3.3.1 to 4.0.0 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1038">https://github.com/LeMyst/WikibaseIntegrator/pull/1038</a></p></li>
+<li><p>Bump the pip group across 1 directory with 2 updates by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1039">https://github.com/LeMyst/WikibaseIntegrator/pull/1039</a></p></li>
+<li><p>Bump pylint from 4.0.9 to 4.1.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1040">https://github.com/LeMyst/WikibaseIntegrator/pull/1040</a></p></li>
+<li><p>Bump mypy from 2.3.1 to 2.4.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1041">https://github.com/LeMyst/WikibaseIntegrator/pull/1041</a></p></li>
+<li><p>Bump notebook from 7.6.0 to 7.6.3 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1042">https://github.com/LeMyst/WikibaseIntegrator/pull/1042</a></p></li>
+<li><p>Bump github/codeql-action from 4.38.2 to 4.38.3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1044">https://github.com/LeMyst/WikibaseIntegrator/pull/1044</a></p></li>
+<li><p>Bump github/codeql-action from 4.38.3 to 4.39.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1046">https://github.com/LeMyst/WikibaseIntegrator/pull/1046</a></p></li>
+<li><p>Bump pylint from 4.1.1 to 4.1.3 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1045">https://github.com/LeMyst/WikibaseIntegrator/pull/1045</a></p></li>
+<li><p>Bump github/codeql-action from 4.39.0 to 4.39.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1049">https://github.com/LeMyst/WikibaseIntegrator/pull/1049</a></p></li>
+<li><p>Bump actions/setup-python from 7.0.0 to 7.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1048">https://github.com/LeMyst/WikibaseIntegrator/pull/1048</a></p></li>
+<li><p>Bump actions/setup-python from 7.0.0 to 7.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1050">https://github.com/LeMyst/WikibaseIntegrator/pull/1050</a></p></li>
+<li><p>Bump certifi from 2026.6.17 to 2026.10.19 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1047">https://github.com/LeMyst/WikibaseIntegrator/pull/1047</a></p></li>
+<li><p>Force nbconvert &gt;= 7.17.2 (GHSA-pjvx-prjx-h659) by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1052">https://github.com/LeMyst/WikibaseIntegrator/pull/1052</a></p></li>
+<li><p>Update locked dependencies by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1053">https://github.com/LeMyst/WikibaseIntegrator/pull/1053</a></p></li>
+</ul>
+</section>
+<section id="other-changes">
+<h4>Other changes<a class="headerlink" href="#other-changes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Bump version to 0.12.15.dev0 in pyproject.toml by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/900">https://github.com/LeMyst/WikibaseIntegrator/pull/900</a></p></li>
+<li><p>fix: let generate_entity_instances preserve login information by &#64;lihaohong6 in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/912">https://github.com/LeMyst/WikibaseIntegrator/pull/912</a></p></li>
+<li><p>Add User-Agent header to OAuth2 token request by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/924">https://github.com/LeMyst/WikibaseIntegrator/pull/924</a></p></li>
+<li><p>Release version 0.12.15 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/938">https://github.com/LeMyst/WikibaseIntegrator/pull/938</a></p></li>
+<li><p>Bump version to 0.12.16.dev0 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/955">https://github.com/LeMyst/WikibaseIntegrator/pull/955</a></p></li>
+<li><p>Update CI configuration to use Ubuntu 24.04 container by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/973">https://github.com/LeMyst/WikibaseIntegrator/pull/973</a></p></li>
+<li><p>Migrate to offline test suite with mocked Wikibase API by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/994">https://github.com/LeMyst/WikibaseIntegrator/pull/994</a></p></li>
+<li><p>Add .run/ to gitignore by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1000">https://github.com/LeMyst/WikibaseIntegrator/pull/1000</a></p></li>
+<li><p>Ignore local TODO.md and review notes by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1013">https://github.com/LeMyst/WikibaseIntegrator/pull/1013</a></p></li>
+<li><p>Rename params to body in execute_sparql_query by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/983">https://github.com/LeMyst/WikibaseIntegrator/pull/983</a></p></li>
+<li><p>Add pre-commit configuration by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1059">https://github.com/LeMyst/WikibaseIntegrator/pull/1059</a></p></li>
+<li><p>Release version 0.13.0 and publish from GitHub releases by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1070">https://github.com/LeMyst/WikibaseIntegrator/pull/1070</a></p></li>
+</ul>
+</section>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;lihaohong6 made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/912">https://github.com/LeMyst/WikibaseIntegrator/pull/912</a></p></li>
+<li><p>&#64;etlel made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/834">https://github.com/LeMyst/WikibaseIntegrator/pull/834</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.14...v0.13.0">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.14…v0.13.0</a></p>
+</section>
+</section>
+<section id="release-0-12-15">
+<h2>v0.12.15<a class="headerlink" href="#release-0-12-15" title="Link to this heading"></a></h2>
+<p><em>Released on 2025-12-21 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.15">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.15/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Bump version to 0.12.15.dev0 in pyproject.toml by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/900">https://github.com/LeMyst/WikibaseIntegrator/pull/900</a></p></li>
+<li><p>Bump pytest from 8.4.1 to 8.4.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/901">https://github.com/LeMyst/WikibaseIntegrator/pull/901</a></p></li>
+<li><p>Bump pytest-cov from 6.2.1 to 7.0.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/904">https://github.com/LeMyst/WikibaseIntegrator/pull/904</a></p></li>
+<li><p>Bump mypy from 1.17.1 to 1.18.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/905">https://github.com/LeMyst/WikibaseIntegrator/pull/905</a></p></li>
+<li><p>Bump mypy from 1.18.1 to 1.18.2 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/909">https://github.com/LeMyst/WikibaseIntegrator/pull/909</a></p></li>
+<li><p>Bump jupyterlab from 4.4.7 to 4.4.8 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/910">https://github.com/LeMyst/WikibaseIntegrator/pull/910</a></p></li>
+<li><p>Bump pylint from 3.3.8 to 3.3.9 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/914">https://github.com/LeMyst/WikibaseIntegrator/pull/914</a></p></li>
+<li><p>Bump jupyterlab from 4.4.8 to 4.4.9 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/913">https://github.com/LeMyst/WikibaseIntegrator/pull/913</a></p></li>
+<li><p>Bump github/codeql-action from 3 to 4 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/915">https://github.com/LeMyst/WikibaseIntegrator/pull/915</a></p></li>
+<li><p>Bump jupyterlab from 4.4.9 to 4.4.10 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/919">https://github.com/LeMyst/WikibaseIntegrator/pull/919</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.0.1 to 3.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/918">https://github.com/LeMyst/WikibaseIntegrator/pull/918</a></p></li>
+<li><p>fix: let generate_entity_instances preserve login information by &#64;lihaohong6 in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/912">https://github.com/LeMyst/WikibaseIntegrator/pull/912</a></p></li>
+<li><p>Bump actions/download-artifact from 5 to 6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/920">https://github.com/LeMyst/WikibaseIntegrator/pull/920</a></p></li>
+<li><p>Add User-Agent header to OAuth2 token request by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/924">https://github.com/LeMyst/WikibaseIntegrator/pull/924</a></p></li>
+<li><p>Bump urllib3 from 2.5.0 to 2.6.0 in the pip group across 1 directory by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/933">https://github.com/LeMyst/WikibaseIntegrator/pull/933</a></p></li>
+<li><p>Bump sigstore/gh-action-sigstore-python from 3.1.0 to 3.2.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/932">https://github.com/LeMyst/WikibaseIntegrator/pull/932</a></p></li>
+<li><p>Bump mypy from 1.18.2 to 1.19.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/931">https://github.com/LeMyst/WikibaseIntegrator/pull/931</a></p></li>
+<li><p>Bump actions/setup-python from 6.0.0 to 6.1.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/930">https://github.com/LeMyst/WikibaseIntegrator/pull/930</a></p></li>
+<li><p>Bump actions/checkout from 5 to 6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/929">https://github.com/LeMyst/WikibaseIntegrator/pull/929</a></p></li>
+<li><p>Bump actions/upload-artifact from 4 to 5 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/921">https://github.com/LeMyst/WikibaseIntegrator/pull/921</a></p></li>
+<li><p>Bump jupyterlab from 4.4.10 to 4.5.0 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/928">https://github.com/LeMyst/WikibaseIntegrator/pull/928</a></p></li>
+<li><p>Bump jupyterlab from 4.5.0 to 4.5.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/937">https://github.com/LeMyst/WikibaseIntegrator/pull/937</a></p></li>
+<li><p>Bump mypy from 1.19.0 to 1.19.1 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/936">https://github.com/LeMyst/WikibaseIntegrator/pull/936</a></p></li>
+<li><p>Bump actions/download-artifact from 6 to 7 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/935">https://github.com/LeMyst/WikibaseIntegrator/pull/935</a></p></li>
+<li><p>Bump actions/upload-artifact from 5 to 6 by &#64;dependabot[bot] in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/934">https://github.com/LeMyst/WikibaseIntegrator/pull/934</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;lihaohong6 made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/912">https://github.com/LeMyst/WikibaseIntegrator/pull/912</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.14...v0.12.15">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.14…v0.12.15</a></p>
+</section>
+</section>
+<section id="release-0-12-14">
+<h2>v0.12.14<a class="headerlink" href="#release-0-12-14" title="Link to this heading"></a></h2>
+<p><em>Released on 2025-09-04 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.14">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.14/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Bump version to 0.12.14.dev0 in pyproject.toml by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/894">https://github.com/LeMyst/WikibaseIntegrator/pull/894</a></p></li>
+<li><p>Add support for additional request parameters in login methods by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/865">https://github.com/LeMyst/WikibaseIntegrator/pull/865</a></p></li>
+<li><p>Use datetime.now(datetime.UTC) instead of datetime.utcnow() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/832">https://github.com/LeMyst/WikibaseIntegrator/pull/832</a></p></li>
+<li><p>Release version 0.12.14 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/899">https://github.com/LeMyst/WikibaseIntegrator/pull/899</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.13...v0.12.14">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.13…v0.12.14</a></p>
+</section>
+</section>
+<section id="release-0-12-13">
+<h2>v0.12.13<a class="headerlink" href="#release-0-12-13" title="Link to this heading"></a></h2>
+<p><em>Released on 2025-08-30 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.13">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.13/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare for next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/821">https://github.com/LeMyst/WikibaseIntegrator/pull/821</a></p></li>
+<li><p>Ignore .venv folders by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/822">https://github.com/LeMyst/WikibaseIntegrator/pull/822</a></p></li>
+<li><p>Update the documentation by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/823">https://github.com/LeMyst/WikibaseIntegrator/pull/823</a></p></li>
+<li><p>Regenerate poetry.lock by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/852">https://github.com/LeMyst/WikibaseIntegrator/pull/852</a></p></li>
+<li><p>Update poetry.lock for tornado by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/857">https://github.com/LeMyst/WikibaseIntegrator/pull/857</a></p></li>
+<li><p>Add installation instructions for specific branch or tag in README by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/866">https://github.com/LeMyst/WikibaseIntegrator/pull/866</a></p></li>
+<li><p>grammar in README.md by &#64;combinatorist in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/874">https://github.com/LeMyst/WikibaseIntegrator/pull/874</a></p></li>
+<li><p>Add comprehensive .github/copilot-instructions.md to onboard coding agents by &#64;Copilot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/892">https://github.com/LeMyst/WikibaseIntegrator/pull/892</a></p></li>
+<li><p>Refactor MediaInfo handling to unify claims and statements; update te… by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/843">https://github.com/LeMyst/WikibaseIntegrator/pull/843</a></p></li>
+<li><p>Release version 0.12.13 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/893">https://github.com/LeMyst/WikibaseIntegrator/pull/893</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;combinatorist made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/874">https://github.com/LeMyst/WikibaseIntegrator/pull/874</a></p></li>
+<li><p>&#64;Copilot made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/892">https://github.com/LeMyst/WikibaseIntegrator/pull/892</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.12...v0.12.13">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.12…v0.12.13</a></p>
+</section>
+</section>
+<section id="release-0-12-12">
+<h2>v0.12.12<a class="headerlink" href="#release-0-12-12" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-12-31 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.12">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.12/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add poetry dev install command by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/805">https://github.com/LeMyst/WikibaseIntegrator/pull/805</a></p></li>
+<li><p>Add entity write() fields_to_update parameter by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/816">https://github.com/LeMyst/WikibaseIntegrator/pull/816</a></p></li>
+<li><p>Allow to pass “props” field to wbgetentities by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/817">https://github.com/LeMyst/WikibaseIntegrator/pull/817</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.11...v0.12.12">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.11…v0.12.12</a></p>
+</section>
+</section>
+<section id="release-0-12-11">
+<h2>v0.12.11<a class="headerlink" href="#release-0-12-11" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-11-29 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.11">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.11/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Moving extra datatypes to be added to BaseDatatype subclasses. by &#64;sammasak in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/799">https://github.com/LeMyst/WikibaseIntegrator/pull/799</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;sammasak made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/799">https://github.com/LeMyst/WikibaseIntegrator/pull/799</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.10...v0.12.11">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.10…v0.12.11</a></p>
+</section>
+</section>
+<section id="release-0-12-10">
+<h2>v0.12.10<a class="headerlink" href="#release-0-12-10" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-11-15 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.10">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.10/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare for next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/789">https://github.com/LeMyst/WikibaseIntegrator/pull/789</a></p></li>
+<li><p>Update .readthedocs.yaml by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/790">https://github.com/LeMyst/WikibaseIntegrator/pull/790</a></p></li>
+<li><p>Update dependencies by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/791">https://github.com/LeMyst/WikibaseIntegrator/pull/791</a></p></li>
+<li><p>Prepare for 0.12.10 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/792">https://github.com/LeMyst/WikibaseIntegrator/pull/792</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.9...v0.12.10">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.9…v0.12.10</a></p>
+</section>
+</section>
+<section id="release-0-12-9">
+<h2>v0.12.9<a class="headerlink" href="#release-0-12-9" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-11-14 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.9">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.9/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare for next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/767">https://github.com/LeMyst/WikibaseIntegrator/pull/767</a></p></li>
+<li><p>Remove 3.8 support by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/780">https://github.com/LeMyst/WikibaseIntegrator/pull/780</a></p></li>
+<li><p>Use WikibaseTimePrecision instead of WikibaseDatePrecision by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/781">https://github.com/LeMyst/WikibaseIntegrator/pull/781</a></p></li>
+<li><p>Improve README examples by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/782">https://github.com/LeMyst/WikibaseIntegrator/pull/782</a></p></li>
+<li><p>Update README TOC by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/783">https://github.com/LeMyst/WikibaseIntegrator/pull/783</a></p></li>
+<li><p>added missing time precision values (#784) by &#64;tholzheim in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/785">https://github.com/LeMyst/WikibaseIntegrator/pull/785</a></p></li>
+<li><p>Switch Trivy repository by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/788">https://github.com/LeMyst/WikibaseIntegrator/pull/788</a></p></li>
+<li><p>Prepare for 0.12.9 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/787">https://github.com/LeMyst/WikibaseIntegrator/pull/787</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;tholzheim made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/785">https://github.com/LeMyst/WikibaseIntegrator/pull/785</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.8...v0.12.9">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.8…v0.12.9</a></p>
+</section>
+</section>
+<section id="release-0-12-8">
+<h2>v0.12.8<a class="headerlink" href="#release-0-12-8" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-09-06 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.8">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.8/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare for next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/747">https://github.com/LeMyst/WikibaseIntegrator/pull/747</a></p></li>
+<li><p>Correction compilation Read the Docs by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/749">https://github.com/LeMyst/WikibaseIntegrator/pull/749</a></p></li>
+<li><p>Add missing docs by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/750">https://github.com/LeMyst/WikibaseIntegrator/pull/750</a></p></li>
+<li><p>Fix backoff error for max_tries argument by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/765">https://github.com/LeMyst/WikibaseIntegrator/pull/765</a></p></li>
+<li><p>fix missing sitelinks in item.write() by &#64;dabu1111 in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/764">https://github.com/LeMyst/WikibaseIntegrator/pull/764</a></p></li>
+<li><p>Prepare for 0.12.8 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/766">https://github.com/LeMyst/WikibaseIntegrator/pull/766</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;dabu1111 made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/764">https://github.com/LeMyst/WikibaseIntegrator/pull/764</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.7...v0.12.8">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.7…v0.12.8</a></p>
+</section>
+</section>
+<section id="release-0-12-7">
+<h2>v0.12.7<a class="headerlink" href="#release-0-12-7" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-07-22 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.7">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.7/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare for next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/709">https://github.com/LeMyst/WikibaseIntegrator/pull/709</a></p></li>
+<li><p>Replace httpstat.us by httpbin.org by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/716">https://github.com/LeMyst/WikibaseIntegrator/pull/716</a></p></li>
+<li><p>Update requests-oauthlib to 2.0.0 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/715">https://github.com/LeMyst/WikibaseIntegrator/pull/715</a></p></li>
+<li><p>Add support for local httpstatus by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/721">https://github.com/LeMyst/WikibaseIntegrator/pull/721</a></p></li>
+<li><p>fix(tests): fix build errors by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/733">https://github.com/LeMyst/WikibaseIntegrator/pull/733</a></p></li>
+<li><p>Add Python 3.13 support by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/720">https://github.com/LeMyst/WikibaseIntegrator/pull/720</a></p></li>
+<li><p>Add EntitySchema data type by &#64;eloiferrer in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/742">https://github.com/LeMyst/WikibaseIntegrator/pull/742</a></p></li>
+<li><p>Prepare for 0.12.7 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/746">https://github.com/LeMyst/WikibaseIntegrator/pull/746</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.6...v0.12.7">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.6…v0.12.7</a></p>
+</section>
+</section>
+<section id="release-0-12-6">
+<h2>v0.12.6<a class="headerlink" href="#release-0-12-6" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-05-02 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.6">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.6/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/671">https://github.com/LeMyst/WikibaseIntegrator/pull/671</a></p></li>
+<li><p>Re-enable publish to testpypi by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/670">https://github.com/LeMyst/WikibaseIntegrator/pull/670</a></p></li>
+<li><p>Fix Read the Docs badge by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/672">https://github.com/LeMyst/WikibaseIntegrator/pull/672</a></p></li>
+<li><p>Add toml dependency for docs by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/673">https://github.com/LeMyst/WikibaseIntegrator/pull/673</a></p></li>
+<li><p>Fix “Edit on GitHub” in docs by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/674">https://github.com/LeMyst/WikibaseIntegrator/pull/674</a></p></li>
+<li><p>Try python 3.13-dev by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/675">https://github.com/LeMyst/WikibaseIntegrator/pull/675</a></p></li>
+<li><p>Disable test against 3.13 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/676">https://github.com/LeMyst/WikibaseIntegrator/pull/676</a></p></li>
+<li><p>Add poetry.lock for pytest pipeline by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/678">https://github.com/LeMyst/WikibaseIntegrator/pull/678</a></p></li>
+<li><p>Fix unit test test_entity_qualifers_remove() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/684">https://github.com/LeMyst/WikibaseIntegrator/pull/684</a></p></li>
+<li><p>Fix adding new Form to Lexeme by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/685">https://github.com/LeMyst/WikibaseIntegrator/pull/685</a></p></li>
+<li><p>Update the User-Agent policy URL by &#64;guyfawcus in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/707">https://github.com/LeMyst/WikibaseIntegrator/pull/707</a></p></li>
+<li><p>Prepare for 0.12.6 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/708">https://github.com/LeMyst/WikibaseIntegrator/pull/708</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;guyfawcus made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/707">https://github.com/LeMyst/WikibaseIntegrator/pull/707</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.5...v0.12.6">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.5…v0.12.6</a></p>
+</section>
+</section>
+<section id="release-0-12-5">
+<h2>v0.12.5<a class="headerlink" href="#release-0-12-5" title="Link to this heading"></a></h2>
+<p><em>Released on 2024-01-07 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.5">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.5/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Prepare next version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/556">https://github.com/LeMyst/WikibaseIntegrator/pull/556</a></p></li>
+<li><p>Add wd-population link in README by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/563">https://github.com/LeMyst/WikibaseIntegrator/pull/563</a></p></li>
+<li><p>Fix URL in README by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/564">https://github.com/LeMyst/WikibaseIntegrator/pull/564</a></p></li>
+<li><p>Update README.md by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/567">https://github.com/LeMyst/WikibaseIntegrator/pull/567</a></p></li>
+<li><p>Add newline test for String and MonolingualText by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/568">https://github.com/LeMyst/WikibaseIntegrator/pull/568</a></p></li>
+<li><p>Add get_lexeme_id() on Form and Sense by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/569">https://github.com/LeMyst/WikibaseIntegrator/pull/569</a></p></li>
+<li><p>Add Claim.reset_id() method by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/570">https://github.com/LeMyst/WikibaseIntegrator/pull/570</a></p></li>
+<li><p>Upgrade to Python 3.8 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/558">https://github.com/LeMyst/WikibaseIntegrator/pull/558</a></p></li>
+<li><p>More example projects added by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/592">https://github.com/LeMyst/WikibaseIntegrator/pull/592</a></p></li>
+<li><p>Add trivy scan by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/604">https://github.com/LeMyst/WikibaseIntegrator/pull/604</a></p></li>
+<li><p>Remove trivy scan from build workflow by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/606">https://github.com/LeMyst/WikibaseIntegrator/pull/606</a></p></li>
+<li><p>Add separate trivy scan by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/605">https://github.com/LeMyst/WikibaseIntegrator/pull/605</a></p></li>
+<li><p>Bump to Python 3.12 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/624">https://github.com/LeMyst/WikibaseIntegrator/pull/624</a></p></li>
+<li><p>Fix spelling after codespell by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/626">https://github.com/LeMyst/WikibaseIntegrator/pull/626</a></p></li>
+<li><p>Improve get method in claims.py to avoid KeyError by &#64;eloiferrer in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/625">https://github.com/LeMyst/WikibaseIntegrator/pull/625</a></p></li>
+<li><p>Bump version to v0.12.5 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/627">https://github.com/LeMyst/WikibaseIntegrator/pull/627</a></p></li>
+<li><p>Add Missing EDTF and LocalMedia Enums by &#64;luguenth in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/633">https://github.com/LeMyst/WikibaseIntegrator/pull/633</a></p></li>
+<li><p>Add warning when using qualifier/reference in Reference by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/652">https://github.com/LeMyst/WikibaseIntegrator/pull/652</a></p></li>
+<li><p>Add common use cases by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/650">https://github.com/LeMyst/WikibaseIntegrator/pull/650</a></p></li>
+<li><p>Add new library utilization by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/651">https://github.com/LeMyst/WikibaseIntegrator/pull/651</a></p></li>
+<li><p>Add get lemma example to README.md by &#64;dpriskorn in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/654">https://github.com/LeMyst/WikibaseIntegrator/pull/654</a></p></li>
+<li><p>Add default value to None for wbi_helpers.get_user_agent() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/659">https://github.com/LeMyst/WikibaseIntegrator/pull/659</a></p></li>
+<li><p>Re-order wbi_helpers by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/660">https://github.com/LeMyst/WikibaseIntegrator/pull/660</a></p></li>
+<li><p>Add download_entity_ttl support by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/664">https://github.com/LeMyst/WikibaseIntegrator/pull/664</a></p></li>
+<li><p>Create wbi_helpers.ipynb by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/661">https://github.com/LeMyst/WikibaseIntegrator/pull/661</a></p></li>
+<li><p>Add ActionIfExists.MERGE_REFS_OR_APPEND by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/619">https://github.com/LeMyst/WikibaseIntegrator/pull/619</a></p></li>
+<li><p>Use poetry instead of setuptools/requirements by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/658">https://github.com/LeMyst/WikibaseIntegrator/pull/658</a></p></li>
+<li><p>Temp fix for multiple version on testpypi by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/668">https://github.com/LeMyst/WikibaseIntegrator/pull/668</a></p></li>
+<li><p>Fix github action on tags by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/669">https://github.com/LeMyst/WikibaseIntegrator/pull/669</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;luguenth made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/633">https://github.com/LeMyst/WikibaseIntegrator/pull/633</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.4...v0.12.5">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.4…v0.12.5</a></p>
+</section>
+</section>
+<section id="release-0-12-4">
+<h2>v0.12.4<a class="headerlink" href="#release-0-12-4" title="Link to this heading"></a></h2>
+<p><em>Released on 2023-06-07 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.4">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.4/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add concept URI as value by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/508">https://github.com/LeMyst/WikibaseIntegrator/pull/508</a></p></li>
+<li><p>Fix regex for time value by &#64;eloiferrer in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/512">https://github.com/LeMyst/WikibaseIntegrator/pull/512</a></p></li>
+<li><p>Generalize <strong>len</strong>() support by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/517">https://github.com/LeMyst/WikibaseIntegrator/pull/517</a></p></li>
+<li><p>Add more explicit information about differences between WBI/WDI by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/466">https://github.com/LeMyst/WikibaseIntegrator/pull/466</a></p></li>
+<li><p>Add SubClasses registration to BaseEntity by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/532">https://github.com/LeMyst/WikibaseIntegrator/pull/532</a></p></li>
+<li><p>Fix qualifiers when passing Qualifiers in set() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/533">https://github.com/LeMyst/WikibaseIntegrator/pull/533</a></p></li>
+<li><p>Fix BaseEntity subclasses by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/535">https://github.com/LeMyst/WikibaseIntegrator/pull/535</a></p></li>
+<li><p>Add get_entity_url() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/537">https://github.com/LeMyst/WikibaseIntegrator/pull/537</a></p></li>
+<li><p>Add JSON format helper to WBI Entity by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/534">https://github.com/LeMyst/WikibaseIntegrator/pull/534</a></p></li>
+<li><p>Improve datatype Time by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/542">https://github.com/LeMyst/WikibaseIntegrator/pull/542</a></p></li>
+<li><p>Add limit_claims to baseentity._write() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/544">https://github.com/LeMyst/WikibaseIntegrator/pull/544</a></p></li>
+<li><p>Add Qualifiers.remove() and Qualifiers.clear() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/545">https://github.com/LeMyst/WikibaseIntegrator/pull/545</a></p></li>
+<li><p>Fix exception if qualifier is not in list by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/546">https://github.com/LeMyst/WikibaseIntegrator/pull/546</a></p></li>
+<li><p>Check lexeme language format by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/554">https://github.com/LeMyst/WikibaseIntegrator/pull/554</a></p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;eloiferrer made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/512">https://github.com/LeMyst/WikibaseIntegrator/pull/512</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.3...v0.12.4">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.3…v0.12.4</a></p>
+</section>
+</section>
+<section id="release-0-12-3">
+<h2>v0.12.3<a class="headerlink" href="#release-0-12-3" title="Link to this heading"></a></h2>
+<p><em>Released on 2023-01-09 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.3">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.3/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add time doc by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/423">https://github.com/LeMyst/WikibaseIntegrator/pull/423</a></p></li>
+<li><p>Improve/Fix Exceptions by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/450">https://github.com/LeMyst/WikibaseIntegrator/pull/450</a></p></li>
+<li><p>Allow to write an entity as a new one by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/457">https://github.com/LeMyst/WikibaseIntegrator/pull/457</a></p></li>
+<li><p>Update setup.cfg python version by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/476">https://github.com/LeMyst/WikibaseIntegrator/pull/476</a></p></li>
+<li><p>Try python 3.12-dev by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/477">https://github.com/LeMyst/WikibaseIntegrator/pull/477</a></p></li>
+<li><p>Add wbi_helpers.edit_entity() by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/475">https://github.com/LeMyst/WikibaseIntegrator/pull/475</a></p></li>
+<li><p>Add lexeme helpers by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/478">https://github.com/LeMyst/WikibaseIntegrator/pull/478</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.2...v0.12.3">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.2…v0.12.3</a></p>
+</section>
+</section>
+<section id="release-0-12-2">
+<h2>v0.12.2<a class="headerlink" href="#release-0-12-2" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-11-13 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.2">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.2/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Remove useless code, everything is already taken care in <code class="docutils literal notranslate"><span class="pre">mediawiki_api_call()</span></code>. by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/410">https://github.com/LeMyst/WikibaseIntegrator/pull/410</a></p></li>
+<li><p>Use getLogger instead of directly logging by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/411">https://github.com/LeMyst/WikibaseIntegrator/pull/411</a></p></li>
+<li><p>Remove pkg_resources dependency by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/430">https://github.com/LeMyst/WikibaseIntegrator/pull/430</a></p></li>
+<li><p>Add Python 3.11 as default by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/443">https://github.com/LeMyst/WikibaseIntegrator/pull/443</a></p></li>
+<li><p>Update to latest mypy / Python 3.11 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/446">https://github.com/LeMyst/WikibaseIntegrator/pull/446</a></p></li>
+<li><p>Add fulltext_search function by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/436">https://github.com/LeMyst/WikibaseIntegrator/pull/436</a></p></li>
+<li><p>Add snaktype when creating a claim by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/420">https://github.com/LeMyst/WikibaseIntegrator/pull/420</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.1...v0.12.2">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.1…v0.12.2</a></p>
+</section>
+</section>
+<section id="release-0-12-1">
+<h2>v0.12.1<a class="headerlink" href="#release-0-12-1" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-09-04 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.1">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.1/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Update README.md by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/375">https://github.com/LeMyst/WikibaseIntegrator/pull/375</a></p></li>
+<li><p>Improve claims.add() docstring by &#64;dpriskorn in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/387">https://github.com/LeMyst/WikibaseIntegrator/pull/387</a></p></li>
+<li><p>Comment to avoid double MR by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/392">https://github.com/LeMyst/WikibaseIntegrator/pull/392</a></p></li>
+<li><p>Improve MWApiError by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/397">https://github.com/LeMyst/WikibaseIntegrator/pull/397</a></p></li>
+<li><p>Create auto-assign-issue.yaml by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/402">https://github.com/LeMyst/WikibaseIntegrator/pull/402</a></p></li>
+<li><p>Rename .yml to .yaml by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/401">https://github.com/LeMyst/WikibaseIntegrator/pull/401</a></p></li>
+<li><p>Update README.md by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/403">https://github.com/LeMyst/WikibaseIntegrator/pull/403</a></p></li>
+<li><p>Fix codespell errors by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/405">https://github.com/LeMyst/WikibaseIntegrator/pull/405</a></p></li>
+<li><p>Add test_invalid_claim by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/404">https://github.com/LeMyst/WikibaseIntegrator/pull/404</a></p></li>
+<li><p>Bump version to v0.12.1 by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/406">https://github.com/LeMyst/WikibaseIntegrator/pull/406</a></p></li>
+<li><p>Update readthedocs-sphinx-ext requirement from ~=2.1.5 to ~=2.1.8 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/372">https://github.com/LeMyst/WikibaseIntegrator/pull/372</a></p></li>
+<li><p>Bump pypa/gh-action-pypi-publish from 1.5.0 to 1.5.1 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/383">https://github.com/LeMyst/WikibaseIntegrator/pull/383</a></p></li>
+<li><p>Update sphinx requirement from ~=4.5.0 to ~=5.1.1 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/384">https://github.com/LeMyst/WikibaseIntegrator/pull/384</a></p></li>
+<li><p>Bump sphinx-autodoc-typehints from 1.18.1 to 1.19.2 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/396">https://github.com/LeMyst/WikibaseIntegrator/pull/396</a></p></li>
+<li><p>Update m2r2 requirement from ~=0.3.2 to ~=0.3.3 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/400">https://github.com/LeMyst/WikibaseIntegrator/pull/400</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0...v0.12.1">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0…v0.12.1</a></p>
+</section>
+</section>
+<section id="release-0-12-0">
+<h2>v0.12.0<a class="headerlink" href="#release-0-12-0" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-07-14 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0/">PyPI</a></em></p>
+<section id="complete-rewrite-of-the-library">
+<h3>Complete rewrite of the library<a class="headerlink" href="#complete-rewrite-of-the-library" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add support for manipulating Property, Lexeme and Wikimedia Commons MediaInfo</p></li>
+<li><p>Rewrite the wbi_login module, each authentification method has now is own class.</p></li>
+<li><p>Add support for Structured Data on Commons (SDC).</p></li>
+<li><p>Replace custom debug with <code class="docutils literal notranslate"><span class="pre">logging</span></code> module.</p></li>
+<li><p>Add type hints.</p></li>
+<li><p>Remove WikibaseIntegrator.wbi_helpers property. Use directly wbi_helpers module instead.</p></li>
+<li><p>Improve datatypes code by removing redundant parts</p></li>
+<li><p>Improve useragent support.</p></li>
+</ul>
+<p>Thanks to &#64;dpriskorn , &#64;pgrond , &#64;jmformenti</p>
+</section>
+</section>
+<section id="release-0-11-3">
+<h2>v0.11.3<a class="headerlink" href="#release-0-11-3" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-07-07 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.11.3">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.11.3/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Adding support for localMedia type by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/47">https://github.com/LeMyst/WikibaseIntegrator/pull/47</a></p></li>
+<li><p>README.md: Fix the readability of readability by &#64;cclauss in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/337">https://github.com/LeMyst/WikibaseIntegrator/pull/337</a></p></li>
+<li><p>Fix typos discovered by codespell by &#64;cclauss in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/338">https://github.com/LeMyst/WikibaseIntegrator/pull/338</a></p></li>
+<li><p>Convert to Python f-strings with flynt by &#64;cclauss in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/339">https://github.com/LeMyst/WikibaseIntegrator/pull/339</a></p></li>
+<li><p>Update multiple dependencies</p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;cclauss made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/337">https://github.com/LeMyst/WikibaseIntegrator/pull/337</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.11.2...v0.11.3">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.11.2…v0.11.3</a></p>
+</section>
+</section>
+<section id="release-0-12-0rc5">
+<h2>v0.12.0rc5<a class="headerlink" href="#release-0-12-0rc5" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-07-03 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0rc5">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0rc5/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>[Breaking changes] Change <code class="docutils literal notranslate"><span class="pre">ActionIfExists.REPLACE</span></code> by <code class="docutils literal notranslate"><span class="pre">ActionIfExists.REPLACE_ALL</span></code> and <code class="docutils literal notranslate"><span class="pre">ActionIfExists.APPEND</span></code> by <code class="docutils literal notranslate"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></code></p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">wbi_enums.WikibaseDatatype</span></code> to consistently reference data types.</p></li>
+<li><p>Add support for long entity name like “Item:Q582”</p></li>
+<li><p>Add Github Workflow paths by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/356">https://github.com/LeMyst/WikibaseIntegrator/pull/356</a></p></li>
+<li><p>Rework Exceptions handling by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/357">https://github.com/LeMyst/WikibaseIntegrator/pull/357</a></p></li>
+<li><p>Remove .idea folder by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/364">https://github.com/LeMyst/WikibaseIntegrator/pull/364</a></p></li>
+<li><p>Reintroduce getting the conflicting entity id and the language by &#64;dpriskorn in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/361">https://github.com/LeMyst/WikibaseIntegrator/pull/361</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc4...v0.12.0rc5">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc4…v0.12.0rc5</a></p>
+</section>
+</section>
+<section id="release-0-12-0rc4">
+<h2>v0.12.0rc4<a class="headerlink" href="#release-0-12-0rc4" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-06-02 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0rc4">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0rc4/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add a <code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code> exception (Thanks to &#64;dpriskorn)</p></li>
+<li><p>Improve MediaWiki 1.35 compatibility. (Thanks to &#64;dpriskorn)</p></li>
+<li><p>Replace <code class="docutils literal notranslate"><span class="pre">print()</span></code> with <code class="docutils literal notranslate"><span class="pre">logging</span></code> methods. (Thanks to &#64;dpriskorn)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">wbi_helpers.delete_page()</span></code></p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">BaseEntity.delete()</span></code> to easily delete an entity with the page ID or the page title. (#309)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">BaseEntity.title</span></code> and <code class="docutils literal notranslate"><span class="pre">BaseEntity.pageid</span></code> attributes.</p></li>
+<li><p>More docstring</p></li>
+<li><p>Typo fixes</p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc3...v0.12.0rc4">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc3…v0.12.0rc4</a></p>
+</section>
+</section>
+<section id="release-0-11-2">
+<h2>v0.11.2<a class="headerlink" href="#release-0-11-2" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-04-25 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.11.2">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.11.2/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add python 3.11 pytest by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/244">https://github.com/LeMyst/WikibaseIntegrator/pull/244</a></p></li>
+<li><p>Wrong GlobeCoordinate SPARQL representation by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/247">https://github.com/LeMyst/WikibaseIntegrator/pull/247</a></p></li>
+<li><p>Fix typo in GlobeCoordinate SPARQL representation by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/248">https://github.com/LeMyst/WikibaseIntegrator/pull/248</a></p></li>
+<li><p>Adding support for EDTF datatype by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/143">https://github.com/LeMyst/WikibaseIntegrator/pull/143</a></p></li>
+<li><p>Fix README for wikibase-release-pipeline docker-compose by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/310">https://github.com/LeMyst/WikibaseIntegrator/pull/310</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.11.1...v0.11.2">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.11.1…v0.11.2</a></p>
+</section>
+</section>
+<section id="release-0-12-0rc3">
+<h2>v0.12.0rc3<a class="headerlink" href="#release-0-12-0rc3" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-03-24 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0rc3">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0rc3/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Partial fix compatibility with Wikibase 1.35 (Thanks &#64;jmformenti)</p></li>
+<li><p>Fix and improve SDC support</p></li>
+<li><p>Improve bot support when writing to instance</p></li>
+<li><p>Improve session support</p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc2...v0.12.0rc3">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc2…v0.12.0rc3</a></p>
+</section>
+</section>
+<section id="release-0-12-0rc2">
+<h2>v0.12.0rc2<a class="headerlink" href="#release-0-12-0rc2" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-02-18 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0rc2">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0rc2/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>[Breaking changes] Add suffixes to entities classes (<code class="docutils literal notranslate"><span class="pre">entities.Item</span></code> become <code class="docutils literal notranslate"><span class="pre">entities.ItemEntity</span></code>) (Thanks to &#64;dpriskorn)</p></li>
+<li><p>All HTTP requests will now use the same requests.Session</p></li>
+<li><p>Fix issue when comparing qualifiers #295 (Thanks to &#64;pgrond)</p></li>
+<li><p>Improve <code class="docutils literal notranslate"><span class="pre">datatypes.Time</span></code> format validator</p></li>
+<li><p>Allow integer for <code class="docutils literal notranslate"><span class="pre">datatypes.Time</span></code> precision</p></li>
+<li><p>Improve <code class="docutils literal notranslate"><span class="pre">BaseEntity</span></code> attributes (Thanks to &#64;dpriskorn)</p></li>
+<li><p>Improve typing</p></li>
+<li><p>Fix/Improve <code class="docutils literal notranslate"><span class="pre">models.Claims</span></code> action_if_exists parameter</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">wbi_fastrun.get_items()</span></code> to retrieve multiple IDs</p></li>
+<li><p>Update docs requirements</p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc1...v0.12.0rc2">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0rc1…v0.12.0rc2</a></p>
+</section>
+</section>
+<section id="release-0-12-0rc1">
+<h2>v0.12.0rc1<a class="headerlink" href="#release-0-12-0rc1" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-01-28 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0rc1">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0rc1/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add Enum WikibaseDatePrecision, thanks to &#64;dpriskorn <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/277">https://github.com/LeMyst/WikibaseIntegrator/pull/277</a></p></li>
+<li><p>Update README.md</p></li>
+<li><p>Update dependencies versions</p></li>
+<li><p>Update and improve Notebooks</p></li>
+<li><p>and multiple bugfixes</p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0.dev7...v0.12.0rc1">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0.dev7…v0.12.0rc1</a></p>
+</section>
+</section>
+<section id="release-0-12-0-dev7">
+<h2>v0.12.0.dev7<a class="headerlink" href="#release-0-12-0-dev7" title="Link to this heading"></a></h2>
+<p><em>Released on 2022-01-10 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0.dev7">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0.dev7/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Rewrite the wbi_login module, each authentification method has now is own class. (there’s no backward support with old Login class)</p>
+<ul>
+<li><p>wbi_login.OAuth2 (recommended)</p></li>
+<li><p>wbi_login.OAuth1</p></li>
+<li><p>wbi_login.ClientLogin</p></li>
+<li><p>wbi_login.Login</p></li>
+</ul>
+</li>
+<li><p>Replace custom debug with <code class="docutils literal notranslate"><span class="pre">logging</span></code> module</p></li>
+<li><p>Replace <code class="docutils literal notranslate"><span class="pre">simplejson</span></code> with <code class="docutils literal notranslate"><span class="pre">ujson</span></code></p></li>
+<li><p>Avoid recreating the anonymous session at each request</p></li>
+<li><p>Improve docs, available at <a class="reference external" href="https://wikibaseintegrator.readthedocs.io/">https://wikibaseintegrator.readthedocs.io/</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0.dev6...v0.12.0.dev7">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0.dev6…v0.12.0.dev7</a></p>
+</section>
+</section>
+<section id="release-0-12-0-dev6">
+<h2>v0.12.0.dev6<a class="headerlink" href="#release-0-12-0-dev6" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-11-17 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0.dev6">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0.dev6/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Bump actions/checkout from 2.3.5 to 2.4.0 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/242">https://github.com/LeMyst/WikibaseIntegrator/pull/242</a></p></li>
+<li><p>Add python 3.11 pytest by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/244">https://github.com/LeMyst/WikibaseIntegrator/pull/244</a></p></li>
+<li><p>Exclude folder “wikibaseintegrator.egg-info” by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/245">https://github.com/LeMyst/WikibaseIntegrator/pull/245</a></p></li>
+<li><p>Duplicate metadata for Github weird dependency graph by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/246">https://github.com/LeMyst/WikibaseIntegrator/pull/246</a></p></li>
+<li><p>Wrong GlobeCoordinate SPARQL representation by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/247">https://github.com/LeMyst/WikibaseIntegrator/pull/247</a></p></li>
+<li><p>Fix typo in GlobeCoordinate SPARQL representation by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/248">https://github.com/LeMyst/WikibaseIntegrator/pull/248</a></p></li>
+<li><p>Rework FastRun for using WBI DataModel by &#64;LeMyst in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/249">https://github.com/LeMyst/WikibaseIntegrator/pull/249</a></p></li>
+<li><p>Update simplejson requirement from ~=3.17.5 to ~=3.17.6 by &#64;dependabot in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/250">https://github.com/LeMyst/WikibaseIntegrator/pull/250</a></p></li>
+<li><p>Add notebook “Create a new Item”</p></li>
+<li><p>Remove frozendict dependency</p></li>
+<li><p>Replace load_item() with get_item()</p></li>
+<li><p>Move some fastrun function from baseentity to wbi_fastrun</p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0.dev5...v0.12.0.dev6">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.12.0.dev5…v0.12.0.dev6</a></p>
+</section>
+</section>
+<section id="release-0-11-1">
+<h2>v0.11.1<a class="headerlink" href="#release-0-11-1" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-10-23 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.11.1">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.11.1/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Only reset specific language when replacing description (#164) (Thanks &#64;pgrond)</p></li>
+<li><p>Improves the error message if the operator are trying to use a writing function without setting allow_anonymous or having a valid login object. (Thanks &#64;dpriskorn)</p></li>
+<li><p><strong>init</strong>(): Give the user back the prop_nr so they can better understand why the check failed. (#178) (Thanks &#64;dpriskorn)</p></li>
+<li><p>Simplify qualifiers/references support (#212) (Thanks &#64;dpriskorn)</p></li>
+<li><p>Add the keyword “now” to Time datatype to set the value to the current UTC time (#213) (Thanks &#64;dpriskorn)</p></li>
+<li><p>Add retry for HTTP Code 500, 502 and 504 (#234) (Thanks &#64;dpriskorn)</p></li>
+<li><p>Implement PEP 498 (Thanks &#64;dpriskorn)</p></li>
+<li><p>Update unit tests</p></li>
+<li><p>Update dependencies</p></li>
+</ul>
+</section>
+<section id="new-contributors">
+<h3>New Contributors<a class="headerlink" href="#new-contributors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>&#64;pgrond made their first contribution in <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/164">https://github.com/LeMyst/WikibaseIntegrator/pull/164</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.11.0...v0.11.1">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.11.0…v0.11.1</a></p>
+</section>
+</section>
+<section id="release-0-12-0-dev5">
+<h2>v0.12.0.dev5<a class="headerlink" href="#release-0-12-0-dev5" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-09-27 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0.dev5">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0.dev5/">PyPI</a></em></p>
+<p>Changes since v0.12.0.dev4</p>
+<ul class="simple">
+<li><p>Add type hints</p></li>
+<li><p>Remove WikibaseIntegrator.wbi_helpers property. Use directly wbi_helpers module instead.</p></li>
+<li><p>Add GitHub Actions for isort/mypy and pylint</p></li>
+<li><p>Improve datatypes code by removing redundant parts</p></li>
+<li><p>Use f-string (Suggestion of &#64;dpriskorn)</p></li>
+<li><p>Correct api parameter in entity classes</p></li>
+<li><p>Change references handling in Claim/BaseDataType classes</p></li>
+<li><p>Add retry if remote server return 500, 502, 503 or 504 http code</p></li>
+<li><p>Better support of bot flag in wbi_helpers functions</p></li>
+<li><p>and more…</p></li>
+</ul>
+</section>
+<section id="release-0-12-0-dev4">
+<h2>v0.12.0.dev4<a class="headerlink" href="#release-0-12-0-dev4" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-09-13 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0.dev4">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0.dev4/">PyPI</a></em></p>
+<section id="changes-since-v0-12-0-dev3">
+<h3>Changes since v0.12.0.dev3<a class="headerlink" href="#changes-since-v0-12-0-dev3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix missing frozendict dependency</p></li>
+<li><p>Clean the code</p></li>
+</ul>
+</section>
+</section>
+<section id="release-0-12-0-dev3">
+<h2>v0.12.0.dev3<a class="headerlink" href="#release-0-12-0-dev3" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-09-09 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0.dev3">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0.dev3/">PyPI</a></em></p>
+<section id="changes-since-v0-12-0-dev2">
+<h3>Changes since v0.12.0.dev2<a class="headerlink" href="#changes-since-v0-12-0-dev2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Update README.md</p></li>
+<li><p>Update notebooks</p></li>
+<li><p>Change <code class="docutils literal notranslate"><span class="pre">datatype.Quantity</span></code> parameter <code class="docutils literal notranslate"><span class="pre">quantity</span></code> to <code class="docutils literal notranslate"><span class="pre">amount</span></code></p></li>
+<li><p>Rename parameter <code class="docutils literal notranslate"><span class="pre">if_exists</span></code> to <code class="docutils literal notranslate"><span class="pre">action_if_exists</span></code> and change it to use <code class="docutils literal notranslate"><span class="pre">ActionIfExists</span></code> enum instead of string</p></li>
+<li><p>Fix issue with <code class="docutils literal notranslate"><span class="pre">endpoint</span></code> parameter with <code class="docutils literal notranslate"><span class="pre">wbi_helpers.execute_sparql_query</span></code></p></li>
+<li><p>Change paramaters for <code class="docutils literal notranslate"><span class="pre">wbi_login.Login</span></code> (default <code class="docutils literal notranslate"><span class="pre">auth_method</span></code> is oauth2):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Login(auth_method='clientlogin',</span> <span class="pre">user,</span> <span class="pre">password)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Login(auth_method='login',</span> <span class="pre">user,</span> <span class="pre">password)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Login(auth_method='oauth1',</span> <span class="pre">consumer_token,</span> <span class="pre">consumer_secret)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Login(auth_method='oauth1',</span> <span class="pre">consumer_token,</span> <span class="pre">consumer_secret,</span> <span class="pre">access_token,</span> <span class="pre">access_secret)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Login(auth_method='oauth2',</span> <span class="pre">consumer_token,</span> <span class="pre">consumer_secret)</span></code></p></li>
+</ul>
+</li>
+<li><p>Add extra datatype:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">datatype.extra.EDTF</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">datatype.extra.LocalMedia</span></code></p></li>
+</ul>
+</li>
+<li><p>and more…</p></li>
+</ul>
+</section>
+</section>
+<section id="release-0-12-0-dev2">
+<h2>v0.12.0.dev2<a class="headerlink" href="#release-0-12-0-dev2" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-08-26 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.12.0.dev2">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.12.0.dev2/">PyPI</a></em></p>
+<p>Fix packaging issues.</p>
+</section>
+<section id="release-0-11-0">
+<h2>v0.11.0<a class="headerlink" href="#release-0-11-0" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-06-06 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.11.0">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.11.0/">PyPI</a></em></p>
+<ul class="simple">
+<li><p>Only send changes when writing to Wikibase.</p></li>
+<li><p>Add Exception if format is set to something else than json when using <code class="docutils literal notranslate"><span class="pre">FunctionsEngine.mediawiki_api_call()</span></code>.</p></li>
+<li><p>Add Python 3.10 CI workflow.</p></li>
+<li><p>Remove <code class="docutils literal notranslate"><span class="pre">pandas</span></code> as a dependency.</p></li>
+<li><p>Fix issue when core_prop id is and ItemID (#155 thanks to &#64;maximearmstrong)</p></li>
+</ul>
+<section id="breaking-changes">
+<h3>BREAKING CHANGES<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Replace <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine</span></code> by <code class="docutils literal notranslate"><span class="pre">wbi_functions</span></code>.</p></li>
+<li><p>Remove <code class="docutils literal notranslate"><span class="pre">FunctionsEngine.get_linked_by()</span></code> and <code class="docutils literal notranslate"><span class="pre">FunctionsEngine.delete_item()</span></code>. WikibaseIntegrator will only support wikibase-oriented functions. Directly use <code class="docutils literal notranslate"><span class="pre">wbi_functions.mediawiki_api_call_helper</span></code> instead.</p></li>
+<li><p>Rename <code class="docutils literal notranslate"><span class="pre">FunctionsEngine.delete_statement()</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_functions.remove_claims()</span></code>.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">revision</span></code> parameter in now optional.</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">summary</span></code> parameter.</p></li>
+<li><p>Change parameters order.</p></li>
+</ul>
+</li>
+<li><p>Rename <code class="docutils literal notranslate"><span class="pre">FunctionsEngine.get_search_results()</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_functions.search_entities()</span></code>.</p></li>
+<li><p>Remove dataframe support in <code class="docutils literal notranslate"><span class="pre">wbi_functions.execute_sparql_query</span></code>, use <a class="reference external" href="https://pypi.org/project/sparqldataframe/">sparqldataframe</a> package instead.</p></li>
+<li><p>Move format force to json to <code class="docutils literal notranslate"><span class="pre">wbi_functions.mediawiki_api_call()</span></code>.</p></li>
+<li><p>Move all datatypes from wbi_core to wbi_datatype.</p></li>
+<li><p>Move wbi_core.JsonParser to wbi_jsonparser.JsonParser</p></li>
+</ul>
+</section>
+</section>
+<section id="release-0-10-1">
+<h2>v0.10.1<a class="headerlink" href="#release-0-10-1" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-05-01 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.10.1">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.10.1/">PyPI</a></em></p>
+<ul class="simple">
+<li><p>Add OAuth 1.0a and OAuth 2.0 owner-only consumer support. It’s now the best methods to securely authenticate against a MediaWiki instance.</p></li>
+<li><p>Automatically disable unit support in fastrun query if datatype is not quantity.</p></li>
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">wbi_core.set_label()</span></code> which replaced all labels. Allow delete of label with parameter label as None.</p></li>
+<li><p>Update the format validator for Url property.</p></li>
+<li><p>Ignore maxlag parameter if maxlag is 0 or less.</p></li>
+<li><p>Add maxlag support to more functions.</p></li>
+<li><p>Add documentation for <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.mediawiki_api_call_helper()</span></code> in the README.md.</p></li>
+</ul>
+</section>
+<section id="release-0-10-0">
+<h2>v0.10.0<a class="headerlink" href="#release-0-10-0" title="Link to this heading"></a></h2>
+<p><em>Released on 2021-02-11 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.10.0">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.10.0/">PyPI</a></em></p>
+<ul class="simple">
+<li><p>Add support for unitless wd:Q199 in <code class="docutils literal notranslate"><span class="pre">wbi_core.Quantity()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine()</span></code> allow <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType()</span></code> as parameter <code class="docutils literal notranslate"><span class="pre">data</span></code> value type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.Time()</span></code> accept new parameter <code class="docutils literal notranslate"><span class="pre">before</span></code> and <code class="docutils literal notranslate"><span class="pre">after</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType()</span></code> allow an integer for <code class="docutils literal notranslate"><span class="pre">prop_nr</span></code> parameter</p></li>
+<li><p>Fix missing <code class="docutils literal notranslate"><span class="pre">self.value</span></code> for <code class="docutils literal notranslate"><span class="pre">wbi_core.Sense()</span></code> and <code class="docutils literal notranslate"><span class="pre">wbi_core.Form()</span></code></p></li>
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> for <code class="docutils literal notranslate"><span class="pre">wbi_core.GeoShape()</span></code> and <code class="docutils literal notranslate"><span class="pre">wbi_core.TabularData()</span></code> if <code class="docutils literal notranslate"><span class="pre">value</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p>Add more check if <code class="docutils literal notranslate"><span class="pre">BaseDataType</span></code> value is None</p></li>
+<li><p>Improve handle of <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType.is_reference</span></code> and <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType.is_qualifier</span></code> when used in <code class="docutils literal notranslate"><span class="pre">references=</span></code> or <code class="docutils literal notranslate"><span class="pre">qualifiers=</span></code></p></li>
+<li><p>Improve <code class="docutils literal notranslate"><span class="pre">wbi_login</span></code> with more warning and error messages from the API</p></li>
+<li><p>Replace <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType()</span></code> parameters by kwargs</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">allow_anonymous</span></code> parameter to:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.write()</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.merge_items()</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.delete_item()</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.get_search_results()</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">true</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.generate_item_instances()</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">true</span></code></p></li>
+</ul>
+</li>
+<li><p>Fix an issue with <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine</span></code> methods <code class="docutils literal notranslate"><span class="pre">set_label</span></code> and <code class="docutils literal notranslate"><span class="pre">set_description</span></code> only worked in “fast run” mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.set_aliases()</span></code> now accept string and list</p></li>
+<li><p>Add Python 3.9 support</p></li>
+</ul>
+<section id="breaking-changes">
+<h3>BREAKING CHANGES<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Drop Python 3.6 support</p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.mediawiki_api_call</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.mediawiki_api_call</span></code></p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.get_linked_by</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.get_linked_by</span></code></p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.execute_sparql_query</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.execute_sparql_query</span></code></p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.merge_items</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.merge_items</span></code></p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.delete_item</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.delete_item</span></code></p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.delete_statement</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.delete_statement</span></code></p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine.get_search_results</span></code> to <code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.get_search_results</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.Quantity()</span></code> change parameter from <code class="docutils literal notranslate"><span class="pre">value</span></code> to <code class="docutils literal notranslate"><span class="pre">quantity</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.MonolingualText()</span></code> change parameter from <code class="docutils literal notranslate"><span class="pre">value</span></code> to <code class="docutils literal notranslate"><span class="pre">text</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wbi_core.FunctionsEngine.get_search_results()</span></code> change parameter from <code class="docutils literal notranslate"><span class="pre">dict_id_label</span></code> to <code class="docutils literal notranslate"><span class="pre">dict_result</span></code></p></li>
+<li><p>Remove <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType.is_reference()</span></code> and <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType.is_qualifier()</span></code>, use attribute instead</p></li>
+<li><p>Remove parameter <code class="docutils literal notranslate"><span class="pre">append_value</span></code> from <code class="docutils literal notranslate"><span class="pre">wbi_core.ItemEngine()</span></code>. Use <code class="docutils literal notranslate"><span class="pre">if_exists</span></code> parameter from <code class="docutils literal notranslate"><span class="pre">wbi_core.BaseDataType()</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="release-0-9-0">
+<h2>v0.9.0<a class="headerlink" href="#release-0-9-0" title="Link to this heading"></a></h2>
+<p><em>Released on 2020-10-09 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.9.0">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.9.0/">PyPI</a></em></p>
+<ul class="simple">
+<li><p>Improve _query_data function to correctly retrieve value, unit, quantifier, quantifier value and quantifier unit (Thanks to Dipsacus fullonum)</p></li>
+<li><p>Remove wikidata prefixes in queries and only use IRI</p></li>
+<li><p>In ItemEngine class will not try to load item data if the parameter search_only is set to true</p></li>
+<li><p>Improve fastrun’s base filter by supporting the SequencePath</p></li>
+<li><p>Add parameter if_exists for set_label (with default value REPLACE)</p></li>
+<li><p>Change append to if_exists (with default value APPEND) for set_aliases</p></li>
+<li><p>Add parameter if_exists for set_description (with default value REPLACE)</p></li>
+<li><p>Change default config</p>
+<ul>
+<li><p>Remove CONCEPT_BASE_URI. it’s now derivated from WIKIBASE_URL</p></li>
+<li><p>Add DEFAULT_LANGUAGE with a default value ‘en’</p></li>
+</ul>
+</li>
+<li><p>Remove shexer, pyshex and rdflib dependencies</p>
+<ul>
+<li><p>Remove all shex and rdf related functions. Please use your own</p></li>
+</ul>
+</li>
+<li><p>Set default lang to None in functions parameters. If lang is set to None, use global DEFAULT_LANGUAGE</p></li>
+<li><p>Remove logging functions. Please use your own</p></li>
+<li><p>Improve unit tests</p>
+<ul>
+<li><p>Move from httpstat.us to httpbin.org</p></li>
+<li><p>Improve some tests with decimal value instead of simple integer</p></li>
+<li><p>Add unit testing for some</p></li>
+<li><p>Adapt tests with new parameters</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="release-0-8-2">
+<h2>v0.8.2<a class="headerlink" href="#release-0-8-2" title="Link to this heading"></a></h2>
+<p><em>Released on 2020-08-07 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.8.2">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.8.2/">PyPI</a></em></p>
+<section id="move-from-wikidataintegrator-to-wikibaseintegrator">
+<h3>Move from WikidataIntegrator to WikibaseIntegrator<a class="headerlink" href="#move-from-wikidataintegrator-to-wikibaseintegrator" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Module name changes :</p>
+<ul>
+<li><p>wdi_backoff -&gt; wbi_backoff</p></li>
+<li><p>wdi_config -&gt; wbi_config</p></li>
+<li><p>wdi_core -&gt; wbi_core</p></li>
+<li><p>wdi_fastrun -&gt; wbi_fastrun</p></li>
+<li><p>wdi_login -&gt; wbi_login</p></li>
+</ul>
+</li>
+<li><p>Classe name changes:</p>
+<ul>
+<li><p>WDLogin -&gt; Login</p></li>
+<li><p>WDItemEngine -&gt; ItemEngine</p></li>
+<li><p>WDBaseDataType -&gt; BaseDataType</p></li>
+<li><p>WDCommonsMedia -&gt; CommonsMedia</p></li>
+<li><p>WDExternalID -&gt; ExternalID</p></li>
+<li><p>WDForm -&gt; Form</p></li>
+<li><p>WDGeoShape -&gt; GeoShape</p></li>
+<li><p>WDGlobeCoordinate -&gt; GlobeCoordinate</p></li>
+<li><p>WDItemID -&gt; ItemID</p></li>
+<li><p>WDLexeme -&gt; Lexeme</p></li>
+<li><p>WDMath -&gt; Math</p></li>
+<li><p>WDMonolingualText -&gt; MonolingualText</p></li>
+<li><p>WDMusicalNotation -&gt; MusicalNotation</p></li>
+<li><p>WDProperty -&gt; Property</p></li>
+<li><p>WDQuantity -&gt; Quantity</p></li>
+<li><p>WDSense -&gt; Sense</p></li>
+<li><p>WDString -&gt; String</p></li>
+<li><p>WDTabularData -&gt; TabularData</p></li>
+<li><p>WDTime -&gt; Time</p></li>
+<li><p>WDUrl -&gt; Url</p></li>
+</ul>
+</li>
+<li><p>ItemEngine parameter changes:</p>
+<ul>
+<li><p>wd_item_id -&gt; item_id</p></li>
+</ul>
+</li>
+<li><p>ItemEngine attribute changes:</p>
+<ul>
+<li><p>wd_item_id -&gt; item_id</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="release-0-8-1">
+<h2>v0.8.1<a class="headerlink" href="#release-0-8-1" title="Link to this heading"></a></h2>
+<p><em>Released on 2020-08-05 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.8.1">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.8.1/">PyPI</a></em></p>
+<ul class="simple">
+<li><p>Fork and rename project from WikidataIntegrator to WikibaseIntegrator</p></li>
+<li><p>Add Github Action to publish to PyPi</p></li>
+<li><p>Remove notebook/, doc/ and docs/ folder</p></li>
+<li><p>Remove wdi_helpers</p></li>
+<li><p>Update requirements.txt with versions and remove useless package</p></li>
+<li><p>Improve FastRunContainer</p></li>
+<li><p>Improve search_only mode</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wikibaseintegrator.wikibaseintegrator.html" class="btn btn-neutral float-left" title="wikibaseintegrator.wikibaseintegrator module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, LeMyst.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
