@@ -39,6 +39,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.intersphinx',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
+              'myst_parser',
               'sphinx_github_changelog',
               'sphinx_autodoc_typehints']
 
@@ -46,7 +47,11 @@ extensions = ['sphinx.ext.autodoc',
 # variable (the docs workflow does) to avoid the rate limit of anonymous requests.
 
 templates_path = ['_templates']
-source_suffix = {'.rst': 'restructuredtext'}
+source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
+
+# The user guide (docs/source/guide/) is written in Markdown: anchors for the headings, so that a link like
+# helpers.md#execute-sparql-queries works as on GitHub
+myst_heading_anchors = 4
 master_doc = 'index'
 
 project = meta["tool"]["poetry"]["name"]

@@ -24,13 +24,14 @@ qualifiers and references, through the MediaWiki API and the SPARQL endpoint.
    print(item.labels.get('en'))           # Villeurbanne
    print(item.claims.get('P31')[0].mainsnak.datavalue['value']['id'])
 
-To log in, write entities, use another Wikibase instance or the fast run mode, see the usage guides in the
-`README on GitHub <https://github.com/LeMyst/WikibaseIntegrator#readme>`_, and the :doc:`API reference <api/index>`.
+To log in, write entities, use another Wikibase instance or the fast run mode, see the :doc:`User guide <guide/index>`.
+Every class and function is documented in the :doc:`API reference <api/index>`.
 
 .. toctree::
    :maxdepth: 2
    :hidden:
 
+   guide/index
    api/index
    changelog
 
