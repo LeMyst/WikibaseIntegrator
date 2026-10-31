@@ -1,0 +1,6 @@
+﻿fulltext\_search
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: fulltext_search

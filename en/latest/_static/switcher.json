@@ -1,0 +1,13 @@
+[
+  {
+    "name": "stable (latest release)",
+    "version": "stable",
+    "url": "https://lemyst.github.io/WikibaseIntegrator/en/stable/",
+    "preferred": true
+  },
+  {
+    "name": "latest (development)",
+    "version": "latest",
+    "url": "https://lemyst.github.io/WikibaseIntegrator/en/latest/"
+  }
+]

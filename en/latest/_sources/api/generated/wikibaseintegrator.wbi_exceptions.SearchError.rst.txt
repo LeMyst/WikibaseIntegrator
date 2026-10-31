@@ -1,0 +1,6 @@
+﻿SearchError
+===========
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: SearchError

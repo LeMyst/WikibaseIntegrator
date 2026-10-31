@@ -1,0 +1,6 @@
+﻿generate\_entity\_instances
+===========================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: generate_entity_instances

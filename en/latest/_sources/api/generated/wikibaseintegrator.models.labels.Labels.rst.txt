@@ -1,0 +1,6 @@
+﻿Labels
+======
+
+.. currentmodule:: wikibaseintegrator.models.labels
+
+.. autoclass:: Labels

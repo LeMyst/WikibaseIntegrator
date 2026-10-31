@@ -1,0 +1,6 @@
+﻿NonExistentEntityError
+======================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: NonExistentEntityError

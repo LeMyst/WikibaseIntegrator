@@ -1,0 +1,6 @@
+﻿Math
+====
+
+.. currentmodule:: wikibaseintegrator.datatypes.math
+
+.. autoclass:: Math

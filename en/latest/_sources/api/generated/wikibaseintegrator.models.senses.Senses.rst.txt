@@ -1,0 +1,6 @@
+﻿Senses
+======
+
+.. currentmodule:: wikibaseintegrator.models.senses
+
+.. autoclass:: Senses

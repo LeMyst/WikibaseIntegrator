@@ -1,0 +1,6 @@
+﻿AnonymousEditNotAllowedError
+============================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: AnonymousEditNotAllowedError

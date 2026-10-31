@@ -1,0 +1,6 @@
+﻿Property
+========
+
+.. currentmodule:: wikibaseintegrator.datatypes.property
+
+.. autoclass:: Property

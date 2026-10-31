@@ -1,0 +1,6 @@
+﻿Sitelinks
+=========
+
+.. currentmodule:: wikibaseintegrator.models.sitelinks
+
+.. autoclass:: Sitelinks

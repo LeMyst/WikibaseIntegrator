@@ -1,0 +1,6 @@
+﻿Quantity
+========
+
+.. currentmodule:: wikibaseintegrator.datatypes.quantity
+
+.. autoclass:: Quantity

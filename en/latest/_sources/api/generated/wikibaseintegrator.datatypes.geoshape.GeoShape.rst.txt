@@ -1,0 +1,6 @@
+﻿GeoShape
+========
+
+.. currentmodule:: wikibaseintegrator.datatypes.geoshape
+
+.. autoclass:: GeoShape

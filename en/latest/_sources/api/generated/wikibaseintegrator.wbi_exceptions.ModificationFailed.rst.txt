@@ -1,0 +1,6 @@
+﻿ModificationFailed
+==================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: ModificationFailed

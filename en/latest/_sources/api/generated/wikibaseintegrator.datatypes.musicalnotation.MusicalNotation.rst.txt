@@ -1,0 +1,6 @@
+﻿MusicalNotation
+===============
+
+.. currentmodule:: wikibaseintegrator.datatypes.musicalnotation
+
+.. autoclass:: MusicalNotation

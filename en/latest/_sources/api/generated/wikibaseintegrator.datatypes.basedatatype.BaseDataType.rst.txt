@@ -1,0 +1,6 @@
+﻿BaseDataType
+============
+
+.. currentmodule:: wikibaseintegrator.datatypes.basedatatype
+
+.. autoclass:: BaseDataType

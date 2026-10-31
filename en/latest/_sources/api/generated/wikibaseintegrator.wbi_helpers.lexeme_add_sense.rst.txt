@@ -1,0 +1,6 @@
+﻿lexeme\_add\_sense
+==================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: lexeme_add_sense

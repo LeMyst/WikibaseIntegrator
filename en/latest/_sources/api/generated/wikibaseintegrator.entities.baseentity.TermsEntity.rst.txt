@@ -1,0 +1,7 @@
+﻿TermsEntity
+===========
+
+.. currentmodule:: wikibaseintegrator.entities.baseentity
+
+.. autoclass:: TermsEntity
+   :inherited-members:

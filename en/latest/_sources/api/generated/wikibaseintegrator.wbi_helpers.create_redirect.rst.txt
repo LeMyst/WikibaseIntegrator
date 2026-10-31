@@ -1,0 +1,6 @@
+﻿create\_redirect
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: create_redirect

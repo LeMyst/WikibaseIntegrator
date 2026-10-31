@@ -1,0 +1,6 @@
+﻿SaveFailed
+==========
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: SaveFailed

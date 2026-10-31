@@ -1,0 +1,6 @@
+﻿Item
+====
+
+.. currentmodule:: wikibaseintegrator.datatypes.item
+
+.. autoclass:: Item

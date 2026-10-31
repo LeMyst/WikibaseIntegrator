@@ -1,0 +1,6 @@
+﻿RetryAfterError
+===============
+
+.. currentmodule:: wikibaseintegrator.wbi_backoff
+
+.. autoexception:: RetryAfterError

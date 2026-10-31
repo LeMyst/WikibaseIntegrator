@@ -1,0 +1,6 @@
+﻿BaseModel
+=========
+
+.. currentmodule:: wikibaseintegrator.models.basemodel
+
+.. autoclass:: BaseModel

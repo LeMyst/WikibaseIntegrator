@@ -1,0 +1,6 @@
+﻿merge\_lexemes
+==============
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: merge_lexemes

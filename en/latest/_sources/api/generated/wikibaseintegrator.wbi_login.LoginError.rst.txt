@@ -1,0 +1,6 @@
+﻿LoginError
+==========
+
+.. currentmodule:: wikibaseintegrator.wbi_login
+
+.. autoexception:: LoginError

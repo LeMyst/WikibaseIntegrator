@@ -1,0 +1,7 @@
+﻿ItemEntity
+==========
+
+.. currentmodule:: wikibaseintegrator.entities.item
+
+.. autoclass:: ItemEntity
+   :inherited-members:

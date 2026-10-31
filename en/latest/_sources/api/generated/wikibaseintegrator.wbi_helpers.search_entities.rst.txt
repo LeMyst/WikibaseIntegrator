@@ -1,0 +1,6 @@
+﻿search\_entities
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: search_entities

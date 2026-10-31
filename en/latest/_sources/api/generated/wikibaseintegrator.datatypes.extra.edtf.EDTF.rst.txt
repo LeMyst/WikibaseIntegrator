@@ -1,0 +1,6 @@
+﻿EDTF
+====
+
+.. currentmodule:: wikibaseintegrator.datatypes.extra.edtf
+
+.. autoclass:: EDTF

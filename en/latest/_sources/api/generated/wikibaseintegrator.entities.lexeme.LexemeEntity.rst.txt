@@ -1,0 +1,7 @@
+﻿LexemeEntity
+============
+
+.. currentmodule:: wikibaseintegrator.entities.lexeme
+
+.. autoclass:: LexemeEntity
+   :inherited-members:

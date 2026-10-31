@@ -1,0 +1,6 @@
+﻿ActionIfExists
+==============
+
+.. currentmodule:: wikibaseintegrator.wbi_enums
+
+.. autoclass:: ActionIfExists

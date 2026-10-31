@@ -1,361 +1,422 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="../../">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wikibaseintegrator.wbi_helpers &mdash; WikibaseIntegrator 0.14.1.dev0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wikibaseintegrator.wbi_helpers &#8212; WikibaseIntegrator</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../../_static/documentation_options.js?v=006b3b73"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/wbi_helpers';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://lemyst.github.io/WikibaseIntegrator/en/latest/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/_modules/wikibaseintegrator/wbi_helpers.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.14.1.dev0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
 
   
-    <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/_modules/wikibaseintegrator/wbi_helpers.html" />
-      <script src="../../_static/jquery.js?v=5d32c60e"></script>
-      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=006b3b73"></script>
-      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="../../_static/js/theme.js"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
-</head>
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="../../index.html" class="icon icon-home">
-            WikibaseIntegrator
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../wikibaseintegrator.html">wikibaseintegrator package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../wikibaseintegrator.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.datatypes.html">wikibaseintegrator.datatypes package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.datatypes.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.datatypes.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.datatypes.html#module-wikibaseintegrator.datatypes">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.entities.html">wikibaseintegrator.entities package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.entities.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.entities.html#module-wikibaseintegrator.entities">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.models.html">wikibaseintegrator.models package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.models.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.models.html#module-wikibaseintegrator.models">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../wikibaseintegrator.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html">wikibaseintegrator.wbi_backoff module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.RetryAfterError"><code class="docutils literal notranslate"><span class="pre">RetryAfterError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff"><code class="docutils literal notranslate"><span class="pre">wbi_backoff()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_backoff_hdlr"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_backoff_hdlr()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_check_json_decode_error"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_check_json_decode_error()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_giveup()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_wait"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_wait()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_get_backoff_max_tries"><code class="docutils literal notranslate"><span class="pre">wbi_get_backoff_max_tries()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_config.html">wikibaseintegrator.wbi_config module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_editgroups.html">wikibaseintegrator.wbi_editgroups module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_editgroups.html#wikibaseintegrator.wbi_editgroups.EditGroup"><code class="docutils literal notranslate"><span class="pre">EditGroup</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html">wikibaseintegrator.wbi_enums module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.ActionIfExists"><code class="docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.EntityField"><code class="docutils literal notranslate"><span class="pre">EntityField</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseDatatype"><code class="docutils literal notranslate"><span class="pre">WikibaseDatatype</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseRank"><code class="docutils literal notranslate"><span class="pre">WikibaseRank</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseSnakType"><code class="docutils literal notranslate"><span class="pre">WikibaseSnakType</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseTimePrecision"><code class="docutils literal notranslate"><span class="pre">WikibaseTimePrecision</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html">wikibaseintegrator.wbi_exceptions module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MWApiError"><code class="docutils literal notranslate"><span class="pre">MWApiError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.ModificationFailed"><code class="docutils literal notranslate"><span class="pre">ModificationFailed</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.SaveFailed"><code class="docutils literal notranslate"><span class="pre">SaveFailed</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.SearchError"><code class="docutils literal notranslate"><span class="pre">SearchError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_exceptions.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_fastrun.html">wikibaseintegrator.wbi_fastrun module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.FastRunContainer"><code class="docutils literal notranslate"><span class="pre">FastRunContainer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.get_fastrun_container"><code class="docutils literal notranslate"><span class="pre">get_fastrun_container()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html">wikibaseintegrator.wbi_helpers module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.BColors"><code class="docutils literal notranslate"><span class="pre">BColors</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.WikibaseCheck"><code class="docutils literal notranslate"><span class="pre">WikibaseCheck</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_constraints"><code class="docutils literal notranslate"><span class="pre">check_constraints()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_wikibase"><code class="docutils literal notranslate"><span class="pre">check_wikibase()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.create_redirect"><code class="docutils literal notranslate"><span class="pre">create_redirect()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.delete_page"><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.download_entity_ttl"><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.edit_entity"><code class="docutils literal notranslate"><span class="pre">edit_entity()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.execute_sparql_query"><code class="docutils literal notranslate"><span class="pre">execute_sparql_query()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format2wbi"><code class="docutils literal notranslate"><span class="pre">format2wbi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format_amount"><code class="docutils literal notranslate"><span class="pre">format_amount()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.fulltext_search"><code class="docutils literal notranslate"><span class="pre">fulltext_search()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.generate_entity_instances"><code class="docutils literal notranslate"><span class="pre">generate_entity_instances()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_available_badges"><code class="docutils literal notranslate"><span class="pre">get_available_badges()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_user_agent"><code class="docutils literal notranslate"><span class="pre">get_user_agent()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_form"><code class="docutils literal notranslate"><span class="pre">lexeme_add_form()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_add_sense()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_form"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_form()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_sense()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_form"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_form()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_sense()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call_helper()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_items"><code class="docutils literal notranslate"><span class="pre">merge_items()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_lexemes"><code class="docutils literal notranslate"><span class="pre">merge_lexemes()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_multiple_items"><code class="docutils literal notranslate"><span class="pre">merge_multiple_items()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.parse_value"><code class="docutils literal notranslate"><span class="pre">parse_value()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.remove_claims"><code class="docutils literal notranslate"><span class="pre">remove_claims()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.search_entities"><code class="docutils literal notranslate"><span class="pre">search_entities()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.set_claim"><code class="docutils literal notranslate"><span class="pre">set_claim()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html">wikibaseintegrator.wbi_login module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Clientlogin"><code class="docutils literal notranslate"><span class="pre">Clientlogin</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Login"><code class="docutils literal notranslate"><span class="pre">Login</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.LoginError"><code class="docutils literal notranslate"><span class="pre">LoginError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth1"><code class="docutils literal notranslate"><span class="pre">OAuth1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth2"><code class="docutils literal notranslate"><span class="pre">OAuth2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.WCQSAuth"><code class="docutils literal notranslate"><span class="pre">WCQSAuth</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.wikibaseintegrator.html">wikibaseintegrator.wikibaseintegrator module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../wikibaseintegrator.wikibaseintegrator.html#wikibaseintegrator.wikibaseintegrator.WikibaseIntegrator"><code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../wikibaseintegrator.html#module-wikibaseintegrator">Module contents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../wikibaseintegrator.html#wikibaseintegrator-library">WikibaseIntegrator Library</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-14-0">v0.14.0</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#breaking-changes">Breaking changes</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#new-features-and-improvements">New features and improvements</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#bug-fixes">Bug fixes</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#documentation">Documentation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#other-changes">Other changes</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-13-0">v0.13.0</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#breaking-changes">Breaking changes</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#new-features-and-improvements">New features and improvements</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#bug-fixes">Bug fixes</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#documentation">Documentation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#dependencies">Dependencies</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../changelog.html#other-changes">Other changes</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-15">v0.12.15</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-14">v0.12.14</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-13">v0.12.13</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-12">v0.12.12</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-11">v0.12.11</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-10">v0.12.10</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-9">v0.12.9</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-8">v0.12.8</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-7">v0.12.7</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-6">v0.12.6</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-5">v0.12.5</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-4">v0.12.4</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-3">v0.12.3</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-2">v0.12.2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-1">v0.12.1</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0">v0.12.0</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#complete-rewrite-of-the-library">Complete rewrite of the library</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-11-3">v0.11.3</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0rc5">v0.12.0rc5</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0rc4">v0.12.0rc4</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-11-2">v0.11.2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0rc3">v0.12.0rc3</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0rc2">v0.12.0rc2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0rc1">v0.12.0rc1</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0-dev7">v0.12.0.dev7</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0-dev6">v0.12.0.dev6</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-11-1">v0.11.1</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#what-s-changed">What’s Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#new-contributors">New Contributors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0-dev5">v0.12.0.dev5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0-dev4">v0.12.0.dev4</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#changes-since-v0-12-0-dev3">Changes since v0.12.0.dev3</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0-dev3">v0.12.0.dev3</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#changes-since-v0-12-0-dev2">Changes since v0.12.0.dev2</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-12-0-dev2">v0.12.0.dev2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-11-0">v0.11.0</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#breaking-changes">BREAKING CHANGES</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-10-1">v0.10.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-10-0">v0.10.0</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#breaking-changes">BREAKING CHANGES</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-9-0">v0.9.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-8-2">v0.8.2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../changelog.html#move-from-wikidataintegrator-to-wikibaseintegrator">Move from WikidataIntegrator to WikibaseIntegrator</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../changelog.html#release-0-8-1">v0.8.1</a></li>
-</ul>
-</li>
-</ul>
 
-        </div>
-      </div>
-    </nav>
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">WikibaseIntegrator</a>
-      </nav>
+  
+    
+  
 
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">wikibaseintegrator.wbi_helpers</li>
-      <li class="wy-breadcrumbs-aside">
-      </li>
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WikibaseIntegrator</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
   </ul>
-  <hr/>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">wikibaseintegrator.wbi_helpers</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <h1>Source code for wikibaseintegrator.wbi_helpers</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""</span>
 <span class="sd">Multiple functions or classes that can be used to interact with the Wikibase instance.</span>
@@ -415,8 +476,6 @@
     <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="BColors">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.BColors">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BColors</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Default colors for pretty outputs.</span>
@@ -432,8 +491,7 @@
     <span class="n">FAIL</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[91m'</span>
     <span class="n">ENDC</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[0m'</span>
     <span class="n">BOLD</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[1m'</span>
-    <span class="n">UNDERLINE</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[4m'</span></div>
-
+    <span class="n">UNDERLINE</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[4m'</span>
 
 
 
@@ -547,7 +605,7 @@
 
 
 <div class="viewcode-block" id="mediawiki_api_call">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.mediawiki_api_call.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mediawiki_api_call</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">retry_after</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
                        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -699,7 +757,7 @@
 
 
 <div class="viewcode-block" id="mediawiki_api_call_helper">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                               <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">retry_after</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span> <span class="n">maxlag</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -779,7 +837,7 @@
 
 
 <div class="viewcode-block" id="execute_sparql_query">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.execute_sparql_query">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.execute_sparql_query.html#wikibaseintegrator.wbi_helpers.execute_sparql_query">[docs]</a>
 <span class="nd">@wbi_backoff</span><span class="p">()</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">retry_after</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
                          <span class="n">auth</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">AuthBase</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
@@ -955,7 +1013,7 @@
 
 
 <div class="viewcode-block" id="edit_entity">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.edit_entity">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.edit_entity.html#wikibaseintegrator.wbi_helpers.edit_entity">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">edit_entity</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">clear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">site</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_request_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1042,7 +1100,7 @@
 
 
 <div class="viewcode-block" id="merge_items">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_items">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.merge_items.html#wikibaseintegrator.wbi_helpers.merge_items">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">merge_items</span><span class="p">(</span><span class="n">from_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ignore_conflicts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1077,7 +1135,7 @@
 
 
 <div class="viewcode-block" id="merge_multiple_items">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_multiple_items">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.merge_multiple_items.html#wikibaseintegrator.wbi_helpers.merge_multiple_items">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">merge_multiple_items</span><span class="p">(</span><span class="n">item_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ignore_conflicts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                          <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1116,7 +1174,7 @@
 
 
 <div class="viewcode-block" id="create_redirect">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.create_redirect">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.create_redirect.html#wikibaseintegrator.wbi_helpers.create_redirect">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_redirect</span><span class="p">(</span><span class="n">from_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A static method to turn an item into a redirect to another item, with the wbcreateredirect API.</span>
@@ -1147,7 +1205,7 @@
 
 
 <div class="viewcode-block" id="merge_lexemes">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_lexemes">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.merge_lexemes.html#wikibaseintegrator.wbi_helpers.merge_lexemes">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">merge_lexemes</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A static method to merge two lexemes</span>
@@ -1177,7 +1235,7 @@
 
 
 <div class="viewcode-block" id="remove_claims">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.remove_claims">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.remove_claims.html#wikibaseintegrator.wbi_helpers.remove_claims">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">remove_claims</span><span class="p">(</span><span class="n">claim_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Delete a claim from an entity</span>
@@ -1208,7 +1266,7 @@
 
 
 <div class="viewcode-block" id="set_claim">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.set_claim">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.set_claim.html#wikibaseintegrator.wbi_helpers.set_claim">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_claim</span><span class="p">(</span><span class="n">claim</span><span class="p">:</span> <span class="n">Claim</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">ignore_duplicate_mainsnak</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1286,7 +1344,7 @@
 
 
 <div class="viewcode-block" id="check_constraints">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_constraints">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.check_constraints.html#wikibaseintegrator.wbi_helpers.check_constraints">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_constraints</span><span class="p">(</span><span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">claim_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                       <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1327,7 +1385,7 @@
 
 
 <div class="viewcode-block" id="search_entities">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.search_entities">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.search_entities.html#wikibaseintegrator.wbi_helpers.search_entities">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">search_entities</span><span class="p">(</span><span class="n">search_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">strict_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">search_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'item'</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">dict_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                     <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1396,7 +1454,7 @@
 
 
 <div class="viewcode-block" id="parse_value">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.parse_value">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.parse_value.html#wikibaseintegrator.wbi_helpers.parse_value">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_value</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">datatype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">validate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1459,7 +1517,7 @@
 
 
 <div class="viewcode-block" id="get_available_badges">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_available_badges">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.get_available_badges.html#wikibaseintegrator.wbi_helpers.get_available_badges">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_available_badges</span><span class="p">(</span><span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Get the items which can be used as badges of sitelinks (e.g. 'Q17437796', featured article, on Wikidata), with the wbavailablebadges API.</span>
@@ -1479,7 +1537,7 @@
 
 
 <div class="viewcode-block" id="lexeme_add_form">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_form">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.lexeme_add_form.html#wikibaseintegrator.wbi_helpers.lexeme_add_form">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lexeme_add_form</span><span class="p">(</span><span class="n">lexeme_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Adds Form to Lexeme</span>
@@ -1517,7 +1575,7 @@
 
 
 <div class="viewcode-block" id="lexeme_edit_form">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_form">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.lexeme_edit_form.html#wikibaseintegrator.wbi_helpers.lexeme_edit_form">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lexeme_edit_form</span><span class="p">(</span><span class="n">form_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Edits representations and grammatical features of a Form</span>
@@ -1563,7 +1621,7 @@
 
 
 <div class="viewcode-block" id="lexeme_remove_form">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_form">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.lexeme_remove_form.html#wikibaseintegrator.wbi_helpers.lexeme_remove_form">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lexeme_remove_form</span><span class="p">(</span><span class="n">form_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Removes Form from Lexeme</span>
@@ -1605,7 +1663,7 @@
 
 
 <div class="viewcode-block" id="lexeme_add_sense">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_sense">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.lexeme_add_sense.html#wikibaseintegrator.wbi_helpers.lexeme_add_sense">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lexeme_add_sense</span><span class="p">(</span><span class="n">lexeme_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Adds a Sense to a Lexeme</span>
@@ -1643,7 +1701,7 @@
 
 
 <div class="viewcode-block" id="lexeme_edit_sense">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_sense">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.lexeme_edit_sense.html#wikibaseintegrator.wbi_helpers.lexeme_edit_sense">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lexeme_edit_sense</span><span class="p">(</span><span class="n">sense_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Edits glosses of a Sense</span>
@@ -1689,7 +1747,7 @@
 
 
 <div class="viewcode-block" id="lexeme_remove_sense">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_sense">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.lexeme_remove_sense.html#wikibaseintegrator.wbi_helpers.lexeme_remove_sense">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lexeme_remove_sense</span><span class="p">(</span><span class="n">sense_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">baserevid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Removes Sense from Lexeme</span>
@@ -1731,7 +1789,7 @@
 
 
 <div class="viewcode-block" id="generate_entity_instances">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.generate_entity_instances">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.generate_entity_instances.html#wikibaseintegrator.wbi_helpers.generate_entity_instances">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_entity_instances</span><span class="p">(</span><span class="n">entities</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseEntity</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A method which allows for retrieval of a list of Wikidata entities. The method generates a list of tuples where the first value in the tuple is the entity's ID, whereas the</span>
@@ -1783,7 +1841,7 @@
 
 
 <div class="viewcode-block" id="delete_page">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.delete_page">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.delete_page.html#wikibaseintegrator.wbi_helpers.delete_page">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">delete_page</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">pageid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">deletetalk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">watchlist</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'preferences'</span><span class="p">,</span>
                 <span class="n">watchlistexpiry</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -1836,7 +1894,7 @@
 
 
 <div class="viewcode-block" id="fulltext_search">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.fulltext_search">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.fulltext_search.html#wikibaseintegrator.wbi_helpers.fulltext_search">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fulltext_search</span><span class="p">(</span><span class="n">search</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Perform a fulltext search on the mediawiki instance.</span>
@@ -1861,7 +1919,7 @@
 
 
 <div class="viewcode-block" id="format_amount">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format_amount">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.format_amount.html#wikibaseintegrator.wbi_helpers.format_amount">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_amount</span><span class="p">(</span><span class="n">amount</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A formatting function mostly used for Quantity datatype.</span>
@@ -1882,7 +1940,7 @@
 
 
 <div class="viewcode-block" id="get_user_agent">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_user_agent">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.get_user_agent.html#wikibaseintegrator.wbi_helpers.get_user_agent">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_user_agent</span><span class="p">(</span><span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Return a user agent string suitable for interacting with the Wikibase instance.</span>
@@ -1906,7 +1964,7 @@
 
 
 <div class="viewcode-block" id="format2wbi">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format2wbi">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.format2wbi.html#wikibaseintegrator.wbi_helpers.format2wbi">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format2wbi</span><span class="p">(</span><span class="n">entitytype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">json_raw</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEntity</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Build a WikibaseIntegrator entity from a raw Wikibase JSON string.</span>
@@ -2057,7 +2115,7 @@
 
 
 <div class="viewcode-block" id="download_entity_ttl">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.download_entity_ttl">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.download_entity_ttl.html#wikibaseintegrator.wbi_helpers.download_entity_ttl">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">download_entity_ttl</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.</span>
@@ -2084,7 +2142,7 @@
 
 
 <div class="viewcode-block" id="WikibaseCheck">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.WikibaseCheck">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.WikibaseCheck.html#wikibaseintegrator.wbi_helpers.WikibaseCheck">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">WikibaseCheck</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -2150,7 +2208,7 @@
 
 
 <div class="viewcode-block" id="check_wikibase">
-<a class="viewcode-back" href="../../wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_wikibase">[docs]</a>
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.check_wikibase.html#wikibaseintegrator.wbi_helpers.check_wikibase">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_wikibase</span><span class="p">(</span><span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sparql_endpoint_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">check_sparql</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                    <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WikibaseCheck</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -2219,31 +2277,74 @@
 
 </pre></div>
 
-           </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
           </div>
-          <footer>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2026, LeMyst.</p>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
   </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
 
-</footer>
-        </div>
-      </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+  <p class="copyright">
+    
+      © Copyright 2026, LeMyst.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
 
-</body>
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
 </html>

@@ -1,0 +1,6 @@
+﻿edit\_entity
+============
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: edit_entity

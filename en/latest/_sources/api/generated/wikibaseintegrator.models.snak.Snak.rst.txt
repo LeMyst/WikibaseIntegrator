@@ -1,0 +1,6 @@
+﻿Snak
+====
+
+.. currentmodule:: wikibaseintegrator.models.snak
+
+.. autoclass:: Snak

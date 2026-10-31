@@ -1,0 +1,6 @@
+﻿WikibaseTimePrecision
+=====================
+
+.. currentmodule:: wikibaseintegrator.wbi_enums
+
+.. autoclass:: WikibaseTimePrecision

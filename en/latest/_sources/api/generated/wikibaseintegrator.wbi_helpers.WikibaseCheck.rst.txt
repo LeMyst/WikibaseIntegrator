@@ -1,0 +1,6 @@
+﻿WikibaseCheck
+=============
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autoclass:: WikibaseCheck

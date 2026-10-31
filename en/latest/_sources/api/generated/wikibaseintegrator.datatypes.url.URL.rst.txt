@@ -1,0 +1,6 @@
+﻿URL
+===
+
+.. currentmodule:: wikibaseintegrator.datatypes.url
+
+.. autoclass:: URL

@@ -1,0 +1,6 @@
+﻿WikibaseIntegrator
+==================
+
+.. currentmodule:: wikibaseintegrator.wikibaseintegrator
+
+.. autoclass:: WikibaseIntegrator

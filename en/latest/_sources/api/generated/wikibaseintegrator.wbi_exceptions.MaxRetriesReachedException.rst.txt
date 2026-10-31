@@ -1,0 +1,6 @@
+﻿MaxRetriesReachedException
+==========================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: MaxRetriesReachedException

@@ -1,0 +1,6 @@
+﻿lexeme\_edit\_sense
+===================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: lexeme_edit_sense

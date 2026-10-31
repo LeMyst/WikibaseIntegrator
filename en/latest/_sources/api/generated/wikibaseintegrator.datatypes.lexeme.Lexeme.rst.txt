@@ -1,0 +1,6 @@
+﻿Lexeme
+======
+
+.. currentmodule:: wikibaseintegrator.datatypes.lexeme
+
+.. autoclass:: Lexeme

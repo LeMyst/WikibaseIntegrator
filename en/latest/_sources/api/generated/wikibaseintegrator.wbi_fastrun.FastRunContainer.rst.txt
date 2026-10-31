@@ -1,0 +1,6 @@
+﻿FastRunContainer
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_fastrun
+
+.. autoclass:: FastRunContainer

@@ -1,0 +1,6 @@
+﻿WikibaseSnakType
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_enums
+
+.. autoclass:: WikibaseSnakType

@@ -1,0 +1,6 @@
+﻿MonolingualText
+===============
+
+.. currentmodule:: wikibaseintegrator.datatypes.monolingualtext
+
+.. autoclass:: MonolingualText

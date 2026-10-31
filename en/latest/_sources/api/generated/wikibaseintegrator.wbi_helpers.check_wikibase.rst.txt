@@ -1,0 +1,6 @@
+﻿check\_wikibase
+===============
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: check_wikibase

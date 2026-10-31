@@ -1,0 +1,6 @@
+﻿Claims
+======
+
+.. currentmodule:: wikibaseintegrator.models.claims
+
+.. autoclass:: Claims

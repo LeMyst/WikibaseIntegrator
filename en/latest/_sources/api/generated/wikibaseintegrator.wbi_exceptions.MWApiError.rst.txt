@@ -1,0 +1,6 @@
+﻿MWApiError
+==========
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: MWApiError

@@ -1,0 +1,6 @@
+﻿GlobeCoordinate
+===============
+
+.. currentmodule:: wikibaseintegrator.datatypes.globecoordinate
+
+.. autoclass:: GlobeCoordinate

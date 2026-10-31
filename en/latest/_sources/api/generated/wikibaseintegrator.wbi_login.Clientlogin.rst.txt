@@ -1,0 +1,7 @@
+﻿Clientlogin
+===========
+
+.. currentmodule:: wikibaseintegrator.wbi_login
+
+.. autoclass:: Clientlogin
+   :inherited-members:

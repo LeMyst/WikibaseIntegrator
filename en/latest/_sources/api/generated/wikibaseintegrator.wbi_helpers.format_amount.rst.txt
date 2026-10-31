@@ -1,0 +1,6 @@
+﻿format\_amount
+==============
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: format_amount
