@@ -790,7 +790,7 @@ def merge_lexemes(source: str, target: str, login: _Login | None = None, summary
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | None = None, is_bot: bool = False, tags: list[str] | None = None, **kwargs: Any) -> dict:
     """
     Delete a claim from an entity
 
@@ -798,6 +798,7 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
     :param summary: Summary for the edit. Will be prepended by an automatically generated comment.
     :param baserevid: The numeric identifier for the revision to base the modification on. This is used for detecting conflicts during save.
     :param is_bot: Mark this edit as bot.
+    :param tags: Change tags to apply to the revision.
     """
 
     params: dict[str, str | int] = {
@@ -814,6 +815,9 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
 
     if is_bot:
         params.update({'bot': ''})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
 
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 

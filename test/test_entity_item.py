@@ -297,3 +297,27 @@ class TestWriteWithLogin:
         params = wikibase.last_edit['params']
         assert params['token'] == wikibase.csrf_token
         assert params['assert'] == 'user'
+
+
+class TestReload:
+    """get() without an ID reloads the entity: it was only supported by ItemEntity."""
+
+    @pytest.mark.parametrize('fixture,entity_type,entity_id', [
+        ('item_Q582', 'item', 'Q582'),
+        ('lexeme_L5', 'lexeme', 'L5'),
+        ('property_P50', 'property', 'P50'),
+        ('mediainfo_M75908279', 'mediainfo', 'M75908279'),
+    ])
+    def test_get_without_id_reloads_the_entity(self, wikibase, fixture, entity_type, entity_id):
+        wikibase.add_fixture(fixture)
+        entity = getattr(wbi, entity_type).get(entity_id)
+
+        reloaded = entity.get()
+
+        assert reloaded.id == entity_id
+        assert reloaded is not entity
+
+    @pytest.mark.parametrize('entity_type', ['item', 'lexeme', 'property', 'mediainfo'])
+    def test_get_without_any_id(self, entity_type):
+        with pytest.raises(ValueError, match='You must provide an entity_id'):
+            getattr(wbi, entity_type).new().get()

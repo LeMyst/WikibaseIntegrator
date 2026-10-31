@@ -1165,6 +1165,13 @@ class TestEditHelpers:
         request = wikibase.last_request
         assert request['action'] == 'wbremoveclaims'
         assert request['claim'] == 'Q582$1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a'
+        assert 'tags' not in request
+
+    def test_remove_claims_tags(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        remove_claims(claim_id='Q582$1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a', tags=['bot-cleanup', 'mass-edit'], login=login)
+
+        assert wikibase.last_request['tags'] == 'bot-cleanup|mass-edit'
 
     def test_lexeme_form_and_sense_id_validation(self):
         with pytest.raises(ValueError):
