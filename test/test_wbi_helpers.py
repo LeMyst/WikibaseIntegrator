@@ -4,6 +4,7 @@ mapping), search, merge, SPARQL and the various pure helper functions.
 """
 import copy
 import inspect
+import json
 import logging
 import threading
 import uuid
@@ -1438,3 +1439,68 @@ class TestFormat2Wbi:
         assert result.descriptions.get('en') == 'scientific paper published in 2022'
         assert result.claims.get('P31')[0].mainsnak.datavalue['value']['id'] == 'Q13442814'
         assert len(result.claims.get('P2093')) == 2
+        assert [alias.value for alias in result.aliases.get('en')] == ['first alias', 'second alias']
+
+    def test_structured_values(self, wikibase):
+        wikibase.add_property('P1082', 'quantity')
+        wikibase.add_property('P2044', 'quantity')
+        wikibase.add_property('P577', 'time')
+        wikibase.add_property('P625', 'globe-coordinate')
+        wikibase.add_property('P12861', 'entity-schema')
+
+        # The Quantity branch used to pass quantity= to Quantity() (TypeError), and every optional attribute was required
+        result = format2wbi('item', '''{
+          "claims": {
+            "P1082": {"amount": "2175601", "unit": "Q11573"},
+            "P2044": 35,
+            "P577": {"time": "+2022-03-15T00:00:00Z", "precision": 11},
+            "P625": {"latitude": 48.856666666, "longitude": 2.352222222},
+            "P12861": "E10"
+          }
+        }''')
+
+        population = result.claims.get('P1082')[0].mainsnak.datavalue['value']
+        assert population['amount'] == '+2175601'
+        assert population['unit'].endswith('/entity/Q11573')
+        assert result.claims.get('P2044')[0].mainsnak.datavalue['value']['amount'] == '+35'
+        assert result.claims.get('P577')[0].mainsnak.datavalue['value']['time'] == '+2022-03-15T00:00:00Z'
+        assert result.claims.get('P625')[0].mainsnak.datavalue['value']['latitude'] == 48.856666666
+        assert result.claims.get('P12861')[0].mainsnak.datavalue['value']['id'] == 'E10'
+
+    def test_references(self, wikibase):
+        wikibase.add_property('P2093', 'string')
+        wikibase.add_property('P248', 'wikibase-item')
+        wikibase.add_property('P854', 'url')
+
+        # The references used to be built, then dropped
+        result = format2wbi('item', '''{
+          "claims": {
+            "P2093": {"value": "First Author", "references": [{"P248": "Q5", "P854": "https://example.org/"}, {"P248": "Q6"}]}
+          }
+        }''')
+
+        references = result.claims.get('P2093')[0].references
+        assert [[snak.property_number for snak in reference] for reference in references] == [['P248', 'P854'], ['P248']]
+
+    def test_plain_value_containing_the_word_qualifiers(self, wikibase):
+        wikibase.add_property('P2093', 'string')
+
+        # A plain value was searched for a 'qualifiers' key with the in operator on the string itself
+        result = format2wbi('item', '{"claims": {"P2093": "qualifiers and references"}}')
+
+        assert result.claims.get('P2093')[0].mainsnak.datavalue['value'] == 'qualifiers and references'
+
+    def test_property_lookups(self, wikibase):
+        for number in range(1, 61):
+            wikibase.add_property(f'P{number}', 'string')
+        claims = {f'P{number}': {'value': 'x', 'qualifiers': {'P60': 'q'}} for number in range(1, 60)}
+
+        result = format2wbi('item', json.dumps({'claims': claims}))
+
+        # One wbgetentities call per 50 properties, the qualifier properties included, then the cache
+        lookups = [request['ids'].split('|') for request in wikibase.requests if request.get('action') == 'wbgetentities']
+        assert [len(ids) for ids in lookups] == [50, 10]
+        assert len(result.claims) == 59
+        # The cache is keyed by MediaWiki API URL, so two instances don't share the datatype of their properties
+        assert {prop_nr for _, prop_nr in wbi_helpers.properties_dt} == {f'P{number}' for number in range(1, 61)}
+        assert {url for url, _ in wbi_helpers.properties_dt} == {wikibase.mediawiki_api_url}

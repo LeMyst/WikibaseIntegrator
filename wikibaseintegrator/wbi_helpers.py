@@ -1465,23 +1465,53 @@ def get_user_agent(user_agent: str | None = None) -> str:
     return return_user_agent
 
 
-properties_dt: dict = {}
+#: The datatype of the properties, by MediaWiki API URL and property ID, cached by format2wbi()
+properties_dt: dict[tuple[str, str], str] = {}
+
+
+def _load_properties_datatype(properties: list[str], allow_anonymous: bool = True, **kwargs: Any) -> None:
+    """Load the datatype of the properties missing from properties_dt, 50 by 50 (the maximum of wbgetentities)."""
+    mediawiki_api_url = str(kwargs.get('mediawiki_api_url') or config['MEDIAWIKI_API_URL'])
+    missing = [prop_nr for prop_nr in dict.fromkeys(properties) if (mediawiki_api_url, prop_nr) not in properties_dt]
+    for index in range(0, len(missing), 50):
+        params = {
+            'action': 'wbgetentities',
+            'ids': '|'.join(missing[index:index + 50]),
+            'props': 'datatype',
+            'format': 'json'
+        }
+
+        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
+
+        for prop_nr, entity in reply['entities'].items():
+            properties_dt[(mediawiki_api_url, prop_nr)] = entity['datatype']
 
 
 def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs: Any) -> BaseEntity:
     """
-    Build a WikibaseIntegrator entity from a raw Wikibase JSON string.
+    Build a WikibaseIntegrator entity from a simplified JSON string: labels, descriptions and aliases by language, and the
+    claims by property, each claim being a value or a list of values, and each value a string or a dict (e.g.
+    ``{"value": "First Author", "qualifiers": {"P1545": "1"}, "references": [{"P248": "Q5"}]}``, ``{"text": "...",
+    "language": "en"}``, ``{"amount": "12", "unit": "Q11573"}``). A reference is a dict of the snaks of one reference block.
+
+    The datatype of the properties is retrieved from the instance (wbgetentities), and cached.
 
     .. warning::
-        **Experimental.** This function (and its helper :func:`_json2datatype`) is incomplete (references are not
-        attached, several data types are unsupported, it relies on a mutable module-level cache and has no test
-        coverage). Its API and behaviour may change or be removed without notice.
+        **Experimental.** This function (and its helper :func:`_json2datatype`) is incomplete (the lemmas, forms and senses
+        of a lexeme and the datatype of a property are not read, and a qualifier or a reference snak takes a single value per
+        property). Its API and behaviour may change or be removed without notice.
+
+    :param entitytype: The type of the entity to build: 'item', 'property', 'lexeme' or 'mediainfo'
+    :param json_raw: The simplified JSON string
+    :param allow_anonymous: Allow an anonymous lookup of the datatype of the properties. 'True' by default.
+    :param wikibase_url: The Wikibase URL, used for the entity IDs of the values. Use wbi_config['WIKIBASE_URL'] by default.
+    :param kwargs: Extra parameters for mediawiki_api_call_helper(), used for the lookups (e.g. mediawiki_api_url, login)
+    :return: The entity, not written to the instance
     """
     warnings.warn("format2wbi() is experimental and may change or be removed without notice.", stacklevel=2)
 
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
     json_decoded = json.loads(json_raw)
-    # pprint(json_decoded)
 
     from wikibaseintegrator.entities.baseentity import BaseEntity
 
@@ -1491,13 +1521,7 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
 
     entity = entity_list[0]()
 
-    # Add aliases (for Item and MediaInfo)
-    # Add lemmas (for Lexeme)
-    # Add lexical_category (for Lexeme)
-    # Add language (for Lexeme)
-    # Add forms (for Lexeme)
-    # Add senses (for Lexeme)
-    # Add datatype (for Property)
+    # Not read yet: the lemmas, lexical category, language, forms and senses of a lexeme, the datatype of a property
 
     if 'descriptions' in json_decoded and hasattr(entity, 'descriptions'):
         for language in json_decoded['descriptions']:
@@ -1507,113 +1531,86 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
         for language in json_decoded['labels']:
             entity.labels.set(language=language, value=json_decoded['labels'][language])
 
-    if 'claims' in json_decoded:
-        properties = list(json_decoded['claims'].keys())
+    if 'aliases' in json_decoded and hasattr(entity, 'aliases'):
+        for language in json_decoded['aliases']:
+            entity.aliases.set(language=language, values=json_decoded['aliases'][language])
 
+    if 'claims' in json_decoded:
         from wikibaseintegrator.models.qualifiers import Qualifiers
+        from wikibaseintegrator.models.reference import Reference
         from wikibaseintegrator.models.references import References
         from wikibaseintegrator.wbi_enums import ActionIfExists
 
-        params = {
-            'action': 'wbgetentities',
-            'ids': '|'.join(properties),
-            'props': 'datatype',
-            'format': 'json'
-        }
+        def as_list(value: Any) -> list:
+            return value if isinstance(value, list) else [value]
 
-        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
-
-        for p in reply['entities']:
-            properties_dt[p] = reply['entities'][p]['datatype']
+        # All the properties of the claims, qualifiers and references, looked up together
+        properties = list(json_decoded['claims'])
+        for statement in (statement for statements in json_decoded['claims'].values() for statement in as_list(statements)):
+            if isinstance(statement, dict):
+                for qualifiers_raw in as_list(statement.get('qualifiers', [])):
+                    properties.extend(qualifiers_raw)
+                for reference_raw in as_list(statement.get('references', [])):
+                    properties.extend(reference_raw)
+        _load_properties_datatype(properties, allow_anonymous=allow_anonymous, **kwargs)
 
         for claim in json_decoded['claims']:
-            if isinstance(json_decoded['claims'][claim], list):
-                statements = json_decoded['claims'][claim]
-            else:
-                statements = [json_decoded['claims'][claim]]
-
-            for statement in statements:
+            for statement in as_list(json_decoded['claims'][claim]):
+                # A statement given as a plain value (a string) has neither qualifiers nor references
                 qualifiers = Qualifiers()
-                if 'qualifiers' in statement:
-                    if isinstance(statement['qualifiers'], list):
-                        qualifiers_list = statement['qualifiers']
-                    else:
-                        qualifiers_list = [statement['qualifiers']]
-
-                    for qualifiers_raw in qualifiers_list:
-                        for qualifier in qualifiers_raw:
-                            qualifiers.add(_json2datatype(qualifier, qualifiers_raw[qualifier], wikibase_url))
-
                 references = References()
-                if 'references' in statement:
-                    if isinstance(statement['references'], list):
-                        references_list = statement['references']
-                    else:
-                        references_list = [statement['references']]
+                if isinstance(statement, dict):
+                    for qualifiers_raw in as_list(statement.get('qualifiers', [])):
+                        for qualifier in qualifiers_raw:
+                            qualifiers.add(_json2datatype(qualifier, qualifiers_raw[qualifier], wikibase_url, allow_anonymous=allow_anonymous, **kwargs))
 
-                    for references_raw in references_list:
-                        for reference in references_raw:
-                            references.add(_json2datatype(reference, references_raw[reference], wikibase_url))
-                # TODO: Add support for references
-                sub_entity = _json2datatype(claim, statement, wikibase_url)
+                    # Each dict is one reference block
+                    for reference_raw in as_list(statement.get('references', [])):
+                        reference = Reference()
+                        for reference_prop_nr in reference_raw:
+                            reference.add(_json2datatype(reference_prop_nr, reference_raw[reference_prop_nr], wikibase_url, allow_anonymous=allow_anonymous, **kwargs))
+                        references.add(reference)
+
+                sub_entity = _json2datatype(claim, statement, wikibase_url, allow_anonymous=allow_anonymous, **kwargs)
                 sub_entity.qualifiers.set(qualifiers)
-                # entity.references.set(references)
+                sub_entity.references = references
                 entity.claims.add(sub_entity, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
     return entity
 
 
-def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous: bool = True, **kwargs: Any) -> BaseDataType:
+def _json2datatype(prop_nr: str, statement: Any, wikibase_url: str | None = None, allow_anonymous: bool = True, **kwargs: Any) -> BaseDataType:
     """
-    Experimental helper for :func:`format2wbi`. See its docstring for caveats. May change or be removed without notice.
+    Experimental helper for :func:`format2wbi`: the claim of the property for a simplified value (a string or a dict). See
+    its docstring for caveats. May change or be removed without notice.
     """
     from wikibaseintegrator.datatypes.basedatatype import BaseDataType
     wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
 
-    if prop_nr not in properties_dt:
-        params = {
-            'action': 'wbgetentities',
-            'ids': prop_nr,
-            'props': 'datatype',
-            'format': 'json'
-        }
-
-        reply = mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)
-
-        for p in reply['entities']:
-            properties_dt[p] = reply['entities'][p]['datatype']
-
-    datatype = properties_dt[prop_nr]
+    _load_properties_datatype([prop_nr], allow_anonymous=allow_anonymous, **kwargs)
+    mediawiki_api_url = str(kwargs.get('mediawiki_api_url') or config['MEDIAWIKI_API_URL'])
+    datatype = properties_dt[(mediawiki_api_url, prop_nr)]
 
     f = BaseDataType.get_datatype_class(datatype)
-    if f.__name__ in ['CommonsMedia', 'ExternalID', 'Form', 'GeoShape', 'Item', 'Lexeme', 'Math', 'MusicalNotation', 'Property', 'Sense', 'String', 'TabularData', 'URL']:
-        if isinstance(statement, dict):
-            value = statement['value']
-        else:
-            value = statement
-        return f(prop_nr=prop_nr, value=value)
-    elif f.__name__ == 'GlobeCoordinate':
-        altitude = statement['altitude'] or None
-        precision = statement['precision'] or None
-        globe = statement['globe'] or None
-        return f(prop_nr=prop_nr, latitude=statement['latitude'], longitude=statement['longitude'], altitude=altitude, precision=precision, globe=globe, wikibase_url=wikibase_url)
-    elif f.__name__ == 'MonolingualText':
-        return f(prop_nr=prop_nr, language=statement['language'], text=statement['text'])
-    elif f.__name__ == 'Quantity':
-        upper_bound = statement['upper_bound'] or None
-        lower_bound = statement['lower_bound'] or None
-        unit = statement['unit'] or '1'
-        return f(prop_nr=prop_nr, quantity=statement['quantity'], upper_bound=upper_bound, lower_bound=lower_bound, unit=unit, wikibase_url=wikibase_url)
-    elif f.__name__ == 'Time':
-        before = statement['before'] or 0
-        after = statement['after'] or 0
-        precision = statement['precision'] or None
-        timezone = statement['timezone'] or 0
-        calendarmodel = statement['calendarmodel'] or None
-        return f(prop_nr=prop_nr, time=statement['time'], before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel,
-                 wikibase_url=wikibase_url)
+    # The optional attributes of the structured values, absent from a plain value
+    attributes = statement if isinstance(statement, dict) else {}
 
-    return f()
+    if f.__name__ == 'GlobeCoordinate':
+        return f(prop_nr=prop_nr, latitude=attributes['latitude'], longitude=attributes['longitude'], altitude=attributes.get('altitude'), precision=attributes.get('precision'),
+                 globe=attributes.get('globe'), wikibase_url=wikibase_url)
+    if f.__name__ == 'MonolingualText':
+        return f(prop_nr=prop_nr, language=attributes['language'], text=attributes['text'])
+    if f.__name__ == 'Quantity':
+        # 'amount' like the Wikibase JSON, 'quantity' read by the first versions of this function
+        amount = attributes.get('amount', attributes.get('quantity')) if attributes else statement
+        return f(prop_nr=prop_nr, amount=amount, upper_bound=attributes.get('upper_bound'), lower_bound=attributes.get('lower_bound'), unit=attributes.get('unit') or '1',
+                 wikibase_url=wikibase_url)
+    if f.__name__ == 'Time':
+        return f(prop_nr=prop_nr, time=attributes['time'] if attributes else statement, before=attributes.get('before') or 0, after=attributes.get('after') or 0,
+                 precision=attributes.get('precision'), timezone=attributes.get('timezone') or 0, calendarmodel=attributes.get('calendarmodel'), wikibase_url=wikibase_url)
+
+    # The data types with a single value: CommonsMedia, EntitySchema, ExternalID, Form, GeoShape, Item, Lexeme, Math...
+    return f(prop_nr=prop_nr, value=attributes['value'] if attributes else statement)
 
 
 def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent: str | None = None) -> str:
