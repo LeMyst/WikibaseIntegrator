@@ -20,6 +20,14 @@ endpoint and only writes to the Wikibase instance when something actually change
 
 To port a WikidataIntegrator script, see [Migrating from WikidataIntegrator](wikidataintegrator.md).
 
+## Citing WikibaseIntegrator
+
+Every release is archived on [Zenodo](https://doi.org/10.5281/zenodo.5594623). To cite WikibaseIntegrator, use the
+DOI [10.5281/zenodo.5594623](https://doi.org/10.5281/zenodo.5594623), which always resolves to the latest archived
+version, or the DOI of the version you used, listed on the Zenodo page. The "Cite this repository" button of the
+[GitHub repository](https://github.com/LeMyst/WikibaseIntegrator) gives the citation in the APA and BibTeX formats,
+from the [CITATION.cff](https://github.com/LeMyst/WikibaseIntegrator/blob/master/CITATION.cff) file.
+
 ## Other projects
 
 Here is a list of different projects that use the library:
