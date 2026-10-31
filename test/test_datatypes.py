@@ -60,6 +60,54 @@ class TestGlobeCoordinate:
         assert coordinate != GlobeCoordinate(prop_nr='P10')
         assert coordinate != Item(value='Q123', prop_nr='P10')
 
+    # (longitude, latitude, globe, the WKT literal returned by the Wikidata Query Service for the statement)
+    query_service_literals = [
+        (2.352222222222222, 48.85666666666667, None, 'Point(2.352222222 48.856666666)'),  # Q90: truncated to 9 decimals
+        (-46.633947222222, -23.550394444444, None, 'Point(-46.633947222 -23.550394444)'),  # Q174: truncated toward zero
+        (2, 47, None, 'Point(2.0 47.0)'),  # Q142: Java's Double.toString()
+        (0, -90, None, 'Point(0.0 -90.0)'),  # Q51
+        (4.835, 45.7675, None, 'Point(4.835 45.7675)'),  # Q456
+        (354.5, -1.9, 'http://www.wikidata.org/entity/Q111', '<http://www.wikidata.org/entity/Q111> Point(354.5 -1.9)'),  # Q4804701, on Mars
+        (0.0005, -0.00012, None, 'Point(5.0E-4 -1.2E-4)'),  # the scientific notation of Java below 10^-3
+    ]
+
+    @pytest.mark.parametrize('longitude,latitude,globe,literal', query_service_literals)
+    def test_sparql_value_like_the_query_service(self, longitude, latitude, globe, literal):
+        coordinate = GlobeCoordinate(latitude=latitude, longitude=longitude, globe=globe, prop_nr='P625')
+
+        assert coordinate.get_sparql_value() == f'"{literal}"^^geo:wktLiteral'
+
+    @pytest.mark.parametrize('longitude,latitude,globe,literal', query_service_literals)
+    def test_sparql_value_round_trip(self, longitude, latitude, globe, literal):
+        sparql_value = {'datatype': 'http://www.opengis.net/ont/geosparql#wktLiteral', 'type': 'literal', 'value': literal}
+
+        parsed = GlobeCoordinate(prop_nr='P625').from_sparql_value(sparql_value)
+
+        assert parsed.mainsnak.datavalue['value']['globe'] == (globe or 'http://www.wikidata.org/entity/Q2')
+        assert parsed.get_sparql_value() == GlobeCoordinate(latitude=latitude, longitude=longitude, globe=globe, prop_nr='P625').get_sparql_value()
+
+    def test_sparql_value_escapes_the_globe_iri(self):
+        # Like Wikibase, a '>' of the globe IRI is written '%3E' to keep the WKT literal valid
+        coordinate = GlobeCoordinate(latitude=1.5, longitude=2.5, globe='http://example.org/globe>1', prop_nr='P625')
+        sparql_value = {'datatype': 'http://www.opengis.net/ont/geosparql#wktLiteral', 'type': 'literal', 'value': '<http://example.org/globe%3E1> Point(2.5 1.5)'}
+
+        assert coordinate.get_sparql_value() == '"<http://example.org/globe%3E1> Point(2.5 1.5)"^^geo:wktLiteral'
+        assert GlobeCoordinate(prop_nr='P625').from_sparql_value(sparql_value).mainsnak.datavalue['value']['globe'] == 'http://example.org/globe>1'
+
+    def test_earth_ranges(self):
+        with pytest.raises(ValueError, match='latitude must be between -90 and 90'):
+            GlobeCoordinate(latitude=120, longitude=2.5, prop_nr='P625')
+        with pytest.raises(ValueError, match='longitude must be between -180 and 180'):
+            GlobeCoordinate(latitude=1.5, longitude=200, prop_nr='P625')
+
+    def test_other_globe_ranges(self):
+        # Mars longitudes go from 0 to 360: Wikibase accepts -360 to 360 for both the latitude and the longitude
+        coordinate = GlobeCoordinate(latitude=-1.9, longitude=354.5, globe='Q111', prop_nr='P625')
+
+        assert coordinate.mainsnak.datavalue['value']['longitude'] == 354.5
+        with pytest.raises(ValueError, match='longitude must be between -360 and 360'):
+            GlobeCoordinate(latitude=-1.9, longitude=400, globe='Q111', prop_nr='P625')
+
 
 class TestTime:
     def test_accessors(self):
