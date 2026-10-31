@@ -1,0 +1,1151 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wikibaseintegrator.wbi_exceptions module &mdash; WikibaseIntegrator 0.14.1.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx_autodoc_typehints.css?v=057ac668" />
+
+  
+    <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/wikibaseintegrator.wbi_exceptions.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=006b3b73"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wikibaseintegrator.wbi_fastrun module" href="wikibaseintegrator.wbi_fastrun.html" />
+    <link rel="prev" title="wikibaseintegrator.wbi_enums module" href="wikibaseintegrator.wbi_enums.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WikibaseIntegrator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="wikibaseintegrator.html">wikibaseintegrator package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.datatypes.html">wikibaseintegrator.datatypes package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.datatypes.html#module-wikibaseintegrator.datatypes">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.entities.html">wikibaseintegrator.entities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.entities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.entities.html#module-wikibaseintegrator.entities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.models.html">wikibaseintegrator.models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.models.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.models.html#module-wikibaseintegrator.models">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="wikibaseintegrator.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html">wikibaseintegrator.wbi_backoff module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.RetryAfterError"><code class="docutils literal notranslate"><span class="pre">RetryAfterError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff"><code class="docutils literal notranslate"><span class="pre">wbi_backoff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_backoff_hdlr"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_backoff_hdlr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_check_json_decode_error"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_check_json_decode_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_giveup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_backoff_wait"><code class="docutils literal notranslate"><span class="pre">wbi_backoff_wait()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.html#wikibaseintegrator.wbi_backoff.wbi_get_backoff_max_tries"><code class="docutils literal notranslate"><span class="pre">wbi_get_backoff_max_tries()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_config.html">wikibaseintegrator.wbi_config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.html">wikibaseintegrator.wbi_editgroups module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.html#wikibaseintegrator.wbi_editgroups.EditGroup"><code class="docutils literal notranslate"><span class="pre">EditGroup</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html">wikibaseintegrator.wbi_enums module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.ActionIfExists"><code class="docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.EntityField"><code class="docutils literal notranslate"><span class="pre">EntityField</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseDatatype"><code class="docutils literal notranslate"><span class="pre">WikibaseDatatype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseRank"><code class="docutils literal notranslate"><span class="pre">WikibaseRank</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseSnakType"><code class="docutils literal notranslate"><span class="pre">WikibaseSnakType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_enums.html#wikibaseintegrator.wbi_enums.WikibaseTimePrecision"><code class="docutils literal notranslate"><span class="pre">WikibaseTimePrecision</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">wikibaseintegrator.wbi_exceptions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MWApiError"><code class="docutils literal notranslate"><span class="pre">MWApiError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed"><code class="docutils literal notranslate"><span class="pre">ModificationFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.SaveFailed"><code class="docutils literal notranslate"><span class="pre">SaveFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.SearchError"><code class="docutils literal notranslate"><span class="pre">SearchError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html">wikibaseintegrator.wbi_fastrun module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.FastRunContainer"><code class="docutils literal notranslate"><span class="pre">FastRunContainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.html#wikibaseintegrator.wbi_fastrun.get_fastrun_container"><code class="docutils literal notranslate"><span class="pre">get_fastrun_container()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html">wikibaseintegrator.wbi_helpers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.BColors"><code class="docutils literal notranslate"><span class="pre">BColors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.WikibaseCheck"><code class="docutils literal notranslate"><span class="pre">WikibaseCheck</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_constraints"><code class="docutils literal notranslate"><span class="pre">check_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.check_wikibase"><code class="docutils literal notranslate"><span class="pre">check_wikibase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.create_redirect"><code class="docutils literal notranslate"><span class="pre">create_redirect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.delete_page"><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.download_entity_ttl"><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.edit_entity"><code class="docutils literal notranslate"><span class="pre">edit_entity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.execute_sparql_query"><code class="docutils literal notranslate"><span class="pre">execute_sparql_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format2wbi"><code class="docutils literal notranslate"><span class="pre">format2wbi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.format_amount"><code class="docutils literal notranslate"><span class="pre">format_amount()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.fulltext_search"><code class="docutils literal notranslate"><span class="pre">fulltext_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.generate_entity_instances"><code class="docutils literal notranslate"><span class="pre">generate_entity_instances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_available_badges"><code class="docutils literal notranslate"><span class="pre">get_available_badges()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.get_user_agent"><code class="docutils literal notranslate"><span class="pre">get_user_agent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_form"><code class="docutils literal notranslate"><span class="pre">lexeme_add_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_add_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_add_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_form"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_edit_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_edit_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_form"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.lexeme_remove_sense"><code class="docutils literal notranslate"><span class="pre">lexeme_remove_sense()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.mediawiki_api_call_helper"><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call_helper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_items"><code class="docutils literal notranslate"><span class="pre">merge_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_lexemes"><code class="docutils literal notranslate"><span class="pre">merge_lexemes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.merge_multiple_items"><code class="docutils literal notranslate"><span class="pre">merge_multiple_items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.parse_value"><code class="docutils literal notranslate"><span class="pre">parse_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.remove_claims"><code class="docutils literal notranslate"><span class="pre">remove_claims()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.search_entities"><code class="docutils literal notranslate"><span class="pre">search_entities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.html#wikibaseintegrator.wbi_helpers.set_claim"><code class="docutils literal notranslate"><span class="pre">set_claim()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wbi_login.html">wikibaseintegrator.wbi_login module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Clientlogin"><code class="docutils literal notranslate"><span class="pre">Clientlogin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.Login"><code class="docutils literal notranslate"><span class="pre">Login</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.LoginError"><code class="docutils literal notranslate"><span class="pre">LoginError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth1"><code class="docutils literal notranslate"><span class="pre">OAuth1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.OAuth2"><code class="docutils literal notranslate"><span class="pre">OAuth2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wbi_login.html#wikibaseintegrator.wbi_login.WCQSAuth"><code class="docutils literal notranslate"><span class="pre">WCQSAuth</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.wikibaseintegrator.html">wikibaseintegrator.wikibaseintegrator module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="wikibaseintegrator.wikibaseintegrator.html#wikibaseintegrator.wikibaseintegrator.WikibaseIntegrator"><code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.html#module-wikibaseintegrator">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wikibaseintegrator.html#wikibaseintegrator-library">WikibaseIntegrator Library</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-14-0">v0.14.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#breaking-changes">Breaking changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#new-features-and-improvements">New features and improvements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#other-changes">Other changes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-13-0">v0.13.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#breaking-changes">Breaking changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#new-features-and-improvements">New features and improvements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#other-changes">Other changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-15">v0.12.15</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-14">v0.12.14</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-13">v0.12.13</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-12">v0.12.12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-11">v0.12.11</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-10">v0.12.10</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-9">v0.12.9</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-8">v0.12.8</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-7">v0.12.7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-6">v0.12.6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-5">v0.12.5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-4">v0.12.4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-3">v0.12.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-2">v0.12.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-1">v0.12.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0">v0.12.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#complete-rewrite-of-the-library">Complete rewrite of the library</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-3">v0.11.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc5">v0.12.0rc5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc4">v0.12.0rc4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-2">v0.11.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc3">v0.12.0rc3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc2">v0.12.0rc2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0rc1">v0.12.0rc1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev7">v0.12.0.dev7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev6">v0.12.0.dev6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-1">v0.11.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#what-s-changed">What’s Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#new-contributors">New Contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev5">v0.12.0.dev5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev4">v0.12.0.dev4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#changes-since-v0-12-0-dev3">Changes since v0.12.0.dev3</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev3">v0.12.0.dev3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#changes-since-v0-12-0-dev2">Changes since v0.12.0.dev2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-12-0-dev2">v0.12.0.dev2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-11-0">v0.11.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#breaking-changes">BREAKING CHANGES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-10-1">v0.10.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-10-0">v0.10.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#breaking-changes">BREAKING CHANGES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-9-0">v0.9.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-8-2">v0.8.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#move-from-wikidataintegrator-to-wikibaseintegrator">Move from WikidataIntegrator to WikibaseIntegrator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#release-0-8-1">v0.8.1</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WikibaseIntegrator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="wikibaseintegrator.html">wikibaseintegrator package</a></li>
+      <li class="breadcrumb-item active">wikibaseintegrator.wbi_exceptions module</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/LeMyst/WikibaseIntegrator/blob/master/docs/source/wikibaseintegrator.wbi_exceptions.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-wikibaseintegrator.wbi_exceptions">
+<span id="wikibaseintegrator-wbi-exceptions-module"></span><h1>wikibaseintegrator.wbi_exceptions module<a class="headerlink" href="#module-wikibaseintegrator.wbi_exceptions" title="Link to this heading"></a></h1>
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">AnonymousEditNotAllowedError</span></span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#AnonymousEditNotAllowedError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when an anonymous edit is attempted while it is not explicitly allowed.</p>
+<p>Set <code class="docutils literal notranslate"><span class="pre">allow_anonymous=True</span></code> or provide a valid <code class="docutils literal notranslate"><span class="pre">login</span></code> object to edit the MediaWiki instance.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.EmptyValueError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">EmptyValueError</span></span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#EmptyValueError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.EmptyValueError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<p>Raised before a write when a claim, a qualifier or a reference has no value, while its snak type states that it has
+one. A datatype created with None or an empty string as value has no value, and the Wikibase instance would reject
+it with a less explicit error.</p>
+<p>Set a value, or use the WikibaseSnakType.NO_VALUE or WikibaseSnakType.UNKNOWN_VALUE snak type.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.EmptyValueError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.EmptyValueError.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.EmptyValueError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.EmptyValueError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.EmptyValueError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.EmptyValueError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.EmptyValueError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.EmptyValueError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">MWApiError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#MWApiError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base class for MediaWiki API error handling</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>response</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#MWApiError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – The ‘error’ part of the API response</p></li>
+<li><p><strong>response</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span></span>) – The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.code">
+<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.error_dict">
+<span class="sig-name descname"><span class="pre">error_dict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.error_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.get_conflicting_entity_ids">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_conflicting_entity_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.get_conflicting_entity_ids" title="Link to this definition"></a></dt>
+<dd><p>Compute the list of conflicting entities from the error messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of conflicting entities or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.get_languages">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_languages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.get_languages" title="Link to this definition"></a></dt>
+<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of language identifiers or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.messages">
+<span class="sig-name descname"><span class="pre">messages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.messages" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.messages_names">
+<span class="sig-name descname"><span class="pre">messages_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.messages_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.response">
+<span class="sig-name descname"><span class="pre">response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.response" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">MaxRetriesReachedException</span></span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#MaxRetriesReachedException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingEntityException">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">MissingEntityException</span></span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#MissingEntityException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingEntityException" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingEntityException.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingEntityException.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingEntityException.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingEntityException.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingEntityException.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingEntityException.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingEntityException.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingEntityException.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">MissingExtensionError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#MissingExtensionError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></p>
+<p>Raised when a request needs a MediaWiki extension the Wikibase instance doesn’t provide, e.g. the lexemes of the
+WikibaseLexeme extension. The extension is either not installed or installed without its repository part.</p>
+<p>It inherits from NonExistentEntityError: the requested entity type doesn’t exist on the instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>extension</strong> (<em>str</em>)</p></li>
+<li><p><strong>response</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#MissingExtensionError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – The ‘error’ part of the API response</p></li>
+<li><p><strong>response</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span></span>) – The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)</p></li>
+<li><p><strong>extension</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.code">
+<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.error_dict">
+<span class="sig-name descname"><span class="pre">error_dict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.error_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.extension">
+<span class="sig-name descname"><span class="pre">extension</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.extension" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.get_conflicting_entity_ids">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_conflicting_entity_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.get_conflicting_entity_ids" title="Link to this definition"></a></dt>
+<dd><p>Compute the list of conflicting entities from the error messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of conflicting entities or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.get_languages">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_languages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.get_languages" title="Link to this definition"></a></dt>
+<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of language identifiers or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.messages">
+<span class="sig-name descname"><span class="pre">messages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.messages" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.messages_names">
+<span class="sig-name descname"><span class="pre">messages_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.messages_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.response">
+<span class="sig-name descname"><span class="pre">response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.response" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MissingExtensionError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MissingExtensionError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">ModificationFailed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#ModificationFailed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MWApiError" title="wikibaseintegrator.wbi_exceptions.MWApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MWApiError</span></code></a></p>
+<p>When the API return a ‘modification-failed’ error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>response</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – The ‘error’ part of the API response</p></li>
+<li><p><strong>response</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span></span>) – The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.code">
+<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.error_dict">
+<span class="sig-name descname"><span class="pre">error_dict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.error_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.get_conflicting_entity_ids">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_conflicting_entity_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.get_conflicting_entity_ids" title="Link to this definition"></a></dt>
+<dd><p>Compute the list of conflicting entities from the error messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of conflicting entities or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.get_languages">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_languages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.get_languages" title="Link to this definition"></a></dt>
+<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of language identifiers or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.messages">
+<span class="sig-name descname"><span class="pre">messages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.messages" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.messages_names">
+<span class="sig-name descname"><span class="pre">messages_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.messages_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.response">
+<span class="sig-name descname"><span class="pre">response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.response" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.ModificationFailed.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.ModificationFailed.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">NonExistentEntityError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#NonExistentEntityError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MWApiError" title="wikibaseintegrator.wbi_exceptions.MWApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MWApiError</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>response</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – The ‘error’ part of the API response</p></li>
+<li><p><strong>response</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span></span>) – The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.code">
+<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.error_dict">
+<span class="sig-name descname"><span class="pre">error_dict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.error_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.get_conflicting_entity_ids">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_conflicting_entity_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.get_conflicting_entity_ids" title="Link to this definition"></a></dt>
+<dd><p>Compute the list of conflicting entities from the error messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of conflicting entities or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.get_languages">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_languages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.get_languages" title="Link to this definition"></a></dt>
+<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of language identifiers or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.messages">
+<span class="sig-name descname"><span class="pre">messages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.messages" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.messages_names">
+<span class="sig-name descname"><span class="pre">messages_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.messages_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.response">
+<span class="sig-name descname"><span class="pre">response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.response" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">SaveFailed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#SaveFailed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wikibaseintegrator.wbi_exceptions.MWApiError" title="wikibaseintegrator.wbi_exceptions.MWApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MWApiError</span></code></a></p>
+<p>When the API return a ‘save-failed’ error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>response</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#SaveFailed.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – The ‘error’ part of the API response</p></li>
+<li><p><strong>response</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <span class="highlight sphinx_autodoc_typehints-value"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span></span>) – The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.code">
+<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.error_dict">
+<span class="sig-name descname"><span class="pre">error_dict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.error_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.get_conflicting_entity_ids">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_conflicting_entity_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.get_conflicting_entity_ids" title="Link to this definition"></a></dt>
+<dd><p>Compute the list of conflicting entities from the error messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of conflicting entities or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.get_languages">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_languages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.get_languages" title="Link to this definition"></a></dt>
+<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of language identifiers or an empty list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.messages">
+<span class="sig-name descname"><span class="pre">messages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.messages" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.messages_names">
+<span class="sig-name descname"><span class="pre">messages_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.messages_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.response">
+<span class="sig-name descname"><span class="pre">response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.response" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SaveFailed.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SaveFailed.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SearchError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">SearchError</span></span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#SearchError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SearchError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SearchError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SearchError.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SearchError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SearchError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SearchError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SearchError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.SearchError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.SearchError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">UnknownDatatypeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datatype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#UnknownDatatypeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<p>Raised when no data type class handles a datatype, like one added to the Wikibase instance by an extension that
+WikibaseIntegrator doesn’t support. The message lists the supported datatypes.</p>
+<p>Reading an entity doesn’t raise it: a claim of an unknown datatype is kept as a BaseDataType.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datatype</strong> (<em>str</em>)</p></li>
+<li><p><strong>supported</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datatype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#UnknownDatatypeError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datatype</strong> (<em>str</em>)</p></li>
+<li><p><strong>supported</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">WCQSAuthenticationError</span></span><a class="reference internal" href="_modules/wikibaseintegrator/wbi_exceptions.html#WCQSAuthenticationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when the Wikimedia Commons Query Service doesn’t accept the wcqsOauth cookie given to wbi_login.WCQSAuth:
+it answers with the HTML login page of Wikimedia Commons instead of the query results. The cookie is invalid, or was
+revoked. It is not retried, as retrying with the same cookie cannot succeed.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.args" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wikibaseintegrator.wbi_enums.html" class="btn btn-neutral float-left" title="wikibaseintegrator.wbi_enums module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wikibaseintegrator.wbi_fastrun.html" class="btn btn-neutral float-right" title="wikibaseintegrator.wbi_fastrun module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, LeMyst.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
