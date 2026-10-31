@@ -55,6 +55,7 @@ optional = true
 pytest = "*"
 requests-mock = "*"
 pylint = "*"
+isort = "*"
 mypy = "*"
 codespell = "*"
 flynt = "*"
@@ -98,7 +99,7 @@ line_length = 179
 
 [tool.mypy]
 ignore_missing_imports = true
-files = "wikibaseintegrator/**/*.py,test/*.py,test/integration/*.py"
+files = "wikibaseintegrator/**/*.py,test/*.py,test/integration/*.py,scripts/*.py"
 warn_unused_ignores = true
 
 # The package ships type hints (py.typed): every function of it must be annotated. The tests are exempt.

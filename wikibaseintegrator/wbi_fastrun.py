@@ -829,11 +829,7 @@ class FastRunContainer:
         :param qid: entity ID
         :param lang: language code
         :param lang_data_type: 'label', 'description' or 'aliases'
-        :return: list of strings
-        If nothing is found:
-            If lang_data_type == label: returns ['']
-            If lang_data_type == description: returns ['']
-            If lang_data_type == aliases: returns []
+        :return: list of strings. If nothing is found: [''] for a label or a description, [] for the aliases
         """
         self.init_language_data(lang, lang_data_type)
 

@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ '**' ]
 
+permissions:
+  contents: read
+  security-events: write  # upload of the SARIF results
+
 jobs:
   trivy:
     name: trivy scan
