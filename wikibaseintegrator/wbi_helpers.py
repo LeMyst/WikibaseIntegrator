@@ -1454,6 +1454,7 @@ def format_amount(amount: int | str | float) -> str:
     if not str(amount).startswith('+') and float(amount) >= 0:
         amount = str(f'+{amount}')
 
+    # return as string
     return str(amount)
 
 
