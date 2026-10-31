@@ -111,7 +111,7 @@ python -m poetry run sphinx-apidoc -e -f -o docs/source ./wikibaseintegrator/ -t
 **Documentation Notes:**
 - Documentation builds in ~30s with some warnings
 - Built docs available at `docs/build/html/index.html`
-- ReadTheDocs integration configured via `.readthedocs.yaml`
+- Published on GitHub Pages by `.github/workflows/docs.yaml` (`en/latest/` from master, `en/stable/` from the latest release)
 - Uses Sphinx with RTD theme and autodoc for API reference
 
 ### Package Installation and Import Testing
@@ -159,7 +159,7 @@ wikibaseintegrator/
 - **`pyproject.toml`** - Primary project configuration (Poetry, tools, build)
 - **`.coveragerc`** - Test coverage configuration  
 - **`docs/source/conf.py`** - Sphinx documentation configuration
-- **`.readthedocs.yaml`** - ReadTheDocs build configuration
+- **`.github/workflows/docs.yaml`** - Documentation build and GitHub Pages deployment
 - **`.gitignore`** - Excludes build artifacts, `__pycache__`, `.idea/`, etc.
 
 ### GitHub Workflows and CI/CD
@@ -185,7 +185,7 @@ Located in `.github/workflows/`:
 - `poetry.lock` - Locked dependency versions
 - `pyproject.toml` - Project configuration and dependencies
 - `LICENSE` - MIT license
-- `.readthedocs.yaml` - Documentation hosting configuration
+- `.github/workflows/docs.yaml` - Documentation build and hosting
 
 **Key Directories:**
 - `test/` - pytest-based test suite (78+ tests)

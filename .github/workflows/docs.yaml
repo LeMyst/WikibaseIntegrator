@@ -1,5 +1,11 @@
 name: Documentation
 
+# Builds the Sphinx documentation and publishes it on GitHub Pages, keeping the paths of Read the Docs:
+#   en/latest/  the development version, built on each push to master
+#   en/stable/  the latest release, built when a release is published
+# The built versions are kept in the gh-pages branch, and each deployment publishes the whole branch. The github-pages
+# environment only accepts deployments from master: a published release starts a run on master to build its tag.
+
 on:
   push:
     branches: [ master ]
@@ -17,6 +23,20 @@ on:
       - 'pyproject.toml'
       - 'poetry.lock'
       - '.github/workflows/docs.yaml'
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or tag to build (e.g. v0.14.0)'
+        required: true
+        default: 'master'
+      target:
+        description: 'Published version: latest (master) or stable (a release)'
+        required: true
+        type: choice
+        options: [ latest, stable ]
+        default: latest
 
 permissions:
   contents: read
@@ -24,10 +44,13 @@ permissions:
 jobs:
   sphinx:
     name: Sphinx build
+    if: ${{ github.event_name != 'release' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install poetry
         run: pipx install poetry
@@ -46,13 +69,124 @@ jobs:
         run: |
           python -m poetry install --with docs
 
-      # Read the Docs builds the published documentation: this catches a broken build (e.g. an autodoc import error or a
-      # malformed docstring) in the pull request. Every warning fails, except the [myst.header] ones: the changelog page
-      # renders the GitHub release notes, whose Markdown headings start at H2.
       - name: Build the documentation
+        env:
+          # The changelog page renders the GitHub release notes: a token avoids the rate limit of anonymous requests
+          SPHINX_GITHUB_CHANGELOG_TOKEN: ${{ github.token }}
         run: |
           python -m poetry run python -m sphinx -b html --keep-going -w sphinx-warnings.log docs/source docs/_build/html
+
+      # A pull request or a push to master fails on any warning (e.g. an autodoc import error or a malformed docstring),
+      # except the [myst.header] ones: the release notes rendered by the changelog page have Markdown headings starting at
+      # H2. A manual build of an older ref is published as it is.
+      - name: Check the warnings
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
           if grep -v '\[myst.header\]' sphinx-warnings.log | grep .; then
             echo "::error::The documentation build has warnings"
             exit 1
           fi
+
+      - name: Upload the documentation
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: documentation
+          path: docs/_build/html
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: sphinx
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # push to the gh-pages branch
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Download the documentation
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: documentation
+          path: documentation
+
+      - name: Store the version in the gh-pages branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ inputs.target || 'latest' }}
+          BUILT_REF: ${{ inputs.ref || github.sha }}
+        run: |
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$remote" gh-pages > /dev/null; then
+            git clone --quiet --depth 1 --branch gh-pages "$remote" site
+          else
+            git init --quiet --initial-branch=gh-pages site
+          fi
+          cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          rm -rf "en/${TARGET}"
+          mkdir -p en
+          cp -r ../documentation "en/${TARGET}"
+          # The Sphinx static files are in _static/, which Jekyll would skip
+          touch .nojekyll
+          cat > index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>WikibaseIntegrator documentation</title>
+            <meta http-equiv="refresh" content="0; url=en/stable/">
+            <link rel="canonical" href="en/stable/">
+          </head>
+          <body>
+            <p>Redirecting to the <a href="en/stable/">documentation of the latest release</a>.</p>
+          </body>
+          </html>
+          EOF
+
+          git add --all
+          if git diff --cached --quiet; then
+            echo "The ${TARGET} documentation is unchanged"
+          else
+            git commit --quiet --message "Publish the ${TARGET} documentation from ${BUILT_REF}"
+            git push --quiet "$remote" gh-pages
+          fi
+
+          # The site to deploy, without the repository metadata
+          mkdir ../pages
+          cp -r . ../pages
+          rm -rf ../pages/.git
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # The github-pages environment only accepts master: build the released tag in a run on master
+  release:
+    name: Publish the release documentation
+    if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write  # start the workflow
+
+    steps:
+      - name: Start the build of the stable documentation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh workflow run docs.yaml --repo "${GITHUB_REPOSITORY}" --ref master -f ref="${TAG}" -f target=stable
