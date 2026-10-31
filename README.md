@@ -59,4 +59,5 @@ Upgrading from an older version (v0.13, v0.12, v0.11)? See the [breaking changes
 See [Contributing](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/contributing.html) to set up the development environment and run the tests.
 
 WikibaseIntegrator is a fork of [WikidataIntegrator](https://github.com/SuLab/WikidataIntegrator), see
-[About](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/about.html).
+[About](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/about.html). To port a WikidataIntegrator script, see
+the [migration guide](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/wikidataintegrator.html).

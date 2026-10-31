@@ -18,6 +18,8 @@ WikibaseIntegrator also provides a "fast run" mode, which compares the local dat
 endpoint and only writes to the Wikibase instance when something actually changed (see
 [Examples (in "fast run" mode)](fastrun.md)).
 
+To port a WikidataIntegrator script, see [Migrating from WikidataIntegrator](wikidataintegrator.md).
+
 ## Other projects
 
 Here is a list of different projects that use the library:
