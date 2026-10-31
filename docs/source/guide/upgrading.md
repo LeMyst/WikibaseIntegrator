@@ -77,3 +77,16 @@ If you want to stay on v0.12.x, you can put this line in your requirements.txt:
 ```
 wikibaseintegrator~=0.12.15
 ```
+
+## Breaking changes in v0.12
+
+A complete rewrite of the WikibaseIntegrator core has been done in v0.12 which has led to some important changes.
+
+It offers a new object-oriented approach, better code readability and support for Property, Lexeme and MediaInfo
+entities (in addition to Item).
+
+If you want to stay on v0.11.x, you can put this line in your requirements.txt:
+
+```
+wikibaseintegrator~=0.11.3
+```

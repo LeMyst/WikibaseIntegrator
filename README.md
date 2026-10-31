@@ -52,7 +52,7 @@ development version:
 - [Fast run](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/fastrun.html) and [examples](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/examples.html), including a bot for mass import
 - [API reference](https://lemyst.github.io/WikibaseIntegrator/en/latest/api/index.html)
 
-Upgrading from v0.13 or v0.12? See the [breaking changes](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/upgrading.html).
+Upgrading from an older version (v0.13, v0.12, v0.11)? See the [breaking changes](https://lemyst.github.io/WikibaseIntegrator/en/latest/guide/upgrading.html).
 
 ## Contributing
 
