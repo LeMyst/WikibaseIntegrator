@@ -423,13 +423,15 @@ class FastRunContainer:
 
             offset = 0
             while True:
+                # Ordered by every variable: ordered by ?sid only, the rows of a statement came in any order, which could
+                # change from one page to the next, so that a page could repeat a qualifier or a reference snak and skip another
                 query = f'''
                 #Tool: WikibaseIntegrator wbi_fastrun._load_statement_details
                 SELECT ?sid ?property ?value ?property_type ?precision ?srid ?ref_property ?ref_value ?ref_precision ?rank WHERE {{
                   VALUES ?sid {{ {values} }}
                   {union}
                 }}
-                ORDER BY ?sid
+                ORDER BY ?sid ?srid ?ref_property ?ref_value ?ref_precision ?property ?value ?precision ?rank
                 OFFSET {offset}
                 LIMIT {limit}
                 '''

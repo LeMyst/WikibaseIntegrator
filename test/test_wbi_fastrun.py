@@ -3,6 +3,7 @@ Tests for the fastrun container. The SPARQL endpoint is served by the simulated
 Wikibase instance, so the whole pipeline (statement loading, lazy qualifier /
 reference / rank loading, comparison) runs offline and deterministically.
 """
+import random
 import re
 
 import pytest
@@ -82,7 +83,22 @@ class SparqlData:
             for pattern, bindings_by_sid in (('wikibase:qualifier', self.qualifiers), ('prov:wasDerivedFrom', self.references), ('wikibase:rank', self.ranks)):
                 if pattern in query:
                     bindings += [{'sid': uri(sid), **binding} for binding in bindings_by_sid.get(sid, [])]
-        return bindings
+        return self._page(query, bindings)
+
+    def _page(self, query: str, bindings: list[dict]) -> list[dict]:
+        """
+        Sort the rows like the ORDER BY of the query, then cut the page of its OFFSET and LIMIT. Like a real endpoint, the
+        order of the rows the ORDER BY doesn't tell apart may change from one query to the next: here they are shuffled
+        before the (stable) sort, differently for each query.
+        """
+        order = re.search(r'ORDER BY ([^\n]+)', query)
+        keys = re.findall(r'\?(\w+)', order.group(1)) if order else []
+        random.Random(len(self.wikibase.sparql_queries)).shuffle(bindings)
+        bindings.sort(key=lambda binding: tuple(binding.get(key, {}).get('value', '') for key in keys))
+        offset = re.search(r'OFFSET (\d+)', query)
+        limit = re.search(r'LIMIT (\d+)', query)
+        start = int(offset.group(1)) if offset else 0
+        return bindings[start:start + int(limit.group(1))] if limit else bindings[start:]
 
     def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None, precision: int | None = None) -> str:
         """Register a statement binding and return its statement URI."""
@@ -730,6 +746,21 @@ class TestStatementDetails:
         assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
 
         assert len(self.queries(wikibase)) == 2
+
+    def test_pages_hold_every_detail_once(self, wikibase, sparql_data, frc):
+        sid = self.statement(wikibase, sparql_data, 'Q99')
+        for qualifier in ('Q43', 'Q44', 'Q45', 'Q46'):
+            sparql_data.qualifier(sid, 'P642', uri(f'{wikibase.base_url}/entity/{qualifier}'), PTYPE_ITEM)
+        sparql_data.reference(sid, 'P854', uri('https://example.org/'), 'http://wikiba.se/ontology#Url', ref_node='cafe')
+
+        # 8 rows, 2 per page: with ORDER BY ?sid only, the rows of the statement were all tied, and the pages repeated
+        # some of them and skipped others
+        frc._load_statement_details([sid], use_qualifiers=True, use_references=True, use_rank=True, limit=2)
+
+        assert len(self.queries(wikibase)) == 5
+        assert sorted(qualifier.datavalue['value']['id'] for qualifier in frc._qualifiers_cache[sid]) == ['Q42', 'Q43', 'Q44', 'Q45', 'Q46']
+        assert sorted(snak.property_number for reference in frc._references_cache[sid] for snak in reference) == ['P248', 'P854']
+        assert frc._rank_cache[sid] == WikibaseRank.NORMAL
 
     def test_single_statement_loaders(self, wikibase, sparql_data, frc):
         sid = self.statement(wikibase, sparql_data, 'Q99', rank='DeprecatedRank')
