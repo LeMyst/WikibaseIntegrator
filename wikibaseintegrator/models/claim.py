@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import warnings
 from abc import abstractmethod
 from collections.abc import Callable, Iterable
@@ -208,29 +207,11 @@ class Claim(BaseModel):
         return json_data
 
     def has_equal_qualifiers(self, other: Claim) -> bool:
-        # check if the qualifiers are equal with the 'other' object
-        self_qualifiers = copy.deepcopy(self.qualifiers)
-        other_qualifiers = copy.deepcopy(other.qualifiers)
-
-        if len(self_qualifiers) != len(other_qualifiers):
-            return False
-
-        for property_number in self_qualifiers.qualifiers:
-            if property_number not in other_qualifiers.qualifiers:
-                return False
-
-            if len(self_qualifiers.qualifiers[property_number]) != len(other_qualifiers.qualifiers[property_number]):
-                return False
-
-            flg = [False for _ in range(len(self_qualifiers.qualifiers[property_number]))]
-            for count, i in enumerate(self_qualifiers.qualifiers[property_number]):
-                for q in other_qualifiers:
-                    if i == q:
-                        flg[count] = True
-            if not all(flg):
-                return False
-
-        return True
+        """
+        Test if the two claims have the same qualifiers, whatever their order. Each qualifier must match a distinct qualifier
+        of the other claim: P2: [a, a] and P2: [a, b] differ.
+        """
+        return _same_items(self.qualifiers, other.qualifiers)
 
     def reset_id(self) -> None:
         """
