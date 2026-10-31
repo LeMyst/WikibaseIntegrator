@@ -8,7 +8,7 @@ import re
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_fastrun
-from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, Item, Property, Quantity, String, TabularData, Time
+from wikibaseintegrator.datatypes import BaseDataType, EntitySchema, ExternalID, GeoShape, GlobeCoordinate, Item, Property, Quantity, String, TabularData, Time
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
 
@@ -19,12 +19,14 @@ wbi = WikibaseIntegrator()
 PTYPE_ENTITY_SCHEMA = 'http://wikiba.se/ontology#WikibaseEntitySchema'
 PTYPE_EXTERNAL_ID = 'http://wikiba.se/ontology#ExternalId'
 PTYPE_GEO_SHAPE = 'http://wikiba.se/ontology#GeoShape'
+PTYPE_GLOBE_COORDINATE = 'http://wikiba.se/ontology#GlobeCoordinate'
 PTYPE_ITEM = 'http://wikiba.se/ontology#WikibaseItem'
 PTYPE_PROPERTY = 'http://wikiba.se/ontology#WikibaseProperty'
 PTYPE_QUANTITY = 'http://wikiba.se/ontology#Quantity'
 PTYPE_STRING = 'http://wikiba.se/ontology#String'
 PTYPE_TABULAR_DATA = 'http://wikiba.se/ontology#TabularData'
 PTYPE_TIME = 'http://wikiba.se/ontology#Time'
+GEO_WKT_LITERAL = 'http://www.opengis.net/ont/geosparql#wktLiteral'
 XSD_DATETIME = 'http://www.w3.org/2001/XMLSchema#dateTime'
 XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal'
 XSD_INTEGER = 'http://www.w3.org/2001/XMLSchema#integer'
@@ -290,6 +292,22 @@ class TestWriteRequired:
 
         assert frc.write_required(claims=[datatype(value=value, prop_nr=prop_nr)]) is False
         assert frc.write_required(claims=[datatype(value=other_value, prop_nr=prop_nr)]) is True
+
+    def test_globe_coordinate_truncated_by_the_query_service(self, wikibase, sparql_data, frc):
+        # The query service returns the coordinates of Paris (Q90) truncated to 9 decimals: the local claim, with all its
+        # decimals, was indexed by another string and always reported as requiring a write
+        sparql_data.statement('Q99', 'P625', literal('Point(2.352222222 48.856666666)', datatype=GEO_WKT_LITERAL), PTYPE_GLOBE_COORDINATE)
+
+        assert frc.write_required(claims=[GlobeCoordinate(latitude=48.85666666666667, longitude=2.352222222222222, prop_nr='P625')]) is False
+        assert frc.write_required(claims=[GlobeCoordinate(latitude=48.857, longitude=2.352222222222222, prop_nr='P625')]) is True
+
+    def test_globe_coordinate_of_another_globe(self, wikibase, sparql_data, frc):
+        # The WKT literal of a coordinate on Mars (Q111) starts with the globe, it used to be skipped as invalid
+        sparql_data.statement('Q99', 'P625', literal(f'<{wikibase.base_url}/entity/Q111> Point(354.5 -1.9)', datatype=GEO_WKT_LITERAL), PTYPE_GLOBE_COORDINATE)
+
+        assert frc.write_required(claims=[GlobeCoordinate(latitude=-1.9, longitude=354.5, globe='Q111', prop_nr='P625')]) is False
+        # The same point on the Moon (Q405)
+        assert frc.write_required(claims=[GlobeCoordinate(latitude=-1.9, longitude=354.5, globe='Q405', prop_nr='P625')]) is True
 
     def test_commons_data_title_with_spaces(self, wikibase, sparql_data, frc):
         # The RDF export encodes a space of the page title as a '+', which used to be kept and never matched
