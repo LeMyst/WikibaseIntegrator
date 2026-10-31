@@ -67,7 +67,7 @@ class Aliases(BaseModel):
 
     def set(self, language: str | None = None, values: str | list | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         language = str(language or config['DEFAULT_LANGUAGE'])
-        assert action_if_exists in ActionIfExists
+        assert isinstance(action_if_exists, ActionIfExists)
 
         assert language is not None
 

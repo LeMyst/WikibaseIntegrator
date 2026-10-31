@@ -5,7 +5,7 @@ is required.
 """
 import pytest
 
-from wikibaseintegrator.datatypes import Item, String
+from wikibaseintegrator.datatypes import Item, String, Time
 from wikibaseintegrator.models import Aliases, Claim, Claims, Form, Forms, Glosses, LanguageValue, LanguageValues, Qualifiers, Reference, References, Sense, Senses, Snak, Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank
 
@@ -144,7 +144,8 @@ class TestClaims:
         assert [claim.mainsnak.property_number for claim in claims] == ['P1']
 
     def test_add_rejects_an_invalid_action(self):
-        with pytest.raises(ValueError):
+        # On Python 3.11 to 3.13, `'replace' in ActionIfExists` raised a TypeError instead of returning False
+        with pytest.raises(ValueError, match='is not a valid action_if_exists value'):
             Claims().add(String(prop_nr='P1', value='a'), action_if_exists='replace')
 
     def test_add_skips_none(self):
@@ -323,3 +324,15 @@ class TestSnaks:
         assert snaks.get(1) == [snak]
         assert snaks.get('P1') == [snak]
         assert snaks.get('P2') == []
+
+
+class TestEnumArguments:
+    """A value that isn't a member of the enum is rejected the same way on every Python version (3.11 to 3.13 raised a TypeError)."""
+
+    def test_aliases_set_rejects_an_invalid_action(self):
+        with pytest.raises(AssertionError):
+            Aliases().set('en', 'a', action_if_exists='keep')
+
+    def test_time_rejects_a_precision_of_another_type(self):
+        with pytest.raises(ValueError, match='Invalid value for time precision'):
+            Time(time='+2001-00-00T00:00:00Z', precision='year', prop_nr='P1')

@@ -83,7 +83,7 @@ class Time(BaseDataType):
                 if isinstance(precision, int):
                     precision = WikibaseTimePrecision(precision)
 
-                if precision not in WikibaseTimePrecision:
+                if not isinstance(precision, WikibaseTimePrecision):
                     raise ValueError("Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time")
 
                 if precision == WikibaseTimePrecision.DAY:
