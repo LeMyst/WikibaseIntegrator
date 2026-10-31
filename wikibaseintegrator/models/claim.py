@@ -90,7 +90,7 @@ class Claim(BaseModel):
         return self.__mainsnak
 
     @mainsnak.setter
-    def mainsnak(self, value: Snak):
+    def mainsnak(self, value: Snak) -> None:
         self.__mainsnak = value
 
     @property
@@ -98,7 +98,7 @@ class Claim(BaseModel):
         return self.__type
 
     @type.setter
-    def type(self, value: str | dict):
+    def type(self, value: str | dict) -> None:
         self.__type = value
 
     @property
@@ -115,7 +115,7 @@ class Claim(BaseModel):
         return self.__qualifiers_order
 
     @qualifiers_order.setter
-    def qualifiers_order(self, value: list[str]):
+    def qualifiers_order(self, value: list[str]) -> None:
         self.__qualifiers_order = value
 
     @property
@@ -123,7 +123,7 @@ class Claim(BaseModel):
         return self.__id
 
     @id.setter
-    def id(self, value: str | None):
+    def id(self, value: str | None) -> None:
         self.__id = value
 
     @property
@@ -131,7 +131,7 @@ class Claim(BaseModel):
         return self.__rank
 
     @rank.setter
-    def rank(self, value: WikibaseRank):
+    def rank(self, value: WikibaseRank) -> None:
         """Parse the rank. The enum throws an error if it is not one of the recognized values"""
         self.__rank = WikibaseRank(value)
 
@@ -140,7 +140,7 @@ class Claim(BaseModel):
         return self.__references
 
     @references.setter
-    def references(self, value: References):
+    def references(self, value: References) -> None:
         self.__references = value
 
     @property
@@ -148,10 +148,10 @@ class Claim(BaseModel):
         return self.__removed
 
     @removed.setter
-    def removed(self, value: bool):
+    def removed(self, value: bool) -> None:
         self.__removed = value
 
-    def remove(self, remove=True) -> None:
+    def remove(self, remove: bool = True) -> None:
         self.removed = remove
 
     def update(self, claim: Claim) -> None:
@@ -232,14 +232,14 @@ class Claim(BaseModel):
 
         return True
 
-    def reset_id(self):
+    def reset_id(self) -> None:
         """
         Reset the ID of the current claim
         """
         self.id = None
 
     # TODO: rewrite this?
-    def __contains__(self, item):
+    def __contains__(self, item: object) -> bool:
         if isinstance(item, Claim):
             return self == item
 
@@ -248,7 +248,7 @@ class Claim(BaseModel):
 
         return False
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Claim):
             return self.mainsnak.datavalue == other.mainsnak.datavalue and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
 

@@ -44,7 +44,7 @@ The same checks are available as [pre-commit](https://pre-commit.com/) hooks ([.
 Key style rules (from [pyproject.toml](pyproject.toml)):
 - Max line length: **179/180** characters (isort/pylint)
 - isort profile: `black` with `force_sort_within_sections = true`
-- mypy: `ignore_missing_imports = true`; type annotations are expected throughout
+- mypy: `ignore_missing_imports = true`, `warn_unused_ignores = true`, and `disallow_untyped_defs` for the package (it ships `py.typed`): every function of `wikibaseintegrator/` must be annotated; the tests are exempt
 - Pylint: errors and warnings fail CI, conventions and refactoring suggestions are only reported. `fixme`, `invalid-name`, `too-few-public-methods`, `too-many-arguments`, and several other checks are disabled — check the `[tool.pylint]` section before suppressing new warnings, and prefer a scoped `# pylint: disable-next=<check>` with a reason over a broad disable
 
 ## Project layout

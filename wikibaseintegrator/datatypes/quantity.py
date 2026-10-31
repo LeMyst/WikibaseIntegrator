@@ -22,7 +22,7 @@ class Quantity(BaseDataType):
     '''
 
     def __init__(self, amount: str | int | float | None = None, upper_bound: str | int | float | None = None, lower_bound: str | int | float | None = None, unit: str | int = '1',
-                 wikibase_url: str | None = None, **kwargs: Any):
+                 wikibase_url: str | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -40,7 +40,7 @@ class Quantity(BaseDataType):
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
     def set_value(self, amount: str | int | float | None = None, upper_bound: str | int | float | None = None, lower_bound: str | int | float | None = None, unit: str | int = '1',
-                  wikibase_url: str | None = None):
+                  wikibase_url: str | None = None) -> None:
         wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
         unit = str(unit or '1')
@@ -115,6 +115,6 @@ class Quantity(BaseDataType):
     def get_sparql_value(self, **kwargs: Any) -> str:
         return '"' + format_amount(self.mainsnak.datavalue['value']['amount']) + '"^^xsd:decimal'
 
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         self.set_value(amount=value, unit=unit)
         return True

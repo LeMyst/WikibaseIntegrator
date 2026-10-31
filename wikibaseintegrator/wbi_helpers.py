@@ -1074,7 +1074,7 @@ def get_available_badges(allow_anonymous: bool = True, **kwargs: Any) -> list[st
     return mediawiki_api_call_helper(data=params, allow_anonymous=allow_anonymous, **kwargs)['badges']
 
 
-def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_add_form(lexeme_id: str, data: dict, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Adds Form to Lexeme
 
@@ -1090,7 +1090,7 @@ def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[st
 
     _check_empty_values(data)
 
-    params = {
+    params: dict[str, Any] = {
         'action': 'wbladdform',
         'lexemeId': lexeme_id,
         'data': ujson.dumps(data),
@@ -1109,7 +1109,7 @@ def lexeme_add_form(lexeme_id, data, baserevid: int | None = None, tags: list[st
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_form(form_id: str, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_edit_form(form_id: str, data: dict, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Edits representations and grammatical features of a Form
 
@@ -1191,7 +1191,7 @@ def lexeme_remove_form(form_id: str, baserevid: int | None = None, tags: list[st
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_add_sense(lexeme_id: str, data: dict, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Adds a Sense to a Lexeme
 
@@ -1207,7 +1207,7 @@ def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[s
 
     _check_empty_values(data)
 
-    params = {
+    params: dict[str, Any] = {
         'action': 'wbladdsense',
         'lexemeId': lexeme_id,
         'data': ujson.dumps(data),
@@ -1226,7 +1226,7 @@ def lexeme_add_sense(lexeme_id, data, baserevid: int | None = None, tags: list[s
     return mediawiki_api_call_helper(data=params, is_bot=is_bot, **kwargs)
 
 
-def lexeme_edit_sense(sense_id: str, data, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def lexeme_edit_sense(sense_id: str, data: dict, baserevid: int | None = None, tags: list[str] | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Edits glosses of a Sense
 
@@ -1468,7 +1468,7 @@ def get_user_agent(user_agent: str | None = None) -> str:
 properties_dt: dict = {}
 
 
-def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs) -> BaseEntity:
+def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wikibase_url: str | None = None, **kwargs: Any) -> BaseEntity:
     """
     Build a WikibaseIntegrator entity from a raw Wikibase JSON string.
 
@@ -1501,11 +1501,11 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
 
     if 'descriptions' in json_decoded and hasattr(entity, 'descriptions'):
         for language in json_decoded['descriptions']:
-            entity.descriptions.set(language=language, value=json_decoded['descriptions'][language])  # type: ignore
+            entity.descriptions.set(language=language, value=json_decoded['descriptions'][language])
 
     if 'labels' in json_decoded and hasattr(entity, 'labels'):
         for language in json_decoded['labels']:
-            entity.labels.set(language=language, value=json_decoded['labels'][language])  # type: ignore
+            entity.labels.set(language=language, value=json_decoded['labels'][language])
 
     if 'claims' in json_decoded:
         properties = list(json_decoded['claims'].keys())
@@ -1563,7 +1563,7 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
     return entity
 
 
-def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous=True, **kwargs) -> BaseDataType:
+def _json2datatype(prop_nr: str, statement: dict, wikibase_url: str | None = None, allow_anonymous: bool = True, **kwargs: Any) -> BaseDataType:
     """
     Experimental helper for :func:`format2wbi`. See its docstring for caveats. May change or be removed without notice.
     """

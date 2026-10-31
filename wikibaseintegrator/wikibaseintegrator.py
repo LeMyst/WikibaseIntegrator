@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class WikibaseIntegrator:
 
-    def __init__(self, is_bot: bool = False, login: _Login | None = None):
+    def __init__(self, is_bot: bool = False, login: _Login | None = None) -> None:
         """
         This function initializes a WikibaseIntegrator instance to quickly access different entity type instances.
 

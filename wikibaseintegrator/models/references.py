@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -24,7 +25,7 @@ class References(BaseModel):
         return self.__references
 
     @references.setter
-    def references(self, value: list[Reference]):
+    def references(self, value: list[Reference]) -> None:
         self.__references = value
 
     def get(self, hash: str | None = None) -> Reference | None:
@@ -87,8 +88,8 @@ class References(BaseModel):
         self.references = []
         return self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Reference]:
         return iter(self.references)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.references)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -20,7 +21,7 @@ class Claims(BaseModel):
         return self.__claims
 
     @claims.setter
-    def claims(self, claims: dict[str, list[Claim]]):
+    def claims(self, claims: dict[str, list[Claim]]) -> None:
         self.__claims = claims
 
     def get(self, property: str | int) -> list[Claim]:
@@ -180,12 +181,12 @@ class Claims(BaseModel):
         """
         return sum(len(claim_list) for claim_list in self.claims.values())
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Claim]:
         iterate = []
         for claim in self.claims.values():
             iterate.extend(claim)
         return iter(iterate)
 
-    def __len__(self):
+    def __len__(self) -> int:
         # Returns the number of distinct properties. See count() for the total number of individual claims.
         return len(self.claims)

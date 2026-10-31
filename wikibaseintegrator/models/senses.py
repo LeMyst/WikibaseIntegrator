@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -39,8 +40,8 @@ class Senses(BaseModel):
 
         return json_data
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Sense]:
         return iter(self.senses)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.senses)

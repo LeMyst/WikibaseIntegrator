@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -16,7 +17,7 @@ class Forms(BaseModel):
         return self.__forms
 
     @forms.setter
-    def forms(self, value: list[Form]):
+    def forms(self, value: list[Form]) -> None:
         self.__forms = value
 
     def get(self, id: str) -> Form | None:
@@ -46,8 +47,8 @@ class Forms(BaseModel):
 
         return json_data
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Form]:
         return iter(self.forms)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.forms)

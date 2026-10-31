@@ -42,7 +42,7 @@ class MediaInfoEntity(TermsEntity):
         super().__init__(labels=labels, descriptions=descriptions, aliases=aliases, **kwargs)
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: None | str | int):
+    def id(self, value: None | str | int) -> None:
         if isinstance(value, str):
             pattern = re.compile(r'^M?([0-9]+)$')
             matches = pattern.match(value)

@@ -22,7 +22,7 @@ class BaseDataType(Claim):
         }}
     '''
 
-    def __init__(self, prop_nr: int | str | None = None, **kwargs: Any):
+    def __init__(self, prop_nr: int | str | None = None, **kwargs: Any) -> None:
         """
         Constructor, will be called by all data types.
 
@@ -42,7 +42,7 @@ class BaseDataType(Claim):
         # self.subclasses.append(self)
 
     # Allow registration of subclasses of BaseDataType into BaseDataType.subclasses
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         cls.subclasses.append(cls)
 
@@ -75,14 +75,14 @@ class BaseDataType(Claim):
             return True
         return sparql_value.get('type') == 'uri' and '/.well-known/genid/' in sparql_value.get('value', '')
 
-    def set_value(self, value: Any | None = None):
+    def set_value(self, value: Any | None = None) -> None:
         pass
 
     def get_sparql_value(self, **kwargs: Any) -> str | None:
         return '"' + self.mainsnak.datavalue['value'] + '"'
 
     # The unit is only used by the Quantity implementation of this legacy method
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:  # pylint: disable=unused-argument
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:  # pylint: disable=unused-argument
         if type == 'uri':
             pattern = re.compile(r'^<?(.*?)>?$')
             matches = pattern.match(value)

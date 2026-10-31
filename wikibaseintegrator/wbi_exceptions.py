@@ -42,7 +42,7 @@ class MWApiError(Exception):
             }
         )
 
-    def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None):
+    def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None) -> None:
         """
         :param error_dict: The 'error' part of the API response
         :param response: The whole API response, which can contain more than the error (e.g. the results of the values parsed by wbparsevalue)
@@ -63,10 +63,10 @@ class MWApiError(Exception):
             self.messages = [{'html': {'*': 'WikibaseIntegrator: missing message from HTML return.'}, 'name': 'wikibaseintegrator-missing-messages'}]
             self.messages_names = ['wikibaseintegrator-missing-messages']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self.info)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """A mixin implementing a simple __repr__."""
         return "<{klass} @{id:x} {attrs}>".format(  # pylint: disable=consider-using-f-string
             klass=self.__class__.__name__,
@@ -86,7 +86,7 @@ class SaveFailed(MWApiError):
     When the API return a 'save-failed' error
     """
 
-    def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None):
+    def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None) -> None:
         super().__init__(error_dict, response=response)
 
 
@@ -103,7 +103,7 @@ class MissingExtensionError(NonExistentEntityError):
     """
     extension: str
 
-    def __init__(self, error_dict: dict[str, Any], extension: str, response: dict[str, Any] | None = None):
+    def __init__(self, error_dict: dict[str, Any], extension: str, response: dict[str, Any] | None = None) -> None:
         super().__init__(error_dict, response=response)
         self.extension = extension
         self.info = (f"This request needs the {extension} extension, which is not installed or not enabled on the Wikibase instance "
@@ -129,7 +129,7 @@ class UnknownDatatypeError(ValueError):
     Reading an entity doesn't raise it: a claim of an unknown datatype is kept as a BaseDataType.
     """
 
-    def __init__(self, datatype: str, supported: list[str]):
+    def __init__(self, datatype: str, supported: list[str]) -> None:
         super().__init__(f"Unknown datatype '{datatype}'. Supported datatypes: {', '.join(supported)}")
         self.datatype = datatype
         self.supported = supported

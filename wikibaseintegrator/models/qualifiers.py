@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -12,14 +13,14 @@ if TYPE_CHECKING:
 
 class Qualifiers(BaseModel):
     def __init__(self) -> None:
-        self.qualifiers: dict[str, list[Snak | Claim]] = {}
+        self.qualifiers: dict[str, list[Snak]] = {}
 
     @property
     def qualifiers(self):
         return self.__qualifiers
 
     @qualifiers.setter
-    def qualifiers(self, value):
+    def qualifiers(self, value: dict[str, list[Snak]]) -> None:
         assert isinstance(value, dict)
         self.__qualifiers = value
 
@@ -126,12 +127,12 @@ class Qualifiers(BaseModel):
         """
         return sum(len(snak_list) for snak_list in self.qualifiers.values())
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Snak]:
         iterate = []
         for qualifier in self.qualifiers.values():
             iterate.extend(qualifier)
         return iter(iterate)
 
-    def __len__(self):
+    def __len__(self) -> int:
         # Returns the number of distinct properties. See count() for the total number of individual snaks.
         return len(self.qualifiers)

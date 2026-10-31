@@ -17,7 +17,7 @@ class TabularData(BaseDataType):
     # The RDF export identifies the value by the URL of its page on Wikimedia Commons
     SPARQL_IRI_PREFIX = 'http://commons.wikimedia.org/data/main/'
 
-    def __init__(self, value: str | None = None, **kwargs: Any):
+    def __init__(self, value: str | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -27,7 +27,7 @@ class TabularData(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: str | None = None):
+    def set_value(self, value: str | None = None) -> None:
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:

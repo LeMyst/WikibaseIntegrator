@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
@@ -45,17 +46,17 @@ class Snaks(BaseModel):
                 json_data[property].append(snak.get_json())
         return json_data
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Snaks):
             return NotImplemented
 
         return self.snaks == other.snaks
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Snak]:
         iterate = []
         for snak in self.snaks.values():
             iterate.extend(snak)
         return iter(iterate)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.snaks)

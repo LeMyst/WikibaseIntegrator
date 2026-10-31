@@ -21,7 +21,7 @@ class Lexeme(BaseDataType):
         }}
     '''
 
-    def __init__(self, value: str | int | None = None, **kwargs: Any):
+    def __init__(self, value: str | int | None = None, **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
 
@@ -31,7 +31,7 @@ class Lexeme(BaseDataType):
         super().__init__(**kwargs)
         self.set_value(value=value)
 
-    def set_value(self, value: str | int | None = None):
+    def set_value(self, value: str | int | None = None) -> None:
         assert isinstance(value, (str, int)) or value is None, f"Expected str or int, found {type(value)} ({value})"
 
         if value:

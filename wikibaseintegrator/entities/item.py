@@ -29,7 +29,7 @@ class ItemEntity(TermsEntity):
         self.sitelinks = sitelinks or Sitelinks()
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: None | str | int):
+    def id(self, value: None | str | int) -> None:
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?Q?([0-9]+)$')
             matches = pattern.match(value)
@@ -52,7 +52,7 @@ class ItemEntity(TermsEntity):
         return self.__sitelinks
 
     @sitelinks.setter
-    def sitelinks(self, sitelinks: Sitelinks):
+    def sitelinks(self, sitelinks: Sitelinks) -> None:
         if not isinstance(sitelinks, Sitelinks):
             raise TypeError
         self.__sitelinks = sitelinks

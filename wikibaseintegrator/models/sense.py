@@ -10,7 +10,7 @@ from wikibaseintegrator.models.language_values import LanguageValues
 
 
 class Sense(BaseModel):
-    def __init__(self, sense_id: str | None = None, glosses: Glosses | None = None, claims: Claims | None = None):
+    def __init__(self, sense_id: str | None = None, glosses: Glosses | None = None, claims: Claims | None = None) -> None:
         self.id = sense_id
         self.glosses: LanguageValues = glosses or Glosses()
         self.claims = claims or Claims()
@@ -47,12 +47,12 @@ class Sense(BaseModel):
         # The id is assigned by the Wikibase instance, so two senses are considered equal when they hold the same content
         return json.dumps([self.glosses.get_json(), self.claims.get_json()], sort_keys=True)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Sense):
             return NotImplemented
 
         return self._content() == other._content()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         # Based on the content, like __eq__: a Sense modified after being added to a set or used as a dict key won't be found anymore
         return hash(self._content())

@@ -18,7 +18,7 @@ class LexemeEntity(BaseEntity):
     ETYPE = 'lexeme'
 
     def __init__(self, lemmas: Lemmas | None = None, lexical_category: str | None = None, language: str | None = None, forms: Forms | None = None, senses: Senses | None = None,
-                 **kwargs: Any):
+                 **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
         self.lemmas: Lemmas = lemmas or Lemmas()
@@ -28,7 +28,7 @@ class LexemeEntity(BaseEntity):
         self.senses: Senses = senses or Senses()
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: None | str | int):
+    def id(self, value: None | str | int) -> None:
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?L?([0-9]+)$')
             matches = pattern.match(value)
@@ -51,7 +51,7 @@ class LexemeEntity(BaseEntity):
         return self.__lemmas
 
     @lemmas.setter
-    def lemmas(self, lemmas: Lemmas):
+    def lemmas(self, lemmas: Lemmas) -> None:
         if not isinstance(lemmas, Lemmas):
             raise TypeError
         self.__lemmas = lemmas
@@ -61,7 +61,7 @@ class LexemeEntity(BaseEntity):
         return self.__lexical_category
 
     @lexical_category.setter
-    def lexical_category(self, lexical_category: str | None):
+    def lexical_category(self, lexical_category: str | None) -> None:
         self.__lexical_category = lexical_category
 
     @property
@@ -69,7 +69,7 @@ class LexemeEntity(BaseEntity):
         return self.__language
 
     @language.setter
-    def language(self, language: str):
+    def language(self, language: str) -> None:
         if isinstance(language, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:|.+/entity/)?Q?([0-9]+)$')
             matches = pattern.match(language)
@@ -92,7 +92,7 @@ class LexemeEntity(BaseEntity):
         return self.__forms
 
     @forms.setter
-    def forms(self, forms: Forms):
+    def forms(self, forms: Forms) -> None:
         if not isinstance(forms, Forms):
             raise TypeError
         self.__forms = forms
@@ -102,7 +102,7 @@ class LexemeEntity(BaseEntity):
         return self.__senses
 
     @senses.setter
-    def senses(self, senses: Senses):
+    def senses(self, senses: Senses) -> None:
         if not isinstance(senses, Senses):
             raise TypeError
         self.__senses = senses

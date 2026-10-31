@@ -13,14 +13,14 @@ from wikibaseintegrator.wbi_enums import WikibaseDatatype
 class PropertyEntity(TermsEntity):
     ETYPE = 'property'
 
-    def __init__(self, datatype: str | WikibaseDatatype | None = None, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any):
+    def __init__(self, datatype: str | WikibaseDatatype | None = None, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:
         super().__init__(labels=labels, descriptions=descriptions, aliases=aliases, **kwargs)
 
         # Property specific
         self.datatype = datatype
 
     @BaseEntity.id.setter  # type: ignore
-    def id(self, value: None | str | int):
+    def id(self, value: None | str | int) -> None:
         if isinstance(value, str):
             pattern = re.compile(r'^(?:[a-zA-Z]+:)?P?([0-9]+)$')
             matches = pattern.match(value)
@@ -43,7 +43,7 @@ class PropertyEntity(TermsEntity):
         return self.__datatype
 
     @datatype.setter
-    def datatype(self, value: str | WikibaseDatatype | None):
+    def datatype(self, value: str | WikibaseDatatype | None) -> None:
         # A datatype unknown to WikibaseIntegrator (e.g. provided by a Wikibase extension) is kept as a string
         self.__datatype: str | WikibaseDatatype | None = WikibaseDatatype.from_value(value)
 

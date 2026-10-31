@@ -17,7 +17,7 @@ class CommonsMedia(URL):
     # The RDF export identifies the file by its Special:FilePath URL on Wikimedia Commons
     SPARQL_IRI_PREFIX = 'http://commons.wikimedia.org/wiki/Special:FilePath/'
 
-    def set_value(self, value: str | None = None):
+    def set_value(self, value: str | None = None) -> None:
         assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
 
         if value:
@@ -67,7 +67,7 @@ class CommonsMedia(URL):
             return None
         return '<' + self.SPARQL_IRI_PREFIX + urllib.parse.quote(self.mainsnak.datavalue['value'], safe='') + '>'
 
-    def parse_sparql_value(self, value, type='literal', unit='1') -> bool:
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?.*?/?([^/]*?)>?$')
         matches = pattern.match(value)
         if not matches:
