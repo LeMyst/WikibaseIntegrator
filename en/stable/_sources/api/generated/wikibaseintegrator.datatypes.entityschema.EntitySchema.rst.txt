@@ -1,0 +1,6 @@
+﻿EntitySchema
+============
+
+.. currentmodule:: wikibaseintegrator.datatypes.entityschema
+
+.. autoclass:: EntitySchema

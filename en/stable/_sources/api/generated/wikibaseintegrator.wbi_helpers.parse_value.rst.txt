@@ -1,0 +1,6 @@
+﻿parse\_value
+============
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: parse_value

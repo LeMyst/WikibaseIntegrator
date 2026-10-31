@@ -1,0 +1,6 @@
+﻿lexeme\_add\_form
+=================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: lexeme_add_form

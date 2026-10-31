@@ -1,0 +1,7 @@
+﻿MediaInfoEntity
+===============
+
+.. currentmodule:: wikibaseintegrator.entities.mediainfo
+
+.. autoclass:: MediaInfoEntity
+   :inherited-members:

@@ -1,0 +1,6 @@
+﻿get\_user\_agent
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: get_user_agent

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Helpers &#8212; WikibaseIntegrator</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guide/helpers';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://lemyst.github.io/WikibaseIntegrator/en/latest/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'stable';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/helpers.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Fast run" href="fastrun.html" />
+    <link rel="prev" title="Structured Data on Commons" href="mediainfo.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.14.1" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WikibaseIntegrator</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation and configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entities.html">Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="login.html">Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mediainfo.html">Structured Data on Commons</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fastrun.html">Fast run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="upgrading.html">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wikidataintegrator.html">Migrating from WikidataIntegrator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Helpers</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="helpers">
+<h1>Helpers<a class="headerlink" href="#helpers" title="Link to this heading">#</a></h1>
+<section id="more-than-wikibase">
+<h2>More than Wikibase<a class="headerlink" href="#more-than-wikibase" title="Link to this heading">#</a></h2>
+<p>WikibaseIntegrator natively supports some extensions:</p>
+<ul class="simple">
+<li><p>MediaInfo entity (beta, see <a class="reference internal" href="mediainfo.html"><span class="std std-doc">Structured Data on Commons</span></a>) - <a class="reference external" href="https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo">WikibaseMediaInfo</a></p></li>
+<li><p>EDTF datatype - <a class="reference external" href="https://www.mediawiki.org/wiki/Extension:Wikibase_EDTF">Wikibase EDTF</a></p></li>
+<li><p>LocalMedia datatype - <a class="reference external" href="https://www.mediawiki.org/wiki/Extension:Wikibase_Local_Media">Wikibase Local Media</a></p></li>
+<li><p>Lexeme entity and datatype - <a class="reference external" href="https://www.mediawiki.org/wiki/Extension:WikibaseLexeme">WikibaseLexeme</a></p></li>
+</ul>
+<p>When a Lexeme request (getting or writing a lexeme, form or sense) is sent to a Wikibase instance without lexeme
+support, a <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.wbi_exceptions.MissingExtensionError</span></code> naming the missing WikibaseLexeme extension is
+raised, instead of the generic error returned by the API.</p>
+</section>
+<section id="use-mediawiki-api">
+<h2>Use MediaWiki API<a class="headerlink" href="#use-mediawiki-api" title="Link to this heading">#</a></h2>
+<p>The method <code class="docutils literal notranslate"><span class="pre">wbi_helpers.mediawiki_api_call_helper()</span></code> allows you to execute MediaWiki API POST call. It takes a mandatory
+data array (data) and multiple optionals parameters like a login object of type wbi_login.Login, a mediawiki_api_url
+string if the MediaWiki is not Wikidata, a user_agent string to set a custom HTTP User Agent header, and an
+allow_anonymous boolean to force authentication.</p>
+<p>Example:</p>
+<p>Retrieve last 10 revisions from Wikidata element Q2 (Earth):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'action'</span><span class="p">:</span> <span class="s1">'query'</span><span class="p">,</span>
+    <span class="s1">'prop'</span><span class="p">:</span> <span class="s1">'revisions'</span><span class="p">,</span>
+    <span class="s1">'titles'</span><span class="p">:</span> <span class="s1">'Q2'</span><span class="p">,</span>
+    <span class="s1">'rvlimit'</span><span class="p">:</span> <span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">wbi_helpers</span><span class="o">.</span><span class="n">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="execute-sparql-queries">
+<h2>Execute SPARQL queries<a class="headerlink" href="#execute-sparql-queries" title="Link to this heading">#</a></h2>
+<p>The method <code class="docutils literal notranslate"><span class="pre">wbi_helpers.execute_sparql_query()</span></code> allows you to execute SPARQL queries without a hassle. It takes the
+actual query string (query), optional prefixes (prefix) if you do not want to use the standard prefixes of Wikidata, the
+actual endpoint URL (endpoint), and you can also specify a user agent for the http header sent to the SPARQL server (
+user_agent). The latter is very useful to let the operators of the endpoint know who you are, especially if you execute
+many queries on the endpoint. This allows the operators of the endpoint to contact you (e.g. specify an email address,
+or the URL to your bot code repository.)</p>
+<p>If the SPARQL endpoint is protected, pass the credentials with <code class="docutils literal notranslate"><span class="pre">auth</span></code>, either a <code class="docutils literal notranslate"><span class="pre">(username,</span> <span class="pre">password)</span></code> tuple for HTTP
+Basic authentication or any <code class="docutils literal notranslate"><span class="pre">requests.auth.AuthBase</span></code> instance, or add your own HTTP headers with <code class="docutils literal notranslate"><span class="pre">headers</span></code>. To set the
+credentials once for every query, including the ones executed by the fast run mode, use <code class="docutils literal notranslate"><span class="pre">wbi_config['SPARQL_AUTH']</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">wbi_config</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s1">'SELECT ?item WHERE { ?item ?p ?o . } LIMIT 1'</span>
+
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">))</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">'Authorization'</span><span class="p">:</span> <span class="s1">'Bearer &lt;token&gt;'</span><span class="p">})</span>
+
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'SPARQL_AUTH'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">)</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="wikimedia-commons-query-service">
+<h3>Wikimedia Commons Query Service<a class="headerlink" href="#wikimedia-commons-query-service" title="Link to this heading">#</a></h3>
+<p>The SPARQL endpoint of Structured Data on Commons, the <a class="reference external" href="https://commons-query.wikimedia.org/">Wikimedia Commons Query Service</a>
+(WCQS), authenticates with a long-lived <code class="docutils literal notranslate"><span class="pre">wcqsOauth</span></code> cookie. There is no API to get it: copy it from a web browser logged
+in to WCQS, as explained in <a class="reference external" href="https://commons.wikimedia.org/wiki/Commons:SPARQL_query_service/API_endpoint">Commons:SPARQL query service/API endpoint</a>.
+<code class="docutils literal notranslate"><span class="pre">wbi_login.WCQSAuth</span></code> sends it, and keeps the short-lived session cookie WCQS sets in return:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">wbi_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCQSAuth</span>
+
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'https://commons-query.wikimedia.org/sparql'</span>
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'https://commons.wikimedia.org'</span>
+<span class="c1"># Every query, including the ones of the fast run mode, is authenticated</span>
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'SPARQL_AUTH'</span><span class="p">]</span> <span class="o">=</span> <span class="n">WCQSAuth</span><span class="p">(</span><span class="s1">'&lt;wcqsOauth cookie&gt;'</span><span class="p">)</span>
+
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="s1">'SELECT ?file WHERE { ?file wdt:P180 wd:Q146 } LIMIT 10'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An invalid or revoked cookie raises a <code class="docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code>, instead of being retried.</p>
+</section>
+</section>
+<section id="wikibase-search-entities">
+<h2>Wikibase search entities<a class="headerlink" href="#wikibase-search-entities" title="Link to this heading">#</a></h2>
+<p>The method <code class="docutils literal notranslate"><span class="pre">wbi_helpers.search_entities()</span></code> allows for string search in a Wikibase instance, using the labels and aliases
+of the entities. It takes the search string (search_string) and optional parameters: the language of the search
+(language, default <code class="docutils literal notranslate"><span class="pre">wbi_config['DEFAULT_LANGUAGE']</span></code>), strict_language to disable the language fallback, the type of
+entity to search (search_type: item, property, lexeme, form, sense or mediainfo, default item), the maximum number of
+results (max_results, default 50, higher values trigger additional paginated calls) and dict_result to return detailed
+dictionaries instead of a list of IDs. Like the other helpers, it also accepts <code class="docutils literal notranslate"><span class="pre">mediawiki_api_url</span></code>, <code class="docutils literal notranslate"><span class="pre">login</span></code>, <code class="docutils literal notranslate"><span class="pre">user_agent</span></code>,
+etc.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">wbi_helpers</span><span class="o">.</span><span class="n">search_entities</span><span class="p">(</span><span class="n">search_string</span><span class="o">=</span><span class="s1">'Earth'</span><span class="p">,</span> <span class="n">max_results</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="write-a-single-statement">
+<h2>Write a single statement<a class="headerlink" href="#write-a-single-statement" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.set_claim()</span></code> creates or replaces a single statement, with its qualifiers and references, without loading
+or writing the whole entity. It is useful for large entities, and the edit doesn’t conflict with the edits of the other
+statements. A claim with an ID replaces the statement with this ID. A claim without an ID is added to the entity given by
+entity_id, and the ID generated for it is set on the claim once the edit is saved. It also accepts the index of the
+statement in the list of statements of the entity (index), baserevid, summary, tags, is_bot and
+ignore_duplicate_mainsnak, which doesn’t save the statement if the entity already has one with the same main snak.
+To delete a statement, use <code class="docutils literal notranslate"><span class="pre">wbi_helpers.remove_claims()</span></code> with its ID.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span><span class="p">,</span> <span class="n">wbi_login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExternalID</span><span class="p">,</span> <span class="n">Time</span>
+
+<span class="n">login</span> <span class="o">=</span> <span class="n">wbi_login</span><span class="o">.</span><span class="n">Login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s1">'&lt;bot user name&gt;'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">'&lt;bot password&gt;'</span><span class="p">)</span>
+
+<span class="n">claim</span> <span class="o">=</span> <span class="n">ExternalID</span><span class="p">(</span><span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P214'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">'113230702'</span><span class="p">,</span> <span class="n">references</span><span class="o">=</span><span class="p">[[</span><span class="n">Time</span><span class="p">(</span><span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P813'</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="s1">'now'</span><span class="p">)]])</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">set_claim</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">entity_id</span><span class="o">=</span><span class="s1">'Q42'</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">claim</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>  <span class="c1"># The ID of the new statement, e.g. Q42$1c5e2f6b-...</span>
+
+<span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'113230703'</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">set_claim</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>  <span class="c1"># Replace the statement</span>
+</pre></div>
+</div>
+</section>
+<section id="merge-wikibase-items">
+<h2>Merge Wikibase items<a class="headerlink" href="#merge-wikibase-items" title="Link to this heading">#</a></h2>
+<p>Sometimes, Wikibase items need to be merged. An API call exists for that, and <code class="docutils literal notranslate"><span class="pre">wbi_helpers.merge_items()</span></code> implements it.
+It takes these arguments:</p>
+<ul class="simple">
+<li><p>the QID of the item which should be merged into another item (from_id)</p></li>
+<li><p>the QID of the item the first item should be merged into (to_id)</p></li>
+<li><p>a login object of type wbi_login.Login to provide the API call with the required authentication information</p></li>
+<li><p>a list of elements to ignore conflicts for (ignore_conflicts), which can contain <code class="docutils literal notranslate"><span class="pre">'description'</span></code>, <code class="docutils literal notranslate"><span class="pre">'sitelink'</span></code> and
+<code class="docutils literal notranslate"><span class="pre">'statement'</span></code>. This will do a partial merge for the elements which do not conflict and should generally be avoided
+because it leaves a crippled item in Wikibase. Before a merge, any potential conflicts should be resolved first.</p></li>
+<li><p>a boolean if the changes need to be marked as made by a bot (is_bot)</p></li>
+<li><p>a list of change tags to apply to the revision (tags)</p></li>
+</ul>
+<p>Wikibase turns the emptied item into a redirect to the target item, so there is no need to create the redirect
+separately.</p>
+<p>To turn an item into a redirect without merging it, <code class="docutils literal notranslate"><span class="pre">wbi_helpers.create_redirect()</span></code> takes the same from_id, to_id,
+login and is_bot arguments. The source item must be empty, deleted or already a redirect (to change its target, for
+example to fix a double redirect), and the target item must exist and not be a redirect itself.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span><span class="p">,</span> <span class="n">wbi_login</span>
+
+<span class="n">login</span> <span class="o">=</span> <span class="n">wbi_login</span><span class="o">.</span><span class="n">Login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s1">'&lt;bot user name&gt;'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">'&lt;bot password&gt;'</span><span class="p">)</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">create_redirect</span><span class="p">(</span><span class="n">from_id</span><span class="o">=</span><span class="s1">'Q30'</span><span class="p">,</span> <span class="n">to_id</span><span class="o">=</span><span class="s1">'Q5'</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>  <span class="c1"># Q30 now redirects to Q5</span>
+</pre></div>
+</div>
+<p>To merge more than two items at once, <code class="docutils literal notranslate"><span class="pre">wbi_helpers.merge_multiple_items()</span></code> takes a list of QIDs and merges all of them
+into the one with the lowest numeric ID, which it returns. It accepts the same login, ignore_conflicts, is_bot and tags
+arguments. The merges are done one by one: if one fails, its exception is raised and the merges already done are kept.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span><span class="p">,</span> <span class="n">wbi_login</span>
+
+<span class="n">login</span> <span class="o">=</span> <span class="n">wbi_login</span><span class="o">.</span><span class="n">Login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s1">'&lt;bot user name&gt;'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">'&lt;bot password&gt;'</span><span class="p">)</span>
+<span class="n">to_id</span> <span class="o">=</span> <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">merge_multiple_items</span><span class="p">([</span><span class="s1">'Q100'</span><span class="p">,</span> <span class="s1">'Q30'</span><span class="p">,</span> <span class="s1">'Q5'</span><span class="p">],</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>  <span class="c1"># Q30 and Q100 are merged into Q5</span>
+</pre></div>
+</div>
+</section>
+<section id="check-a-wikibase-instance">
+<h2>Check a Wikibase instance<a class="headerlink" href="#check-a-wikibase-instance" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">check_wikibase()</span></code> reports the features of a Wikibase instance: the MediaWiki version, the installed extensions, the
+entity types and the datatypes it supports, and whether the SPARQL endpoint answers. It also checks that
+<code class="docutils literal notranslate"><span class="pre">config['WIKIBASE_URL']</span></code> matches the concept URIs of the instance, as the SPARQL queries built by WikibaseIntegrator
+(fast run mode, …) rely on it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">wbi_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_wikibase</span>
+
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'https://my-wikibase.example.org/w/api.php'</span>
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'https://my-wikibase.example.org/query/sparql'</span>
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'https://my-wikibase.example.org'</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">check_wikibase</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>  <span class="c1"># A readable report, with the problems found</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">has_lexemes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'This instance does not support lexemes'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The result also provides <code class="docutils literal notranslate"><span class="pre">has_mediainfo</span></code>, <code class="docutils literal notranslate"><span class="pre">has_search</span></code> (WikibaseCirrusSearch, needed by the <code class="docutils literal notranslate"><span class="pre">haswbstatement</span></code> search
+keyword), <code class="docutils literal notranslate"><span class="pre">has_quality_constraints</span></code> (needed by <code class="docutils literal notranslate"><span class="pre">check_constraints()</span></code>), <code class="docutils literal notranslate"><span class="pre">extensions</span></code>, <code class="docutils literal notranslate"><span class="pre">entity_types</span></code>, <code class="docutils literal notranslate"><span class="pre">datatypes</span></code> and
+<code class="docutils literal notranslate"><span class="pre">problems</span></code>.</p>
+</section>
+<section id="parse-values">
+<h2>Parse values<a class="headerlink" href="#parse-values" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.parse_value()</span></code> parses values written as text, like <code class="docutils literal notranslate"><span class="pre">'3</span> <span class="pre">March</span> <span class="pre">1850'</span></code>, <code class="docutils literal notranslate"><span class="pre">'1850s'</span></code> or <code class="docutils literal notranslate"><span class="pre">'12±0.5'</span></code>, into data
+values, with the parsers of the Wikibase instance (wbparsevalue API). It is useful to import data from files without
+parsing the dates, their precision or the quantities yourself. It takes one value or a list of values, and either the
+datatype of the values (datatype, e.g. <code class="docutils literal notranslate"><span class="pre">'time'</span></code>, <code class="docutils literal notranslate"><span class="pre">'quantity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'globe-coordinate'</span></code>) or a property whose datatype is used
+(prop_nr). The options of the parser (options, e.g. <code class="docutils literal notranslate"><span class="pre">{'lang':</span> <span class="pre">'fr'}</span></code> for dates written in French) and a validation of the
+parsed values (validate) are optional.</p>
+<p>It returns one result per value, in the same order. A value which can’t be parsed doesn’t raise an exception: its result
+has an <code class="docutils literal notranslate"><span class="pre">'error'</span></code> key, so that all the values can be checked at once.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
+
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">parse_value</span><span class="p">([</span><span class="s1">'3 March 1850'</span><span class="p">,</span> <span class="s1">'1850s'</span><span class="p">,</span> <span class="s1">'not a date'</span><span class="p">],</span> <span class="n">datatype</span><span class="o">=</span><span class="s1">'time'</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s1">'error'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Can't parse </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'raw'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">claim</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P569'</span><span class="p">,</span> <span class="o">**</span><span class="n">result</span><span class="p">[</span><span class="s1">'value'</span><span class="p">])</span>  <span class="c1"># A time value has the arguments of Time()</span>
+</pre></div>
+</div>
+</section>
+<section id="other-helpers">
+<h2>Other helpers<a class="headerlink" href="#other-helpers" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">wbi_helpers</span></code> also provides:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">merge_lexemes()</span></code>: merge two lexemes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove_claims()</span></code>: delete a claim from an entity by its claim ID.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_constraints()</span></code>: check the constraint violations of entities or claims with the WikibaseQualityConstraints
+extension.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fulltext_search()</span></code>: perform a fulltext search on the MediaWiki instance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_available_badges()</span></code>: list the items which can be used as badges of sitelinks, e.g.
+<code class="docutils literal notranslate"><span class="pre">item.sitelinks.set('enwiki',</span> <span class="pre">'Douglas</span> <span class="pre">Adams',</span> <span class="pre">badges=['Q17437796'])</span></code> (featured article on Wikidata).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code>: delete a page.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code>: download the RDF (Turtle) representation of an entity.</p></li>
+</ul>
+<p>Some examples are available in the <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/blob/master/notebooks/wbi_helpers.ipynb">wbi_helpers.ipynb</a> notebook.</p>
+</section>
+<section id="track-the-edits-with-editgroups">
+<h2>Track the edits with EditGroups<a class="headerlink" href="#track-the-edits-with-editgroups" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://www.wikidata.org/wiki/Wikidata:Edit_groups">EditGroups</a> tracks the edits of a bot on Wikidata as a batch,
+which can be reviewed, discussed and reverted at once. An edit is part of a batch when its summary ends with a link to
+the batch, which <code class="docutils literal notranslate"><span class="pre">EditGroup</span></code> generates:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseIntegrator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Item</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_editgroups</span><span class="w"> </span><span class="kn">import</span> <span class="n">EditGroup</span>
+
+<span class="n">wbi</span> <span class="o">=</span> <span class="n">WikibaseIntegrator</span><span class="p">(</span><span class="n">login</span><span class="o">=</span><span class="n">login_instance</span><span class="p">)</span>
+
+<span class="c1"># One EditGroup per batch, with a random batch ID</span>
+<span class="n">editgroup</span> <span class="o">=</span> <span class="n">EditGroup</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">editgroup</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>  <span class="c1"># https://editgroups.toolforge.org/b/CB/&lt;batch ID&gt;/</span>
+
+<span class="k">for</span> <span class="n">qid</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'Q582'</span><span class="p">,</span> <span class="s1">'Q90'</span><span class="p">]:</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qid</span><span class="p">)</span>
+    <span class="n">item</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Item</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'Q484170'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P31'</span><span class="p">))</span>
+    <span class="c1"># "Add instance of ([[:toolforge:editgroups/b/CB/&lt;batch ID&gt;|details]])"</span>
+    <span class="n">item</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">summary</span><span class="o">=</span><span class="n">editgroup</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="s1">'Add instance of'</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>To add edits to an existing batch, for example after a restart of the bot, pass its ID: <code class="docutils literal notranslate"><span class="pre">EditGroup('89ead4fe')</span></code>. A
+summary that is too long is shortened, so that the link is never truncated.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="mediainfo.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Structured Data on Commons</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="fastrun.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Fast run</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-than-wikibase">More than Wikibase</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-mediawiki-api">Use MediaWiki API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-sparql-queries">Execute SPARQL queries</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikimedia-commons-query-service">Wikimedia Commons Query Service</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibase-search-entities">Wikibase search entities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#write-a-single-statement">Write a single statement</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#merge-wikibase-items">Merge Wikibase items</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-a-wikibase-instance">Check a Wikibase instance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parse-values">Parse values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#other-helpers">Other helpers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#track-the-edits-with-editgroups">Track the edits with EditGroups</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/LeMyst/WikibaseIntegrator/edit/master/docs/source/guide/helpers.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/guide/helpers.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, LeMyst.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

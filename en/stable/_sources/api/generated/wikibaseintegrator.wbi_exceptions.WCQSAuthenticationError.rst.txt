@@ -1,0 +1,6 @@
+﻿WCQSAuthenticationError
+=======================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: WCQSAuthenticationError

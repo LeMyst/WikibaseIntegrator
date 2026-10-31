@@ -1,0 +1,6 @@
+﻿Sense
+=====
+
+.. currentmodule:: wikibaseintegrator.models.sense
+
+.. autoclass:: Sense

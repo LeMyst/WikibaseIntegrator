@@ -1,0 +1,6 @@
+﻿check\_constraints
+==================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: check_constraints

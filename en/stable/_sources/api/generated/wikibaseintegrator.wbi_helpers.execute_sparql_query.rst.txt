@@ -1,0 +1,6 @@
+﻿execute\_sparql\_query
+======================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: execute_sparql_query

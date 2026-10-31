@@ -1,0 +1,6 @@
+﻿WikibaseRank
+============
+
+.. currentmodule:: wikibaseintegrator.wbi_enums
+
+.. autoclass:: WikibaseRank

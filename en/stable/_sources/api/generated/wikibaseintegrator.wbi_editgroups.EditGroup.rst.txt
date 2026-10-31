@@ -1,0 +1,6 @@
+﻿EditGroup
+=========
+
+.. currentmodule:: wikibaseintegrator.wbi_editgroups
+
+.. autoclass:: EditGroup

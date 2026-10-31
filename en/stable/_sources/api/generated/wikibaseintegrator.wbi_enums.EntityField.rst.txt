@@ -1,0 +1,6 @@
+﻿EntityField
+===========
+
+.. currentmodule:: wikibaseintegrator.wbi_enums
+
+.. autoclass:: EntityField

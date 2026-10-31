@@ -1,0 +1,6 @@
+﻿WikibaseDatatype
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_enums
+
+.. autoclass:: WikibaseDatatype

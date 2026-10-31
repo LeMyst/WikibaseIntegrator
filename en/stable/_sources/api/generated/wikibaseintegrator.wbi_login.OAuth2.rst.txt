@@ -1,0 +1,7 @@
+﻿OAuth2
+======
+
+.. currentmodule:: wikibaseintegrator.wbi_login
+
+.. autoclass:: OAuth2
+   :inherited-members:

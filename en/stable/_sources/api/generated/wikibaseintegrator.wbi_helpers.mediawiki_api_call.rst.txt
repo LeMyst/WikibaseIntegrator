@@ -1,0 +1,6 @@
+﻿mediawiki\_api\_call
+====================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: mediawiki_api_call

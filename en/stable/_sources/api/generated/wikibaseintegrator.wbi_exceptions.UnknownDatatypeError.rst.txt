@@ -1,0 +1,6 @@
+﻿UnknownDatatypeError
+====================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: UnknownDatatypeError

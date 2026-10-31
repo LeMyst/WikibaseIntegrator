@@ -1,0 +1,6 @@
+﻿WCQSAuth
+========
+
+.. currentmodule:: wikibaseintegrator.wbi_login
+
+.. autoclass:: WCQSAuth

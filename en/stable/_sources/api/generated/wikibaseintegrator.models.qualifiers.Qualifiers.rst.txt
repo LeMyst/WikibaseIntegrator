@@ -1,0 +1,6 @@
+﻿Qualifiers
+==========
+
+.. currentmodule:: wikibaseintegrator.models.qualifiers
+
+.. autoclass:: Qualifiers

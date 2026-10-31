@@ -1,0 +1,6 @@
+﻿wbi\_backoff
+============
+
+.. currentmodule:: wikibaseintegrator.wbi_backoff
+
+.. autofunction:: wbi_backoff

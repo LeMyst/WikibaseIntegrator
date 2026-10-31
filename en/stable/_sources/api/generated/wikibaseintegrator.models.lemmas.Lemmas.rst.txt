@@ -1,0 +1,6 @@
+﻿Lemmas
+======
+
+.. currentmodule:: wikibaseintegrator.models.lemmas
+
+.. autoclass:: Lemmas

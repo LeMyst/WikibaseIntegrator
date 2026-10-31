@@ -1,0 +1,6 @@
+﻿merge\_multiple\_items
+======================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: merge_multiple_items

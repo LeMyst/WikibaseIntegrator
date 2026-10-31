@@ -1,0 +1,6 @@
+﻿get\_available\_badges
+======================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: get_available_badges

@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Migrating from WikidataIntegrator &#8212; WikibaseIntegrator</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guide/wikidataintegrator';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://lemyst.github.io/WikibaseIntegrator/en/latest/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'stable';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/guide/wikidataintegrator.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Upgrading" href="upgrading.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.14.1" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WikibaseIntegrator</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/LeMyst/WikibaseIntegrator" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/wikibaseintegrator/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation and configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entities.html">Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="login.html">Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mediainfo.html">Structured Data on Commons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="helpers.html">Helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fastrun.html">Fast run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="upgrading.html">Upgrading</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Migrating from WikidataIntegrator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Migrating from WikidataIntegrator</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="migrating-from-wikidataintegrator">
+<h1>Migrating from WikidataIntegrator<a class="headerlink" href="#migrating-from-wikidataintegrator" title="Link to this heading">#</a></h1>
+<p>WikibaseIntegrator started as a fork of <a class="reference external" href="https://github.com/SuLab/WikidataIntegrator">WikidataIntegrator</a>, whose last
+release is 0.9.30 (June 2023). The concepts are the same (entities, data types, references, qualifiers, the fast run
+mode), but the API was rewritten in v0.12: there is no compatibility layer, so a WikidataIntegrator script has to be
+adapted. This page maps the WikidataIntegrator 0.9.30 API to WikibaseIntegrator.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>uninstall<span class="w"> </span>wikidataintegrator
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wikibaseintegrator
+</pre></div>
+</div>
+<p>WikibaseIntegrator requires Python 3.11 or newer.</p>
+</section>
+<section id="a-script-before-and-after">
+<h2>A script, before and after<a class="headerlink" href="#a-script-before-and-after" title="Link to this heading">#</a></h2>
+<p>A bot updating an existing item, with WikidataIntegrator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikidataintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wdi_core</span><span class="p">,</span> <span class="n">wdi_login</span>
+
+<span class="n">login</span> <span class="o">=</span> <span class="n">wdi_login</span><span class="o">.</span><span class="n">WDLogin</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s1">'MyUsername@MyBot'</span><span class="p">,</span> <span class="n">pwd</span><span class="o">=</span><span class="s1">'&lt;bot password&gt;'</span><span class="p">)</span>
+
+<span class="n">references</span> <span class="o">=</span> <span class="p">[[</span>
+    <span class="n">wdi_core</span><span class="o">.</span><span class="n">WDItemID</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'Q20641742'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P248'</span><span class="p">,</span> <span class="n">is_reference</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">wdi_core</span><span class="o">.</span><span class="n">WDTime</span><span class="p">(</span><span class="s1">'+2020-02-08T00:00:00Z'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P813'</span><span class="p">,</span> <span class="n">is_reference</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<span class="p">]]</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">wdi_core</span><span class="o">.</span><span class="n">WDExternalID</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'50943'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P351'</span><span class="p">,</span> <span class="n">references</span><span class="o">=</span><span class="n">references</span><span class="p">),</span>
+    <span class="n">wdi_core</span><span class="o">.</span><span class="n">WDItemID</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'Q7187'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P31'</span><span class="p">,</span> <span class="n">references</span><span class="o">=</span><span class="n">references</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># The values of P351 replace the existing ones, the P31 value is appended (append_value)</span>
+<span class="n">item</span> <span class="o">=</span> <span class="n">wdi_core</span><span class="o">.</span><span class="n">WDItemEngine</span><span class="p">(</span><span class="n">wd_item_id</span><span class="o">=</span><span class="s1">'Q14911732'</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">append_value</span><span class="o">=</span><span class="p">[</span><span class="s1">'P31'</span><span class="p">])</span>
+<span class="n">item</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">'FOXP3'</span><span class="p">,</span> <span class="n">lang</span><span class="o">=</span><span class="s1">'en'</span><span class="p">)</span>
+<span class="n">qid</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">login</span><span class="p">,</span> <span class="n">edit_summary</span><span class="o">=</span><span class="s1">'Update from NCBI Gene'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The same bot with WikibaseIntegrator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseIntegrator</span><span class="p">,</span> <span class="n">wbi_login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExternalID</span><span class="p">,</span> <span class="n">Item</span><span class="p">,</span> <span class="n">Time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
+
+<span class="c1"># Wikimedia asks every tool to identify itself: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'MyBot/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'</span>
+
+<span class="n">login</span> <span class="o">=</span> <span class="n">wbi_login</span><span class="o">.</span><span class="n">Login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s1">'MyUsername@MyBot'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">'&lt;bot password&gt;'</span><span class="p">)</span>
+<span class="n">wbi</span> <span class="o">=</span> <span class="n">WikibaseIntegrator</span><span class="p">(</span><span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>
+
+<span class="c1"># No is_reference: a reference is a list of claims, references a list of references</span>
+<span class="n">references</span> <span class="o">=</span> <span class="p">[[</span>
+    <span class="n">Item</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'Q20641742'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P248'</span><span class="p">),</span>
+    <span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="s1">'+2020-02-08T00:00:00Z'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P813'</span><span class="p">),</span>
+<span class="p">]]</span>
+
+<span class="n">item</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'Q14911732'</span><span class="p">)</span>
+<span class="n">item</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ExternalID</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'50943'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P351'</span><span class="p">,</span> <span class="n">references</span><span class="o">=</span><span class="n">references</span><span class="p">),</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">)</span>
+<span class="n">item</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Item</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'Q7187'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P31'</span><span class="p">,</span> <span class="n">references</span><span class="o">=</span><span class="n">references</span><span class="p">))</span>  <span class="c1"># APPEND_OR_REPLACE by default</span>
+<span class="n">item</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">'en'</span><span class="p">,</span> <span class="s1">'FOXP3'</span><span class="p">)</span>
+<span class="n">item</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">summary</span><span class="o">=</span><span class="s1">'Update from NCBI Gene'</span><span class="p">)</span>
+<span class="n">qid</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">id</span>
+</pre></div>
+</div>
+<p>The main differences:</p>
+<ul class="simple">
+<li><p>The entity is loaded first (<code class="docutils literal notranslate"><span class="pre">wbi.item.get()</span></code>, or <code class="docutils literal notranslate"><span class="pre">wbi.item.new()</span></code> for a new item), then modified, then written.
+Nothing is sent to the instance before <code class="docutils literal notranslate"><span class="pre">write()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">write()</span></code> returns the written entity, not its ID: the ID is <code class="docutils literal notranslate"><span class="pre">item.id</span></code>.</p></li>
+<li><p>The login is given once to <code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator(login=...)</span></code> (or to each <code class="docutils literal notranslate"><span class="pre">write(login=...)</span></code>).</p></li>
+<li><p>The arguments are named: <code class="docutils literal notranslate"><span class="pre">labels.set(language,</span> <span class="pre">value)</span></code> takes the language first, <code class="docutils literal notranslate"><span class="pre">set_label(label,</span> <span class="pre">lang)</span></code> took it last.</p></li>
+</ul>
+</section>
+<section id="entities">
+<h2>Entities<a class="headerlink" href="#entities" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine(wd_item_id='Q42')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi.item.get('Q42')</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine(new_item=True)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi.item.new()</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine(data=data)</span></code> without <code class="docutils literal notranslate"><span class="pre">wd_item_id</span></code></p></td>
+<td class="text-left"><p>No automatic search, see <a class="reference internal" href="#finding-an-item-from-its-data">Finding an item from its data</a></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine(item_data=json)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi.item.new().from_json(json)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine(...,</span> <span class="pre">search_only=True)</span></code> then <code class="docutils literal notranslate"><span class="pre">update(data)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi.item.get()</span></code> then <code class="docutils literal notranslate"><span class="pre">item.claims.add(data)</span></code>: nothing is written before <code class="docutils literal notranslate"><span class="pre">write()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.write(login,</span> <span class="pre">edit_summary='...',</span> <span class="pre">bot_account=True)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.write(login=login,</span> <span class="pre">summary='...',</span> <span class="pre">is_bot=True)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">write(...,</span> <span class="pre">entity_type='property',</span> <span class="pre">property_datatype='string')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi.property.new(datatype='string')</span></code> then <code class="docutils literal notranslate"><span class="pre">write()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.get_wd_json_representation()</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.get_json()</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.lastrevid</span></code>, <code class="docutils literal notranslate"><span class="pre">item.wd_item_id</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.lastrevid</span></code>, <code class="docutils literal notranslate"><span class="pre">item.id</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.get_label('en')</span></code>, <code class="docutils literal notranslate"><span class="pre">set_label('Label',</span> <span class="pre">lang='en')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.labels.get('en').value</span></code>, <code class="docutils literal notranslate"><span class="pre">item.labels.set('en',</span> <span class="pre">'Label')</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.get_description('en')</span></code>, <code class="docutils literal notranslate"><span class="pre">set_description(...)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.descriptions.get('en').value</span></code>, <code class="docutils literal notranslate"><span class="pre">item.descriptions.set('en',</span> <span class="pre">'...')</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.get_aliases('en')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">[alias.value</span> <span class="pre">for</span> <span class="pre">alias</span> <span class="pre">in</span> <span class="pre">item.aliases.get('en')]</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.set_aliases(['A',</span> <span class="pre">'B'],</span> <span class="pre">lang='en')</span></code> (append)</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.aliases.add('en',</span> <span class="pre">['A',</span> <span class="pre">'B'])</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.set_aliases(['A',</span> <span class="pre">'B'],</span> <span class="pre">lang='en',</span> <span class="pre">append=False)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.aliases.set('en',</span> <span class="pre">['A',</span> <span class="pre">'B'],</span> <span class="pre">action_if_exists=ActionIfExists.REPLACE_ALL)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.get_sitelink('enwiki')</span></code>, <code class="docutils literal notranslate"><span class="pre">set_sitelink(site,</span> <span class="pre">title,</span> <span class="pre">badges)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.sitelinks.get('enwiki')</span></code>, <code class="docutils literal notranslate"><span class="pre">item.sitelinks.set(site,</span> <span class="pre">title,</span> <span class="pre">badges)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine.generate_item_instances(['Q1',</span> <span class="pre">'Q2'])</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.generate_entity_instances(['Q1',</span> <span class="pre">'Q2'])</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">sdc_core.WDItemEngine</span></code> (Commons)</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi.mediainfo.get('M75908279')</span></code>, see <a class="reference internal" href="mediainfo.html"><span class="std std-doc">Structured Data on Commons</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>WikibaseIntegrator also reads and writes properties (<code class="docutils literal notranslate"><span class="pre">wbi.property</span></code>), lexemes with their forms and senses
+(<code class="docutils literal notranslate"><span class="pre">wbi.lexeme</span></code>) and MediaInfo entities (<code class="docutils literal notranslate"><span class="pre">wbi.mediainfo</span></code>). See <a class="reference internal" href="entities.html"><span class="std std-doc">Entities</span></a>.</p>
+</section>
+<section id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Link to this heading">#</a></h2>
+<p>The data types lose their <code class="docutils literal notranslate"><span class="pre">WD</span></code> prefix and are imported from <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.datatypes</span></code>. Their arguments are named:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDString(value,</span> <span class="pre">prop_nr)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">String(value=...,</span> <span class="pre">prop_nr=...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemID</span></code>, <code class="docutils literal notranslate"><span class="pre">WDProperty</span></code>, <code class="docutils literal notranslate"><span class="pre">WDLexeme</span></code>, <code class="docutils literal notranslate"><span class="pre">WDForm</span></code>, <code class="docutils literal notranslate"><span class="pre">WDSense</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">Item</span></code>, <code class="docutils literal notranslate"><span class="pre">Property</span></code>, <code class="docutils literal notranslate"><span class="pre">Lexeme</span></code>, <code class="docutils literal notranslate"><span class="pre">Form</span></code>, <code class="docutils literal notranslate"><span class="pre">Sense</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDExternalID</span></code>, <code class="docutils literal notranslate"><span class="pre">WDUrl</span></code>, <code class="docutils literal notranslate"><span class="pre">WDCommonsMedia</span></code>, <code class="docutils literal notranslate"><span class="pre">WDMath</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">ExternalID</span></code>, <code class="docutils literal notranslate"><span class="pre">URL</span></code>, <code class="docutils literal notranslate"><span class="pre">CommonsMedia</span></code>, <code class="docutils literal notranslate"><span class="pre">Math</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDGeoShape</span></code>, <code class="docutils literal notranslate"><span class="pre">WDTabularData</span></code>, <code class="docutils literal notranslate"><span class="pre">WDMusicalNotation</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">GeoShape</span></code>, <code class="docutils literal notranslate"><span class="pre">TabularData</span></code>, <code class="docutils literal notranslate"><span class="pre">MusicalNotation</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDMonolingualText(value,</span> <span class="pre">prop_nr,</span> <span class="pre">language='en')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">MonolingualText(text=...,</span> <span class="pre">prop_nr=...,</span> <span class="pre">language='en')</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDQuantity(value,</span> <span class="pre">prop_nr,</span> <span class="pre">upper_bound,</span> <span class="pre">lower_bound,</span> <span class="pre">unit)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">Quantity(amount=...,</span> <span class="pre">prop_nr=...,</span> <span class="pre">upper_bound=...,</span> <span class="pre">lower_bound=...,</span> <span class="pre">unit=...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDTime(time,</span> <span class="pre">prop_nr,</span> <span class="pre">precision=11,</span> <span class="pre">timezone,</span> <span class="pre">calendarmodel)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">Time(time=...,</span> <span class="pre">prop_nr=...,</span> <span class="pre">precision=WikibaseTimePrecision.DAY,</span> <span class="pre">timezone=...,</span> <span class="pre">calendarmodel=...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDGlobeCoordinate(latitude,</span> <span class="pre">longitude,</span> <span class="pre">precision,</span> <span class="pre">prop_nr,</span> <span class="pre">globe)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate(latitude=...,</span> <span class="pre">longitude=...,</span> <span class="pre">precision=...,</span> <span class="pre">prop_nr=...,</span> <span class="pre">globe=...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDEDTF</span></code>, <code class="docutils literal notranslate"><span class="pre">WDLocalMedia</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">EDTF</span></code>, <code class="docutils literal notranslate"><span class="pre">LocalMedia</span></code>, from <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.datatypes.extra</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>—</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">EntitySchema</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The other arguments:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">is_reference=True</span></code>, <code class="docutils literal notranslate"><span class="pre">is_qualifier=True</span></code></p></td>
+<td class="text-left"><p>Removed: the same classes are used for claims, qualifiers and references</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">references=[[WDItemID(...,</span> <span class="pre">is_reference=True)]]</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">references=[[Item(...)]]</span></code>, or a <code class="docutils literal notranslate"><span class="pre">References</span></code> object</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">qualifiers=[WDString(...,</span> <span class="pre">is_qualifier=True)]</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">qualifiers=Qualifiers()</span></code> with <code class="docutils literal notranslate"><span class="pre">qualifiers.add(String(...))</span></code>, or a list of claims</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">rank='preferred'</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">rank=WikibaseRank.PREFERRED</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">snak_type='somevalue'</span></code>, <code class="docutils literal notranslate"><span class="pre">snak_type='novalue'</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">snaktype=WikibaseSnakType.UNKNOWN_VALUE</span></code>, <code class="docutils literal notranslate"><span class="pre">snaktype=WikibaseSnakType.NO_VALUE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">check_qualifier_equality=False</span></code></p></td>
+<td class="text-left"><p>No equivalent: two claims are equal when they have the same property, value and qualifiers</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">stat.get_value()</span></code>, <code class="docutils literal notranslate"><span class="pre">stat.get_prop_nr()</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">claim.mainsnak.datavalue['value']</span></code>, <code class="docutils literal notranslate"><span class="pre">claim.mainsnak.property_number</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The enumerations (<code class="docutils literal notranslate"><span class="pre">WikibaseRank</span></code>, <code class="docutils literal notranslate"><span class="pre">WikibaseSnakType</span></code>, <code class="docutils literal notranslate"><span class="pre">WikibaseTimePrecision</span></code>, <code class="docutils literal notranslate"><span class="pre">ActionIfExists</span></code>…) are in
+<code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.wbi_enums</span></code>. See <a class="reference internal" href="datatypes.html"><span class="std std-doc">Data types</span></a>.</p>
+</section>
+<section id="writing-statements">
+<h2>Writing statements<a class="headerlink" href="#writing-statements" title="Link to this heading">#</a></h2>
+<p>WikidataIntegrator took all the statements in the <code class="docutils literal notranslate"><span class="pre">data</span></code> list of the constructor and merged them with the item.
+WikibaseIntegrator adds them with <code class="docutils literal notranslate"><span class="pre">item.claims.add(claims,</span> <span class="pre">action_if_exists=...)</span></code>, where <code class="docutils literal notranslate"><span class="pre">action_if_exists</span></code> says what
+to do with the existing statements of the same property:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>A property in <code class="docutils literal notranslate"><span class="pre">data</span></code> (the default): its other values are removed</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">ActionIfExists.REPLACE_ALL</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>A property in <code class="docutils literal notranslate"><span class="pre">append_value</span></code>: the value is added if missing</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></code> (the default of <code class="docutils literal notranslate"><span class="pre">claims.add()</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>A data type with an empty value (<code class="docutils literal notranslate"><span class="pre">WDString('',</span> <span class="pre">'P31')</span></code>): the property is removed</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.claims.remove('P31')</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDFunctionsEngine.delete_statement(statement_id,</span> <span class="pre">revision,</span> <span class="pre">login)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.claims.get('P31')[0].remove()</span></code> then <code class="docutils literal notranslate"><span class="pre">write()</span></code>, or <code class="docutils literal notranslate"><span class="pre">wbi_helpers.remove_claims(claim_id,</span> <span class="pre">login=login)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">update(data,</span> <span class="pre">append_value=[...])</span></code></p></td>
+<td class="text-left"><p>More <code class="docutils literal notranslate"><span class="pre">item.claims.add()</span></code> calls</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The reference handling is different. WikidataIntegrator merged the references of a statement already present
+following <code class="docutils literal notranslate"><span class="pre">global_ref_mode</span></code> (<code class="docutils literal notranslate"><span class="pre">KEEP_GOOD</span></code> by default), and kept the statements with “good” references
+(<code class="docutils literal notranslate"><span class="pre">keep_good_ref_statements</span></code>, <code class="docutils literal notranslate"><span class="pre">good_refs</span></code>). WikibaseIntegrator has no notion of good references, and its actions
+handle the references of a statement already present (same property, value and qualifiers) as follows:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator <code class="docutils literal notranslate"><span class="pre">global_ref_mode</span></code></p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">STRICT_OVERWRITE</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">APPEND_OR_REPLACE</span></code>: the references of the new claim, if it has some, replace the existing ones</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">STRICT_KEEP_APPEND</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">MERGE_REFS_OR_APPEND</span></code>: the references missing from the existing statement are added</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">STRICT_KEEP</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">REPLACE_ALL</span></code> or <code class="docutils literal notranslate"><span class="pre">KEEP</span></code> leave the existing statement as it is</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">KEEP_GOOD</span></code>, <code class="docutils literal notranslate"><span class="pre">CUSTOM</span></code> (<code class="docutils literal notranslate"><span class="pre">ref_handler</span></code>)</p></td>
+<td class="text-left"><p>No equivalent: get the existing statement with <code class="docutils literal notranslate"><span class="pre">item.claims.get()</span></code> and edit its <code class="docutils literal notranslate"><span class="pre">references</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">REPLACE_ALL</span></code> keeps the statements already present as they are, references included. To remove the other values of a
+property <strong>and</strong> add the new references to the statements already present, add the claims twice:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">item</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">)</span>  <span class="c1"># remove the other values of the properties</span>
+<span class="n">item</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">MERGE_REFS_OR_APPEND</span><span class="p">)</span>  <span class="c1"># add the new references</span>
+</pre></div>
+</div>
+</section>
+<section id="finding-an-item-from-its-data">
+<h2>Finding an item from its data<a class="headerlink" href="#finding-an-item-from-its-data" title="Link to this heading">#</a></h2>
+<p>Without <code class="docutils literal notranslate"><span class="pre">wd_item_id</span></code>, WikidataIntegrator searched the item holding the values of <code class="docutils literal notranslate"><span class="pre">data</span></code> for the properties with a
+distinct-values constraint (<code class="docutils literal notranslate"><span class="pre">core_props</span></code>, <code class="docutils literal notranslate"><span class="pre">core_prop_match_thresh</span></code>), and created a new item if none was found.
+WikibaseIntegrator doesn’t search automatically: find the item yourself, for example with the fast run container,
+which resolves the item from a unique value with a SPARQL query:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_fastrun</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExternalID</span><span class="p">,</span> <span class="n">Item</span>
+
+<span class="n">base_filter</span> <span class="o">=</span> <span class="p">[</span><span class="n">ExternalID</span><span class="p">(</span><span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P351'</span><span class="p">),</span> <span class="n">Item</span><span class="p">(</span><span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P703'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">'Q15978631'</span><span class="p">)]</span>
+<span class="n">frc</span> <span class="o">=</span> <span class="n">wbi_fastrun</span><span class="o">.</span><span class="n">get_fastrun_container</span><span class="p">(</span><span class="n">base_filter</span><span class="o">=</span><span class="n">base_filter</span><span class="p">)</span>
+
+<span class="n">qids</span> <span class="o">=</span> <span class="n">frc</span><span class="o">.</span><span class="n">get_entities</span><span class="p">(</span><span class="n">claims</span><span class="o">=</span><span class="p">[</span><span class="n">ExternalID</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'50943'</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P351'</span><span class="p">)])</span>
+<span class="n">item</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">qids</span> <span class="k">else</span> <span class="n">wbi</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>or with the search of the MediaWiki API, which supports the <code class="docutils literal notranslate"><span class="pre">haswbstatement</span></code> keyword on Wikidata:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">fulltext_search</span><span class="p">(</span><span class="s1">'haswbstatement:P351=50943'</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fast-run">
+<h2>Fast run<a class="headerlink" href="#fast-run" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine(data=data,</span> <span class="pre">fast_run=True,</span> <span class="pre">fast_run_base_filter={'P351':</span> <span class="pre">'',</span> <span class="pre">'P703':</span> <span class="pre">'Q15978631'})</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.claims.add(data)</span></code> then <code class="docutils literal notranslate"><span class="pre">item.write_required(base_filter=[ExternalID(prop_nr='P351'),</span> <span class="pre">Item(prop_nr='P703',</span> <span class="pre">value='Q15978631')])</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">item.require_write</span></code></p></td>
+<td class="text-left"><p>The value returned by <code class="docutils literal notranslate"><span class="pre">item.write_required()</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">fast_run_use_refs=True</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">write_required(...,</span> <span class="pre">use_references=True)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">fast_run_case_insensitive=True</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">write_required(...,</span> <span class="pre">case_insensitive=True)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The base filter is a list of data type instances instead of a dictionary: a value is a required value, no value means
+any value. It also supports property paths. See <a class="reference internal" href="fastrun.html"><span class="std std-doc">Fast run</span></a>.</p>
+</section>
+<section id="login">
+<h2>Login<a class="headerlink" href="#login" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDLogin(user='User&#64;Bot',</span> <span class="pre">pwd='&lt;bot</span> <span class="pre">password&gt;')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Login(user='User&#64;Bot',</span> <span class="pre">password='&lt;bot</span> <span class="pre">password&gt;')</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDLogin(user,</span> <span class="pre">pwd,</span> <span class="pre">use_clientlogin=True)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_login.Clientlogin(user=...,</span> <span class="pre">password=...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDLogin(consumer_key=...,</span> <span class="pre">consumer_secret=...)</span></code> then <code class="docutils literal notranslate"><span class="pre">continue_oauth()</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_login.OAuth1(consumer_token=...,</span> <span class="pre">consumer_secret=...)</span></code> then <code class="docutils literal notranslate"><span class="pre">continue_oauth()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>—</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_login.OAuth2(consumer_token=...,</span> <span class="pre">consumer_secret=...)</span></code> for an owner-only consumer, the recommended way for a bot</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>—</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_login.OAuth1(consumer_token=...,</span> <span class="pre">consumer_secret=...,</span> <span class="pre">access_token=...,</span> <span class="pre">access_secret=...)</span></code> for an owner-only OAuth 1.0a consumer</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>See <a class="reference internal" href="login.html"><span class="std std-doc">Login</span></a>.</p>
+</section>
+<section id="helpers">
+<h2>Helpers<a class="headerlink" href="#helpers" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">WDFunctionsEngine</span></code> and the static methods of <code class="docutils literal notranslate"><span class="pre">WDItemEngine</span></code> become functions of <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.wbi_helpers</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>WikidataIntegrator</p></th>
+<th class="head text-left"><p>WikibaseIntegrator</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">execute_sparql_query(query,</span> <span class="pre">prefix,</span> <span class="pre">endpoint,</span> <span class="pre">user_agent)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.execute_sparql_query(query,</span> <span class="pre">prefix,</span> <span class="pre">endpoint,</span> <span class="pre">user_agent)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">execute_sparql_query(...,</span> <span class="pre">as_dataframe=True)</span></code></p></td>
+<td class="text-left"><p>No equivalent: build the dataframe from <code class="docutils literal notranslate"><span class="pre">results['results']['bindings']</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">mediawiki_api_call_helper(data,</span> <span class="pre">login,</span> <span class="pre">...)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.mediawiki_api_call_helper(data,</span> <span class="pre">login=login,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">get_wd_search_results('Douglas</span> <span class="pre">Adams',</span> <span class="pre">language='en')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.search_entities('Douglas</span> <span class="pre">Adams',</span> <span class="pre">language='en')</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">merge_items(from_id,</span> <span class="pre">to_id,</span> <span class="pre">login_obj,</span> <span class="pre">ignore_conflicts='description')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.merge_items(from_id,</span> <span class="pre">to_id,</span> <span class="pre">login=login,</span> <span class="pre">ignore_conflicts=['description'])</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">get_rdf(qid,</span> <span class="pre">format='turtle')</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_helpers.download_entity_ttl(qid)</span></code>, or <code class="docutils literal notranslate"><span class="pre">entity.download_entity_ttl()</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">delete_item(item,</span> <span class="pre">reason,</span> <span class="pre">login)</span></code>: a request on Wikidata:Requests for deletions</p></td>
+<td class="text-left"><p>No equivalent. <code class="docutils literal notranslate"><span class="pre">wbi_helpers.delete_page()</span></code> deletes a page directly, with the delete right</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine.wikibase_item_engine_factory(mediawiki_api_url,</span> <span class="pre">sparql_endpoint_url)</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">wbi_config['MEDIAWIKI_API_URL']</span></code>, <code class="docutils literal notranslate"><span class="pre">wbi_config['SPARQL_ENDPOINT_URL']</span></code>, see <a class="reference internal" href="installation.html"><span class="std std-doc">Installation and configuration</span></a></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">WDItemEngine.setup_logging()</span></code>, <code class="docutils literal notranslate"><span class="pre">WDItemEngine.log()</span></code></p></td>
+<td class="text-left"><p>The standard <code class="docutils literal notranslate"><span class="pre">logging</span></code> module, see <a class="reference internal" href="installation.html"><span class="std std-doc">Installation and configuration</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>WikibaseIntegrator has more helpers (redirects, lexeme forms and senses, constraint checks, value parsing,
+EditGroups…): see <a class="reference internal" href="helpers.html"><span class="std std-doc">Helpers</span></a>.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">wdi_config.config</span></code> becomes <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.wbi_config.config</span></code>, with the same keys, except:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">USER_AGENT_DEFAULT</span></code> becomes <code class="docutils literal notranslate"><span class="pre">USER_AGENT</span></code>. Wikimedia sites require a User-Agent identifying your tool.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CONCEPT_BASE_URI</span></code> is gone: the concept URIs are built from <code class="docutils literal notranslate"><span class="pre">WIKIBASE_URL</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAXLAG</span></code> is gone: <code class="docutils literal notranslate"><span class="pre">maxlag</span></code> is an argument of the API calls (<code class="docutils literal notranslate"><span class="pre">mediawiki_api_call_helper(...,</span> <span class="pre">maxlag=5)</span></code>, 5 by
+default).</p></li>
+<li><p>The retries: <code class="docutils literal notranslate"><span class="pre">write()</span></code> and the API calls retry 20 times by default (<code class="docutils literal notranslate"><span class="pre">max_retries</span></code>), instead of 1000.</p></li>
+</ul>
+</section>
+<section id="without-an-equivalent">
+<h2>Without an equivalent<a class="headerlink" href="#without-an-equivalent" title="Link to this heading">#</a></h2>
+<p>These parts of WikidataIntegrator have no equivalent in WikibaseIntegrator:</p>
+<ul class="simple">
+<li><p>The search of an item from its data (<code class="docutils literal notranslate"><span class="pre">core_props</span></code>), see <a class="reference internal" href="#finding-an-item-from-its-data">Finding an item from its data</a>.</p></li>
+<li><p>The good references (<code class="docutils literal notranslate"><span class="pre">good_refs</span></code>, <code class="docutils literal notranslate"><span class="pre">keep_good_ref_statements</span></code>, <code class="docutils literal notranslate"><span class="pre">KEEP_GOOD</span></code>) and the custom reference handlers
+(<code class="docutils literal notranslate"><span class="pre">ref_handler</span></code>, the <code class="docutils literal notranslate"><span class="pre">ref_handlers</span></code> module).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rollback()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_linked_by()</span></code> (use a SPARQL query), <code class="docutils literal notranslate"><span class="pre">count_references()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_reference_properties()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">get_qualifier_properties()</span></code>.</p></li>
+<li><p>The ShEx checks (<code class="docutils literal notranslate"><span class="pre">check_entity_schema()</span></code>, <code class="docutils literal notranslate"><span class="pre">check_shex_conformance()</span></code>, <code class="docutils literal notranslate"><span class="pre">extract_shex()</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wdi_helpers</span></code> (<code class="docutils literal notranslate"><span class="pre">PubmedItem</span></code>, <code class="docutils literal notranslate"><span class="pre">PublicationHelper</span></code>, <code class="docutils literal notranslate"><span class="pre">Release</span></code>, <code class="docutils literal notranslate"><span class="pre">try_write</span></code>, <code class="docutils literal notranslate"><span class="pre">prop2qid</span></code>, <code class="docutils literal notranslate"><span class="pre">id_mapper</span></code>…), <code class="docutils literal notranslate"><span class="pre">wdi_rdf</span></code>
+and <code class="docutils literal notranslate"><span class="pre">MappingRelationHelper</span></code>.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="upgrading.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Upgrading</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="contributing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contributing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-script-before-and-after">A script, before and after</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#entities">Entities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-types">Data types</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-statements">Writing statements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-an-item-from-its-data">Finding an item from its data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fast-run">Fast run</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#login">Login</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#helpers">Helpers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#without-an-equivalent">Without an equivalent</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/LeMyst/WikibaseIntegrator/edit/master/docs/source/guide/wikidataintegrator.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/guide/wikidataintegrator.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, LeMyst.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

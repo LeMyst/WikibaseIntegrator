@@ -1,0 +1,6 @@
+﻿Form
+====
+
+.. currentmodule:: wikibaseintegrator.datatypes.form
+
+.. autoclass:: Form

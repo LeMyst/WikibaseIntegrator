@@ -1,0 +1,6 @@
+﻿ExternalID
+==========
+
+.. currentmodule:: wikibaseintegrator.datatypes.externalid
+
+.. autoclass:: ExternalID

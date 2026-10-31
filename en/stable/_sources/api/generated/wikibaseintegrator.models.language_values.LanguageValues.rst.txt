@@ -1,0 +1,6 @@
+﻿LanguageValues
+==============
+
+.. currentmodule:: wikibaseintegrator.models.language_values
+
+.. autoclass:: LanguageValues

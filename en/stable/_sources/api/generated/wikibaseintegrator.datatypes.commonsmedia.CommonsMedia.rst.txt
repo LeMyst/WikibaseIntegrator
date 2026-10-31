@@ -1,0 +1,6 @@
+﻿CommonsMedia
+============
+
+.. currentmodule:: wikibaseintegrator.datatypes.commonsmedia
+
+.. autoclass:: CommonsMedia

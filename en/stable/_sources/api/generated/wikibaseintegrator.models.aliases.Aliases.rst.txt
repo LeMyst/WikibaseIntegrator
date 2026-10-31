@@ -1,0 +1,6 @@
+﻿Aliases
+=======
+
+.. currentmodule:: wikibaseintegrator.models.aliases
+
+.. autoclass:: Aliases

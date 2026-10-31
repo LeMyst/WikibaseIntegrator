@@ -1,0 +1,6 @@
+﻿Representations
+===============
+
+.. currentmodule:: wikibaseintegrator.models.representations
+
+.. autoclass:: Representations

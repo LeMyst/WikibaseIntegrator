@@ -1,0 +1,6 @@
+﻿Descriptions
+============
+
+.. currentmodule:: wikibaseintegrator.models.descriptions
+
+.. autoclass:: Descriptions

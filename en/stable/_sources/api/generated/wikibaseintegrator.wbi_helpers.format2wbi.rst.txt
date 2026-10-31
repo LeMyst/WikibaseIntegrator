@@ -1,0 +1,6 @@
+﻿format2wbi
+==========
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: format2wbi

@@ -1,0 +1,6 @@
+﻿MissingExtensionError
+=====================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: MissingExtensionError

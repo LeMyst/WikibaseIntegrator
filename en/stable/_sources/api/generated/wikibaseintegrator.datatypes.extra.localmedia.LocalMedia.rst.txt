@@ -1,0 +1,6 @@
+﻿LocalMedia
+==========
+
+.. currentmodule:: wikibaseintegrator.datatypes.extra.localmedia
+
+.. autoclass:: LocalMedia

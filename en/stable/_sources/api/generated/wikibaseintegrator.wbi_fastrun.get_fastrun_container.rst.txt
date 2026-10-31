@@ -1,0 +1,6 @@
+﻿get\_fastrun\_container
+=======================
+
+.. currentmodule:: wikibaseintegrator.wbi_fastrun
+
+.. autofunction:: get_fastrun_container

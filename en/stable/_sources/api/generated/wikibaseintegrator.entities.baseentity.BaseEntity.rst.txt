@@ -1,0 +1,7 @@
+﻿BaseEntity
+==========
+
+.. currentmodule:: wikibaseintegrator.entities.baseentity
+
+.. autoclass:: BaseEntity
+   :inherited-members:

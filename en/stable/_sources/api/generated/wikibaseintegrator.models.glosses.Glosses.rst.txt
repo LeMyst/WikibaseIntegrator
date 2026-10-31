@@ -1,0 +1,6 @@
+﻿Glosses
+=======
+
+.. currentmodule:: wikibaseintegrator.models.glosses
+
+.. autoclass:: Glosses

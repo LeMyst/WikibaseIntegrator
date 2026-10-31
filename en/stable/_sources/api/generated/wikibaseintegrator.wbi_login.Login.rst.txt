@@ -1,0 +1,7 @@
+﻿Login
+=====
+
+.. currentmodule:: wikibaseintegrator.wbi_login
+
+.. autoclass:: Login
+   :inherited-members:

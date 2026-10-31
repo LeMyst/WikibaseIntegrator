@@ -1,0 +1,6 @@
+﻿EmptyValueError
+===============
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: EmptyValueError

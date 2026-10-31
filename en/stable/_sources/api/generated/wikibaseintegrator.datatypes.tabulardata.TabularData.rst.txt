@@ -1,0 +1,6 @@
+﻿TabularData
+===========
+
+.. currentmodule:: wikibaseintegrator.datatypes.tabulardata
+
+.. autoclass:: TabularData

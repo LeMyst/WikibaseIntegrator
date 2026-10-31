@@ -1,0 +1,6 @@
+﻿Time
+====
+
+.. currentmodule:: wikibaseintegrator.datatypes.time
+
+.. autoclass:: Time

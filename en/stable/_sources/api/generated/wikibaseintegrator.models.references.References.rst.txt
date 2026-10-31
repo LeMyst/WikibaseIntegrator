@@ -1,0 +1,6 @@
+﻿References
+==========
+
+.. currentmodule:: wikibaseintegrator.models.references
+
+.. autoclass:: References

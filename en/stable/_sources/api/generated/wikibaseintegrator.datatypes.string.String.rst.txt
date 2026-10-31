@@ -1,0 +1,6 @@
+﻿String
+======
+
+.. currentmodule:: wikibaseintegrator.datatypes.string
+
+.. autoclass:: String

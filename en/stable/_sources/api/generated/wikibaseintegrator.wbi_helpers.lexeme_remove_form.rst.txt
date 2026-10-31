@@ -1,0 +1,6 @@
+﻿lexeme\_remove\_form
+====================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: lexeme_remove_form

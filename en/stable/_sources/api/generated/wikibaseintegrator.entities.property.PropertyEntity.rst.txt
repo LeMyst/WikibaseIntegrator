@@ -1,0 +1,7 @@
+﻿PropertyEntity
+==============
+
+.. currentmodule:: wikibaseintegrator.entities.property
+
+.. autoclass:: PropertyEntity
+   :inherited-members:
