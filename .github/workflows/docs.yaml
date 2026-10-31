@@ -154,6 +154,10 @@ jobs:
           </body>
           </html>
           EOF
+          # The page served for a missing page, which redirects the old Read the Docs URLs: always the one of master
+          if [ -f en/latest/404.html ]; then
+            cp en/latest/404.html 404.html
+          fi
 
           git add --all
           if git diff --cached --quiet; then

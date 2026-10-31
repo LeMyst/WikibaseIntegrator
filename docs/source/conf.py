@@ -102,6 +102,10 @@ intersphinx_mapping = {
 html_theme = 'pydata_sphinx_theme'
 html_title = 'WikibaseIntegrator'
 html_static_path = ['_static']
+
+# Copied as they are to the root of the build: 404.html, the page GitHub Pages serves for a missing page (the docs workflow
+# copies the one of en/latest/ to the root of the site), which redirects the old Read the Docs URLs
+html_extra_path = ['_extra']
 html_theme_options = {
     'github_url': 'https://github.com/LeMyst/WikibaseIntegrator',
     'icon_links': [{'name': 'PyPI', 'url': 'https://pypi.org/project/wikibaseintegrator/', 'icon': 'fa-brands fa-python'}],
