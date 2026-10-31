@@ -257,6 +257,32 @@ class TestFromSparqlValue:
         (CommonsMedia, {'type': 'uri', 'value': 'http://commons.wikimedia.org/wiki/Special:FilePath/Example%20file.jpg'}, 'Example file.jpg'),
     ]
 
+    # (data type, SPARQL binding returned by the Wikidata Query Service, arguments of the equivalent local claim)
+    attribute_round_trips: list[tuple[type[BaseDataType], dict, dict]] = [
+        (Item, {'type': 'uri', 'value': 'http://www.wikidata.org/entity/Q90'}, {'value': 'Q90'}),
+        (String, {'type': 'literal', 'value': 'Paris'}, {'value': 'Paris'}),
+        (URL, {'type': 'uri', 'value': 'https://www.paris.fr/'}, {'value': 'https://www.paris.fr/'}),
+        (Quantity, {'datatype': 'http://www.w3.org/2001/XMLSchema#decimal', 'type': 'literal', 'value': '2175601'}, {'amount': 2175601}),
+        (Time, {'datatype': 'http://www.w3.org/2001/XMLSchema#dateTime', 'type': 'literal', 'value': '1987-03-15T00:00:00Z'}, {'time': '+1987-03-15T00:00:00Z'}),
+        (GlobeCoordinate, {'datatype': 'http://www.opengis.net/ont/geosparql#wktLiteral', 'type': 'literal', 'value': 'Point(2.352222222 48.856666666)'},
+         {'latitude': 48.856666666, 'longitude': 2.352222222}),
+        (MonolingualText, {'xml:lang': 'fr', 'type': 'literal', 'value': 'Paris'}, {'text': 'Paris', 'language': 'fr'}),
+    ]
+
+    @pytest.mark.parametrize('datatype,sparql_value,local_kwargs', attribute_round_trips, ids=[x[0].DTYPE for x in attribute_round_trips])
+    def test_round_trip_with_attributes(self, datatype, sparql_value, local_kwargs):
+        parsed = datatype(prop_nr='P1').from_sparql_value(sparql_value)
+
+        assert parsed.get_sparql_value() == datatype(prop_nr='P1', **local_kwargs).get_sparql_value()
+
+    def test_math_value_is_not_comparable(self):
+        # The Wikidata Query Service returns the MathML rendering of c^2=a^2+b^2 (Q11518, P2534), not its TeX source
+        mathml = {'datatype': 'http://www.w3.org/1998/Math/MathML', 'type': 'literal',
+                  'value': '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>c</mi><mn>2</mn></msup><mo>=</mo>...</math>'}
+
+        with pytest.raises(ValueError, match="can't be compared through SPARQL"):
+            Math(prop_nr='P1').from_sparql_value(mathml)
+
     @pytest.mark.parametrize('datatype,sparql_value,local_value', round_trips, ids=[x[0].DTYPE for x in round_trips])
     def test_round_trip(self, datatype, sparql_value, local_value):
         parsed = datatype(prop_nr='P1').from_sparql_value(sparql_value)

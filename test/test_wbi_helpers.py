@@ -20,10 +20,10 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
                                                ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed)
-from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi, format_amount,
-                                            fulltext_search, generate_entity_instances, get_available_badges, get_user_agent, lexeme_add_form, lexeme_edit_sense,
-                                            lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_multiple_items, parse_value,
-                                            remove_claims, search_entities, set_claim)
+from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, delete_page, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi,
+                                            format_amount, fulltext_search, generate_entity_instances, get_available_badges, get_user_agent, lexeme_add_form, lexeme_edit_sense,
+                                            lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_lexemes,
+                                            merge_multiple_items, parse_value, remove_claims, search_entities, set_claim)
 
 
 class FakeLogin:
@@ -983,6 +983,37 @@ class TestFulltextSearch:
 
 
 class TestEditHelpers:
+    def test_merge_lexemes(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        assert merge_lexemes(source='L1', target='L2', login=login, summary='duplicate', is_bot=True) == {'success': 1}
+
+        request = wikibase.last_request
+        assert (request['action'], request['fromid'], request['toid'], request['summary']) == ('wblmergelexemes', 'L1', 'L2', 'duplicate')
+        assert request['bot'] == '' and request['token'] == login.edit_token
+
+    def test_delete_page(self, wikibase):
+        login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
+        delete_page(title='Item:Q1', reason='test', deletetalk=True, watchlistexpiry='infinite', login=login)
+
+        request = wikibase.last_request
+        assert (request['action'], request['title'], request['reason'], request['watchlist']) == ('delete', 'Item:Q1', 'test', 'preferences')
+        assert request['deletetalk'] == '' and request['watchlistexpiry'] == 'infinite'
+        assert 'pageid' not in request
+
+        delete_page(pageid=42, login=login)
+        assert wikibase.last_request['pageid'] == '42' and 'title' not in wikibase.last_request
+
+    @pytest.mark.parametrize('kwargs, message', [
+        ({}, 'A title or a pageid must be specified'),
+        ({'title': 'Item:Q1', 'pageid': 42}, "can't specify a title and a pageid"),
+        ({'pageid': '42'}, 'pageid must be an integer'),
+    ])
+    def test_delete_page_invalid(self, wikibase, kwargs, message):
+        with pytest.raises(ValueError, match=message):
+            delete_page(login=FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url), **kwargs)
+
+        assert not [request for request in wikibase.requests if request.get('action') == 'delete']
+
     def test_merge_items(self, wikibase):
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
         merge_items(from_id='Q1', to_id='Q2', login=login, ignore_conflicts=['description'])
