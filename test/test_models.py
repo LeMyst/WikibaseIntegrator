@@ -486,6 +486,30 @@ class TestQualifiers:
         assert claim1.has_equal_qualifiers(claim4) is False
         assert claim1.has_equal_qualifiers(claim5) is True
 
+    def test_equality_counts_duplicates(self):
+        double_a = Item(value='Q1', prop_nr='P1', qualifiers=[String(value='a', prop_nr='P2'), String(value='a', prop_nr='P2')])
+        a_and_b = Item(value='Q1', prop_nr='P1', qualifiers=[String(value='a', prop_nr='P2'), String(value='b', prop_nr='P2')])
+        b_and_a = Item(value='Q1', prop_nr='P1', qualifiers=[String(value='b', prop_nr='P2'), String(value='a', prop_nr='P2')])
+
+        # Each qualifier used to be looked up among all the qualifiers of the other claim, without consuming the match:
+        # [a, a] was equal to [a, b], but not the other way round
+        assert double_a.has_equal_qualifiers(a_and_b) is False
+        assert a_and_b.has_equal_qualifiers(double_a) is False
+        assert double_a != a_and_b and a_and_b != double_a
+        # The order still doesn't matter
+        assert a_and_b.has_equal_qualifiers(b_and_a) is True
+        assert a_and_b == b_and_a
+
+    @pytest.mark.parametrize('first,second', [('ab', 'aa'), ('aa', 'ab')])
+    def test_duplicate_qualifiers_are_not_merged_by_add(self, first, second):
+        claims = Claims()
+        claims.add(Item(value='Q1', prop_nr='P1', qualifiers=[String(value=value, prop_nr='P2') for value in first]))
+
+        # A statement with other qualifiers is a new statement, whichever claim is added first
+        claims.add(Item(value='Q1', prop_nr='P1', qualifiers=[String(value=value, prop_nr='P2') for value in second]))
+
+        assert len(claims.get('P1')) == 2
+
 
 class TestReferences:
     def test_statement_equality_with_and_without_refs(self):
