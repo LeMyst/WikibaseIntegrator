@@ -64,14 +64,17 @@ class MonolingualText(BaseDataType):
             self.mainsnak.snaktype = WikibaseSnakType.UNKNOWN_VALUE
             return self
 
-        xml_lang = sparql_value['xml:lang']
         type = sparql_value['type']
         value = sparql_value['value']
 
         if type != 'literal':
             raise ValueError(f"Wrong SPARQL type {type}")
 
-        self.set_value(text=value, language=xml_lang)
+        # A ValueError rather than a KeyError, which the fast run mode doesn't expect
+        if 'xml:lang' not in sparql_value:
+            raise ValueError(f"No language for the monolingual text {value!r}")
+
+        self.set_value(text=value, language=sparql_value['xml:lang'])
 
         return self
 
