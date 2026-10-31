@@ -7,10 +7,10 @@ Basic read usage:
 
    >>> from wikibaseintegrator import WikibaseIntegrator
    >>> from wikibaseintegrator.wbi_config import config
-   >>> config['USER_AGENT'] = 'Item Get Notebook'
+   >>> config['USER_AGENT'] = 'MyTool/1.0 (https://www.wikidata.org/wiki/User:MyUsername)'
    >>> wbi = WikibaseIntegrator()
    >>> q42 = wbi.item.get('Q42')
-   >>> q42.labels.get('en').value
+   >>> q42.labels.get('mul').value  # the label shared by all the languages
    'Douglas Adams'
 
 Full documentation is available at <https://lemyst.github.io/WikibaseIntegrator/>.
