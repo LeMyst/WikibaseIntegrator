@@ -65,7 +65,7 @@ optional = true
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"
-sphinx-rtd-theme = "*"
+pydata-sphinx-theme = "*"
 sphinx-github-changelog = "*"
 sphinx-autodoc-typehints = "*"
 

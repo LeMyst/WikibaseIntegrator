@@ -73,6 +73,8 @@ jobs:
         env:
           # The changelog page renders the GitHub release notes: a token avoids the rate limit of anonymous requests
           SPHINX_GITHUB_CHANGELOG_TOKEN: ${{ github.token }}
+          # The version selected in the version switcher of the theme
+          DOCS_VERSION: ${{ inputs.target || 'latest' }}
         run: |
           python -m poetry run python -m sphinx -b html --keep-going -w sphinx-warnings.log docs/source docs/_build/html
 
