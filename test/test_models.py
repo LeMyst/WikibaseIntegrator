@@ -525,6 +525,42 @@ class TestReferences:
         assert claim.references.remove(datatypes.ExternalID(value='P58742', prop_nr='P352')) is True
         assert len(claim.references) == 0
 
+    def test_get_by_hash(self):
+        item = ItemEntity().from_json(load_fixture('item_Q582'))
+        claim = next(claim for claim in item.claims if claim.references)
+        reference = claim.references.references[0]
+
+        assert reference.hash
+        assert claim.references.get(reference.hash) is reference
+        assert claim.references.get('no-such-hash') is None
+
+    def test_add_a_claim_keeps_only_its_main_snak(self, caplog):
+        references = datatypes.Item(value='Q1', prop_nr='P1').references
+        source = String(value='source', prop_nr='P2', qualifiers=[String(value='q', prop_nr='P3')], references=[[String(value='r', prop_nr='P4')]])
+
+        with caplog.at_level('WARNING'):
+            references.add(source)
+
+        # A reference has no qualifiers nor references: they are dropped, with a warning for each
+        assert [[snak.property_number for snak in reference] for reference in references] == [['P2']]
+        assert 'not possible to use a qualifier in a reference' in caplog.text
+        assert 'not possible to use a reference in a reference' in caplog.text
+
+    def test_add_ignores_a_duplicate_and_none(self):
+        references = datatypes.Item(value='Q1', prop_nr='P1').references
+        references.add(String(value='source', prop_nr='P2'))
+        references.add(String(value='source', prop_nr='P2'))
+        references.add(None)
+
+        assert len(references.references) == 1
+
+    def test_clear(self):
+        claim = datatypes.Item(value='Q1', prop_nr='P1', references=[[String(value='a', prop_nr='P2')], [String(value='b', prop_nr='P2')]])
+
+        assert claim.references.clear() is claim.references
+        assert not claim.references.references
+        assert claim.get_json().get('references', []) == []
+
 
 class TestForms:
     def test_get_forms(self):
