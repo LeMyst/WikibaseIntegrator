@@ -532,7 +532,8 @@
                     <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern_year</span>
                 <span class="n">matches</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time value (</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'. Check whether the time value format is consistent with the introduced precision."</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time value (</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'. "</span>
+                                     <span class="s2">"Check whether the time value format is consistent with the introduced precision."</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">'value'</span><span class="p">:</span> <span class="p">{</span>

@@ -467,12 +467,12 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.sitelinks.Sitelinks.html#wikibaseintegrator.models.sitelinks.Sitelinks.get_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="n">sitelink</span><span class="p">:</span>
+            <span class="n">key</span><span class="p">:</span>
                 <span class="p">{</span>
-                    <span class="s1">'site'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sitelinks</span><span class="p">[</span><span class="n">sitelink</span><span class="p">]</span><span class="o">.</span><span class="n">site</span><span class="p">,</span>
-                    <span class="s1">'title'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sitelinks</span><span class="p">[</span><span class="n">sitelink</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
-                    <span class="s1">'badges'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sitelinks</span><span class="p">[</span><span class="n">sitelink</span><span class="p">]</span><span class="o">.</span><span class="n">badges</span>
-                <span class="p">}</span> <span class="k">for</span> <span class="n">sitelink</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sitelinks</span>
+                    <span class="s1">'site'</span><span class="p">:</span> <span class="n">sitelink</span><span class="o">.</span><span class="n">site</span><span class="p">,</span>
+                    <span class="s1">'title'</span><span class="p">:</span> <span class="n">sitelink</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+                    <span class="s1">'badges'</span><span class="p">:</span> <span class="n">sitelink</span><span class="o">.</span><span class="n">badges</span>
+                <span class="p">}</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">sitelink</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sitelinks</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span></div>
 
 
