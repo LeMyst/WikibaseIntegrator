@@ -441,6 +441,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_require_property_number</span><span class="p">(</span><span class="n">snak</span><span class="p">:</span> <span class="n">Snak</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The property number of a snak stored under its property, e.g. in the claims of an entity or the snaks of a reference.</span>
+
+<span class="sd">    :raises ValueError: When the snak has no property number: it cannot be stored, and the Wikibase instance would reject it.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">snak</span><span class="o">.</span><span class="n">property_number</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The snak has no property number (prop_nr): set one to add it to claims, qualifiers or references'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">snak</span><span class="o">.</span><span class="n">property_number</span>
+
+
 <div class="viewcode-block" id="Snak">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.snak.Snak.html#wikibaseintegrator.models.snak.Snak">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Snak</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
@@ -453,7 +464,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">datatype</span> <span class="o">=</span> <span class="n">datatype</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">snaktype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">snaktype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WikibaseSnakType</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__snaktype</span>
 
     <span class="nd">@snaktype</span><span class="o">.</span><span class="n">setter</span>
@@ -462,7 +473,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__snaktype</span> <span class="o">=</span> <span class="n">WikibaseSnakType</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">property_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">property_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__property_number</span>
 
     <span class="nd">@property_number</span><span class="o">.</span><span class="n">setter</span>
@@ -481,7 +492,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__property_number</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash</span>
 
     <span class="nd">@hash</span><span class="o">.</span><span class="n">setter</span>
@@ -489,14 +500,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__hash</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">datavalue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">datavalue</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__datavalue</span>
 
     <span class="nd">@datavalue</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">datavalue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># No value is an empty dict, like in __init__: the datavalue is always a dict</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">!=</span> <span class="p">{}:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">=</span> <span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">KNOWN_VALUE</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__datavalue</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__datavalue</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">datatype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WikibaseDatatype</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -523,8 +535,8 @@
 
 <div class="viewcode-block" id="Snak.get_json">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.snak.Snak.html#wikibaseintegrator.models.snak.Snak.get_json">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-        <span class="n">json_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">'snaktype'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaktype</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="s1">'property'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_number</span><span class="p">,</span>
             <span class="s1">'datatype'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatype</span><span class="p">,</span>

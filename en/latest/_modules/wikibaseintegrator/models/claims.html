@@ -440,6 +440,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">_require_property_number</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnknownDatatypeError</span>
 
@@ -519,13 +520,18 @@
         <span class="k">elif</span> <span class="n">claims</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">((</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">Claim</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="n">Claims</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"claims must be an instance of Claim or Claims or a list of Claim"</span><span class="p">)</span>
 
+        <span class="c1"># Each claim is stored under its property: check them all before changing anything</span>
+        <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_require_property_number</span><span class="p">(</span><span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">)</span>
+
         <span class="c1"># This code is separated from the rest to avoid looping multiple over `self.claims`.</span>
         <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">Claim</span><span class="p">)</span>
 
-                    <span class="nb">property</span> <span class="o">=</span> <span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">property_number</span>
+                    <span class="nb">property</span> <span class="o">=</span> <span class="n">_require_property_number</span><span class="p">(</span><span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">)</span>
                     <span class="k">if</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">:</span>
                         <span class="k">for</span> <span class="n">claim_to_remove</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">[</span><span class="nb">property</span><span class="p">]:</span>
                             <span class="k">if</span> <span class="n">claim_to_remove</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
@@ -534,7 +540,7 @@
         <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">Claim</span><span class="p">)</span>
-                <span class="nb">property</span> <span class="o">=</span> <span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">property_number</span>
+                <span class="nb">property</span> <span class="o">=</span> <span class="n">_require_property_number</span><span class="p">(</span><span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>

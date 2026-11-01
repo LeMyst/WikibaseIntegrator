@@ -438,7 +438,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span>
 
 
 <div class="viewcode-block" id="Snaks">
@@ -462,7 +462,7 @@
 <div class="viewcode-block" id="Snaks.add">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.snaks.Snaks.html#wikibaseintegrator.models.snaks.Snaks.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snak</span><span class="p">:</span> <span class="n">Snak</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
-        <span class="nb">property</span> <span class="o">=</span> <span class="n">snak</span><span class="o">.</span><span class="n">property_number</span>
+        <span class="nb">property</span> <span class="o">=</span> <span class="n">_require_property_number</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
