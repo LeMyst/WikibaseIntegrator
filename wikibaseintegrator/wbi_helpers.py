@@ -999,14 +999,14 @@ def search_entities(search_string: str, language: str | None = None, strict_lang
 
         for i in search_results['search']:
             if dict_result:
-                description = i['description'] if 'description' in i else None
-                aliases = i['aliases'] if 'aliases' in i else None
+                # The label, the description and the aliases are only there when the entity has them, e.g. no label for an
+                # entity without a label in the language or its fallbacks
                 results.append({
                     'id': i['id'],
-                    'label': i['label'],
+                    'label': i.get('label'),
                     'match': i['match'],
-                    'description': description,
-                    'aliases': aliases
+                    'description': i.get('description'),
+                    'aliases': i.get('aliases')
                 })
             else:
                 results.append(i['id'])
