@@ -435,9 +435,20 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 
+<div class="viewcode-block" id="WikibaseIntegratorError">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html#wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WikibaseIntegratorError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Base class of the exceptions raised by WikibaseIntegrator: catch it to handle any of them, e.g. around a bot run.</span>
+
+<span class="sd">    The exceptions that report an invalid value, like EmptyValueError, are also ValueError.</span>
+<span class="sd">    """</span></div>
+
+
+
 <div class="viewcode-block" id="MWApiError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.MWApiError.html#wikibaseintegrator.wbi_exceptions.MWApiError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MWApiError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MWApiError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Base class for MediaWiki API error handling</span>
 <span class="sd">    """</span>
@@ -525,7 +536,7 @@
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.SaveFailed.html#wikibaseintegrator.wbi_exceptions.SaveFailed">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SaveFailed</span><span class="p">(</span><span class="n">MWApiError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    When the API return a 'save-failed' error</span>
+<span class="sd">    When the API return a 'failed-save' error</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">response</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -536,7 +547,10 @@
 <div class="viewcode-block" id="NonExistentEntityError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NonExistentEntityError</span><span class="p">(</span><span class="n">MWApiError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    When the API return a 'no-such-entity' error: the entity doesn't exist on the Wikibase instance, or its entity type</span>
+<span class="sd">    doesn't exist there.</span>
+<span class="sd">    """</span></div>
 
 
 
@@ -562,7 +576,7 @@
 
 <div class="viewcode-block" id="EmptyValueError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html#wikibaseintegrator.wbi_exceptions.EmptyValueError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmptyValueError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmptyValueError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Raised before a write when a claim, a qualifier or a reference has no value, while its snak type states that it has</span>
 <span class="sd">    one. A datatype created with None or an empty string as value has no value, and the Wikibase instance would reject</span>
@@ -575,7 +589,7 @@
 
 <div class="viewcode-block" id="UnknownDatatypeError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">UnknownDatatypeError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnknownDatatypeError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Raised when no data type class handles a datatype, like one added to the Wikibase instance by an extension that</span>
 <span class="sd">    WikibaseIntegrator doesn't support. The message lists the supported datatypes.</span>
@@ -592,7 +606,7 @@
 
 <div class="viewcode-block" id="WCQSAuthenticationError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">WCQSAuthenticationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">WCQSAuthenticationError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth:</span>
 <span class="sd">    it answers with the HTML login page of Wikimedia Commons instead of the query results. The cookie is invalid, or was</span>
@@ -603,28 +617,41 @@
 
 <div class="viewcode-block" id="MaxRetriesReachedException">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MaxRetriesReachedException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxRetriesReachedException</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Raised when a request still fails after all its retries: the last failure is its cause (``__cause__``).</span>
+<span class="sd">    """</span></div>
 
 
 
 <div class="viewcode-block" id="MissingEntityException">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MissingEntityException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+<span class="k">class</span><span class="w"> </span><span class="nc">MissingEntityException</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Raised when an entity read from the Wikibase instance is missing, e.g. deleted, or when a MediaInfo title is not found.</span>
+<span class="sd">    """</span></div>
 
 
 
 <div class="viewcode-block" id="SearchError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SearchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+<span class="k">class</span><span class="w"> </span><span class="nc">SearchError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Raised when the wbsearchentities API answers without success.</span>
+<span class="sd">    """</span></div>
+
+
+
+<div class="viewcode-block" id="LoginError">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.LoginError.html#wikibaseintegrator.wbi_exceptions.LoginError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoginError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Raised when there is an issue with the login"""</span></div>
 
 
 
 <div class="viewcode-block" id="AnonymousEditNotAllowedError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">AnonymousEditNotAllowedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AnonymousEditNotAllowedError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Raised when an anonymous edit is attempted while it is not explicitly allowed.</span>
 

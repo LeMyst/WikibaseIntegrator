@@ -53,7 +53,7 @@
     <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/api/generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="MaxRetriesReachedException" href="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html" />
+    <link rel="next" title="LoginError" href="wikibaseintegrator.wbi_exceptions.LoginError.html" />
     <link rel="prev" title="UnknownDatatypeError" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -511,6 +511,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_enums.WikibaseRank.html">WikibaseRank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_enums.WikibaseSnakType.html">WikibaseSnakType</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_enums.WikibaseTimePrecision.html">WikibaseTimePrecision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html">WikibaseIntegratorError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MWApiError.html">MWApiError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.ModificationFailed.html">ModificationFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
@@ -520,6 +521,10 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">AnonymousEditNotAllowedError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.LoginError.html">LoginError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SearchError.html">SearchError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html">MaxRetriesReachedException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html">MaxRetriesReachedException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SearchError.html">SearchError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
@@ -601,7 +606,7 @@
 <dl class="py exception">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">AnonymousEditNotAllowedError</span></span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_exceptions.html#AnonymousEditNotAllowedError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#Exception" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html#wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError" title="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WikibaseIntegratorError</span></code></a></p>
 <p>Raised when an anonymous edit is attempted while it is not explicitly allowed.</p>
 <p>Set <code class="docutils literal notranslate"><span class="pre">allow_anonymous=True</span></code> or provide a valid <code class="docutils literal notranslate"><span class="pre">login</span></code> object to edit the MediaWiki instance.</p>
 </dd></dl>
@@ -628,11 +633,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html"
+       href="wikibaseintegrator.wbi_exceptions.LoginError.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">MaxRetriesReachedException</p>
+        <p class="prev-next-title">LoginError</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

@@ -451,7 +451,8 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_backoff</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_backoff</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCQSAuthenticationError</span>
+<span class="c1"># LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoginError</span><span class="p">,</span> <span class="n">WCQSAuthenticationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_user_agent</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -946,13 +947,6 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="c1"># Never expose the cookie, e.g. in the logs</span>
         <span class="k">return</span> <span class="s1">'&lt;WCQSAuth&gt;'</span></div>
-
-
-
-<div class="viewcode-block" id="LoginError">
-<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.LoginError.html#wikibaseintegrator.wbi_login.LoginError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">LoginError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Raised when there is an issue with the login"""</span></div>
 
 </pre></div>
 

@@ -54,7 +54,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="ModificationFailed" href="wikibaseintegrator.wbi_exceptions.ModificationFailed.html" />
-    <link rel="prev" title="WikibaseTimePrecision" href="wikibaseintegrator.wbi_enums.WikibaseTimePrecision.html" />
+    <link rel="prev" title="WikibaseIntegratorError" href="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
@@ -511,6 +511,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_enums.WikibaseRank.html">WikibaseRank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_enums.WikibaseSnakType.html">WikibaseSnakType</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_enums.WikibaseTimePrecision.html">WikibaseTimePrecision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html">WikibaseIntegratorError</a></li>
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">MWApiError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.ModificationFailed.html">ModificationFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
@@ -520,6 +521,10 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.LoginError.html">LoginError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SearchError.html">SearchError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html">MaxRetriesReachedException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html">MaxRetriesReachedException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SearchError.html">SearchError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
@@ -601,7 +606,7 @@
 <dl class="py exception">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">MWApiError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_exceptions.html#MWApiError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#Exception" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html#wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError" title="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WikibaseIntegratorError</span></code></a></p>
 <p>Base class for MediaWiki API error handling</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -678,12 +683,12 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="wikibaseintegrator.wbi_enums.WikibaseTimePrecision.html"
+       href="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">WikibaseTimePrecision</p>
+        <p class="prev-next-title">WikibaseIntegratorError</p>
       </div>
     </a>
     <a class="right-next"
