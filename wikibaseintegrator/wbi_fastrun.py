@@ -956,6 +956,9 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     """
     Search for an existing FastRunContainer with the same parameters or create a new one if it doesn't exist.
 
+    The containers are also told apart by the SPARQL endpoint and the Wikibase URL of the configuration: the queries of a
+    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance.
+
     :param base_filter: The default filter to initialize the dataset. A list made of BaseDataType or list of BaseDataType.
     :param use_qualifiers: Use qualifiers during fastrun. Enabled by default.
     :param use_references: Use references during fastrun. Disabled by default.
@@ -966,7 +969,8 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     """
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_qualifiers == use_qualifiers) and (fastrun.use_references == use_references) and (
-                fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
+                fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']) and (
+                fastrun.wikibase_url == config['WIKIBASE_URL']):
             fastrun.cache = cache
             return fastrun
 

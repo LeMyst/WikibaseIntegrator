@@ -323,6 +323,21 @@ class TestFastrunStoreEdgeCases:
         assert other is not frc
         assert other.sparql_endpoint_url == 'https://other.example.org/sparql'
 
+    def test_another_wikibase_url_creates_a_new_container(self, wikibase, preserve_config):
+        """Two instances behind the same SPARQL endpoint have different entity IRIs: a container is not shared between them."""
+        frc = wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P352')])
+        preserve_config['WIKIBASE_URL'] = 'https://other.example.org'
+
+        other = wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P352')])
+
+        assert other is not frc
+        assert other.wikibase_url == 'https://other.example.org'
+        assert '<https://other.example.org/prop/direct/P352>' in other._base_filter_string()
+        assert '<https://other.example.org/' not in frc._base_filter_string()
+        # Back to the first instance, its container is reused
+        preserve_config['WIKIBASE_URL'] = frc.wikibase_url
+        assert wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P352')]) is frc
+
 
 class TestRepr:
     def test_repr(self, frc):
