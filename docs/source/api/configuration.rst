@@ -34,6 +34,7 @@ Exceptions
    :toctree: generated
    :nosignatures:
 
+   ~WikibaseIntegratorError
    ~MWApiError
    ~ModificationFailed
    ~SaveFailed
@@ -43,6 +44,10 @@ Exceptions
    ~EmptyValueError
    ~UnknownDatatypeError
    ~AnonymousEditNotAllowedError
+   ~LoginError
+   ~SearchError
+   ~MaxRetriesReachedException
+   ~WCQSAuthenticationError
    ~MaxRetriesReachedException
    ~SearchError
    ~WCQSAuthenticationError

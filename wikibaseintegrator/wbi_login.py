@@ -17,7 +17,8 @@ from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import WCQSAuthenticationError
+# LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login
+from wikibaseintegrator.wbi_exceptions import LoginError, WCQSAuthenticationError
 from wikibaseintegrator.wbi_helpers import get_user_agent
 
 log = logging.getLogger(__name__)
@@ -486,7 +487,3 @@ class WCQSAuth(AuthBase):
     def __repr__(self) -> str:
         # Never expose the cookie, e.g. in the logs
         return '<WCQSAuth>'
-
-
-class LoginError(Exception):
-    """Raised when there is an issue with the login"""
