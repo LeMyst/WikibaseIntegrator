@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class Reference(BaseModel):
     def __init__(self, snaks: Snaks | None = None, snaks_order: list[str] | None = None) -> None:
         self.hash = None
-        self.snaks = snaks or Snaks()
+        self.snaks = snaks if snaks is not None else Snaks()
         self.snaks_order = snaks_order or []
 
     @property

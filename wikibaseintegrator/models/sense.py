@@ -12,8 +12,8 @@ from wikibaseintegrator.models.language_values import LanguageValues
 class Sense(BaseModel):
     def __init__(self, sense_id: str | None = None, glosses: Glosses | None = None, claims: Claims | None = None) -> None:
         self.id = sense_id
-        self.glosses: LanguageValues = glosses or Glosses()
-        self.claims = claims or Claims()
+        self.glosses: LanguageValues = glosses if glosses is not None else Glosses()
+        self.claims = claims if claims is not None else Claims()
         self.removed = False
 
     def from_json(self, json_data: dict[str, Any]) -> Self:

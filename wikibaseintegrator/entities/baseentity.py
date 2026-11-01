@@ -44,7 +44,7 @@ class BaseEntity:
         self.lastrevid = lastrevid
         self.type = str(type or self.ETYPE)
         self.id = id
-        self.claims = claims or Claims()
+        self.claims = claims if claims is not None else Claims()
 
     # Allow registration of subclasses of BaseEntity into BaseEntity.subclasses
     def __init_subclass__(cls, **kwargs: Any) -> None:
@@ -425,9 +425,9 @@ class TermsEntity(BaseEntity):
     def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
-        self.labels = labels or Labels()
-        self.descriptions = descriptions or Descriptions()
-        self.aliases = aliases or Aliases()
+        self.labels = labels if labels is not None else Labels()
+        self.descriptions = descriptions if descriptions is not None else Descriptions()
+        self.aliases = aliases if aliases is not None else Aliases()
 
     @property
     def labels(self) -> Labels:
