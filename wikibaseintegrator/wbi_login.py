@@ -123,6 +123,9 @@ class _Login:
 
 
 class OAuth2(_Login):
+    # Seconds before its expiry when the access token is fetched again
+    ACCESS_TOKEN_MARGIN = 60
+
     @wbi_backoff()
     def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, mediawiki_api_url: str | None = None, mediawiki_rest_url: str | None = None, token_renew_period: int = 1800,
                  user_agent: str | None = None) -> None:
@@ -160,6 +163,21 @@ class OAuth2(_Login):
                                                           timeout=config['TIMEOUT'])
         except InvalidClientError as err:
             raise LoginError(err) from err
+
+    def get_session(self) -> Session:
+        """
+        Returns the requests.Session object used for the login, with a valid access token.
+
+        The access token is fetched again when it has expired or expires within ACCESS_TOKEN_MARGIN seconds: the reads don't
+        renew the edit credentials, and the session refuses to send a request with an expired token (TokenExpiredError).
+
+        :return: Object of type requests.Session()
+        """
+        expires_at = (cast(OAuth2Session, self.session).token or {}).get('expires_at')
+        if expires_at is not None and float(expires_at) - time.time() < self.ACCESS_TOKEN_MARGIN:
+            log.debug("The OAuth2 access token has expired or is about to, fetching a new one")
+            self._fetch_access_token()
+        return self.session
 
     def generate_edit_credentials(self) -> RequestsCookieJar:
         # Refresh the access token before requesting the CSRF token: the parent renews credentials every
