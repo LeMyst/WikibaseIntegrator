@@ -1234,7 +1234,8 @@
 
 <div class="viewcode-block" id="merge_lexemes">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.merge_lexemes.html#wikibaseintegrator.wbi_helpers.merge_lexemes">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">merge_lexemes</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">merge_lexemes</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A static method to merge two lexemes</span>
 
@@ -1243,17 +1244,22 @@
 <span class="sd">    :param login: A wbi_login.Login instance</span>
 <span class="sd">    :param summary: Summary for the edit.</span>
 <span class="sd">    :param is_bot: Mark this edit as bot.</span>
+<span class="sd">    :param tags: Change tags to apply to the revision.</span>
 <span class="sd">    """</span>
 
+    <span class="c1"># The wblmergelexemes API names its parameters source and target, unlike the fromid and toid of wbmergeitems</span>
     <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">'action'</span><span class="p">:</span> <span class="s1">'wblmergelexemes'</span><span class="p">,</span>
-        <span class="s1">'fromid'</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
-        <span class="s1">'toid'</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">'source'</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
+        <span class="s1">'target'</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
         <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
         <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'summary'</span><span class="p">:</span> <span class="n">summary</span><span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'tags'</span><span class="p">:</span> <span class="s1">'|'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)})</span>
 
     <span class="k">if</span> <span class="n">is_bot</span><span class="p">:</span>
         <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'bot'</span><span class="p">:</span> <span class="s1">''</span><span class="p">})</span>
