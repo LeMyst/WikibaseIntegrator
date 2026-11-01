@@ -664,8 +664,10 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_login.OAuth2.get_session">
-<span class="sig-name descname"><span class="pre">get_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.wbi_login.OAuth2.get_session" title="Link to this definition">#</a></dt>
-<dd><p>Returns the requests.Session object used for the login.</p>
+<span class="sig-name descname"><span class="pre">get_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_login.html#OAuth2.get_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_login.OAuth2.get_session" title="Link to this definition">#</a></dt>
+<dd><p>Returns the requests.Session object used for the login, with a valid access token.</p>
+<p>The access token is fetched again when it has expired or expires within ACCESS_TOKEN_MARGIN seconds: the reads don’t
+renew the edit credentials, and the session refuses to send a request with an expired token (TokenExpiredError).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://requests.readthedocs.io/en/latest/api/#requests.Session" title="(in Requests v2.34.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code></a></span></p>
@@ -693,6 +695,11 @@ refreshes its access token first) or where authentication is per-request rather 
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wikibaseintegrator.wbi_login.OAuth2.ACCESS_TOKEN_MARGIN">
+<span class="sig-name descname"><span class="pre">ACCESS_TOKEN_MARGIN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60</span></span><a class="headerlink" href="#wikibaseintegrator.wbi_login.OAuth2.ACCESS_TOKEN_MARGIN" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -751,6 +758,7 @@ refreshes its access token first) or where authentication is per-request rather 
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.wbi_login.OAuth2.get_edit_token"><code class="docutils literal notranslate"><span class="pre">OAuth2.get_edit_token()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.wbi_login.OAuth2.get_session"><code class="docutils literal notranslate"><span class="pre">OAuth2.get_session()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.wbi_login.OAuth2.reauthenticate"><code class="docutils literal notranslate"><span class="pre">OAuth2.reauthenticate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.wbi_login.OAuth2.ACCESS_TOKEN_MARGIN"><code class="docutils literal notranslate"><span class="pre">OAuth2.ACCESS_TOKEN_MARGIN</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -560,6 +560,9 @@
 <div class="viewcode-block" id="OAuth2">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.OAuth2.html#wikibaseintegrator.wbi_login.OAuth2">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OAuth2</span><span class="p">(</span><span class="n">_Login</span><span class="p">):</span>
+    <span class="c1"># Seconds before its expiry when the access token is fetched again</span>
+    <span class="n">ACCESS_TOKEN_MARGIN</span> <span class="o">=</span> <span class="mi">60</span>
+
     <span class="nd">@wbi_backoff</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">consumer_secret</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_rest_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">token_renew_period</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span>
@@ -598,6 +601,24 @@
                                                           <span class="n">timeout</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
         <span class="k">except</span> <span class="n">InvalidClientError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">LoginError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+
+<div class="viewcode-block" id="OAuth2.get_session">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.OAuth2.html#wikibaseintegrator.wbi_login.OAuth2.get_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Session</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns the requests.Session object used for the login, with a valid access token.</span>
+
+<span class="sd">        The access token is fetched again when it has expired or expires within ACCESS_TOKEN_MARGIN seconds: the reads don't</span>
+<span class="sd">        renew the edit credentials, and the session refuses to send a request with an expired token (TokenExpiredError).</span>
+
+<span class="sd">        :return: Object of type requests.Session()</span>
+<span class="sd">        """</span>
+        <span class="n">expires_at</span> <span class="o">=</span> <span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">OAuth2Session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span><span class="o">.</span><span class="n">token</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'expires_at'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">expires_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">expires_at</span><span class="p">)</span> <span class="o">-</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ACCESS_TOKEN_MARGIN</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"The OAuth2 access token has expired or is about to, fetching a new one"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fetch_access_token</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span></div>
+
 
 <div class="viewcode-block" id="OAuth2.generate_edit_credentials">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.OAuth2.html#wikibaseintegrator.wbi_login.OAuth2.generate_edit_credentials">[docs]</a>
