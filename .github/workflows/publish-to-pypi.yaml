@@ -1,7 +1,12 @@
 name: Publish Python 🐍 distributions 📦 to PyPI, TestPyPI and GitHub Release
 
-# Publishing a release on GitHub publishes the package: see "Releasing" in AGENTS.md.
-# The pushes and pull requests only build the package, as a check.
+# The release flow, see "Releasing" in AGENTS.md. The releases of the repository are immutable: their files can't change
+# once published, so they are attached to a draft first.
+# - A push to master whose pyproject.toml version is a release (no .dev, e.g. after merging the release PR) builds the
+#   package, signs it with Sigstore and prepares the draft release vX.Y.Z, with the generated notes and the signed files.
+# - The maintainer reviews the notes and publishes the draft: the files of the release are checked (their signature, from
+#   this workflow on master, at the commit of the tag) and published to TestPyPI then PyPI.
+# - The other pushes and the pull requests only build the package, as a check.
 on:
   workflow_dispatch:
   push:
@@ -11,14 +16,22 @@ on:
   release:
     types: [ published ]
 
-# The publish jobs ask for the extra permissions they need
+# The jobs ask for the extra permissions they need
 permissions:
   contents: read
+
+env:
+  SIGSTORE_VERSION: '4.5.1'
 
 jobs:
   build:
     name: Build Python 🐍 distributions 📦
+    # A published release isn't built again: its own files are published
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-release: ${{ steps.version.outputs.is-release }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,16 +49,16 @@ jobs:
       - name: Install poetry
         run: python -m pip install poetry
 
-      # Never publish a version that doesn't match the release, e.g. when the release is created before the version bump
-      - name: Check that the release tag matches the package version
-        if: github.event_name == 'release'
-        env:
-          TAG: ${{ github.event.release.tag_name }}
+      - name: Read the version of the package
+        id: version
         run: |
           VERSION="$(python -m poetry version --short)"
-          if [ "${TAG#v}" != "${VERSION}" ]; then
-            echo "::error::The release tag ${TAG} doesn't match the version ${VERSION} of pyproject.toml"
-            exit 1
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          # A development version (e.g. 0.14.3.dev0) is not released
+          if [[ "${VERSION}" == *dev* ]]; then
+            echo "is-release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "is-release=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build a binary wheel and a source tarball
@@ -60,11 +73,130 @@ jobs:
           name: python-package-distributions
           path: dist/
 
+  draft-release:
+    name: Prepare the draft release 📝
+    needs:
+      - build
+    if: >-
+      needs.build.outputs.is-release == 'true' && github.ref == 'refs/heads/master'
+      && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # create the draft release and attach its files
+      id-token: write  # IMPORTANT: mandatory for sigstore
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      # Not a release event: the action only writes the signatures next to the files (<file>.sigstore.json)
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
+
+      - name: Create the draft release, or replace the previous draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          # The releases of a tag, drafts included (the release-by-tag endpoint ignores the drafts)
+          releases="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" --jq ".[] | select(.tag_name == \"${TAG}\") | \"\(.id) \(.draft)\"")"
+          if grep -q ' false$' <<< "${releases}"; then
+            echo "::notice::The release ${TAG} is already published: nothing to prepare until pyproject.toml is bumped to the next .dev0 version"
+            exit 0
+          fi
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --silent 2>/dev/null; then
+            echo "::error::The tag ${TAG} already exists without a published release: delete it, the draft release creates it when published"
+            exit 1
+          fi
+          # A later push to master with the same version (e.g. a last fix before the release) replaces the draft
+          while read -r id draft; do
+            if [ "${draft}" = "true" ]; then
+              echo "Replacing the previous draft release ${id} of ${TAG}"
+              gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${id}"
+            fi
+          done <<< "${releases}"
+
+          prerelease=()
+          if [[ "${VERSION}" =~ (a|b|rc)[0-9]+$ ]]; then
+            prerelease=(--prerelease)
+          fi
+          # The tag is created at this commit when the draft is published
+          gh release create "${TAG}" --repo "${GITHUB_REPOSITORY}" --draft "${prerelease[@]}" --target "${GITHUB_SHA}" \
+            --title "${TAG}" --generate-notes dist/*.whl dist/*.tar.gz dist/*.sigstore.json
+          echo "::notice::The draft release ${TAG} is ready: review its notes and publish it to publish the package"
+
+  release-files:
+    name: Check the files of the release 🔍
+    if: github.event_name == 'release'  # only publish when a release is published
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14'
+
+      # Never publish a version that doesn't match the release
+      - name: Check that the release tag matches the package version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="$(python -c "import tomllib; pyproject = tomllib.load(open('pyproject.toml', 'rb')); print(pyproject.get('project', {}).get('version') or pyproject['tool']['poetry']['version'])")"
+          if [ "${TAG#v}" != "${VERSION}" ]; then
+            echo "::error::The release tag ${TAG} doesn't match the version ${VERSION} of pyproject.toml"
+            exit 1
+          fi
+
+      - name: Download the files of the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          mkdir dist
+          gh release download "${TAG}" --repo "${GITHUB_REPOSITORY}" --dir dist \
+            --pattern "wikibaseintegrator-${VERSION}*.whl" --pattern "wikibaseintegrator-${VERSION}.tar.gz" --pattern "*.sigstore.json" || true
+          for pattern in "wikibaseintegrator-${VERSION}-*.whl" "wikibaseintegrator-${VERSION}.tar.gz"; do
+            if [ "$(find dist -name "${pattern}" | wc -l)" != 1 ] || [ -z "$(find dist -name "${pattern}.sigstore.json")" ]; then
+              echo "::error::The release ${TAG} doesn't hold one ${pattern} with its Sigstore signature: publish the draft release prepared by this workflow on master"
+              exit 1
+            fi
+          done
+
+      # Built and signed by this workflow on master, from the commit of the tag
+      - name: Check the Sigstore signatures of the files
+        run: |
+          python -m pip install "sigstore==${SIGSTORE_VERSION}"
+          python -m sigstore verify github \
+            --cert-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/publish-to-pypi.yaml@refs/heads/master" \
+            --repository "${GITHUB_REPOSITORY}" --sha "${GITHUB_SHA}" \
+            dist/*.whl dist/*.tar.gz
+
+      # Only the distributions go to PyPI, without their signatures
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: python-package-distributions
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
   publish-to-testpypi:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
     if: github.event_name == 'release'  # only publish when a release is published
     needs:
-      - build
+      - release-files
     runs-on: ubuntu-latest
 
     environment:
@@ -89,7 +221,7 @@ jobs:
     name: Publish Python 🐍 distribution 📦 to PyPI
     if: github.event_name == 'release'  # only publish when a release is published
     needs:
-      - build
+      - release-files
       - publish-to-testpypi
     runs-on: ubuntu-latest
 
@@ -108,32 +240,3 @@ jobs:
           path: dist/
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-
-  github-release:
-    name: >-
-      Sign the Python 🐍 distribution 📦 with Sigstore
-      and upload them to the GitHub Release
-    if: github.event_name == 'release'  # only publish when a release is published
-    needs:
-      - publish-to-pypi
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write  # IMPORTANT: mandatory for uploading to GitHub Releases
-      id-token: write  # IMPORTANT: mandatory for sigstore
-
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: python-package-distributions
-          path: dist/
-      # On a release event, the action itself attaches the built packages, the source archives of the release and
-      # their Sigstore signatures to the release: uploading them again fails with "asset under the same name already exists".
-      - name: Sign the dists with Sigstore and upload them to the GitHub Release
-        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
-        with:
-          inputs: >-
-            ./dist/*.tar.gz
-            ./dist/*.whl
-          release-signing-artifacts: true
