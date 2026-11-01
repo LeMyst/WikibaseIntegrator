@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../../../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/datatypes/math';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -436,6 +436,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.basedatatype</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparql_string</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.string</span><span class="w"> </span><span class="kn">import</span> <span class="n">String</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
 
@@ -476,7 +477,7 @@
 <div class="viewcode-block" id="Math.get_sparql_value">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.math.Math.html#wikibaseintegrator.datatypes.math.Math.get_sparql_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="o">+</span> <span class="s1">'"^^&lt;http://www.w3.org/1998/Math/MathML&gt;'</span></div>
+        <span class="k">return</span> <span class="n">sparql_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">])</span> <span class="o">+</span> <span class="s1">'^^&lt;http://www.w3.org/1998/Math/MathML&gt;'</span></div>
 </div>
 
 </pre></div>

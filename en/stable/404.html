@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Page not found · WikibaseIntegrator documentation</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 40rem; margin: 4rem auto; padding: 0 1rem; line-height: 1.5; color: #222; }
+    @media (prefers-color-scheme: dark) { body { background: #121212; color: #ddd; } a { color: #8ab4f8; } }
+    code { font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <!--
+    Served by GitHub Pages for every missing page of the site: the deploy job of docs.yaml copies it from en/latest/ to the
+    root of the site. The documentation moved from Read the Docs, which redirects every old URL to the same path here, and
+    the API reference was reorganised by topic (one page per module before): the old URLs are sent to the page now
+    documenting the same object.
+  -->
+  <h1>Page not found</h1>
+  <p id="message">This page doesn't exist, or has moved.</p>
+  <ul>
+    <li><a id="home" href="/WikibaseIntegrator/en/stable/">Documentation home</a></li>
+    <li><a id="guide" href="/WikibaseIntegrator/en/stable/guide/index.html">User guide</a></li>
+    <li><a id="api" href="/WikibaseIntegrator/en/stable/api/index.html">API reference</a></li>
+  </ul>
+  <script>
+    'use strict';
+    const SITE = '/WikibaseIntegrator/';
+    const VERSIONS = ['stable', 'latest'];
+
+    // The API topic page documenting each module (the longest matching prefix wins)
+    const TOPICS = {
+      'wikibaseintegrator.wikibaseintegrator': 'wikibaseintegrator',
+      'wikibaseintegrator.entities': 'entities',
+      'wikibaseintegrator.datatypes': 'datatypes',
+      'wikibaseintegrator.models': 'models',
+      'wikibaseintegrator.wbi_login': 'login',
+      'wikibaseintegrator.wbi_helpers': 'helpers',
+      'wikibaseintegrator.wbi_fastrun': 'fastrun',
+      'wikibaseintegrator.wbi_config': 'configuration',
+      'wikibaseintegrator.wbi_enums': 'configuration',
+      'wikibaseintegrator.wbi_exceptions': 'configuration',
+      'wikibaseintegrator.wbi_backoff': 'configuration',
+      'wikibaseintegrator.wbi_editgroups': 'configuration',
+    };
+
+    /**
+     * Where to send a missing page. Returns {version, target, candidates}: target is the page to open (null to stay on
+     * this page), candidates the pages of the object named by the anchor, to try first, most precise first.
+     */
+    function resolve(pathname, hash) {
+      if (!pathname.startsWith(SITE)) {
+        return {version: 'stable', target: null, candidates: []};
+      }
+      const parts = pathname.slice(SITE.length).split('/');
+      if (parts[0] !== 'en') {
+        return {version: 'stable', target: null, candidates: []};
+      }
+      // An unknown version (v0.11.x, update-docs...) goes to the latest release
+      const version = VERSIONS.includes(parts[1]) ? parts[1] : 'stable';
+      const base = `${SITE}en/${version}/`;
+      const page = parts.slice(2).join('/');
+
+      if (!VERSIONS.includes(parts[1]) && (page === '' || page === 'index.html')) {
+        return {version, target: base, candidates: []};
+      }
+
+      // The Read the Docs API reference: modules.html, then one page per package or module (wikibaseintegrator.wbi_helpers.html)
+      const old = page.match(/^(modules|wikibaseintegrator(?:\.[A-Za-z0-9_]+)*)\.html$/);
+      if (!old) {
+        return {version, target: null, candidates: []};
+      }
+      const moduleName = old[1];
+
+      // The anchor names the object (#wikibaseintegrator.wbi_helpers.execute_sparql_query): its own page, if it has one
+      const candidates = [];
+      const object = decodeURIComponent(hash.replace(/^#/, ''));
+      if (/^wikibaseintegrator(\.[A-Za-z0-9_]+)+$/.test(object)) {
+        const names = object.split('.');
+        for (let n = names.length; n >= 3; n--) {
+          const name = names.slice(0, n).join('.');
+          candidates.push(`${base}api/generated/${name}.html` + (n < names.length ? `#${object}` : ''));
+        }
+      }
+
+      let topic = 'index';
+      let matched = 0;
+      for (const [prefix, name] of Object.entries(TOPICS)) {
+        if ((moduleName === prefix || moduleName.startsWith(`${prefix}.`)) && prefix.length > matched) {
+          topic = name;
+          matched = prefix.length;
+        }
+      }
+      return {version, target: `${base}api/${topic}.html`, candidates};
+    }
+
+    async function redirect() {
+      const {version, target, candidates} = resolve(window.location.pathname, window.location.hash);
+      const base = `${SITE}en/${version}/`;
+      document.getElementById('home').href = base;
+      document.getElementById('guide').href = `${base}guide/index.html`;
+      document.getElementById('api').href = `${base}api/index.html`;
+      if (target === null) {
+        return;
+      }
+      document.getElementById('message').textContent = 'This page has moved, redirecting...';
+      for (const candidate of candidates) {
+        try {
+          const response = await fetch(candidate.split('#')[0], {method: 'HEAD'});
+          if (response.ok) {
+            window.location.replace(candidate);
+            return;
+          }
+        } catch (error) {
+          break;
+        }
+      }
+      window.location.replace(target);
+    }
+
+    if (typeof module !== 'undefined') {
+      module.exports = {resolve};  // the tests run this script with Node.js
+    } else {
+      redirect();
+    }
+  </script>
+</body>
+</html>

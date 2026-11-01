@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/wikibaseintegrator.wbi_helpers.format2wbi';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -527,6 +527,9 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.RetryAfterError.html">RetryAfterError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html">wbi_backoff_wait</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html">wbi_backoff_giveup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_manifest.get_manifest.html">get_manifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_manifest.WikibaseManifest.html">WikibaseManifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_manifest.manifest_url.html">manifest_url</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_editgroups.EditGroup.html">EditGroup</a></li>
 </ul>
 </details></li>
@@ -598,16 +601,32 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_helpers.format2wbi">
 <span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_helpers.</span></span><span class="sig-name descname"><span class="pre">format2wbi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entitytype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_anonymous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikibase_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_helpers.html#format2wbi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_helpers.format2wbi" title="Link to this definition">#</a></dt>
-<dd><p>Build a WikibaseIntegrator entity from a raw Wikibase JSON string.</p>
+<dd><p>Build a WikibaseIntegrator entity from a simplified JSON string: labels, descriptions and aliases by language, and the
+claims by property, each claim being a value or a list of values, and each value a string or a dict (e.g.
+<code class="docutils literal notranslate"><span class="pre">{&quot;value&quot;:</span> <span class="pre">&quot;First</span> <span class="pre">Author&quot;,</span> <span class="pre">&quot;qualifiers&quot;:</span> <span class="pre">{&quot;P1545&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">&quot;references&quot;:</span> <span class="pre">[{&quot;P248&quot;:</span> <span class="pre">&quot;Q5&quot;}]}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;text&quot;:</span> <span class="pre">&quot;...&quot;,</span>
+<span class="pre">&quot;language&quot;:</span> <span class="pre">&quot;en&quot;}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;amount&quot;:</span> <span class="pre">&quot;12&quot;,</span> <span class="pre">&quot;unit&quot;:</span> <span class="pre">&quot;Q11573&quot;}</span></code>). A reference is a dict of the snaks of one reference block.</p>
+<p>The datatype of the properties is retrieved from the instance (wbgetentities), and cached.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><strong>Experimental.</strong> This function (and its helper <code class="xref py py-func docutils literal notranslate"><span class="pre">_json2datatype()</span></code>) is incomplete (references are not
-attached, several data types are unsupported, it relies on a mutable module-level cache and has no test
-coverage). Its API and behaviour may change or be removed without notice.</p>
+<p><strong>Experimental.</strong> This function (and its helper <code class="xref py py-func docutils literal notranslate"><span class="pre">_json2datatype()</span></code>) is incomplete (the lemmas, forms and senses
+of a lexeme and the datatype of a property are not read, and a qualifier or a reference snak takes a single value per
+property). Its API and behaviour may change or be removed without notice.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.entities.baseentity.BaseEntity.html#wikibaseintegrator.entities.baseentity.BaseEntity" title="wikibaseintegrator.entities.baseentity.BaseEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEntity</span></code></a></span></p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entitytype</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The type of the entity to build: ‘item’, ‘property’, ‘lexeme’ or ‘mediainfo’</p></li>
+<li><p><strong>json_raw</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The simplified JSON string</p></li>
+<li><p><strong>allow_anonymous</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">True</span></span></code></span>) – Allow an anonymous lookup of the datatype of the properties. ‘True’ by default.</p></li>
+<li><p><strong>wikibase_url</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The Wikibase URL, used for the entity IDs of the values. Use wbi_config[‘WIKIBASE_URL’] by default.</p></li>
+<li><p><strong>kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – Extra parameters for mediawiki_api_call_helper(), used for the lookups (e.g. mediawiki_api_url, login)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.entities.baseentity.BaseEntity.html#wikibaseintegrator.entities.baseentity.BaseEntity" title="wikibaseintegrator.entities.baseentity.BaseEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEntity</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The entity, not written to the instance</p>
 </dd>
 </dl>
 </dd></dl>

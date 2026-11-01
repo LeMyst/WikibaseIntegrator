@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../../../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/qualifiers';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -566,12 +566,8 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.qualifiers.Qualifiers.html#wikibaseintegrator.models.qualifiers.Qualifiers.get_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
         <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
-                <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-            <span class="k">for</span> <span class="n">qualifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">[</span><span class="nb">property</span><span class="p">]:</span>
-                <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">())</span>
+        <span class="k">for</span> <span class="nb">property</span><span class="p">,</span> <span class="n">qualifiers</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">qualifier</span> <span class="ow">in</span> <span class="n">qualifiers</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">json_data</span></div>
 
 

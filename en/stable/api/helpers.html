@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/helpers';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -527,6 +527,9 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.RetryAfterError.html">RetryAfterError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html">wbi_backoff_wait</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html">wbi_backoff_giveup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.get_manifest.html">get_manifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.WikibaseManifest.html">WikibaseManifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.manifest_url.html">manifest_url</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_editgroups.EditGroup.html">EditGroup</a></li>
 </ul>
 </details></li>
@@ -730,7 +733,7 @@
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_helpers.format2wbi.html#wikibaseintegrator.wbi_helpers.format2wbi" title="wikibaseintegrator.wbi_helpers.format2wbi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format2wbi</span></code></a></p></td>
-<td><p>Build a WikibaseIntegrator entity from a raw Wikibase JSON string.</p></td>
+<td><p>Build a WikibaseIntegrator entity from a simplified JSON string: labels, descriptions and aliases by language, and the claims by property, each claim being a value or a list of values, and each value a string or a dict (e.g. <code class="docutils literal notranslate"><span class="pre">{&quot;value&quot;:</span> <span class="pre">&quot;First</span> <span class="pre">Author&quot;,</span> <span class="pre">&quot;qualifiers&quot;:</span> <span class="pre">{&quot;P1545&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">&quot;references&quot;:</span> <span class="pre">[{&quot;P248&quot;:</span> <span class="pre">&quot;Q5&quot;}]}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;text&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;language&quot;:</span> <span class="pre">&quot;en&quot;}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;amount&quot;:</span> <span class="pre">&quot;12&quot;,</span> <span class="pre">&quot;unit&quot;:</span> <span class="pre">&quot;Q11573&quot;}</span></code>).</p></td>
 </tr>
 </tbody>
 </table>

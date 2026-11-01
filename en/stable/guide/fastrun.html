@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'guide/fastrun';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -603,11 +603,15 @@ that just happened may not be visible yet, and the same write could be reported 
 the precision of a globe coordinate, the timezone and calendar model of a time, etc. Statements using non-default
 attributes are always reported as requiring a write. The precision of a time and the unit of a quantity are loaded
 from the value nodes, so they are compared.</p></li>
+<li><p>The globe coordinates are compared at the precision stored by the query service: 9 decimals of a degree (truncated,
+about 0.1 mm), whatever the number of decimals of the local claim. The coordinates of other globes (Mars, the Moon…)
+are compared with their globe.</p></li>
 <li><p>Math statements are always reported as requiring a write: the RDF export holds the formula rendered as MathML, not
 its TeX source, so the values can’t be compared.</p></li>
-<li><p>The qualifiers, references and ranks are loaded lazily with one SPARQL query per statement to check, and the units
-and precisions with one query per 100 statements to check. This is fast when most entities are up to date, but can
-slow down the run when many entities hold the same values.</p></li>
+<li><p>The units and precisions, then the qualifiers, references and ranks, are loaded lazily, only for the statements to
+check: one SPARQL query per 100 statements for the units and precisions, and one per 100 statements for the
+qualifiers, references and ranks together. This is fast when most entities are up to date, but can slow down the run
+when many entities hold the same values.</p></li>
 </ul>
 </section>
 <section id="performance-statistics">

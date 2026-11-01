@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../../../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/entities/baseentity';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -607,12 +607,14 @@
 <span class="sd">        :param json_data: A specific dictionary from MediaWiki API</span>
 <span class="sd">        :return:</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># TODO: 1.35 compatibility</span>
+        <span class="c1"># wbgetentities answers {'id': ..., 'missing': ''} for an entity that doesn't exist (or was deleted)</span>
+        <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="s1">'The MW API returned that the entity was missing.'</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">'title'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># TODO: 1.35 compatibility</span>
+        <span class="c1"># Absent from the entity JSON of older MediaWiki versions (1.35)</span>
+        <span class="k">if</span> <span class="s1">'title'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'title'</span><span class="p">])</span>
-        <span class="k">if</span> <span class="s1">'pageid'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># TODO: 1.35 compatibility</span>
+        <span class="k">if</span> <span class="s1">'pageid'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'pageid'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastrevid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'lastrevid'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">])</span>
@@ -830,7 +832,7 @@
         <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">base_filter</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">BaseDataType</span><span class="p">):</span>
                 <span class="n">base_filter_props</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">property_number</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">BaseDataType</span><span class="p">):</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># A property path, already checked by the fastrun container</span>
                 <span class="n">base_filter_props</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">prop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">property_number</span><span class="p">)</span>
 
         <span class="n">pfilter</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>

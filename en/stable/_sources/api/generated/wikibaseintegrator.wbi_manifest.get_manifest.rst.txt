@@ -1,0 +1,6 @@
+﻿get\_manifest
+=============
+
+.. currentmodule:: wikibaseintegrator.wbi_manifest
+
+.. autofunction:: get_manifest

@@ -77,6 +77,10 @@ From [item_get.ipynb](https://github.com/LeMyst/WikibaseIntegrator/blob/master/n
 entity.labels.get('en').value
 ```
 
+`labels.get()` returns `None` without a label in this language. On Wikidata, a label shared by many languages, like the
+name of a person, is stored under the language code `mul` (multiple languages) rather than in each language: the item
+Q42 (Douglas Adams) only has `entity.labels.get('mul')`.
+
 ### Add aliases
 
 Add an English and a French alias to the local entity.

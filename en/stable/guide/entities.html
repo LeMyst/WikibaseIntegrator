@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=3a3a8e7f"></script>
+    <script src="../_static/documentation_options.js?v=0dc20415"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'guide/entities';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.1" />
+  <meta name="docsearch:version" content="0.14.2" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -539,6 +539,9 @@ see <a class="reference internal" href="mediainfo.html"><span class="std std-doc
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">entity</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'en'</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">labels.get()</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code> without a label in this language. On Wikidata, a label shared by many languages, like the
+name of a person, is stored under the language code <code class="docutils literal notranslate"><span class="pre">mul</span></code> (multiple languages) rather than in each language: the item
+Q42 (Douglas Adams) only has <code class="docutils literal notranslate"><span class="pre">entity.labels.get('mul')</span></code>.</p>
 </section>
 <section id="add-aliases">
 <h3>Add aliases<a class="headerlink" href="#add-aliases" title="Link to this heading">#</a></h3>

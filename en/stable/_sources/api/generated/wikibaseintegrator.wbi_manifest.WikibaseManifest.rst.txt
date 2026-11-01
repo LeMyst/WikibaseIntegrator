@@ -1,0 +1,6 @@
+﻿WikibaseManifest
+================
+
+.. currentmodule:: wikibaseintegrator.wbi_manifest
+
+.. autoclass:: WikibaseManifest
