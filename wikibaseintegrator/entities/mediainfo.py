@@ -143,15 +143,13 @@ class MediaInfoEntity(TermsEntity):
             **super().get_json()
         }
 
-        if 'claims' in json_data:  # MediaInfo change name of 'claims' to 'statements'
-            json_data['statements'] = json_data.pop('claims')
-
-        if isinstance(json_data, dict) and 'statements' in json_data and isinstance(json_data['statements'], dict):
-            for statements in json_data['statements'].values():
-                for statement in statements:
-                    if isinstance(statement, dict) and 'mainsnak' in statement:
-                        if isinstance(statement['mainsnak'], dict) and 'datatype' in statement['mainsnak']:
-                            del statement['mainsnak']['datatype']
+        # MediaInfo calls the claims 'statements', and their main snaks have no datatype
+        statements = json_data.pop('claims')
+        assert isinstance(statements, dict)
+        for property_statements in statements.values():
+            for statement in property_statements:
+                statement['mainsnak'].pop('datatype', None)
+        json_data['statements'] = statements
 
         return json_data
 

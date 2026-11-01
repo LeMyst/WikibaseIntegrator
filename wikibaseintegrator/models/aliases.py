@@ -103,10 +103,7 @@ class Aliases(BaseModel):
     def get_json(self) -> dict[str, list]:
         json_data: dict[str, list] = {}
         for language, aliases in self.aliases.items():
-            if language not in json_data:
-                json_data[language] = []
-            for alias in aliases:
-                json_data[language].append(alias.get_json())
+            json_data[language] = [alias.get_json() for alias in aliases]
         return json_data
 
     def from_json(self, json_data: dict[str, list]) -> Self:

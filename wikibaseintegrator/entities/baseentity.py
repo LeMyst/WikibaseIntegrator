@@ -376,7 +376,7 @@ class BaseEntity:
         for prop in base_filter:
             if isinstance(prop, BaseDataType):
                 base_filter_props.add(prop.mainsnak.property_number)
-            elif isinstance(prop, list) and prop and isinstance(prop[0], BaseDataType):
+            else:  # A property path, already checked by the fastrun container
                 base_filter_props.add(prop[0].mainsnak.property_number)
 
         pfilter: set = set()
