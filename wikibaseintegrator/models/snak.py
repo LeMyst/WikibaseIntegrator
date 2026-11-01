@@ -7,6 +7,17 @@ from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 
+def _require_property_number(snak: Snak) -> str:
+    """
+    The property number of a snak stored under its property, e.g. in the claims of an entity or the snaks of a reference.
+
+    :raises ValueError: When the snak has no property number: it cannot be stored, and the Wikibase instance would reject it.
+    """
+    if snak.property_number is None:
+        raise ValueError('The snak has no property number (prop_nr): set one to add it to claims, qualifiers or references')
+    return snak.property_number
+
+
 class Snak(BaseModel):
     def __init__(self, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE, property_number: str | None = None, hash: str | None = None, datavalue: dict | None = None,
                  datatype: str | WikibaseDatatype | None = None) -> None:
@@ -17,7 +28,7 @@ class Snak(BaseModel):
         self.datatype = datatype
 
     @property
-    def snaktype(self):
+    def snaktype(self) -> WikibaseSnakType:
         return self.__snaktype
 
     @snaktype.setter
@@ -26,7 +37,7 @@ class Snak(BaseModel):
         self.__snaktype = WikibaseSnakType(value)
 
     @property
-    def property_number(self):
+    def property_number(self) -> str | None:
         return self.__property_number
 
     @property_number.setter
@@ -45,7 +56,7 @@ class Snak(BaseModel):
             self.__property_number = value
 
     @property
-    def hash(self):
+    def hash(self) -> str | None:
         return self.__hash
 
     @hash.setter
@@ -53,14 +64,15 @@ class Snak(BaseModel):
         self.__hash = value
 
     @property
-    def datavalue(self):
+    def datavalue(self) -> dict:
         return self.__datavalue
 
     @datavalue.setter
     def datavalue(self, value: dict | None) -> None:
+        # No value is an empty dict, like in __init__: the datavalue is always a dict
         if value is not None and value != {}:
             self.snaktype = WikibaseSnakType.KNOWN_VALUE
-        self.__datavalue = value
+        self.__datavalue = value if value is not None else {}
 
     @property
     def datatype(self) -> WikibaseDatatype | str | None:
@@ -82,8 +94,8 @@ class Snak(BaseModel):
             self.datatype = json_data['datatype']
         return self
 
-    def get_json(self) -> dict[str, str]:
-        json_data = {
+    def get_json(self) -> dict[str, Any]:
+        json_data: dict[str, Any] = {
             'snaktype': self.snaktype.value,
             'property': self.property_number,
             'datatype': self.datatype,

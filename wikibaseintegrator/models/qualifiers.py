@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.models.snak import Snak
+from wikibaseintegrator.models.snak import Snak, _require_property_number
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ class Qualifiers(BaseModel):
         self.qualifiers: dict[str, list[Snak]] = {}
 
     @property
-    def qualifiers(self):
+    def qualifiers(self) -> dict[str, list[Snak]]:
         return self.__qualifiers
 
     @qualifiers.setter
@@ -56,7 +56,7 @@ class Qualifiers(BaseModel):
         if qualifier is not None:
             assert isinstance(qualifier, Snak)
 
-        property = qualifier.property_number
+        property = _require_property_number(qualifier)
 
         if property not in self.qualifiers:
             self.qualifiers[property] = []
@@ -79,16 +79,17 @@ class Qualifiers(BaseModel):
         if qualifier is not None:
             assert isinstance(qualifier, Snak)
 
-        # Removing a qualifier that isn't there does nothing, whether its property has other qualifiers or none
-        qualifiers = self.qualifiers.get(qualifier.property_number)
-        if qualifiers is None:
+        # Removing a qualifier that isn't there does nothing, whether its property has other qualifiers or none, or it has no property
+        property = qualifier.property_number
+        qualifiers = self.qualifiers.get(property) if property is not None else None
+        if property is None or qualifiers is None:
             return self
 
         if qualifier in qualifiers:
             qualifiers.remove(qualifier)
 
         if len(qualifiers) == 0:
-            del self.qualifiers[qualifier.property_number]
+            del self.qualifiers[property]
 
         return self
 

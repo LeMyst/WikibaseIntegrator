@@ -17,7 +17,7 @@ from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.reference import Reference
 from wikibaseintegrator.models.references import References
-from wikibaseintegrator.models.snak import Snak
+from wikibaseintegrator.models.snak import Snak, _require_property_number
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_helpers import execute_sparql_query
@@ -149,10 +149,7 @@ class FastRunContainer:
     @staticmethod
     def _value_type(claim: Claim) -> str | None:
         """The type of the datavalue of the claim (e.g. 'quantity' or 'time'), or None if it has no datavalue."""
-        datavalue = claim.mainsnak.datavalue
-        if isinstance(datavalue, dict):
-            return datavalue.get('type')
-        return None
+        return claim.mainsnak.datavalue.get('type')
 
     def _value_details_from_result(self, result: dict) -> tuple[str | None, int | None]:
         """The normalized unit and the precision of a value, from a SPARQL result binding ?unit and ?precision."""
@@ -167,7 +164,7 @@ class FastRunContainer:
         form the SPARQL endpoint stores them: '+1987-00-00T00:00:00Z' and '+1987-01-01T00:00:00Z' are the same year.
         """
         datavalue = snak.datavalue
-        if isinstance(datavalue, dict) and datavalue.get('type') == 'time':
+        if datavalue.get('type') == 'time':
             datavalue = copy.deepcopy(datavalue)
             datavalue['value']['time'] = Time.sparql_time(datavalue['value']['time'], datavalue['value'].get('precision'))
         return json.dumps([snak.property_number, snak.snaktype.value, snak.datatype, datavalue], sort_keys=True)
@@ -175,7 +172,7 @@ class FastRunContainer:
     @staticmethod
     def _set_precision(f: BaseDataType, result: dict, name: str) -> None:
         """Set the precision of a time loaded from the SPARQL endpoint, the simple value does not carry it."""
-        if name in result and isinstance(f.mainsnak.datavalue, dict) and f.mainsnak.datavalue.get('type') == 'time':
+        if name in result and f.mainsnak.datavalue.get('type') == 'time':
             f.mainsnak.datavalue['value']['precision'] = int(result[name]['value'])
 
     def _base_filter_string(self, wb_url: str | None = None) -> str:
@@ -237,7 +234,7 @@ class FastRunContainer:
         limit = limit or int(config['SPARQL_QUERY_LIMIT'])
 
         for claim in claims:
-            prop_nr = claim.mainsnak.property_number
+            prop_nr = _require_property_number(claim.mainsnak)
 
             # Load each property from the Wikibase instance or the cache
             if cache and prop_nr in self.data and prop_nr in self.loaded_complete:
@@ -267,7 +264,7 @@ class FastRunContainer:
                         'rank': 'normal'
                     }
                     f = self.base_data_type.get_datatype_class(qualifier.datatype)().from_json(json_data=fake_json)
-                    qualifiers_filter_string += f'?sid <{wb_url}/prop/qualifier/{qualifier.property_number}> {f.get_sparql_value(wikibase_url=wb_url)}.\n'
+                    qualifiers_filter_string += f'?sid <{wb_url}/prop/qualifier/{_require_property_number(qualifier)}> {f.get_sparql_value(wikibase_url=wb_url)}.\n'
 
             # We force a refresh of the data, remove the previous results
             self.data[prop_nr] = {}
@@ -577,7 +574,7 @@ class FastRunContainer:
         value_key = self._value_key(claim)
         if value_key is None:
             return []
-        return list(self.data.get(claim.mainsnak.property_number, {}).get(value_key, []))
+        return list(self.data.get(_require_property_number(claim.mainsnak), {}).get(value_key, []))
 
     def _filter_value_details(self, claim: Claim, statements: list[dict[str, str]]) -> list[dict[str, str]]:
         """
@@ -595,7 +592,7 @@ class FastRunContainer:
         if value_type not in ('quantity', 'time') or not statements:
             return statements
 
-        prop_nr = claim.mainsnak.property_number
+        prop_nr = _require_property_number(claim.mainsnak)
         self._load_value_details(prop_nr, [statement['sid'] for statement in statements])
         details = self._value_details[prop_nr]
         datavalue = claim.mainsnak.datavalue
@@ -732,7 +729,7 @@ class FastRunContainer:
 
         # Generate a property_filter if None is given
         if property_filter is None:
-            property_filter = [claim.mainsnak.property_number for claim in claims]
+            property_filter = [_require_property_number(claim.mainsnak) for claim in claims]
 
         if use_qualifiers is None:
             use_qualifiers = self.use_qualifiers
