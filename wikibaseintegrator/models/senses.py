@@ -36,6 +36,9 @@ class Senses(BaseModel):
     def get_json(self) -> list[dict]:
         json_data: list[dict] = []
         for sense in self.senses:
+            # A new sense removed before being written is left out, like a removed new claim: there is nothing to remove
+            if sense.removed and not sense.id:
+                continue
             json_data.append(sense.get_json())
 
         return json_data
