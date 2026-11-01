@@ -1468,14 +1468,14 @@
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">search_results</span><span class="p">[</span><span class="s1">'search'</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">dict_result</span><span class="p">:</span>
-                <span class="n">description</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">'description'</span><span class="p">]</span> <span class="k">if</span> <span class="s1">'description'</span> <span class="ow">in</span> <span class="n">i</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="n">aliases</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">'aliases'</span><span class="p">]</span> <span class="k">if</span> <span class="s1">'aliases'</span> <span class="ow">in</span> <span class="n">i</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="c1"># The label, the description and the aliases are only there when the entity has them, e.g. no label for an</span>
+                <span class="c1"># entity without a label in the language or its fallbacks</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                     <span class="s1">'id'</span><span class="p">:</span> <span class="n">i</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
-                    <span class="s1">'label'</span><span class="p">:</span> <span class="n">i</span><span class="p">[</span><span class="s1">'label'</span><span class="p">],</span>
+                    <span class="s1">'label'</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'label'</span><span class="p">),</span>
                     <span class="s1">'match'</span><span class="p">:</span> <span class="n">i</span><span class="p">[</span><span class="s1">'match'</span><span class="p">],</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
-                    <span class="s1">'aliases'</span><span class="p">:</span> <span class="n">aliases</span>
+                    <span class="s1">'description'</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'description'</span><span class="p">),</span>
+                    <span class="s1">'aliases'</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'aliases'</span><span class="p">)</span>
                 <span class="p">})</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">'id'</span><span class="p">])</span>
