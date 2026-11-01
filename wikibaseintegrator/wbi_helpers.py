@@ -777,7 +777,8 @@ def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bo
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, tags: list[str] | None = None,
+                  **kwargs: Any) -> dict:
     """
     A static method to merge two lexemes
 
@@ -786,17 +787,22 @@ def merge_lexemes(source: str, target: str, login: _Login | None = None, summary
     :param login: A wbi_login.Login instance
     :param summary: Summary for the edit.
     :param is_bot: Mark this edit as bot.
+    :param tags: Change tags to apply to the revision.
     """
 
+    # The wblmergelexemes API names its parameters source and target, unlike the fromid and toid of wbmergeitems
     params = {
         'action': 'wblmergelexemes',
-        'fromid': source,
-        'toid': target,
+        'source': source,
+        'target': target,
         'format': 'json'
     }
 
     if summary:
         params.update({'summary': summary})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
 
     if is_bot:
         params.update({'bot': ''})

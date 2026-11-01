@@ -1010,10 +1010,12 @@ class TestFulltextSearch:
 class TestEditHelpers:
     def test_merge_lexemes(self, wikibase):
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url)
-        assert merge_lexemes(source='L1', target='L2', login=login, summary='duplicate', is_bot=True) == {'success': 1}
+        assert merge_lexemes(source='L1', target='L2', login=login, summary='duplicate', is_bot=True, tags=['tag1', 'tag2']) == {'success': 1}
 
         request = wikibase.last_request
-        assert (request['action'], request['fromid'], request['toid'], request['summary']) == ('wblmergelexemes', 'L1', 'L2', 'duplicate')
+        assert (request['action'], request['source'], request['target'], request['summary']) == ('wblmergelexemes', 'L1', 'L2', 'duplicate')
+        assert request['tags'] == 'tag1|tag2'
+        assert 'fromid' not in request and 'toid' not in request
         assert request['bot'] == '' and request['token'] == login.edit_token
 
     def test_delete_page(self, wikibase):
