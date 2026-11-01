@@ -6,6 +6,10 @@ from typing import Any, Self
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
+# The characters percent-encoded in the IRIs of the RDF export of Wikibase (purtle N3Quoter::escapeIRI): the URL validator
+# accepts some of them, e.g. the | of https://fonts.google.com/?family=A|B, but they aren't allowed in a SPARQL IRI
+IRI_ESCAPES = str.maketrans({' ': '%20', '"': '%22', '<': '%3C', '>': '%3E', '\\': '%5C', '`': '%60', '^': '%5E', '|': '%7C', '{': '%7B', '}': '%7D'})
+
 
 class URL(BaseDataType):
     """
@@ -66,9 +70,13 @@ class URL(BaseDataType):
         return self
 
     def get_sparql_value(self, **kwargs: Any) -> str | None:
+        """
+        The IRI of the URL in the RDF export, with the characters Wikibase percent-encodes there, e.g. <https://example.org/a%7Cb>
+        for https://example.org/a|b
+        """
         if self.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
             return None
-        return '<' + self.mainsnak.datavalue['value'] + '>'
+        return '<' + self.mainsnak.datavalue['value'].translate(IRI_ESCAPES) + '>'
 
     def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?(.*?)>?$')
