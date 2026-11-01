@@ -1417,6 +1417,9 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Search for an existing FastRunContainer with the same parameters or create a new one if it doesn't exist.</span>
 
+<span class="sd">    The containers are also told apart by the SPARQL endpoint and the Wikibase URL of the configuration: the queries of a</span>
+<span class="sd">    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance.</span>
+
 <span class="sd">    :param base_filter: The default filter to initialize the dataset. A list made of BaseDataType or list of BaseDataType.</span>
 <span class="sd">    :param use_qualifiers: Use qualifiers during fastrun. Enabled by default.</span>
 <span class="sd">    :param use_references: Use references during fastrun. Disabled by default.</span>
@@ -1427,7 +1430,8 @@
 <span class="sd">    """</span>
     <span class="k">for</span> <span class="n">fastrun</span> <span class="ow">in</span> <span class="n">fastrun_store</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">base_filter</span> <span class="o">==</span> <span class="n">base_filter</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">use_qualifiers</span> <span class="o">==</span> <span class="n">use_qualifiers</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">use_references</span> <span class="o">==</span> <span class="n">use_references</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-                <span class="n">fastrun</span><span class="o">.</span><span class="n">use_rank</span> <span class="o">==</span> <span class="n">use_rank</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">case_insensitive</span> <span class="o">==</span> <span class="n">case_insensitive</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">sparql_endpoint_url</span> <span class="o">==</span> <span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">]):</span>
+                <span class="n">fastrun</span><span class="o">.</span><span class="n">use_rank</span> <span class="o">==</span> <span class="n">use_rank</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">case_insensitive</span> <span class="o">==</span> <span class="n">case_insensitive</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">sparql_endpoint_url</span> <span class="o">==</span> <span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">fastrun</span><span class="o">.</span><span class="n">wikibase_url</span> <span class="o">==</span> <span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
             <span class="n">fastrun</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cache</span>
             <span class="k">return</span> <span class="n">fastrun</span>
 
