@@ -69,7 +69,9 @@ class LanguageValues(BaseModel):
                 self.values[language].remove()
             return None
 
-        if action_if_exists == ActionIfExists.REPLACE_ALL or self.get(language=language) is None:
+        # A removed value doesn't count as present for KEEP
+        existing = self.get(language=language)
+        if action_if_exists == ActionIfExists.REPLACE_ALL or existing is None or existing.removed:
             language_value = LanguageValue(language, value)
             self.add(language_value)
             return language_value

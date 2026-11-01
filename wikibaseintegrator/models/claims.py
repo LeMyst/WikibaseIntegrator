@@ -33,7 +33,11 @@ class Claims(BaseModel):
 
         return []
 
-    def remove(self, property: str | None = None) -> None:
+    def remove(self, property: str | int | None = None) -> None:
+        # The property number, like get(): 'P31' or 31
+        if isinstance(property, int):
+            property = 'P' + str(property)
+
         if property in self.claims:
             for prop in list(self.claims[property]):
                 if prop.id:
