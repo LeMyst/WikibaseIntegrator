@@ -507,7 +507,7 @@
 <span class="sd">        :return: Return the updated Claims object.</span>
 <span class="sd">        """</span>
 
-        <span class="k">if</span> <span class="n">action_if_exists</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ActionIfExists</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action_if_exists</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action_if_exists</span><span class="si">}</span><span class="s1"> is not a valid action_if_exists value. Use the enum ActionIfExists'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>

@@ -521,7 +521,7 @@
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                     <span class="n">precision</span> <span class="o">=</span> <span class="n">WikibaseTimePrecision</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">precision</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">WikibaseTimePrecision</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="n">WikibaseTimePrecision</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid value for time precision, see https://www.mediawiki.org/wiki/Wikibase/DataModel/JSON#time"</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="n">WikibaseTimePrecision</span><span class="o">.</span><span class="n">DAY</span><span class="p">:</span>
