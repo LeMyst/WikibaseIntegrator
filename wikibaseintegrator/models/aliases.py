@@ -67,7 +67,7 @@ class Aliases(BaseModel):
 
     def set(self, language: str | None = None, values: str | list | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
         language = str(language or config['DEFAULT_LANGUAGE'])
-        assert action_if_exists in ActionIfExists
+        assert isinstance(action_if_exists, ActionIfExists)
 
         assert language is not None
 
@@ -95,9 +95,8 @@ class Aliases(BaseModel):
                 aliases.append(alias)
             self.aliases[language] = aliases
         elif action_if_exists == ActionIfExists.KEEP:
-            for value in values:
-                if not self.aliases[language]:
-                    self.aliases[language].append(Alias(language, value))
+            if not self.aliases[language]:
+                self.aliases[language].extend(Alias(language, value) for value in values)
 
         return self
 

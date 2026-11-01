@@ -63,7 +63,7 @@ class Claims(BaseModel):
         :return: Return the updated Claims object.
         """
 
-        if action_if_exists not in ActionIfExists:
+        if not isinstance(action_if_exists, ActionIfExists):
             raise ValueError(f'{action_if_exists} is not a valid action_if_exists value. Use the enum ActionIfExists')
 
         if isinstance(claims, Claim):
