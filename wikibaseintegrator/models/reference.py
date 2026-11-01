@@ -81,5 +81,6 @@ class Reference(BaseModel):
         if not isinstance(other, Reference):
             return NotImplemented
 
-        # The hash is only known server-side, so two references are considered equal when they hold the same snaks
-        return self.snaks.get_json() == other.snaks.get_json()
+        # The hash is only known server-side, so two references are considered equal when they hold the same snaks, compared
+        # as Snak (not as JSON) to ignore a missing datatype like Snak.__eq__
+        return self.snaks == other.snaks
