@@ -105,7 +105,9 @@ class GlobeCoordinate(BaseDataType):
                 value = dict(datavalue['value'])
                 value['latitude'] = round(value['latitude'], 6)
                 value['longitude'] = round(value['longitude'], 6)
-                value['precision'] = round(value['precision'], 17)
+                # The precision can be null in the JSON of Wikibase, e.g. old coordinates of Wikidata
+                if value.get('precision') is not None:
+                    value['precision'] = round(value['precision'], 17)
                 return {**datavalue, 'value': value}
 
             return rounded(self.mainsnak.datavalue) == rounded(other.mainsnak.datavalue) and self.mainsnak.property_number == other.mainsnak.property_number \
