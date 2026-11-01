@@ -179,7 +179,8 @@ class Claim(BaseModel):
             self.qualifiers = Qualifiers().from_json(json_data['qualifiers'])
         if 'qualifiers-order' in json_data:
             self.qualifiers_order = list(json_data['qualifiers-order'])
-        self.id = str(json_data['id'])
+        # A new claim has no id yet, e.g. the get_json() of a claim not written: its JSON has none, or a null one
+        self.id = str(json_data['id']) if json_data.get('id') is not None else None
         self.rank: WikibaseRank = WikibaseRank(json_data['rank'])
         if 'references' in json_data:
             self.references = References().from_json(json_data['references'])
