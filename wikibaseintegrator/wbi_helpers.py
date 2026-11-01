@@ -269,8 +269,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
         # Rate limit doesn't return HTTP 429 either, may in the future.
         # https://phabricator.wikimedia.org/T172293
         if 'error' in json_data:
-            # rate limiting
-            if 'messages' in json_data['error'] and 'actionthrottledtext' in [message['name'] for message in json_data['error']['messages']]:
+            # rate limiting: the 'ratelimited' code of MediaWiki core, or the actionthrottledtext message of a Wikibase error (e.g. failed-save)
+            if json_data['error'].get('code') == 'ratelimited' or 'actionthrottledtext' in [message.get('name') for message in json_data['error'].get('messages', [])]:
                 wait = _retry_after_delay(response, retry_after)
                 log.error("%s: rate limited. Retrying in %d seconds", datetime.datetime.now(datetime.UTC), wait)
                 continue
