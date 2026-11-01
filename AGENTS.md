@@ -92,16 +92,16 @@ notebooks/                  # Jupyter usage examples
 | `update-test-fixtures.yaml` | monthly / manual | Refresh `test/fixtures/` from live APIs (`scripts/update_test_fixtures.py`), open a PR if changed |
 | `codeql.yml` | push/PR/schedule | Static security analysis |
 | `trivy-scan.yaml` | push/PR/schedule | Vulnerability scanning |
-| `publish-to-pypi.yaml` | GitHub release published / push / PR | Build the package; on a published release, publish it to TestPyPI and PyPI and attach the signed files to the release |
+| `publish-to-pypi.yaml` | push / PR / GitHub release published | Build the package; on a push to master with a release version, sign it and prepare the draft release; on a published release, check its signed files and publish them to TestPyPI and PyPI |
 | `auto-assign-issue.yaml` | issue opened | Auto-assign new issues to the maintainer |
 
 ## Releasing
 
-Publishing a GitHub release publishes the package. Pushing a tag by hand doesn't.
+Publishing a GitHub release publishes the package. Pushing a tag by hand doesn't. The releases of the repository are immutable: once published, their tag and files can't change, so the workflow prepares them in a draft.
 
 1. Label the PRs merged since the previous release. `.github/release.yml` groups the generated release notes by label: `breaking change` (matching the "Breaking changes" sections of `docs/source/guide/upgrading.md`), `enhancement`, `bug`, `documentation`, `dependencies`. Unlabelled PRs go to "Other changes".
-2. Merge a PR setting the release version in `pyproject.toml` (e.g. `0.13.0`, dropping `.dev0`) and the tag of the install example in `docs/source/guide/installation.md`. Add the new contributors to the `authors` of `CITATION.cff`: Zenodo takes the creators of the archived release from it.
-3. On GitHub, draft a new release: create the tag `vX.Y.Z` on `master`, click "Generate release notes", review them, then publish. The `publish-to-pypi.yaml` workflow checks that the tag matches the version of `pyproject.toml`, publishes to TestPyPI then PyPI, and attaches the Sigstore-signed files to the release.
+2. Merge a PR setting the release version in `pyproject.toml` (e.g. `0.13.0`, dropping `.dev0`) and the tag of the install example in `docs/source/guide/installation.md`. Add the new contributors to the `authors` of `CITATION.cff`: Zenodo takes the creators of the archived release from it. On this push to `master`, the `publish-to-pypi.yaml` workflow builds the package, signs it with Sigstore and prepares the draft release `vX.Y.Z` on this commit, with the generated release notes and the signed wheel and sdist. A later push to `master` before publishing replaces the draft.
+3. On GitHub, once the CI of `master` is green, open the draft release, review its notes, then publish it. The workflow checks that the tag matches the version of `pyproject.toml` and that the files of the release were signed by the workflow on `master` at the commit of the tag, then publishes them to TestPyPI and PyPI. A release published by hand, without the files of the draft, publishes nothing.
 4. Merge a PR bumping `pyproject.toml` to the next `.dev0` version (e.g. `0.13.1.dev0`).
 
 Publishing to PyPI can't be undone: leave step 3 to the maintainer.
