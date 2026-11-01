@@ -106,4 +106,7 @@ class Snak(BaseModel):
         if not isinstance(other, Snak):
             return NotImplemented
 
-        return self.snaktype == other.snaktype and self.property_number == other.property_number and self.datatype == other.datatype and self.datavalue == other.datavalue
+        # The datatype is only compared when both snaks have one: the property determines it, and Commons serves the snaks of the
+        # MediaInfo statements without a datatype, while the snaks built with WikibaseIntegrator carry one
+        same_datatype = not self.datatype or not other.datatype or self.datatype == other.datatype
+        return self.snaktype == other.snaktype and self.property_number == other.property_number and same_datatype and self.datavalue == other.datavalue
