@@ -361,11 +361,11 @@ class BaseEntity:
         # If there is no pageid, fallback to using the page title. It's not the preferred method.
         if not self.pageid:
             return delete_page(title=self.title, pageid=None, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
-        else:
-            if not isinstance(self.pageid, int):
-                raise ValueError(f"The entity must have a pageid attribute correctly set ({self.pageid})")
 
-            return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        if not isinstance(self.pageid, int):
+            raise ValueError(f"The entity must have a pageid attribute correctly set ({self.pageid})")
+
+        return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
 
     def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)

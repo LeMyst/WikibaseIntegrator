@@ -23,12 +23,12 @@ class Sitelinks(BaseModel):
 
     def get_json(self) -> dict[str, dict]:
         return {
-            sitelink:
+            key:
                 {
-                    'site': self.sitelinks[sitelink].site,
-                    'title': self.sitelinks[sitelink].title,
-                    'badges': self.sitelinks[sitelink].badges
-                } for sitelink in self.sitelinks
+                    'site': sitelink.site,
+                    'title': sitelink.title,
+                    'badges': sitelink.badges
+                } for key, sitelink in self.sitelinks.items()
         }
 
     def from_json(self, json_data: dict[str, dict]) -> Self:

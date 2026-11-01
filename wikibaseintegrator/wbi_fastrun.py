@@ -187,8 +187,7 @@ class FastRunContainer:
             if isinstance(k, BaseDataType):
                 # TODO: Add multiple values for a property (OR-operation) (with the VALUES tag?)
                 if k.mainsnak.datavalue:
-                    base_filter_string += '?entity <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(
-                        wb_url=wb_url, prop_nr=k.mainsnak.property_number, entity=k.get_sparql_value(wikibase_url=wb_url))
+                    base_filter_string += f'?entity <{wb_url}/prop/direct/{k.mainsnak.property_number}> {k.get_sparql_value(wikibase_url=wb_url)} .\n'
                 elif sum(1 for x in self.base_filter if isinstance(x, BaseDataType) and x.mainsnak.property_number == k.mainsnak.property_number) == 1:
                     base_filter_string += '?entity <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
                         wb_url=wb_url, prop_nr=k.mainsnak.property_number)
