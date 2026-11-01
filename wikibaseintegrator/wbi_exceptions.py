@@ -1,4 +1,8 @@
+import re
 from typing import Any
+
+# An entity link of the parameters of an error message, e.g. [[Q42|Q42]] or [[Property:P50|P50]]
+ENTITY_LINK_PATTERN = re.compile(r'^\[\[([^|\]]+)\|[^\]]*\]\]$')
 
 
 class WikibaseIntegratorError(Exception):
@@ -23,32 +27,43 @@ class MWApiError(WikibaseIntegratorError):
     @property
     def get_conflicting_entity_ids(self) -> list[str]:
         """
-        Compute the list of conflicting entities from the error messages.
+        Compute the list of conflicting entities from the error messages: the entities which already have the label and
+        description, or the sitelink. A sitelink conflict with an unknown item names no entity.
 
         :return: A list of conflicting entities or an empty list
         """
 
-        return list(
-            {
-                message['parameters'][2].split('|')[0][2:].replace("Property:", "") for message in self.messages
-                if message['name'].endswith('-conflict')
-            }
-        )
+        entity_ids = set()
+        for message in self._conflict_messages():
+            # The entity is the last parameter: [label, language, entity] or [sitelink, entity]
+            match = ENTITY_LINK_PATTERN.match(str(message['parameters'][-1]))
+            if match:
+                # Without the namespace of the page, e.g. Property:P50
+                entity_ids.add(match.group(1).rsplit(':', 1)[-1])
+        return list(entity_ids)
 
     @property
     def get_languages(self) -> list[str]:
         """
         Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
+        Only the label and description conflicts have a language, not the sitelink conflicts.
 
         :return: A list of language identifiers or an empty list
         """
 
         return list(
             {
-                message['parameters'][1] for message in self.messages
-                if message['name'].endswith('-conflict')
+                message['parameters'][1] for message in self._conflict_messages()
+                if not message['name'].startswith('wikibase-validator-sitelink-conflict') and len(message['parameters']) > 2
             }
         )
+
+    def _conflict_messages(self) -> list[dict[str, Any]]:
+        """
+        The conflict messages with parameters, e.g. wikibase-validator-label-conflict or wikibase-validator-sitelink-conflict.
+        The sitelink conflicts also have the -redirects-supported (when redirect badges are configured) and -unknown variants.
+        """
+        return [message for message in self.messages if '-conflict' in message.get('name', '') and message.get('parameters')]
 
     def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None) -> None:
         """

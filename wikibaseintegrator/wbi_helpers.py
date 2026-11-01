@@ -317,9 +317,9 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
             if 'code' in json_data['error'] and json_data['error']['code'] == 'modification-failed':
                 raise ModificationFailed(json_data['error'], response=json_data)
 
-            # sitelink conflict
+            # sitelink conflict, with an item, with an item when redirect badges are configured (-redirects-supported), or with an unknown item (-unknown)
             if ('code' in json_data['error'] and json_data['error']['code'] == 'failed-save' and
-                    any(message.get('name', '') == 'wikibase-validator-sitelink-conflict'
+                    any(message.get('name', '').startswith('wikibase-validator-sitelink-conflict')
                         for message in json_data['error'].get('messages', []))):
                 raise SaveFailed(json_data['error'], response=json_data)
 
