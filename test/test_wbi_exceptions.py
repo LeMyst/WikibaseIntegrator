@@ -109,8 +109,9 @@ class TestWbiExceptions(TestCase):
                       'servedby': 'mw1375'}
 
         modification_failed = ModificationFailed(error_dict['error'])
-        with self.assertRaises(KeyError):
-            _ = modification_failed.get_languages
+        # A conflict message without parameters names no language and no entity
+        assert modification_failed.get_languages == []
+        assert modification_failed.get_conflicting_entity_ids == []
 
     @staticmethod
     def test_failed_save():
