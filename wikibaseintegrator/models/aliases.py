@@ -95,8 +95,9 @@ class Aliases(BaseModel):
                 aliases.append(alias)
             self.aliases[language] = aliases
         elif action_if_exists == ActionIfExists.KEEP:
-            if not self.aliases[language]:
-                self.aliases[language].extend(Alias(language, value) for value in values)
+            # Only when the language has no alias: the removed ones don't count, and are replaced by the new ones
+            if all(alias.removed for alias in self.aliases[language]):
+                self.aliases[language] = [Alias(language, value) for value in values]
 
         return self
 
