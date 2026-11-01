@@ -526,8 +526,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Reference</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">NotImplemented</span>
 
-        <span class="c1"># The hash is only known server-side, so two references are considered equal when they hold the same snaks</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">snaks</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span></div>
+        <span class="c1"># The hash is only known server-side, so two references are considered equal when they hold the same snaks, compared</span>
+        <span class="c1"># as Snak (not as JSON) to ignore a missing datatype like Snak.__eq__</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaks</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">snaks</span></div>
 
 </pre></div>
 
