@@ -629,7 +629,8 @@
 <dl class="py property">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.get_conflicting_entity_ids">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_conflicting_entity_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.get_conflicting_entity_ids" title="Link to this definition">#</a></dt>
-<dd><p>Compute the list of conflicting entities from the error messages.</p>
+<dd><p>Compute the list of conflicting entities from the error messages: the entities which already have the label and
+description, or the sitelink. A sitelink conflict with an unknown item names no entity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of conflicting entities or an empty list</p>
@@ -640,7 +641,8 @@
 <dl class="py property">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.MWApiError.get_languages">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_languages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.MWApiError.get_languages" title="Link to this definition">#</a></dt>
-<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.</p>
+<dd><p>Compute a list of language identifiers from the error messages. Indicating the language which triggered the error.
+Only the label and description conflicts have a language, not the sitelink conflicts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of language identifiers or an empty list</p>
