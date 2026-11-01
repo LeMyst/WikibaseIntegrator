@@ -48,7 +48,8 @@ class GlobeCoordinate(BaseDataType):
         }}
     '''
 
-    def __init__(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None, wikibase_url: str | None = None,
+    def __init__(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None,
+                 wikibase_url: str | None = None,
                  **kwargs: Any) -> None:
         """
         Constructor, calls the superclass BaseDataType
@@ -66,7 +67,8 @@ class GlobeCoordinate(BaseDataType):
 
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
-    def set_value(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None, wikibase_url: str | None = None) -> None:
+    def set_value(self, latitude: float | None = None, longitude: float | None = None, altitude: float | None = None, precision: float | None = None, globe: str | None = None,
+                  wikibase_url: str | None = None) -> None:
         # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
         precision = precision or 1 / 3600
         globe = globe or str(config['COORDINATE_GLOBE_QID'])

@@ -94,7 +94,8 @@ class Time(BaseDataType):
                     pattern = pattern_year
                 matches = pattern.match(time)
                 if not matches:
-                    raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'. Check whether the time value format is consistent with the introduced precision.")
+                    raise ValueError(f"Time value ({time}) must be a string in the following format: '+%Y-%m-%dT00:00:00Z'. "
+                                     "Check whether the time value format is consistent with the introduced precision.")
 
             self.mainsnak.datavalue = {
                 'value': {

@@ -44,8 +44,8 @@ class Claim(BaseModel):
     """
     DTYPE = 'claim'
 
-    def __init__(self, qualifiers: Qualifiers | None = None, id: str | None = None, rank: WikibaseRank | None = None, references: References | list[Claim | list[Claim]] | None = None,
-                 snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
+    def __init__(self, qualifiers: Qualifiers | None = None, id: str | None = None, rank: WikibaseRank | None = None,
+                 references: References | list[Claim | list[Claim]] | None = None, snaktype: WikibaseSnakType = WikibaseSnakType.KNOWN_VALUE) -> None:
         """
 
         :param qualifiers:

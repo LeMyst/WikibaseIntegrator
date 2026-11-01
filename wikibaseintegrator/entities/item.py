@@ -13,7 +13,8 @@ from wikibaseintegrator.models.sitelinks import Sitelinks
 class ItemEntity(TermsEntity):
     ETYPE = 'item'
 
-    def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, sitelinks: Sitelinks | None = None, **kwargs: Any) -> None:
+    def __init__(self, labels: Labels | None = None, descriptions: Descriptions | None = None, aliases: Aliases | None = None, sitelinks: Sitelinks | None = None,
+                 **kwargs: Any) -> None:
         """
 
         :param api:

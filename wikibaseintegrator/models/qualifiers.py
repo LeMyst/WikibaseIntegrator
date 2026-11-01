@@ -25,7 +25,7 @@ class Qualifiers(BaseModel):
         self.__qualifiers = value
 
     def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Self:
-        if isinstance(qualifiers, list) or isinstance(qualifiers, Qualifiers):
+        if isinstance(qualifiers, (list, Qualifiers)):
             for qualifier in qualifiers:
                 self.add(qualifier)
         elif qualifiers is None:

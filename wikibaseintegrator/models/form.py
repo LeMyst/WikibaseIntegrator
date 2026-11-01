@@ -10,7 +10,8 @@ from wikibaseintegrator.models.representations import Representations
 
 
 class Form(BaseModel):
-    def __init__(self, form_id: str | None = None, representations: Representations | None = None, grammatical_features: str | int | list[str] | None = None, claims: Claims | None = None) -> None:
+    def __init__(self, form_id: str | None = None, representations: Representations | None = None, grammatical_features: str | int | list[str] | None = None,
+                 claims: Claims | None = None) -> None:
         self.id = form_id
         self.representations = representations or Representations()
         self.grammatical_features = grammatical_features or []
