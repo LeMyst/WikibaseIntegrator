@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from typing import Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.models.snak import Snak
+from wikibaseintegrator.models.snak import Snak, _require_property_number
 
 
 class Snaks(BaseModel):
@@ -21,7 +21,7 @@ class Snaks(BaseModel):
         return []
 
     def add(self, snak: Snak) -> Self:
-        property = snak.property_number
+        property = _require_property_number(snak)
 
         if property not in self.snaks:
             self.snaks[property] = []
