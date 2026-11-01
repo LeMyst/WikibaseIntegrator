@@ -12,9 +12,9 @@ from wikibaseintegrator.models.representations import Representations
 class Form(BaseModel):
     def __init__(self, form_id: str | None = None, representations: Representations | None = None, grammatical_features: str | int | list[str] | None = None, claims: Claims | None = None) -> None:
         self.id = form_id
-        self.representations = representations or Representations()
+        self.representations = representations if representations is not None else Representations()
         self.grammatical_features = grammatical_features or []
-        self.claims = claims or Claims()
+        self.claims = claims if claims is not None else Claims()
 
     @property
     def id(self) -> str | None:

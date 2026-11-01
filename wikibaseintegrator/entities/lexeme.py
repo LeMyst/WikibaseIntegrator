@@ -21,11 +21,11 @@ class LexemeEntity(BaseEntity):
                  **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
-        self.lemmas: Lemmas = lemmas or Lemmas()
+        self.lemmas: Lemmas = lemmas if lemmas is not None else Lemmas()
         self.lexical_category: str | None = lexical_category
         self.language: str = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
-        self.forms: Forms = forms or Forms()
-        self.senses: Senses = senses or Senses()
+        self.forms: Forms = forms if forms is not None else Forms()
+        self.senses: Senses = senses if senses is not None else Senses()
 
     @BaseEntity.id.setter  # type: ignore
     def id(self, value: None | str | int) -> None:

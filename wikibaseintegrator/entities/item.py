@@ -26,7 +26,7 @@ class ItemEntity(TermsEntity):
         super().__init__(labels=labels, descriptions=descriptions, aliases=aliases, **kwargs)
 
         # Item specific
-        self.sitelinks = sitelinks or Sitelinks()
+        self.sitelinks = sitelinks if sitelinks is not None else Sitelinks()
 
     @BaseEntity.id.setter  # type: ignore
     def id(self, value: None | str | int) -> None:

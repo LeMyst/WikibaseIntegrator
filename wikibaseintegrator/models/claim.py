@@ -55,7 +55,7 @@ class Claim(BaseModel):
         """
         self.mainsnak = Snak(datatype=self.DTYPE, snaktype=snaktype)
         self.type = 'statement'
-        self.qualifiers = qualifiers or Qualifiers()
+        self.qualifiers = qualifiers if qualifiers is not None else Qualifiers()
         self.qualifiers_order = []
         self.id = id
         self.rank = rank or WikibaseRank.NORMAL
