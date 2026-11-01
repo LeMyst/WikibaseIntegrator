@@ -513,7 +513,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">language</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># A removed value doesn't count as present for KEEP</span>
+        <span class="n">existing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span> <span class="ow">or</span> <span class="n">existing</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">existing</span><span class="o">.</span><span class="n">removed</span><span class="p">:</span>
             <span class="n">language_value</span> <span class="o">=</span> <span class="n">LanguageValue</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">language_value</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">language_value</span>

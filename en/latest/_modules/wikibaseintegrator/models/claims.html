@@ -474,7 +474,11 @@
 
 <div class="viewcode-block" id="Claims.remove">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.claims.Claims.html#wikibaseintegrator.models.claims.Claims.remove">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The property number, like get(): 'P31' or 31</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">property</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="nb">property</span> <span class="o">=</span> <span class="s1">'P'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">property</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">[</span><span class="nb">property</span><span class="p">]):</span>
                 <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
