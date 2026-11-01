@@ -412,7 +412,12 @@ class Clientlogin(_Login):
             clientlogin = login_result['clientlogin']
             if clientlogin['status'] != 'PASS':
                 log.debug(clientlogin)
-                raise LoginError(f"Login failed ({clientlogin['messagecode']}). Message: '{clientlogin['message']}'")
+                # The statuses besides PASS (API:Clientlogin): FAIL, UI (e.g. a second factor), RESTART, and REDIRECT, which has a
+                # redirect target instead of a message
+                message = clientlogin.get('message')
+                if message is None and 'redirecttarget' in clientlogin:
+                    message = f"The login needs a redirect to {clientlogin['redirecttarget']}, which Clientlogin doesn't support"
+                raise LoginError(f"Login failed ({clientlogin.get('messagecode', clientlogin['status'])}). Message: '{message or clientlogin['status']}'")
 
             log.info("Successfully logged in as %s", clientlogin['username'])
         elif 'error' in login_result:
