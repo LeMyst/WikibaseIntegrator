@@ -232,7 +232,8 @@ class Claim(BaseModel):
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Claim):
             # The snak type too: a no value and an unknown value claim both have no datavalue
-            return self.mainsnak.snaktype == other.mainsnak.snaktype and self.mainsnak.datavalue == other.mainsnak.datavalue                 and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other)
+            return (self.mainsnak.snaktype == other.mainsnak.snaktype and self.mainsnak.datavalue == other.mainsnak.datavalue
+                    and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other))
 
         if isinstance(other, str):
             return self.mainsnak.property_number == other
