@@ -590,15 +590,13 @@
             <span class="o">**</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
         <span class="p">}</span>
 
-        <span class="k">if</span> <span class="s1">'claims'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>  <span class="c1"># MediaInfo change name of 'claims' to 'statements'</span>
-            <span class="n">json_data</span><span class="p">[</span><span class="s1">'statements'</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'claims'</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">json_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">'statements'</span> <span class="ow">in</span> <span class="n">json_data</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'statements'</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">statements</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">[</span><span class="s1">'statements'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">'mainsnak'</span> <span class="ow">in</span> <span class="n">statement</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statement</span><span class="p">[</span><span class="s1">'mainsnak'</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">'datatype'</span> <span class="ow">in</span> <span class="n">statement</span><span class="p">[</span><span class="s1">'mainsnak'</span><span class="p">]:</span>
-                            <span class="k">del</span> <span class="n">statement</span><span class="p">[</span><span class="s1">'mainsnak'</span><span class="p">][</span><span class="s1">'datatype'</span><span class="p">]</span>
+        <span class="c1"># MediaInfo calls the claims 'statements', and their main snaks have no datatype</span>
+        <span class="n">statements</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'claims'</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statements</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">property_statements</span> <span class="ow">in</span> <span class="n">statements</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">property_statements</span><span class="p">:</span>
+                <span class="n">statement</span><span class="p">[</span><span class="s1">'mainsnak'</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'datatype'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">json_data</span><span class="p">[</span><span class="s1">'statements'</span><span class="p">]</span> <span class="o">=</span> <span class="n">statements</span>
 
         <span class="k">return</span> <span class="n">json_data</span></div>
 

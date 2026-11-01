@@ -549,7 +549,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">equal_claim</span><span class="o">.</span><span class="n">removed</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">elif</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">MERGE_REFS_OR_APPEND</span><span class="p">:</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># ActionIfExists.MERGE_REFS_OR_APPEND</span>
                     <span class="n">claim_exists</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="k">for</span> <span class="n">existing_claim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">[</span><span class="nb">property</span><span class="p">]:</span>
                         <span class="c1"># Compare the main snaks (which also handles no-value/some-value snaks that have no</span>
@@ -612,13 +612,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
         <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="nb">property</span><span class="p">,</span> <span class="n">claims</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
-                <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">claim</span><span class="o">.</span><span class="n">removed</span> <span class="ow">or</span> <span class="n">claim</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
-                    <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">claim</span><span class="o">.</span><span class="n">get_json</span><span class="p">())</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">del</span> <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span>
+            <span class="c1"># A claim removed before being written is left out, a property without claim too</span>
+            <span class="n">claims_json</span> <span class="o">=</span> <span class="p">[</span><span class="n">claim</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">claim</span><span class="o">.</span><span class="n">removed</span> <span class="ow">or</span> <span class="n">claim</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">claims_json</span><span class="p">:</span>
+                <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="n">claims_json</span>
         <span class="k">return</span> <span class="n">json_data</span></div>
 
 
