@@ -289,11 +289,11 @@ class Login(_Login):
         headers = {
             'User-Agent': get_user_agent(user_agent)
         }
-        self._perform_login(session=session, mediawiki_api_url=mediawiki_api_url, headers=headers, **kwargs)
+        self._perform_login(session=session, mediawiki_api_url=mediawiki_api_url, default_headers=headers, **kwargs)
 
         super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
 
-    def _perform_login(self, session: Session, mediawiki_api_url: str, headers: dict[str, str], **kwargs: Any) -> None:
+    def _perform_login(self, session: Session, mediawiki_api_url: str, default_headers: dict[str, str], **kwargs: Any) -> None:
         params_login = {
             'action': 'query',
             'meta': 'tokens',
@@ -306,6 +306,8 @@ class Login(_Login):
         if len(filtered_kwargs) < len(kwargs):
             log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
         filtered_kwargs.setdefault('timeout', config['TIMEOUT'])
+        # The headers given by the caller are added to the default ones (the User-Agent)
+        headers = {**default_headers, **(filtered_kwargs.pop('headers', None) or {})}
 
         # get login token
         login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
@@ -339,7 +341,7 @@ class Login(_Login):
         log.warning("Session no longer valid, re-authenticating as %s", self._user)
         session_user_agent = self.session.headers.get('User-Agent')
         headers = {'User-Agent': session_user_agent if isinstance(session_user_agent, str) else get_user_agent()}
-        self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
+        self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, default_headers=headers, **self._login_kwargs)
         self.generate_edit_credentials()
         self.instantiation_time = time.time()
 
@@ -370,11 +372,11 @@ class Clientlogin(_Login):
         headers = {
             'User-Agent': get_user_agent(user_agent)
         }
-        self._perform_login(session=session, mediawiki_api_url=mediawiki_api_url, headers=headers, **kwargs)
+        self._perform_login(session=session, mediawiki_api_url=mediawiki_api_url, default_headers=headers, **kwargs)
 
         super().__init__(session=session, token_renew_period=token_renew_period, user_agent=user_agent, mediawiki_api_url=mediawiki_api_url)
 
-    def _perform_login(self, session: Session, mediawiki_api_url: str, headers: dict[str, str], **kwargs: Any) -> None:
+    def _perform_login(self, session: Session, mediawiki_api_url: str, default_headers: dict[str, str], **kwargs: Any) -> None:
         params_login = {
             'action': 'query',
             'meta': 'tokens',
@@ -387,6 +389,8 @@ class Clientlogin(_Login):
         if len(filtered_kwargs) < len(kwargs):
             log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
         filtered_kwargs.setdefault('timeout', config['TIMEOUT'])
+        # The headers given by the caller are added to the default ones (the User-Agent)
+        headers = {**default_headers, **(filtered_kwargs.pop('headers', None) or {})}
 
         # get login token
         login_token = session.post(mediawiki_api_url, data=params_login, headers=headers, **filtered_kwargs).json()['query']['tokens']['logintoken']
@@ -429,7 +433,7 @@ class Clientlogin(_Login):
         log.warning("Session no longer valid, re-authenticating as %s", self._user)
         session_user_agent = self.session.headers.get('User-Agent')
         headers = {'User-Agent': session_user_agent if isinstance(session_user_agent, str) else get_user_agent()}
-        self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, headers=headers, **self._login_kwargs)
+        self._perform_login(session=self.session, mediawiki_api_url=self.mediawiki_api_url, default_headers=headers, **self._login_kwargs)
         self.generate_edit_credentials()
         self.instantiation_time = time.time()
 
