@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=0dc20415"></script>
+    <script src="_static/documentation_options.js?v=e59f1406"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'changelog';</script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.2" />
+  <meta name="docsearch:version" content="0.14.3.dev0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -451,6 +451,64 @@
                   
   <section id="changelog">
 <span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h1>
+<section id="release-0-14-2">
+<h2>v0.14.2<a class="headerlink" href="#release-0-14-2" title="Link to this heading">#</a></h2>
+<p><em>Released on 2026-11-01 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.14.2">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.14.2/">PyPI</a></em></p>
+<section id="what-s-changed">
+<h3>What’s Changed<a class="headerlink" href="#what-s-changed" title="Link to this heading">#</a></h3>
+<section id="new-features-and-improvements">
+<h4>New features and improvements<a class="headerlink" href="#new-features-and-improvements" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Update the PyPI classifiers by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1123">LeMyst/WikibaseIntegrator#1123</a></p></li>
+<li><p>Add tags to remove_claims() and reload any entity with get() by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1125">LeMyst/WikibaseIntegrator#1125</a></p></li>
+<li><p>Import the data model without the HTTP stack by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1121">LeMyst/WikibaseIntegrator#1121</a></p></li>
+<li><p>Load the qualifiers, references and ranks of fastrun statements in batches by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1116">LeMyst/WikibaseIntegrator#1116</a></p></li>
+<li><p>Support the WikibaseManifest of an instance by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1127">LeMyst/WikibaseIntegrator#1127</a></p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h4>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Give EDTF and LocalMedia their own property type by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1124">LeMyst/WikibaseIntegrator#1124</a></p></li>
+<li><p>Match the globe coordinates of the query service in fast run by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1117">LeMyst/WikibaseIntegrator#1117</a></p></li>
+<li><p>Compare duplicate qualifiers exactly in Claim equality by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1118">LeMyst/WikibaseIntegrator#1118</a></p></li>
+<li><p>Test the error paths of the data types and References by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1126">LeMyst/WikibaseIntegrator#1126</a></p></li>
+<li><p>Fix the bugs of the experimental format2wbi() by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1119">LeMyst/WikibaseIntegrator#1119</a></p></li>
+<li><p>Keep the edit token out of the debug log and other clean-ups by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1120">LeMyst/WikibaseIntegrator#1120</a></p></li>
+<li><p>Fall back on the pyproject.toml for <strong>version</strong> of a checkout by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1128">LeMyst/WikibaseIntegrator#1128</a></p></li>
+<li><p>Escape the SPARQL string literals of get_sparql_value() by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1129">LeMyst/WikibaseIntegrator#1129</a></p></li>
+<li><p>Fix the fast run language data checks and order its statement loads by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1130">LeMyst/WikibaseIntegrator#1130</a></p></li>
+<li><p>Use the login and report missing titles in MediaInfo get_by_title() by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1131">LeMyst/WikibaseIntegrator#1131</a></p></li>
+<li><p>Cover the models with tests, and fix Aliases.set() with KEEP and the enum checks by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1135">LeMyst/WikibaseIntegrator#1135</a></p></li>
+<li><p>Cover the login module with tests, and fix the headers of Login by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1134">LeMyst/WikibaseIntegrator#1134</a></p></li>
+</ul>
+</section>
+<section id="documentation">
+<h4>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Redirect the old Read the Docs URLs from a 404 page by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1113">LeMyst/WikibaseIntegrator#1113</a></p></li>
+<li><p>Add a CITATION.cff file by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1114">LeMyst/WikibaseIntegrator#1114</a></p></li>
+<li><p>Point the Copilot instructions to AGENTS.md and fix two AGENTS.md rules by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1122">LeMyst/WikibaseIntegrator#1122</a></p></li>
+<li><p>Fix the user agents and the Q42 label of the notebooks by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1132">LeMyst/WikibaseIntegrator#1132</a></p></li>
+</ul>
+</section>
+<section id="other-changes">
+<h4>Other changes<a class="headerlink" href="#other-changes" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Bump version to 0.14.2.dev0 by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1112">LeMyst/WikibaseIntegrator#1112</a></p></li>
+<li><p>Cover the helpers module with tests by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1133">LeMyst/WikibaseIntegrator#1133</a></p></li>
+<li><p>Cover the fast run module with tests by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1136">LeMyst/WikibaseIntegrator#1136</a></p></li>
+<li><p>Cover the data types with tests by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1137">LeMyst/WikibaseIntegrator#1137</a></p></li>
+<li><p>Cover the entities and the package <strong>init</strong> with tests by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1138">LeMyst/WikibaseIntegrator#1138</a></p></li>
+<li><p>Remove the branches the tests can’t reach by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1139">LeMyst/WikibaseIntegrator#1139</a></p></li>
+<li><p>Fail the CI when a change leaves code untested by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1140">LeMyst/WikibaseIntegrator#1140</a></p></li>
+<li><p>Run the tests when the coverage configuration changes by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1141">LeMyst/WikibaseIntegrator#1141</a></p></li>
+<li><p>Prepare the 0.14.2 release by &#64;LeMyst in <a class="github reference external" href="https://github.com/LeMyst/WikibaseIntegrator/pull/1142">LeMyst/WikibaseIntegrator#1142</a></p></li>
+</ul>
+<p><strong>Full Changelog</strong>: <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/compare/v0.14.1...v0.14.2">https://github.com/LeMyst/WikibaseIntegrator/compare/v0.14.1…v0.14.2</a></p>
+</section>
+</section>
+</section>
 <section id="release-0-14-1">
 <h2>v0.14.1<a class="headerlink" href="#release-0-14-1" title="Link to this heading">#</a></h2>
 <p><em>Released on 2026-10-31 - <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/releases/tag/v0.14.1">GitHub</a> - <a class="reference external" href="https://pypi.org/project/wikibaseintegrator/0.14.1/">PyPI</a></em></p>
@@ -1584,6 +1642,16 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-0-14-2">v0.14.2</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-s-changed">What’s Changed</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features-and-improvements">New features and improvements</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug fixes</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#other-changes">Other changes</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-0-14-1">v0.14.1</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-s-changed">What’s Changed</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features-and-improvements">New features and improvements</a></li>
