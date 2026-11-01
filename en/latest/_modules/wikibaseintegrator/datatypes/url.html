@@ -440,6 +440,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.basedatatype</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDataType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
 
+<span class="c1"># The characters percent-encoded in the IRIs of the RDF export of Wikibase (purtle N3Quoter::escapeIRI): the URL validator</span>
+<span class="c1"># accepts some of them, e.g. the | of https://fonts.google.com/?family=A|B, but they aren't allowed in a SPARQL IRI</span>
+<span class="n">IRI_ESCAPES</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">maketrans</span><span class="p">({</span><span class="s1">' '</span><span class="p">:</span> <span class="s1">'%20'</span><span class="p">,</span> <span class="s1">'"'</span><span class="p">:</span> <span class="s1">'%22'</span><span class="p">,</span> <span class="s1">'&lt;'</span><span class="p">:</span> <span class="s1">'%3C'</span><span class="p">,</span> <span class="s1">'&gt;'</span><span class="p">:</span> <span class="s1">'</span><span class="si">%3E</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">'</span><span class="p">:</span> <span class="s1">'%5C'</span><span class="p">,</span> <span class="s1">'`'</span><span class="p">:</span> <span class="s1">'%60'</span><span class="p">,</span> <span class="s1">'^'</span><span class="p">:</span> <span class="s1">'</span><span class="si">%5E</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'|'</span><span class="p">:</span> <span class="s1">'%7C'</span><span class="p">,</span> <span class="s1">'{'</span><span class="p">:</span> <span class="s1">'%7B'</span><span class="p">,</span> <span class="s1">'}'</span><span class="p">:</span> <span class="s1">'%7D'</span><span class="p">})</span>
+
 
 <div class="viewcode-block" id="URL">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.url.URL.html#wikibaseintegrator.datatypes.url.URL">[docs]</a>
@@ -510,9 +514,13 @@
 <div class="viewcode-block" id="URL.get_sparql_value">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.url.URL.html#wikibaseintegrator.datatypes.url.URL.get_sparql_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The IRI of the URL in the RDF export, with the characters Wikibase percent-encodes there, e.g. &lt;https://example.org/a%7Cb&gt;</span>
+<span class="sd">        for https://example.org/a|b</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">!=</span> <span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">KNOWN_VALUE</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="s1">'&lt;'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="o">+</span> <span class="s1">'&gt;'</span></div>
+        <span class="k">return</span> <span class="s1">'&lt;'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">IRI_ESCAPES</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'&gt;'</span></div>
 
 
 <div class="viewcode-block" id="URL.parse_sparql_value">
