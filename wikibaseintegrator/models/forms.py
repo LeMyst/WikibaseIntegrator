@@ -24,7 +24,7 @@ class Forms(BaseModel):
         search = [x for x in self.__forms if x.id == id]
         if len(search) == 1:
             return search[0]
-        elif len(search) > 1:
+        if len(search) > 1:
             raise ValueError('There is multiple form with the same id')
 
         return None

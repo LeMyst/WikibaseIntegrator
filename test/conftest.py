@@ -429,6 +429,10 @@ class MockWikibase:
         return response
 
     def _action_wblmergelexemes(self, params: dict[str, str]) -> dict:
+        # Like WikibaseLexeme, which only knows the source and target parameters
+        for name in ('source', 'target'):
+            if name not in params:
+                return {'error': {'code': 'missingparam', 'info': f'The "{name}" parameter must be set.'}}
         return {'success': 1}
 
     def _action_wbmergeitems(self, params: dict[str, str]) -> dict:

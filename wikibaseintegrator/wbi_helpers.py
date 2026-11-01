@@ -319,8 +319,8 @@ def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, sessio
 
             # sitelink conflict, with an item, with an item when redirect badges are configured (-redirects-supported), or with an unknown item (-unknown)
             if ('code' in json_data['error'] and json_data['error']['code'] == 'failed-save' and
-                    any([message.get('name', '').startswith('wikibase-validator-sitelink-conflict')
-                         for message in json_data['error'].get('messages', [])])):
+                    any(message.get('name', '').startswith('wikibase-validator-sitelink-conflict')
+                        for message in json_data['error'].get('messages', []))):
                 raise SaveFailed(json_data['error'], response=json_data)
 
             # others case
@@ -423,7 +423,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     if log.isEnabledFor(logging.DEBUG) and data is not None:
         log.debug({key: ('***' if key in _SECRET_PARAMETERS and value != '+\\' else value) for key, value in data.items()})
 
-    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, login=login, data=data, headers=headers, max_retries=max_retries, retry_after=retry_after, **kwargs)
+    return mediawiki_api_call('POST', mediawiki_api_url=mediawiki_api_url, session=session, login=login, data=data, headers=headers, max_retries=max_retries,
+                              retry_after=retry_after, **kwargs)
 
 
 @wbi_backoff()
@@ -776,7 +777,8 @@ def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bo
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, tags: list[str] | None = None,
+                  **kwargs: Any) -> dict:
     """
     A static method to merge two lexemes
 
@@ -785,17 +787,22 @@ def merge_lexemes(source: str, target: str, login: _Login | None = None, summary
     :param login: A wbi_login.Login instance
     :param summary: Summary for the edit.
     :param is_bot: Mark this edit as bot.
+    :param tags: Change tags to apply to the revision.
     """
 
+    # The wblmergelexemes API names its parameters source and target, unlike the fromid and toid of wbmergeitems
     params = {
         'action': 'wblmergelexemes',
-        'fromid': source,
-        'toid': target,
+        'source': source,
+        'target': target,
         'format': 'json'
     }
 
     if summary:
         params.update({'summary': summary})
+
+    if tags:
+        params.update({'tags': '|'.join(tags)})
 
     if is_bot:
         params.update({'bot': ''})
@@ -1427,9 +1434,11 @@ def delete_page(title: str | None = None, pageid: int | None = None, reason: str
 def fulltext_search(search: str, max_results: int = 50, allow_anonymous: bool = True, **kwargs: Any) -> list[dict[str, Any]]:
     """
     Perform a fulltext search on the mediawiki instance.
-    It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and covering all functions of MediaWiki.
+    It's an exception to the "only wikibase related function" rule! WikibaseIntegrator is focused on wikibase-only functions to avoid spreading out and
+    covering all functions of MediaWiki.
 
-    :param search: Search for page titles or content matching this value. You can use the search string to invoke special search features, depending on what the wiki's search backend implements.
+    :param search: Search for page titles or content matching this value. You can use the search string to invoke special search features, depending on
+        what the wiki's search backend implements.
     :param max_results: How many total pages to return. The value must be between 1 and 500.
     :param allow_anonymous: Allow anonymous interaction with the MediaWiki API. 'True' by default.
     :param kwargs: Extra parameters for mediawiki_api_call_helper()
@@ -1756,4 +1765,3 @@ def check_wikibase(mediawiki_api_url: str | None = None, sparql_endpoint_url: st
             result.problems.append(f"The SPARQL endpoint '{result.sparql_endpoint_url}' is not available: {exception}")
 
     return result
-

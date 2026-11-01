@@ -187,8 +187,7 @@ class FastRunContainer:
             if isinstance(k, BaseDataType):
                 # TODO: Add multiple values for a property (OR-operation) (with the VALUES tag?)
                 if k.mainsnak.datavalue:
-                    base_filter_string += '?entity <{wb_url}/prop/direct/{prop_nr}> {entity} .\n'.format(
-                        wb_url=wb_url, prop_nr=k.mainsnak.property_number, entity=k.get_sparql_value(wikibase_url=wb_url))
+                    base_filter_string += f'?entity <{wb_url}/prop/direct/{k.mainsnak.property_number}> {k.get_sparql_value(wikibase_url=wb_url)} .\n'
                 elif sum(1 for x in self.base_filter if isinstance(x, BaseDataType) and x.mainsnak.property_number == k.mainsnak.property_number) == 1:
                     base_filter_string += '?entity <{wb_url}/prop/direct/{prop_nr}> ?zz{prop_nr} .\n'.format(
                         wb_url=wb_url, prop_nr=k.mainsnak.property_number)
@@ -956,6 +955,9 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     """
     Search for an existing FastRunContainer with the same parameters or create a new one if it doesn't exist.
 
+    The containers are also told apart by the SPARQL endpoint and the Wikibase URL of the configuration: the queries of a
+    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance.
+
     :param base_filter: The default filter to initialize the dataset. A list made of BaseDataType or list of BaseDataType.
     :param use_qualifiers: Use qualifiers during fastrun. Enabled by default.
     :param use_references: Use references during fastrun. Disabled by default.
@@ -966,7 +968,8 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     """
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_qualifiers == use_qualifiers) and (fastrun.use_references == use_references) and (
-                fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']):
+                fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']) and (
+                fastrun.wikibase_url == config['WIKIBASE_URL']):
             fastrun.cache = cache
             return fastrun
 

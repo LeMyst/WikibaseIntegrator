@@ -5,7 +5,15 @@ from typing import Any
 ENTITY_LINK_PATTERN = re.compile(r'^\[\[([^|\]]+)\|[^\]]*\]\]$')
 
 
-class MWApiError(Exception):
+class WikibaseIntegratorError(Exception):
+    """
+    Base class of the exceptions raised by WikibaseIntegrator: catch it to handle any of them, e.g. around a bot run.
+
+    The exceptions that report an invalid value, like EmptyValueError, are also ValueError.
+    """
+
+
+class MWApiError(WikibaseIntegratorError):
     """
     Base class for MediaWiki API error handling
     """
@@ -98,7 +106,7 @@ class ModificationFailed(MWApiError):
 
 class SaveFailed(MWApiError):
     """
-    When the API return a 'save-failed' error
+    When the API return a 'failed-save' error
     """
 
     def __init__(self, error_dict: dict[str, Any], response: dict[str, Any] | None = None) -> None:
@@ -106,7 +114,10 @@ class SaveFailed(MWApiError):
 
 
 class NonExistentEntityError(MWApiError):
-    pass
+    """
+    When the API return a 'no-such-entity' error: the entity doesn't exist on the Wikibase instance, or its entity type
+    doesn't exist there.
+    """
 
 
 class MissingExtensionError(NonExistentEntityError):
@@ -126,7 +137,7 @@ class MissingExtensionError(NonExistentEntityError):
         self.args = (self.info,)
 
 
-class EmptyValueError(ValueError):
+class EmptyValueError(WikibaseIntegratorError, ValueError):
     """
     Raised before a write when a claim, a qualifier or a reference has no value, while its snak type states that it has
     one. A datatype created with None or an empty string as value has no value, and the Wikibase instance would reject
@@ -136,7 +147,7 @@ class EmptyValueError(ValueError):
     """
 
 
-class UnknownDatatypeError(ValueError):
+class UnknownDatatypeError(WikibaseIntegratorError, ValueError):
     """
     Raised when no data type class handles a datatype, like one added to the Wikibase instance by an extension that
     WikibaseIntegrator doesn't support. The message lists the supported datatypes.
@@ -150,7 +161,7 @@ class UnknownDatatypeError(ValueError):
         self.supported = supported
 
 
-class WCQSAuthenticationError(Exception):
+class WCQSAuthenticationError(WikibaseIntegratorError):
     """
     Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth:
     it answers with the HTML login page of Wikimedia Commons instead of the query results. The cookie is invalid, or was
@@ -158,19 +169,29 @@ class WCQSAuthenticationError(Exception):
     """
 
 
-class MaxRetriesReachedException(Exception):
-    pass
+class MaxRetriesReachedException(WikibaseIntegratorError):
+    """
+    Raised when a request still fails after all its retries: the last failure is its cause (``__cause__``).
+    """
 
 
-class MissingEntityException(Exception):
-    pass
+class MissingEntityException(WikibaseIntegratorError):
+    """
+    Raised when an entity read from the Wikibase instance is missing, e.g. deleted, or when a MediaInfo title is not found.
+    """
 
 
-class SearchError(Exception):
-    pass
+class SearchError(WikibaseIntegratorError):
+    """
+    Raised when the wbsearchentities API answers without success.
+    """
 
 
-class AnonymousEditNotAllowedError(Exception):
+class LoginError(WikibaseIntegratorError):
+    """Raised when there is an issue with the login"""
+
+
+class AnonymousEditNotAllowedError(WikibaseIntegratorError):
     """
     Raised when an anonymous edit is attempted while it is not explicitly allowed.
 

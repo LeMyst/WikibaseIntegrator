@@ -17,7 +17,8 @@ from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import WCQSAuthenticationError
+# LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login
+from wikibaseintegrator.wbi_exceptions import LoginError, WCQSAuthenticationError
 from wikibaseintegrator.wbi_helpers import get_user_agent
 
 log = logging.getLogger(__name__)
@@ -124,7 +125,8 @@ class _Login:
 
 class OAuth2(_Login):
     @wbi_backoff()
-    def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, mediawiki_api_url: str | None = None, mediawiki_rest_url: str | None = None, token_renew_period: int = 1800,
+    def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, mediawiki_api_url: str | None = None, mediawiki_rest_url: str | None = None,
+                 token_renew_period: int = 1800,
                  user_agent: str | None = None) -> None:
         """
         This class is used to interact with the OAuth2 API.
@@ -171,7 +173,8 @@ class OAuth2(_Login):
 class OAuth1(_Login):
 
     @wbi_backoff()
-    def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, access_token: str | None = None, access_secret: str | None = None, callback_url: str = 'oob',
+    def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, access_token: str | None = None, access_secret: str | None = None,
+                 callback_url: str = 'oob',
                  mediawiki_api_url: str | None = None, mediawiki_index_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None) -> None:
         """
         This class is used to interact with the OAuth1 API.
@@ -204,7 +207,8 @@ class OAuth1(_Login):
 
             # Step 1: Initiate -- ask MediaWiki for a temporary key/secret for the user
             auth = OAuth1Auth(consumer_token, client_secret=consumer_secret, callback_uri=callback_url)
-            response = requests.post(url=mediawiki_index_url, params={'title': "Special:OAuth/initiate"}, auth=auth, headers={'User-Agent': get_user_agent(self.user_agent)}, timeout=config['TIMEOUT'])
+            response = requests.post(url=mediawiki_index_url, params={'title': "Special:OAuth/initiate"}, auth=auth, headers={'User-Agent': get_user_agent(self.user_agent)},
+                                     timeout=config['TIMEOUT'])
 
             request_token = self._parse_token_response(response.text)
             self.request_token_key = request_token['oauth_token']
@@ -252,8 +256,10 @@ class OAuth1(_Login):
             raise LoginError(f"Unexpected request token key {request_token_key!r}, expected {self.request_token_key!r}.")
 
         # Step 3: Complete -- obtain authorized key/secret for "resource owner"
-        auth = OAuth1Auth(self.consumer_token, client_secret=self.consumer_secret, resource_owner_key=self.request_token_key, resource_owner_secret=self.request_token_secret, verifier=verifier)
-        response = requests.post(url=self.mediawiki_index_url, params={'title': "Special:OAuth/token"}, auth=auth, headers={'User-Agent': get_user_agent(self.user_agent)}, timeout=config['TIMEOUT'])
+        auth = OAuth1Auth(self.consumer_token, client_secret=self.consumer_secret, resource_owner_key=self.request_token_key, resource_owner_secret=self.request_token_secret,
+                          verifier=verifier)
+        response = requests.post(url=self.mediawiki_index_url, params={'title': "Special:OAuth/token"}, auth=auth, headers={'User-Agent': get_user_agent(self.user_agent)},
+                                 timeout=config['TIMEOUT'])
 
         access_token = self._parse_token_response(response.text)
 
@@ -265,7 +271,8 @@ class OAuth1(_Login):
 
 class Login(_Login):
     @wbi_backoff()
-    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None, **kwargs: Any) -> None:
+    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None,
+                 **kwargs: Any) -> None:
         """
         This class is used to log in with a bot password
 
@@ -348,7 +355,8 @@ class Login(_Login):
 
 class Clientlogin(_Login):
     @wbi_backoff()
-    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None, **kwargs: Any) -> None:
+    def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None,
+                 **kwargs: Any) -> None:
         """
         This class is used to log in with a user account
 
@@ -486,7 +494,3 @@ class WCQSAuth(AuthBase):
     def __repr__(self) -> str:
         # Never expose the cookie, e.g. in the logs
         return '<WCQSAuth>'
-
-
-class LoginError(Exception):
-    """Raised when there is an issue with the login"""
