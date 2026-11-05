@@ -110,11 +110,13 @@ class LexemeEntity(BaseEntity):
     def new(self, **kwargs: Any) -> LexemeEntity:
         return LexemeEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: str | int | None = None, **kwargs: Any) -> LexemeEntity:
+    def get(self, entity_id: str | int | None = None, revision: int | None = None, **kwargs: Any) -> LexemeEntity:
         """
         Request the MediaWiki API to get data for the entity specified in argument.
 
         :param entity_id: The ID of the entity to load, starting with 'L'. By default, the ID of this entity, to reload it.
+        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision. Such an entity can't
+            be written, see loaded_revision. Default: the latest revision
         :param kwargs:
         :return: a LexemeEntity instance
         """
@@ -137,8 +139,10 @@ class LexemeEntity(BaseEntity):
             raise ValueError("Lexeme ID must be greater than 0")
 
         entity_id = f'L{entity_id}'
-        json_data = super()._get(entity_id=entity_id, **kwargs)
-        return LexemeEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        json_data = super()._get(entity_id=entity_id, revision=revision, **kwargs)
+        entity = LexemeEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        entity.loaded_revision = revision
+        return entity
 
     def get_json(self) -> dict[str, str | dict]:
         json_data: dict = {

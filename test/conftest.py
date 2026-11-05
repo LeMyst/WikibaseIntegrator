@@ -68,6 +68,7 @@ class MockWikibase:
         self.sparql_endpoint_url = base_url + '/sparql'
 
         self.entities: dict[str, dict] = {}
+        self.old_revisions: dict[tuple[str, int], dict] = {}  # Special:EntityData revisions other than the latest, keyed by (entity ID, revision ID)
         self.deleted_entities: set[str] = set()  # IDs returned as {'id': ..., 'missing': ''} by wbgetentities, like a deleted entity
         self.next_entity_id = 100000
 
@@ -75,6 +76,7 @@ class MockWikibase:
         self.requests: list[dict[str, str]] = []  # every parsed API request
         self.edits: list[dict[str, Any]] = []  # every wbeditentity call: {'params': ..., 'data': ...}
         self.sparql_queries: list[str] = []
+        self.entity_data_requests: list[dict[str, str]] = []  # every Special:EntityData request (parsed index.php parameters)
 
         # Configurable behaviour
         self.search_results: list[dict] = []  # wbsearchentities results
@@ -94,6 +96,7 @@ class MockWikibase:
 
         mocker.register_uri(requests_mock_lib.ANY, self.mediawiki_api_url, json=self._handle_api)
         mocker.post(self.sparql_endpoint_url, json=self._handle_sparql)
+        mocker.get(self.mediawiki_index_url, text=self._handle_entity_data)
 
     # ------------------------------------------------------------------ #
     # Content setup helpers
@@ -181,6 +184,30 @@ class MockWikibase:
             'head': {'vars': ['sid', 'item', 'v', 'unit', 'pq', 'qval', 'qunit', 'ref', 'pr', 'rval', 'label']},
             'results': {'bindings': bindings},
         }
+
+    def _handle_entity_data(self, request: Any, context: Any) -> str:
+        """
+        Special:EntityData through index.php, in JSON only: an entity at its latest revision, or at one of old_revisions
+        when the revision parameter asks for it. Like Wikibase, anything else is answered with an HTML error page.
+        """
+        params = self._parse_params(request)
+        self.entity_data_requests.append(params)
+
+        title = params.get('title', '')
+        if not title.startswith('Special:EntityData/') or not title.endswith('.json'):
+            context.status_code = 415
+            return '<html><body><h1>Unsupported Media Type</h1></body></html>'
+
+        entity_id = title[len('Special:EntityData/'):-len('.json')]
+        entity = self.entities.get(entity_id)
+        if 'revision' in params and (entity is None or entity.get('lastrevid') != int(params['revision'])):
+            entity = self.old_revisions.get((entity_id, int(params['revision'])))
+        if entity is None:
+            context.status_code = 404
+            return f"<html><body><h1>Not Found</h1><p>Can't show revision {params.get('revision')} of entity {entity_id}.</p></body></html>"
+
+        context.headers['Content-Type'] = 'application/json; charset=UTF-8'
+        return json.dumps({'entities': {entity_id: entity}})
 
     # ------------------------------------------------------------------ #
     # action= handlers

@@ -66,11 +66,13 @@ class MediaInfoEntity(TermsEntity):
     def new(self, **kwargs: Any) -> MediaInfoEntity:
         return MediaInfoEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: str | int | None = None, **kwargs: Any) -> MediaInfoEntity:
+    def get(self, entity_id: str | int | None = None, revision: int | None = None, **kwargs: Any) -> MediaInfoEntity:
         """
         Request the MediaWiki API to get data for the entity specified in argument.
 
         :param entity_id: The ID of the entity to load, starting with 'M'. By default, the ID of this entity, to reload it.
+        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision. Such an entity can't
+            be written, see loaded_revision. Default: the latest revision
         :param kwargs:
         :return: a MediaInfoEntity instance
         """
@@ -93,8 +95,10 @@ class MediaInfoEntity(TermsEntity):
             raise ValueError("MediaInfo ID must be greater than 0")
 
         entity_id = f'M{entity_id}'
-        json_data = super()._get(entity_id=entity_id, **kwargs)
-        return MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        json_data = super()._get(entity_id=entity_id, revision=revision, **kwargs)
+        entity = MediaInfoEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        entity.loaded_revision = revision
+        return entity
 
     def get_by_title(self, titles: list[str] | str, sites: str = 'commonswiki', login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None,
                      **kwargs: Any) -> MediaInfoEntity:
