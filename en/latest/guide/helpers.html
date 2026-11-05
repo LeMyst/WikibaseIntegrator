@@ -529,6 +529,30 @@ credentials once for every query, including the ones executed by the fast run mo
 <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </pre></div>
 </div>
+<section id="time-limit-of-a-query">
+<h3>Time limit of a query<a class="headerlink" href="#time-limit-of-a-query" title="Link to this heading">#</a></h3>
+<p>The Wikidata Query Service stops a query after 60 seconds. To stop a query that would run too long earlier, and spare
+the resources of the endpoint as asked by the <a class="reference external" href="https://www.wikidata.org/wiki/Wikidata:Data_access#Access_best_practices">access best practices of Wikidata</a>,
+pass a shorter limit, in seconds, with <code class="docutils literal notranslate"><span class="pre">query_timeout</span></code>, or set it once for every query, including the ones executed by
+the fast run mode, with <code class="docutils literal notranslate"><span class="pre">wbi_config['SPARQL_QUERY_TIMEOUT']</span></code>. It is sent as the <code class="docutils literal notranslate"><span class="pre">maxQueryTimeMillis</span></code> parameter of
+Blazegraph, the engine of the Wikidata Query Service and of the query services of Wikibase, and can’t raise the limit
+of the endpoint.</p>
+<p>A query stopped at the time limit, the one of the endpoint or <code class="docutils literal notranslate"><span class="pre">query_timeout</span></code>, raises a <code class="docutils literal notranslate"><span class="pre">SPARQLTimeoutError</span></code> (a
+<code class="docutils literal notranslate"><span class="pre">requests.HTTPError</span></code> too) at once: it isn’t retried, as the same query would most likely be stopped again. Optimize the
+query, or split it (e.g. with <code class="docutils literal notranslate"><span class="pre">LIMIT</span></code> and <code class="docutils literal notranslate"><span class="pre">OFFSET</span></code>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">wbi_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_backoff</span><span class="w"> </span><span class="kn">import</span> <span class="n">SPARQLTimeoutError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="s1">'SELECT (COUNT(*) AS ?count) WHERE { ?item wdt:P31 wd:Q5 }'</span><span class="p">,</span> <span class="n">query_timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">SPARQLTimeoutError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'The query takes more than 10 seconds'</span><span class="p">)</span>
+
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'SPARQL_QUERY_TIMEOUT'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">30</span>
+</pre></div>
+</div>
+</section>
 <section id="scholarly-articles-on-wikidata">
 <h3>Scholarly articles on Wikidata<a class="headerlink" href="#scholarly-articles-on-wikidata" title="Link to this heading">#</a></h3>
 <p>Since the <a class="reference external" href="https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split">graph split of the Wikidata Query Service</a>,
@@ -783,6 +807,7 @@ summary that is too long is shortened, so that the link is never truncated.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-than-wikibase">More than Wikibase</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-mediawiki-api">Use MediaWiki API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-sparql-queries">Execute SPARQL queries</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time-limit-of-a-query">Time limit of a query</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scholarly-articles-on-wikidata">Scholarly articles on Wikidata</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikimedia-commons-query-service">Wikimedia Commons Query Service</a></li>
 </ul>

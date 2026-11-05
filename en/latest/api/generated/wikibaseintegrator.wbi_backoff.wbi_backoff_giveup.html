@@ -531,6 +531,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.wbi_backoff.html">wbi_backoff</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.RetryAfterError.html">RetryAfterError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.SPARQLTimeoutError.html">SPARQLTimeoutError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html">wbi_backoff_wait</a></li>
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">wbi_backoff_giveup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_manifest.get_manifest.html">get_manifest</a></li>
@@ -607,9 +608,9 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_backoff.wbi_backoff_giveup">
 <span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_backoff.</span></span><span class="sig-name descname"><span class="pre">wbi_backoff_giveup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_backoff.html#wbi_backoff_giveup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup" title="Link to this definition">#</a></dt>
-<dd><p>Give up immediately on permanent errors: a real JSON decode error, or a client error (HTTP 4xx) other than
+<dd><p>Give up immediately on permanent errors: a real JSON decode error, a client error (HTTP 4xx) other than
 RETRIED_CLIENT_ERRORS, like a malformed query (400) or an authentication failure (401/403), which retrying the
-same request cannot fix.</p>
+same request cannot fix, or a SPARQL query stopped at the time limit of the endpoint, which would be stopped again.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>

@@ -451,6 +451,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseIntegratorError</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -482,6 +483,18 @@
 
 
 
+<div class="viewcode-block" id="SPARQLTimeoutError">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_backoff.SPARQLTimeoutError.html#wikibaseintegrator.wbi_backoff.SPARQLTimeoutError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SPARQLTimeoutError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Raised when the SPARQL endpoint stopped a query at its time limit: the limit of the endpoint (60 seconds on the</span>
+<span class="sd">    Wikidata Query Service), or the query_timeout of wbi_helpers.execute_sparql_query(). wbi_backoff doesn't retry it, as</span>
+<span class="sd">    the same query would most likely be stopped again: optimize the query, or split it (e.g. with LIMIT and OFFSET).</span>
+<span class="sd">    It is a requests.HTTPError (HTTP 500) with the response of the endpoint, and a WikibaseIntegratorError.</span>
+<span class="sd">    """</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">wbi_backoff_backoff_hdlr</span><span class="p">(</span><span class="n">details</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Log a retry. Called while handling the exception, with the details of the retry: 'args' and 'kwargs' of the</span>
@@ -508,10 +521,12 @@
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">wbi_backoff_giveup</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Give up immediately on permanent errors: a real JSON decode error, or a client error (HTTP 4xx) other than</span>
+<span class="sd">    Give up immediately on permanent errors: a real JSON decode error, a client error (HTTP 4xx) other than</span>
 <span class="sd">    RETRIED_CLIENT_ERRORS, like a malformed query (400) or an authentication failure (401/403), which retrying the</span>
-<span class="sd">    same request cannot fix.</span>
+<span class="sd">    same request cannot fix, or a SPARQL query stopped at the time limit of the endpoint, which would be stopped again.</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">SPARQLTimeoutError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">)</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="mi">400</span> <span class="o">&lt;=</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">RETRIED_CLIENT_ERRORS</span>
     <span class="k">return</span> <span class="n">wbi_backoff_check_json_decode_error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
