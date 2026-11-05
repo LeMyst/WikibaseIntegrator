@@ -507,6 +507,19 @@ see <a class="reference internal" href="mediainfo.html"><span class="std std-doc
 </pre></div>
 </div>
 </section>
+<section id="read-an-entity-at-an-old-revision">
+<h3>Read an entity at an old revision<a class="headerlink" href="#read-an-entity-at-an-old-revision" title="Link to this heading">#</a></h3>
+<p>Get the entity as it was at one of its revisions, e.g. to compare it with its current state. The MediaWiki API only gives
+the latest revision of an entity: with <code class="docutils literal notranslate"><span class="pre">revision</span></code>, the entity is loaded from <code class="docutils literal notranslate"><span class="pre">Special:EntityData</span></code>, the linked data
+interface of Wikibase, instead.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">entity</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'Q42'</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="mi">1600533266</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">lastrevid</span><span class="p">)</span>  <span class="c1"># 1600533266</span>
+</pre></div>
+</div>
+<p>An entity loaded at a revision can’t be written: <code class="docutils literal notranslate"><span class="pre">write()</span></code> raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. Writing it wouldn’t restore this
+revision, as its data would be merged into the latest revision of the entity (the statements added since would be kept).
+To write it anyway, set <code class="docutils literal notranslate"><span class="pre">entity.loaded_revision</span></code> to <code class="docutils literal notranslate"><span class="pre">None</span></code> first.</p>
+</section>
 <section id="start-a-new-entity">
 <h3>Start a new entity<a class="headerlink" href="#start-a-new-entity" title="Link to this heading">#</a></h3>
 <p>Start a new local entity.</p>
@@ -767,6 +780,7 @@ instance, which is also set on the object.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-use-cases">Common use cases</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#read-an-existing-entity">Read an existing entity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#read-an-entity-at-an-old-revision">Read an entity at an old revision</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#start-a-new-entity">Start a new entity</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-an-entity-to-instance">Write an entity to instance</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-labels">Add labels</a></li>

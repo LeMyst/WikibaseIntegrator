@@ -434,9 +434,12 @@
   <h1>Source code for wikibaseintegrator.entities.baseentity</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_fastrun</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDataType</span>
@@ -447,7 +450,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span><span class="p">,</span> <span class="n">EntityField</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingEntityException</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">delete_page</span><span class="p">,</span> <span class="n">edit_entity</span><span class="p">,</span> <span class="n">mediawiki_api_call_helper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">delete_page</span><span class="p">,</span> <span class="n">download_entity_data</span><span class="p">,</span> <span class="n">edit_entity</span><span class="p">,</span> <span class="n">mediawiki_api_call_helper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Login</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -481,6 +484,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ETYPE</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">claims</span> <span class="o">=</span> <span class="n">claims</span> <span class="k">if</span> <span class="n">claims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Claims</span><span class="p">()</span>
+        <span class="c1"># The revision given to get(revision=...): the entity holds the data of this revision and can't be written</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loaded_revision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># Allow registration of subclasses of BaseEntity into BaseEntity.subclasses</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -626,7 +631,8 @@
 
 
     <span class="c1"># noinspection PyMethodMayBeStatic</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">props</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">props</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">revision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieve an entity in json representation from the Wikibase instance</span>
 
@@ -634,9 +640,25 @@
 <span class="sd">        :param login: A login instance</span>
 <span class="sd">        :param allow_anonymous: Force a check if the query can be anonymous or not</span>
 <span class="sd">        :param is_bot: Add the bot flag to the query</span>
+<span class="sd">        :param props: The parts of the entity to load (e.g. 'labels|claims'). Default: the whole entity</span>
+<span class="sd">        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision from</span>
+<span class="sd">            Special:EntityData, as the wbgetentities action only gives the latest revision. The whole entity is loaded,</span>
+<span class="sd">            props is ignored. Default: the latest revision</span>
 <span class="sd">        :param kwargs: More arguments for Python requests</span>
 <span class="sd">        :return: python complex dictionary representation of a json</span>
+<span class="sd">        :raises MissingEntityException: If the revision doesn't exist, or isn't a revision of this entity</span>
 <span class="sd">        """</span>
+
+        <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
+
+        <span class="k">if</span> <span class="n">revision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">download_entity_data</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mediawiki_api_url'</span><span class="p">),</span>
+                                                       <span class="n">user_agent</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'user_agent'</span><span class="p">)))</span>
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The revision </span><span class="si">{</span><span class="n">revision</span><span class="si">}</span><span class="s2"> of the entity </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2"> doesn't exist, or isn't a revision of this entity."</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+                <span class="k">raise</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">'action'</span><span class="p">:</span> <span class="s1">'wbgetentities'</span><span class="p">,</span>
@@ -652,7 +674,6 @@
             <span class="k">if</span> <span class="s1">'info'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
                 <span class="n">params</span><span class="p">[</span><span class="s1">'props'</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">'|info'</span>
 
-        <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
         <span class="n">is_bot</span> <span class="o">=</span> <span class="n">is_bot</span> <span class="k">if</span> <span class="n">is_bot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">is_bot</span>
 
         <span class="k">return</span> <span class="n">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -718,6 +739,10 @@
 <span class="sd">        :param kwargs: More arguments for Python requests</span>
 <span class="sd">        :return: A dictionary representation of the edited Entity</span>
 <span class="sd">        """</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loaded_revision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The entity </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> was loaded at its revision </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">loaded_revision</span><span class="si">}</span><span class="s2">: writing it would merge this data into the latest revision of the "</span>
+                             <span class="s2">"entity, not restore it. Load the entity without a revision to edit it, or set loaded_revision to None to write it anyway."</span><span class="p">)</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">claims_key</span> <span class="o">=</span> <span class="s1">'claims'</span> <span class="k">if</span> <span class="s1">'claims'</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">else</span> <span class="s1">'statements'</span>  <span class="c1"># 'statements' for MediaInfo, see MediaInfoEntity.get_json()</span>

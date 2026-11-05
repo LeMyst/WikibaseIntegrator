@@ -492,11 +492,13 @@
 
 <div class="viewcode-block" id="PropertyEntity.get">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.property.PropertyEntity.html#wikibaseintegrator.entities.property.PropertyEntity.get">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PropertyEntity</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">revision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PropertyEntity</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Request the MediaWiki API to get data for the entity specified in argument.</span>
 
 <span class="sd">        :param entity_id: The ID of the entity to load, starting with 'P'. By default, the ID of this entity, to reload it.</span>
+<span class="sd">        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision. Such an entity can't</span>
+<span class="sd">            be written, see loaded_revision. Default: the latest revision</span>
 <span class="sd">        :param kwargs:</span>
 <span class="sd">        :return: a PropertyEntity instance</span>
 <span class="sd">        """</span>
@@ -519,8 +521,10 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Property ID must be greater than 0"</span><span class="p">)</span>
 
         <span class="n">entity_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'P</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s1">'</span>
-        <span class="n">json_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get</span><span class="p">(</span><span class="n">entity_id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">PropertyEntity</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="p">)</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">][</span><span class="n">entity_id</span><span class="p">])</span></div>
+        <span class="n">json_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get</span><span class="p">(</span><span class="n">entity_id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">PropertyEntity</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="p">)</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_data</span><span class="o">=</span><span class="n">json_data</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">][</span><span class="n">entity_id</span><span class="p">])</span>
+        <span class="n">entity</span><span class="o">.</span><span class="n">loaded_revision</span> <span class="o">=</span> <span class="n">revision</span>
+        <span class="k">return</span> <span class="n">entity</span></div>
 
 
 <div class="viewcode-block" id="PropertyEntity.get_json">

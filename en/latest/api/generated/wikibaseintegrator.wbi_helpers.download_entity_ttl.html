@@ -53,7 +53,7 @@
     <link rel="canonical" href="https://lemyst.github.io/WikibaseIntegrator/en/stable/api/generated/wikibaseintegrator.wbi_helpers.download_entity_ttl.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="format2wbi" href="wikibaseintegrator.wbi_helpers.format2wbi.html" />
+    <link rel="next" title="download_entity_data" href="wikibaseintegrator.wbi_helpers.download_entity_data.html" />
     <link rel="prev" title="get_user_agent" href="wikibaseintegrator.wbi_helpers.get_user_agent.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -496,6 +496,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.WikibaseCheck.html">WikibaseCheck</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.get_user_agent.html">get_user_agent</a></li>
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">download_entity_ttl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.download_entity_data.html">download_entity_data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_helpers.format2wbi.html">format2wbi</a></li>
 </ul>
 </details></li>
@@ -605,7 +606,7 @@
 <h1>download_entity_ttl<a class="headerlink" href="#download-entity-ttl" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_helpers.download_entity_ttl">
-<span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_helpers.</span></span><span class="sig-name descname"><span class="pre">download_entity_ttl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikibase_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_helpers.html#download_entity_ttl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_helpers.download_entity_ttl" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_helpers.</span></span><span class="sig-name descname"><span class="pre">download_entity_ttl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikibase_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">revision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_helpers.html#download_entity_ttl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_helpers.download_entity_ttl" title="Link to this definition">#</a></dt>
 <dd><p>Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -613,6 +614,8 @@
 <li><p><strong>entity</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The identifier of the entity to download the TTL content for.</p></li>
 <li><p><strong>wikibase_url</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The base URL of the Wikibase instance. Default: config[‘WIKIBASE_URL’]</p></li>
 <li><p><strong>user_agent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The user agent string used in the HTTP request headers. Default: config[‘USER_AGENT’], if set</p></li>
+<li><p><strong>flavor</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The amount of data, see download_entity_data(). Default: all the data (‘full’)</p></li>
+<li><p><strong>revision</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The ID of a revision of the entity. Default: the latest revision</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -649,11 +652,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="wikibaseintegrator.wbi_helpers.format2wbi.html"
+       href="wikibaseintegrator.wbi_helpers.download_entity_data.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">format2wbi</p>
+        <p class="prev-next-title">download_entity_data</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

@@ -698,6 +698,11 @@ extension.</p></li>
 <code class="docutils literal notranslate"><span class="pre">item.sitelinks.set('enwiki',</span> <span class="pre">'Douglas</span> <span class="pre">Adams',</span> <span class="pre">badges=['Q17437796'])</span></code> (featured article on Wikidata).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code>: delete a page.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code>: download the RDF (Turtle) representation of an entity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">download_entity_data()</span></code>: download an entity from <code class="docutils literal notranslate"><span class="pre">Special:EntityData</span></code>, the linked data interface of Wikibase: in JSON
+(the default), Turtle (<code class="docutils literal notranslate"><span class="pre">ttl</span></code>), N-Triples (<code class="docutils literal notranslate"><span class="pre">nt</span></code>), RDF/XML (<code class="docutils literal notranslate"><span class="pre">rdf</span></code>) or JSON-LD (<code class="docutils literal notranslate"><span class="pre">jsonld</span></code>), at its latest revision or at
+a given <code class="docutils literal notranslate"><span class="pre">revision</span></code>. With the RDF formats, <code class="docutils literal notranslate"><span class="pre">flavor='dump'</span></code> leaves out the descriptions of the other entities the entity
+refers to, and <code class="docutils literal notranslate"><span class="pre">flavor='simple'</span></code> only keeps the best-ranked statements, without their qualifiers and references.
+<code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code> accepts <code class="docutils literal notranslate"><span class="pre">flavor</span></code> and <code class="docutils literal notranslate"><span class="pre">revision</span></code> too.</p></li>
 </ul>
 <p>Some examples are available in the <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/blob/master/notebooks/wbi_helpers.ipynb">wbi_helpers.ipynb</a> notebook.</p>
 </section>

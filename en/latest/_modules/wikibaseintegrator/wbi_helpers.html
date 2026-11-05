@@ -2132,13 +2132,15 @@
 
 <div class="viewcode-block" id="download_entity_ttl">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.download_entity_ttl.html#wikibaseintegrator.wbi_helpers.download_entity_ttl">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">download_entity_ttl</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_entity_ttl</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">flavor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">revision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.</span>
 
 <span class="sd">    :param entity: The identifier of the entity to download the TTL content for.</span>
 <span class="sd">    :param wikibase_url: The base URL of the Wikibase instance. Default: config['WIKIBASE_URL']</span>
 <span class="sd">    :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set</span>
+<span class="sd">    :param flavor: The amount of data, see download_entity_data(). Default: all the data ('full')</span>
+<span class="sd">    :param revision: The ID of a revision of the entity. Default: the latest revision</span>
 <span class="sd">    :return: The TTL content of the requested entity.</span>
 <span class="sd">    :raises requests.HTTPError: If the HTTP request to retrieve the TTL content fails (status code other than 2xx).</span>
 <span class="sd">    """</span>
@@ -2149,11 +2151,64 @@
         <span class="s1">'User-Agent'</span><span class="p">:</span> <span class="n">get_user_agent</span><span class="p">(</span><span class="n">user_agent</span><span class="p">)</span>
     <span class="p">}</span>
 
-    <span class="n">response</span> <span class="o">=</span> <span class="n">_get_default_session</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wikibase_url</span> <span class="o">+</span> <span class="s1">'/entity/'</span> <span class="o">+</span> <span class="n">entity</span> <span class="o">+</span> <span class="s1">'.ttl'</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
+    <span class="c1"># The concept URI redirects to Special:EntityData with the query string</span>
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">flavor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s1">'flavor'</span><span class="p">]</span> <span class="o">=</span> <span class="n">flavor</span>
+    <span class="k">if</span> <span class="n">revision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s1">'revision'</span><span class="p">]</span> <span class="o">=</span> <span class="n">revision</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">_get_default_session</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wikibase_url</span> <span class="o">+</span> <span class="s1">'/entity/'</span> <span class="o">+</span> <span class="n">entity</span> <span class="o">+</span> <span class="s1">'.ttl'</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
     <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
     <span class="n">results</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
 
     <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+<div class="viewcode-block" id="download_entity_data">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_helpers.download_entity_data.html#wikibaseintegrator.wbi_helpers.download_entity_data">[docs]</a>
+<span class="nd">@wbi_backoff</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_entity_data</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'json'</span><span class="p">,</span> <span class="n">flavor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">revision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                         <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Download an entity from Special:EntityData, the linked data interface of Wikibase: its JSON at a given revision, which</span>
+<span class="sd">    the wbgetentities action of the MediaWiki API can't load, or its RDF representation.</span>
+
+<span class="sd">    The page is requested from the index.php next to the api.php of the instance, so that it always comes from the</span>
+<span class="sd">    instance of the MediaWiki API. Server errors (HTTP 5xx), throttling (HTTP 429) and connection errors are retried by</span>
+<span class="sd">    wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times.</span>
+
+<span class="sd">    :param entity: The ID of the entity, e.g. 'Q42'</span>
+<span class="sd">    :param format: The format of the data: 'json' (default), 'ttl' (Turtle), 'nt' (N-Triples), 'rdf' (RDF/XML) or 'jsonld' (JSON-LD)</span>
+<span class="sd">    :param flavor: The amount of RDF data: 'full' (all the data, the default), 'dump' (without the descriptions of the other</span>
+<span class="sd">        entities the entity refers to) or 'simple' (only the best-ranked statements, without their qualifiers and references,</span>
+<span class="sd">        with the sitelinks)</span>
+<span class="sd">    :param revision: The ID of a revision of the entity. Default: the latest revision</span>
+<span class="sd">    :param login: A login instance, to use its session (e.g. for a private wiki)</span>
+<span class="sd">    :param mediawiki_api_url: The URL of the MediaWiki API of the instance. Default: config['MEDIAWIKI_API_URL']</span>
+<span class="sd">    :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set</span>
+<span class="sd">    :return: The data, as text</span>
+<span class="sd">    :raises requests.HTTPError: If the instance answers with an error: e.g. 400 for an invalid entity ID, 404 for a</span>
+<span class="sd">        missing entity or a revision of another entity, 415 for an unsupported format</span>
+<span class="sd">    """</span>
+    <span class="n">mediawiki_api_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mediawiki_api_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">])</span>
+    <span class="n">mediawiki_index_url</span> <span class="o">=</span> <span class="n">mediawiki_api_url</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">'/index.php'</span>
+    <span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">])</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">_warn_missing_user_agent</span><span class="p">(</span><span class="n">mediawiki_index_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">)</span>
+
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'title'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'Special:EntityData/</span><span class="si">{</span><span class="n">entity</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="nb">format</span><span class="si">}</span><span class="s1">'</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">flavor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s1">'flavor'</span><span class="p">]</span> <span class="o">=</span> <span class="n">flavor</span>
+    <span class="k">if</span> <span class="n">revision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s1">'revision'</span><span class="p">]</span> <span class="o">=</span> <span class="n">revision</span>
+
+    <span class="n">session</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span> <span class="k">if</span> <span class="n">login</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_get_default_session</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mediawiki_index_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">'User-Agent'</span><span class="p">:</span> <span class="n">get_user_agent</span><span class="p">(</span><span class="n">user_agent</span><span class="p">)},</span> <span class="n">timeout</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span></div>
 
 
 

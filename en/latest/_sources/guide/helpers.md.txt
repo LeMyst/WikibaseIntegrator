@@ -245,6 +245,11 @@ for result in wbi_helpers.parse_value(['3 March 1850', '1850s', 'not a date'], d
   `item.sitelinks.set('enwiki', 'Douglas Adams', badges=['Q17437796'])` (featured article on Wikidata).
 * `delete_page()`: delete a page.
 * `download_entity_ttl()`: download the RDF (Turtle) representation of an entity.
+* `download_entity_data()`: download an entity from `Special:EntityData`, the linked data interface of Wikibase: in JSON
+  (the default), Turtle (`ttl`), N-Triples (`nt`), RDF/XML (`rdf`) or JSON-LD (`jsonld`), at its latest revision or at
+  a given `revision`. With the RDF formats, `flavor='dump'` leaves out the descriptions of the other entities the entity
+  refers to, and `flavor='simple'` only keeps the best-ranked statements, without their qualifiers and references.
+  `download_entity_ttl()` accepts `flavor` and `revision` too.
 
 Some examples are available in the [wbi_helpers.ipynb](https://github.com/LeMyst/WikibaseIntegrator/blob/master/notebooks/wbi_helpers.ipynb) notebook.
 
