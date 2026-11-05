@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Self
+
+import requests
 
 from wikibaseintegrator import wbi_fastrun
 from wikibaseintegrator.datatypes import BaseDataType
@@ -13,7 +16,7 @@ from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
-from wikibaseintegrator.wbi_helpers import delete_page, edit_entity, mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import delete_page, download_entity_data, edit_entity, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import _Login
 
 if TYPE_CHECKING:
@@ -45,6 +48,8 @@ class BaseEntity:
         self.type = str(type or self.ETYPE)
         self.id = id
         self.claims = claims if claims is not None else Claims()
+        # The revision given to get(revision=...): the entity holds the data of this revision and can't be written
+        self.loaded_revision: int | None = None
 
     # Allow registration of subclasses of BaseEntity into BaseEntity.subclasses
     def __init_subclass__(cls, **kwargs: Any) -> None:
@@ -181,7 +186,8 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None, **kwargs: Any) -> dict:
+    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None,
+             revision: int | None = None, **kwargs: Any) -> dict:
         """
         Retrieve an entity in json representation from the Wikibase instance
 
@@ -189,9 +195,25 @@ class BaseEntity:
         :param login: A login instance
         :param allow_anonymous: Force a check if the query can be anonymous or not
         :param is_bot: Add the bot flag to the query
+        :param props: The parts of the entity to load (e.g. 'labels|claims'). Default: the whole entity
+        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision from
+            Special:EntityData, as the wbgetentities action only gives the latest revision. The whole entity is loaded,
+            props is ignored. Default: the latest revision
         :param kwargs: More arguments for Python requests
         :return: python complex dictionary representation of a json
+        :raises MissingEntityException: If the revision doesn't exist, or isn't a revision of this entity
         """
+
+        login = login or self.api.login
+
+        if revision is not None:
+            try:
+                return json.loads(download_entity_data(entity_id, revision=revision, login=login, mediawiki_api_url=kwargs.get('mediawiki_api_url'),
+                                                       user_agent=kwargs.get('user_agent')))
+            except requests.HTTPError as e:
+                if e.response is not None and e.response.status_code == 404:
+                    raise MissingEntityException(f"The revision {revision} of the entity {entity_id} doesn't exist, or isn't a revision of this entity.") from e
+                raise
 
         params = {
             'action': 'wbgetentities',
@@ -207,7 +229,6 @@ class BaseEntity:
             if 'info' not in props:
                 params['props'] += '|info'
 
-        login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
         return mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
@@ -267,6 +288,10 @@ class BaseEntity:
         :param kwargs: More arguments for Python requests
         :return: A dictionary representation of the edited Entity
         """
+
+        if self.loaded_revision is not None:
+            raise ValueError(f"The entity {self.id} was loaded at its revision {self.loaded_revision}: writing it would merge this data into the latest revision of the "
+                             "entity, not restore it. Load the entity without a revision to edit it, or set loaded_revision to None to write it anyway.")
 
         data = data or {}
         claims_key = 'claims' if 'claims' in data else 'statements'  # 'statements' for MediaInfo, see MediaInfoEntity.get_json()

@@ -89,6 +89,25 @@ except SPARQLTimeoutError:
 wbi_config['SPARQL_QUERY_TIMEOUT'] = 30
 ```
 
+### Scholarly articles on Wikidata
+
+Since the [graph split of the Wikidata Query Service](https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split),
+the default endpoint, `https://query.wikidata.org/sparql`, only holds the main graph of Wikidata. The items of the
+scholarly articles are in a separate query service: query it with `endpoint`. Its graph holds the articles, not the
+properties or the other items, so a query needing both has to be split, or federated as explained on the page of the
+graph split.
+
+```python
+from wikibaseintegrator import wbi_helpers
+
+query = 'SELECT ?item WHERE { ?item wdt:P356 "10.1001/ARCHDERM.1979.04010090001003" }'
+
+wbi_helpers.execute_sparql_query(query)  # No result: the article isn't in the main graph
+wbi_helpers.execute_sparql_query(query, endpoint='https://query-scholarly.wikidata.org/sparql')  # Q44048456
+```
+
+The fast run mode can't check the scholarly articles, see [Fast run](fastrun.md#scholarly-articles-on-wikidata).
+
 ### Wikimedia Commons Query Service
 
 The SPARQL endpoint of Structured Data on Commons, the [Wikimedia Commons Query Service](https://commons-query.wikimedia.org/)
@@ -252,6 +271,11 @@ for result in wbi_helpers.parse_value(['3 March 1850', '1850s', 'not a date'], d
   `item.sitelinks.set('enwiki', 'Douglas Adams', badges=['Q17437796'])` (featured article on Wikidata).
 * `delete_page()`: delete a page.
 * `download_entity_ttl()`: download the RDF (Turtle) representation of an entity.
+* `download_entity_data()`: download an entity from `Special:EntityData`, the linked data interface of Wikibase: in JSON
+  (the default), Turtle (`ttl`), N-Triples (`nt`), RDF/XML (`rdf`) or JSON-LD (`jsonld`), at its latest revision or at
+  a given `revision`. With the RDF formats, `flavor='dump'` leaves out the descriptions of the other entities the entity
+  refers to, and `flavor='simple'` only keeps the best-ranked statements, without their qualifiers and references.
+  `download_entity_ttl()` accepts `flavor` and `revision` too.
 
 Some examples are available in the [wbi_helpers.ipynb](https://github.com/LeMyst/WikibaseIntegrator/blob/master/notebooks/wbi_helpers.ipynb) notebook.
 

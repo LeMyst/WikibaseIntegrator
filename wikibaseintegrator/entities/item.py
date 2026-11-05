@@ -61,11 +61,13 @@ class ItemEntity(TermsEntity):
     def new(self, **kwargs: Any) -> ItemEntity:
         return ItemEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: str | int | None = None, **kwargs: Any) -> ItemEntity:
+    def get(self, entity_id: str | int | None = None, revision: int | None = None, **kwargs: Any) -> ItemEntity:
         """
         Request the MediaWiki API to get data for the entity specified in argument.
 
         :param entity_id: The entity_id of the Item entity you want. Must start with a 'Q'.
+        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision. Such an entity can't
+            be written, see loaded_revision. Default: the latest revision
         :param kwargs:
         :return: an ItemEntity instance
         """
@@ -88,8 +90,10 @@ class ItemEntity(TermsEntity):
             raise ValueError("Item ID must be greater than 0")
 
         entity_id = f'Q{entity_id}'
-        json_data = super()._get(entity_id=entity_id, **kwargs)
-        return ItemEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        json_data = super()._get(entity_id=entity_id, revision=revision, **kwargs)
+        entity = ItemEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        entity.loaded_revision = revision
+        return entity
 
     def get_json(self) -> dict[str, str | dict]:
         """
