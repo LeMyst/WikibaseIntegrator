@@ -128,6 +128,30 @@ qids = frc.get_entities(claims=[ExternalID(value='50943', prop_nr='P351')])
 frc.check_language_data(qid=qids[0], lang_data=['CDK7'], lang='en', lang_data_type='label')
 ```
 
+## Scholarly articles on Wikidata
+
+Since the [graph split of the Wikidata Query Service](https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split),
+`https://query.wikidata.org/sparql`, the default `wbi_config['SPARQL_ENDPOINT_URL']`, only holds the main graph of
+Wikidata. The items of the scholarly articles are in a separate query service, `https://query-scholarly.wikidata.org/sparql`.
+The fast run mode can't check them:
+
+* With the default endpoint, they are missing: `get_entities()` doesn't find an existing article, e.g. by its DOI
+  (P356), and `write_required()` always reports a write as required. A bot creating a new item when `get_entities()`
+  finds nothing would create a duplicate of the article.
+* With `sparql_endpoint_url='https://query-scholarly.wikidata.org/sparql'`, the fast run queries find nothing either:
+  they read the datatype of the properties (`wikibase:propertyType`), and the scholarly graph doesn't hold the
+  properties.
+
+To find an existing scholarly article, use the search of the MediaWiki API with the `haswbstatement` keyword instead: it
+covers every item of Wikidata.
+
+```python
+from wikibaseintegrator import wbi_helpers
+
+results = wbi_helpers.fulltext_search('haswbstatement:P356=10.1001/ARCHDERM.1979.04010090001003')
+qids = [result['title'] for result in results]  # ['Q44048456']
+```
+
 ## Limitations
 
 * The SPARQL endpoint can lag behind the live data (typically a few seconds to a few minutes on Wikidata). A write
