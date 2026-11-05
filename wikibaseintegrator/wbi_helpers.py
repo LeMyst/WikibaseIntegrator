@@ -22,7 +22,7 @@ from requests.auth import AuthBase
 
 # format_amount() lives with the Quantity data type, so that the data model doesn't import this module: re-exported here
 from wikibaseintegrator.datatypes.quantity import format_amount  # pylint: disable=unused-import
-from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff, wbi_backoff_wait
+from wikibaseintegrator.wbi_backoff import RetryAfterError, SPARQLTimeoutError, wbi_backoff, wbi_backoff_wait
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
                                                ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError)
@@ -429,13 +429,14 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 @wbi_backoff()
 def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int | None = None, retry_after: int = 60,
-                         auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None) -> dict[str, dict]:
+                         auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None, query_timeout: float | None = None) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
 
     Server errors (HTTP 5xx), throttling (HTTP 429, after the delay asked by the Query Service), request timeouts (HTTP 408),
     connection errors and responses cut before their end are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times. If the Query Service still fails after that,
-    the last exception (e.g. requests.HTTPError) is raised. The other client errors (e.g. HTTP 400 for a malformed query) are raised at once.
+    the last exception (e.g. requests.HTTPError) is raised. The other client errors (e.g. HTTP 400 for a malformed query), and a query stopped at the time
+    limit of the endpoint (SPARQLTimeoutError), are raised at once.
 
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
@@ -446,8 +447,14 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     :param auth: Authentication for a protected SPARQL endpoint: a (username, password) tuple for HTTP Basic auth or any
                  requests.auth.AuthBase instance. Default is config['SPARQL_AUTH'].
     :param headers: Additional HTTP headers sent with the query (e.g. {'Authorization': 'Bearer <token>'}). They override the default ones.
+    :param query_timeout: The maximum time, in seconds, the endpoint may spend on the query, to stop a query that would run too long early.
+        It is sent as the maxQueryTimeMillis parameter of Blazegraph, the engine of the Wikidata Query Service and of the query services of
+        Wikibase. It can't raise the limit of the endpoint (60 seconds on the Wikidata Query Service). Default: config['SPARQL_QUERY_TIMEOUT'],
+        None for the limit of the endpoint
     :return: The results of the query are returned in JSON format
     :raises requests.HTTPError: If the Query Service returns an HTTP error, after the retries for the transient ones are exhausted
+    :raises SPARQLTimeoutError: If the endpoint stopped the query at its time limit. It is a requests.HTTPError too.
+    :raises ValueError: If query_timeout isn't a positive number of seconds
     """
 
     if max_retries is not None:
@@ -456,6 +463,9 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
     auth = auth if auth is not None else config['SPARQL_AUTH']
+    query_timeout = query_timeout if query_timeout is not None else config['SPARQL_QUERY_TIMEOUT']
+    if query_timeout is not None and query_timeout <= 0:
+        raise ValueError(f"query_timeout must be a positive number of seconds, not {query_timeout}")
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     _warn_missing_user_agent(sparql_endpoint_url, user_agent)
@@ -467,6 +477,8 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
         'query': '#Tool: WikibaseIntegrator wbi_helpers.execute_sparql_query\n' + query,
         'format': 'json'
     }
+    if query_timeout is not None:
+        body['maxQueryTimeMillis'] = str(max(1, int(query_timeout * 1000)))
 
     # Send the query in the request body (application/x-www-form-urlencoded, set automatically by requests for data=).
     # The previous 'multipart/form-data' Content-Type was incorrect (no multipart body was ever sent) and could be
@@ -487,6 +499,9 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
         delay = _retry_after_delay(response, retry_after)
         log.error("Too Many Requests (429). Retrying in %d seconds.", delay)
         raise RetryAfterError(f'429 Client Error: Too Many Requests for url: {response.url}', response=response, retry_after=delay)
+    # Blazegraph answers a query stopped at its time limit with an HTTP 500 and the stack trace of a (Query)TimeoutException
+    if response.status_code == 500 and 'TimeoutException' in response.text:
+        raise SPARQLTimeoutError(f'500 Server Error: the query was stopped at the time limit of the SPARQL endpoint for url: {response.url}', response=response)
     response.raise_for_status()
 
     return response.json()

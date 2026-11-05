@@ -17,6 +17,7 @@ from typing import Any, ParamSpec, TypeVar
 import requests
 
 from wikibaseintegrator.wbi_config import config
+from wikibaseintegrator.wbi_exceptions import WikibaseIntegratorError
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +46,15 @@ class RetryAfterError(requests.HTTPError):
         self.retry_after = retry_after
 
 
+class SPARQLTimeoutError(WikibaseIntegratorError, requests.HTTPError):
+    """
+    Raised when the SPARQL endpoint stopped a query at its time limit: the limit of the endpoint (60 seconds on the
+    Wikidata Query Service), or the query_timeout of wbi_helpers.execute_sparql_query(). wbi_backoff doesn't retry it, as
+    the same query would most likely be stopped again: optimize the query, or split it (e.g. with LIMIT and OFFSET).
+    It is a requests.HTTPError (HTTP 500) with the response of the endpoint, and a WikibaseIntegratorError.
+    """
+
+
 def wbi_backoff_backoff_hdlr(details: dict[str, Any]) -> None:
     """
     Log a retry. Called while handling the exception, with the details of the retry: 'args' and 'kwargs' of the
@@ -69,10 +79,12 @@ def wbi_backoff_check_json_decode_error(e: BaseException) -> bool:
 
 def wbi_backoff_giveup(e: BaseException) -> bool:
     """
-    Give up immediately on permanent errors: a real JSON decode error, or a client error (HTTP 4xx) other than
+    Give up immediately on permanent errors: a real JSON decode error, a client error (HTTP 4xx) other than
     RETRIED_CLIENT_ERRORS, like a malformed query (400) or an authentication failure (401/403), which retrying the
-    same request cannot fix.
+    same request cannot fix, or a SPARQL query stopped at the time limit of the endpoint, which would be stopped again.
     """
+    if isinstance(e, SPARQLTimeoutError):
+        return True
     if isinstance(e, requests.HTTPError) and e.response is not None and 400 <= e.response.status_code < 500:
         return e.response.status_code not in RETRIED_CLIENT_ERRORS
     return wbi_backoff_check_json_decode_error(e)
