@@ -63,6 +63,32 @@ wbi_config['SPARQL_AUTH'] = ('username', 'password')
 wbi_helpers.execute_sparql_query(query)
 ```
 
+### Time limit of a query
+
+The Wikidata Query Service stops a query after 60 seconds. To stop a query that would run too long earlier, and spare
+the resources of the endpoint as asked by the [access best practices of Wikidata](https://www.wikidata.org/wiki/Wikidata:Data_access#Access_best_practices),
+pass a shorter limit, in seconds, with `query_timeout`, or set it once for every query, including the ones executed by
+the fast run mode, with `wbi_config['SPARQL_QUERY_TIMEOUT']`. It is sent as the `maxQueryTimeMillis` parameter of
+Blazegraph, the engine of the Wikidata Query Service and of the query services of Wikibase, and can't raise the limit
+of the endpoint.
+
+A query stopped at the time limit, the one of the endpoint or `query_timeout`, raises a `SPARQLTimeoutError` (a
+`requests.HTTPError` too) at once: it isn't retried, as the same query would most likely be stopped again. Optimize the
+query, or split it (e.g. with `LIMIT` and `OFFSET`).
+
+```python
+from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_backoff import SPARQLTimeoutError
+
+try:
+    wbi_helpers.execute_sparql_query('SELECT (COUNT(*) AS ?count) WHERE { ?item wdt:P31 wd:Q5 }', query_timeout=10)
+except SPARQLTimeoutError:
+    print('The query takes more than 10 seconds')
+
+wbi_config['SPARQL_QUERY_TIMEOUT'] = 30
+```
+
 ### Wikimedia Commons Query Service
 
 The SPARQL endpoint of Structured Data on Commons, the [Wikimedia Commons Query Service](https://commons-query.wikimedia.org/)

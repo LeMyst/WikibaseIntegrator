@@ -63,6 +63,7 @@ Retries
 
    ~wbi_backoff
    ~RetryAfterError
+   ~SPARQLTimeoutError
    ~wbi_backoff_wait
    ~wbi_backoff_giveup
 
