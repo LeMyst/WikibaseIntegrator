@@ -63,6 +63,25 @@ wbi_config['SPARQL_AUTH'] = ('username', 'password')
 wbi_helpers.execute_sparql_query(query)
 ```
 
+### Scholarly articles on Wikidata
+
+Since the [graph split of the Wikidata Query Service](https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split),
+the default endpoint, `https://query.wikidata.org/sparql`, only holds the main graph of Wikidata. The items of the
+scholarly articles are in a separate query service: query it with `endpoint`. Its graph holds the articles, not the
+properties or the other items, so a query needing both has to be split, or federated as explained on the page of the
+graph split.
+
+```python
+from wikibaseintegrator import wbi_helpers
+
+query = 'SELECT ?item WHERE { ?item wdt:P356 "10.1001/ARCHDERM.1979.04010090001003" }'
+
+wbi_helpers.execute_sparql_query(query)  # No result: the article isn't in the main graph
+wbi_helpers.execute_sparql_query(query, endpoint='https://query-scholarly.wikidata.org/sparql')  # Q44048456
+```
+
+The fast run mode can't check the scholarly articles, see [Fast run](fastrun.md#scholarly-articles-on-wikidata).
+
 ### Wikimedia Commons Query Service
 
 The SPARQL endpoint of Structured Data on Commons, the [Wikimedia Commons Query Service](https://commons-query.wikimedia.org/)

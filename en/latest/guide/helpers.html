@@ -529,6 +529,23 @@ credentials once for every query, including the ones executed by the fast run mo
 <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </pre></div>
 </div>
+<section id="scholarly-articles-on-wikidata">
+<h3>Scholarly articles on Wikidata<a class="headerlink" href="#scholarly-articles-on-wikidata" title="Link to this heading">#</a></h3>
+<p>Since the <a class="reference external" href="https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split">graph split of the Wikidata Query Service</a>,
+the default endpoint, <code class="docutils literal notranslate"><span class="pre">https://query.wikidata.org/sparql</span></code>, only holds the main graph of Wikidata. The items of the
+scholarly articles are in a separate query service: query it with <code class="docutils literal notranslate"><span class="pre">endpoint</span></code>. Its graph holds the articles, not the
+properties or the other items, so a query needing both has to be split, or federated as explained on the page of the
+graph split.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s1">'SELECT ?item WHERE { ?item wdt:P356 "10.1001/ARCHDERM.1979.04010090001003" }'</span>
+
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>  <span class="c1"># No result: the article isn't in the main graph</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">'https://query-scholarly.wikidata.org/sparql'</span><span class="p">)</span>  <span class="c1"># Q44048456</span>
+</pre></div>
+</div>
+<p>The fast run mode can’t check the scholarly articles, see <a class="reference internal" href="fastrun.html#scholarly-articles-on-wikidata"><span class="std std-ref">Fast run</span></a>.</p>
+</section>
 <section id="wikimedia-commons-query-service">
 <h3>Wikimedia Commons Query Service<a class="headerlink" href="#wikimedia-commons-query-service" title="Link to this heading">#</a></h3>
 <p>The SPARQL endpoint of Structured Data on Commons, the <a class="reference external" href="https://commons-query.wikimedia.org/">Wikimedia Commons Query Service</a>
@@ -761,6 +778,7 @@ summary that is too long is shortened, so that the link is never truncated.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-than-wikibase">More than Wikibase</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-mediawiki-api">Use MediaWiki API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-sparql-queries">Execute SPARQL queries</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scholarly-articles-on-wikidata">Scholarly articles on Wikidata</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikimedia-commons-query-service">Wikimedia Commons Query Service</a></li>
 </ul>
 </li>
