@@ -80,7 +80,7 @@ wbi_helpers.execute_sparql_query(query)  # No result: the article isn't in the m
 wbi_helpers.execute_sparql_query(query, endpoint='https://query-scholarly.wikidata.org/sparql')  # Q44048456
 ```
 
-The fast run mode can't check the scholarly articles, see [Fast run](fastrun.md#scholarly-articles-on-wikidata).
+To check scholarly articles with the fast run mode, see [Fast run](fastrun.md#scholarly-articles-on-wikidata).
 
 ### Wikimedia Commons Query Service
 
