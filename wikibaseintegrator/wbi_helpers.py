@@ -1621,13 +1621,15 @@ def _json2datatype(prop_nr: str, statement: Any, wikibase_url: str | None = None
     return f(prop_nr=prop_nr, value=attributes['value'] if attributes else statement)
 
 
-def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent: str | None = None) -> str:
+def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent: str | None = None, flavor: str | None = None, revision: int | None = None) -> str:
     """
     Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.
 
     :param entity: The identifier of the entity to download the TTL content for.
     :param wikibase_url: The base URL of the Wikibase instance. Default: config['WIKIBASE_URL']
     :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set
+    :param flavor: The amount of data, see download_entity_data(). Default: all the data ('full')
+    :param revision: The ID of a revision of the entity. Default: the latest revision
     :return: The TTL content of the requested entity.
     :raises requests.HTTPError: If the HTTP request to retrieve the TTL content fails (status code other than 2xx).
     """
@@ -1638,11 +1640,61 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
         'User-Agent': get_user_agent(user_agent)
     }
 
-    response = _get_default_session().get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers, timeout=config['TIMEOUT'])
+    # The concept URI redirects to Special:EntityData with the query string
+    params: dict[str, str | int] = {}
+    if flavor is not None:
+        params['flavor'] = flavor
+    if revision is not None:
+        params['revision'] = revision
+
+    response = _get_default_session().get(wikibase_url + '/entity/' + entity + '.ttl', params=params, headers=headers, timeout=config['TIMEOUT'])
     response.raise_for_status()
     results = response.text
 
     return results
+
+
+@wbi_backoff()
+def download_entity_data(entity: str, format: str = 'json', flavor: str | None = None, revision: int | None = None, login: _Login | None = None,
+                         mediawiki_api_url: str | None = None, user_agent: str | None = None) -> str:
+    """
+    Download an entity from Special:EntityData, the linked data interface of Wikibase: its JSON at a given revision, which
+    the wbgetentities action of the MediaWiki API can't load, or its RDF representation.
+
+    The page is requested from the index.php next to the api.php of the instance, so that it always comes from the
+    instance of the MediaWiki API. Server errors (HTTP 5xx), throttling (HTTP 429) and connection errors are retried by
+    wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times.
+
+    :param entity: The ID of the entity, e.g. 'Q42'
+    :param format: The format of the data: 'json' (default), 'ttl' (Turtle), 'nt' (N-Triples), 'rdf' (RDF/XML) or 'jsonld' (JSON-LD)
+    :param flavor: The amount of RDF data: 'full' (all the data, the default), 'dump' (without the descriptions of the other
+        entities the entity refers to) or 'simple' (only the best-ranked statements, without their qualifiers and references,
+        with the sitelinks)
+    :param revision: The ID of a revision of the entity. Default: the latest revision
+    :param login: A login instance, to use its session (e.g. for a private wiki)
+    :param mediawiki_api_url: The URL of the MediaWiki API of the instance. Default: config['MEDIAWIKI_API_URL']
+    :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set
+    :return: The data, as text
+    :raises requests.HTTPError: If the instance answers with an error: e.g. 400 for an invalid entity ID, 404 for a
+        missing entity or a revision of another entity, 415 for an unsupported format
+    """
+    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+    mediawiki_index_url = mediawiki_api_url.rsplit('/', 1)[0] + '/index.php'
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+
+    _warn_missing_user_agent(mediawiki_index_url, user_agent)
+
+    params: dict[str, str | int] = {'title': f'Special:EntityData/{entity}.{format}'}
+    if flavor is not None:
+        params['flavor'] = flavor
+    if revision is not None:
+        params['revision'] = revision
+
+    session = login.get_session() if login is not None else _get_default_session()
+    response = session.get(mediawiki_index_url, params=params, headers={'User-Agent': get_user_agent(user_agent)}, timeout=config['TIMEOUT'])
+    response.raise_for_status()
+
+    return response.text
 
 
 @dataclass
