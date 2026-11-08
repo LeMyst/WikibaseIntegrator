@@ -451,8 +451,9 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_backoff</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_backoff</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
-<span class="c1"># LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoginError</span><span class="p">,</span> <span class="n">WCQSAuthenticationError</span>
+<span class="c1"># LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login: the redundant alias re-exports it explicitly (py.typed)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoginError</span> <span class="k">as</span> <span class="n">LoginError</span>  <span class="c1"># pylint: disable=useless-import-alias</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCQSAuthenticationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_user_agent</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
