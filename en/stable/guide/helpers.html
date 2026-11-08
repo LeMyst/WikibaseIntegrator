@@ -26,24 +26,24 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0dc20415"></script>
+    <script src="../_static/documentation_options.js?v=a9ba800c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'guide/helpers';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://lemyst.github.io/WikibaseIntegrator/en/latest/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'stable';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.2" />
+  <meta name="docsearch:version" content="0.14.3" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -106,7 +106,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -203,14 +203,14 @@
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
   <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
   </ul>
 </div></div>
       
@@ -256,7 +256,7 @@
   
 
   
-    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -270,7 +270,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -340,14 +340,14 @@
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
   <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
   </ul>
 </div></div>
         
@@ -447,7 +447,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -529,6 +529,47 @@ credentials once for every query, including the ones executed by the fast run mo
 <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </pre></div>
 </div>
+<section id="time-limit-of-a-query">
+<h3>Time limit of a query<a class="headerlink" href="#time-limit-of-a-query" title="Link to this heading">#</a></h3>
+<p>The Wikidata Query Service stops a query after 60 seconds. To stop a query that would run too long earlier, and spare
+the resources of the endpoint as asked by the <a class="reference external" href="https://www.wikidata.org/wiki/Wikidata:Data_access#Access_best_practices">access best practices of Wikidata</a>,
+pass a shorter limit, in seconds, with <code class="docutils literal notranslate"><span class="pre">query_timeout</span></code>, or set it once for every query, including the ones executed by
+the fast run mode, with <code class="docutils literal notranslate"><span class="pre">wbi_config['SPARQL_QUERY_TIMEOUT']</span></code>. It is sent as the <code class="docutils literal notranslate"><span class="pre">maxQueryTimeMillis</span></code> parameter of
+Blazegraph, the engine of the Wikidata Query Service and of the query services of Wikibase, and can’t raise the limit
+of the endpoint.</p>
+<p>A query stopped at the time limit, the one of the endpoint or <code class="docutils literal notranslate"><span class="pre">query_timeout</span></code>, raises a <code class="docutils literal notranslate"><span class="pre">SPARQLTimeoutError</span></code> (a
+<code class="docutils literal notranslate"><span class="pre">requests.HTTPError</span></code> too) at once: it isn’t retried, as the same query would most likely be stopped again. Optimize the
+query, or split it (e.g. with <code class="docutils literal notranslate"><span class="pre">LIMIT</span></code> and <code class="docutils literal notranslate"><span class="pre">OFFSET</span></code>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">wbi_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_backoff</span><span class="w"> </span><span class="kn">import</span> <span class="n">SPARQLTimeoutError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="s1">'SELECT (COUNT(*) AS ?count) WHERE { ?item wdt:P31 wd:Q5 }'</span><span class="p">,</span> <span class="n">query_timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">SPARQLTimeoutError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'The query takes more than 10 seconds'</span><span class="p">)</span>
+
+<span class="n">wbi_config</span><span class="p">[</span><span class="s1">'SPARQL_QUERY_TIMEOUT'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">30</span>
+</pre></div>
+</div>
+</section>
+<section id="scholarly-articles-on-wikidata">
+<h3>Scholarly articles on Wikidata<a class="headerlink" href="#scholarly-articles-on-wikidata" title="Link to this heading">#</a></h3>
+<p>Since the <a class="reference external" href="https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split">graph split of the Wikidata Query Service</a>,
+the default endpoint, <code class="docutils literal notranslate"><span class="pre">https://query.wikidata.org/sparql</span></code>, only holds the main graph of Wikidata. The items of the
+scholarly articles are in a separate query service: query it with <code class="docutils literal notranslate"><span class="pre">endpoint</span></code>. Its graph holds the articles, not the
+properties or the other items, so a query needing both has to be split, or federated as explained on the page of the
+graph split.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wbi_helpers</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s1">'SELECT ?item WHERE { ?item wdt:P356 "10.1001/ARCHDERM.1979.04010090001003" }'</span>
+
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>  <span class="c1"># No result: the article isn't in the main graph</span>
+<span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">'https://query-scholarly.wikidata.org/sparql'</span><span class="p">)</span>  <span class="c1"># Q44048456</span>
+</pre></div>
+</div>
+<p>The fast run mode can’t check the scholarly articles, see <a class="reference internal" href="fastrun.html#scholarly-articles-on-wikidata"><span class="std std-ref">Fast run</span></a>.</p>
+</section>
 <section id="wikimedia-commons-query-service">
 <h3>Wikimedia Commons Query Service<a class="headerlink" href="#wikimedia-commons-query-service" title="Link to this heading">#</a></h3>
 <p>The SPARQL endpoint of Structured Data on Commons, the <a class="reference external" href="https://commons-query.wikimedia.org/">Wikimedia Commons Query Service</a>
@@ -681,6 +722,11 @@ extension.</p></li>
 <code class="docutils literal notranslate"><span class="pre">item.sitelinks.set('enwiki',</span> <span class="pre">'Douglas</span> <span class="pre">Adams',</span> <span class="pre">badges=['Q17437796'])</span></code> (featured article on Wikidata).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">delete_page()</span></code>: delete a page.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code>: download the RDF (Turtle) representation of an entity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">download_entity_data()</span></code>: download an entity from <code class="docutils literal notranslate"><span class="pre">Special:EntityData</span></code>, the linked data interface of Wikibase: in JSON
+(the default), Turtle (<code class="docutils literal notranslate"><span class="pre">ttl</span></code>), N-Triples (<code class="docutils literal notranslate"><span class="pre">nt</span></code>), RDF/XML (<code class="docutils literal notranslate"><span class="pre">rdf</span></code>) or JSON-LD (<code class="docutils literal notranslate"><span class="pre">jsonld</span></code>), at its latest revision or at
+a given <code class="docutils literal notranslate"><span class="pre">revision</span></code>. With the RDF formats, <code class="docutils literal notranslate"><span class="pre">flavor='dump'</span></code> leaves out the descriptions of the other entities the entity
+refers to, and <code class="docutils literal notranslate"><span class="pre">flavor='simple'</span></code> only keeps the best-ranked statements, without their qualifiers and references.
+<code class="docutils literal notranslate"><span class="pre">download_entity_ttl()</span></code> accepts <code class="docutils literal notranslate"><span class="pre">flavor</span></code> and <code class="docutils literal notranslate"><span class="pre">revision</span></code> too.</p></li>
 </ul>
 <p>Some examples are available in the <a class="reference external" href="https://github.com/LeMyst/WikibaseIntegrator/blob/master/notebooks/wbi_helpers.ipynb">wbi_helpers.ipynb</a> notebook.</p>
 </section>
@@ -746,7 +792,7 @@ summary that is too long is shortened, so that the link is never truncated.</p>
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -761,6 +807,8 @@ summary that is too long is shortened, so that the link is never truncated.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-than-wikibase">More than Wikibase</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-mediawiki-api">Use MediaWiki API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-sparql-queries">Execute SPARQL queries</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time-limit-of-a-query">Time limit of a query</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scholarly-articles-on-wikidata">Scholarly articles on Wikidata</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikimedia-commons-query-service">Wikimedia Commons Query Service</a></li>
 </ul>
 </li>
@@ -812,8 +860,8 @@ summary that is too long is shortened, so that the link is never truncated.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -846,7 +894,7 @@ summary that is too long is shortened, so that the link is never truncated.</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>

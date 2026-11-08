@@ -26,24 +26,24 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0dc20415"></script>
+    <script src="../_static/documentation_options.js?v=a9ba800c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/configuration';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://lemyst.github.io/WikibaseIntegrator/en/latest/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'stable';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.2" />
+  <meta name="docsearch:version" content="0.14.3" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -106,7 +106,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -203,14 +203,14 @@
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
   <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
   </ul>
 </div></div>
       
@@ -256,7 +256,7 @@
   
 
   
-    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -270,7 +270,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -340,14 +340,14 @@
 
 <div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
   <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
   </ul>
 </div></div>
         
@@ -496,6 +496,7 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_helpers.WikibaseCheck.html">WikibaseCheck</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_helpers.get_user_agent.html">get_user_agent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_helpers.download_entity_ttl.html">download_entity_ttl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_helpers.download_entity_data.html">download_entity_data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_helpers.format2wbi.html">format2wbi</a></li>
 </ul>
 </details></li>
@@ -511,6 +512,7 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_enums.WikibaseRank.html">WikibaseRank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_enums.WikibaseSnakType.html">WikibaseSnakType</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_enums.WikibaseTimePrecision.html">WikibaseTimePrecision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html">WikibaseIntegratorError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MWApiError.html">MWApiError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.ModificationFailed.html">ModificationFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
@@ -520,11 +522,16 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.LoginError.html">LoginError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html">SearchError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html">MaxRetriesReachedException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html">MaxRetriesReachedException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html">SearchError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html">WCQSAuthenticationError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff.html">wbi_backoff</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.RetryAfterError.html">RetryAfterError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.SPARQLTimeoutError.html">SPARQLTimeoutError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html">wbi_backoff_wait</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html">wbi_backoff_giveup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_manifest.get_manifest.html">get_manifest</a></li>
@@ -570,7 +577,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -612,6 +619,9 @@ Options can be changed at run time. See test/test_wbi_backoff.py for usage examp
 <span class="n">TIMEOUT</span><span class="p">:</span>           <span class="n">Timeout</span> <span class="p">(</span><span class="ow">in</span> <span class="n">seconds</span><span class="p">)</span> <span class="n">passed</span> <span class="n">to</span> <span class="n">every</span> <span class="n">HTTP</span> <span class="n">request</span><span class="p">,</span> <span class="n">either</span> <span class="n">a</span> <span class="n">single</span> <span class="n">value</span> <span class="ow">or</span> <span class="n">a</span> <span class="p">(</span><span class="n">connect</span><span class="p">,</span> <span class="n">read</span><span class="p">)</span> <span class="nb">tuple</span><span class="o">.</span>
                    <span class="n">Prevents</span> <span class="n">a</span> <span class="n">silent</span><span class="o">/</span><span class="n">unresponsive</span> <span class="n">server</span> <span class="kn">from</span><span class="w"> </span><span class="nn">blocking</span> <span class="n">the</span> <span class="n">process</span> <span class="n">indefinitely</span><span class="o">.</span>
                    <span class="n">Set</span> <span class="n">to</span> <span class="kc">None</span> <span class="n">to</span> <span class="n">disable</span> <span class="p">(</span><span class="n">wait</span> <span class="n">forever</span><span class="p">)</span><span class="o">.</span> <span class="n">Default</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+<span class="n">SPARQL_QUERY_TIMEOUT</span><span class="p">:</span> <span class="n">Default</span> <span class="n">maximum</span> <span class="n">time</span><span class="p">,</span> <span class="ow">in</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">the</span> <span class="n">SPARQL</span> <span class="n">endpoint</span> <span class="n">may</span> <span class="n">spend</span> <span class="n">on</span> <span class="n">a</span> <span class="n">query</span> <span class="n">of</span>
+                   <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">()</span> <span class="p">(</span><span class="ow">and</span> <span class="n">so</span> <span class="n">of</span> <span class="n">the</span> <span class="n">fast</span> <span class="n">run</span> <span class="n">mode</span><span class="p">)</span><span class="o">.</span> <span class="n">See</span> <span class="n">its</span> <span class="n">query_timeout</span> <span class="n">parameter</span><span class="o">.</span>
+                   <span class="n">Default</span><span class="p">:</span> <span class="kc">None</span> <span class="p">(</span><span class="n">the</span> <span class="n">limit</span> <span class="n">of</span> <span class="n">the</span> <span class="n">endpoint</span><span class="p">,</span> <span class="mi">60</span> <span class="n">seconds</span> <span class="n">on</span> <span class="n">the</span> <span class="n">Wikidata</span> <span class="n">Query</span> <span class="n">Service</span><span class="p">)</span>
 <span class="n">SPARQL_AUTH</span><span class="p">:</span>       <span class="n">Default</span> <span class="n">authentication</span> <span class="n">used</span> <span class="n">by</span> <span class="n">wbi_helpers</span><span class="o">.</span><span class="n">execute_sparql_query</span><span class="p">()</span> <span class="p">(</span><span class="ow">and</span> <span class="n">so</span> <span class="n">by</span> <span class="n">the</span> <span class="n">fast</span> <span class="n">run</span> <span class="n">mode</span><span class="p">)</span> <span class="n">when</span> <span class="n">the</span>
                    <span class="n">SPARQL</span> <span class="n">endpoint</span> <span class="ow">is</span> <span class="n">protected</span><span class="o">.</span> <span class="n">Either</span> <span class="n">a</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="nb">tuple</span> <span class="k">for</span> <span class="n">HTTP</span> <span class="n">Basic</span> <span class="n">auth</span> <span class="ow">or</span> <span class="nb">any</span>
                    <span class="n">requests</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">AuthBase</span> <span class="n">instance</span><span class="o">.</span> <span class="n">Default</span><span class="p">:</span> <span class="kc">None</span> <span class="p">(</span><span class="n">no</span> <span class="n">authentication</span><span class="p">)</span>
@@ -653,40 +663,55 @@ Options can be changed at run time. See test/test_wbi_backoff.py for usage examp
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MWApiError.html#wikibaseintegrator.wbi_exceptions.MWApiError" title="wikibaseintegrator.wbi_exceptions.MWApiError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MWApiError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError.html#wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError" title="wikibaseintegrator.wbi_exceptions.WikibaseIntegratorError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WikibaseIntegratorError</span></code></a></p></td>
+<td><p>Base class of the exceptions raised by WikibaseIntegrator: catch it to handle any of them, e.g. around a bot run.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MWApiError.html#wikibaseintegrator.wbi_exceptions.MWApiError" title="wikibaseintegrator.wbi_exceptions.MWApiError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MWApiError</span></code></a></p></td>
 <td><p>Base class for MediaWiki API error handling</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.ModificationFailed.html#wikibaseintegrator.wbi_exceptions.ModificationFailed" title="wikibaseintegrator.wbi_exceptions.ModificationFailed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModificationFailed</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.ModificationFailed.html#wikibaseintegrator.wbi_exceptions.ModificationFailed" title="wikibaseintegrator.wbi_exceptions.ModificationFailed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModificationFailed</span></code></a></p></td>
 <td><p>When the API return a 'modification-failed' error</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SaveFailed.html#wikibaseintegrator.wbi_exceptions.SaveFailed" title="wikibaseintegrator.wbi_exceptions.SaveFailed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SaveFailed</span></code></a></p></td>
-<td><p>When the API return a 'save-failed' error</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SaveFailed.html#wikibaseintegrator.wbi_exceptions.SaveFailed" title="wikibaseintegrator.wbi_exceptions.SaveFailed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SaveFailed</span></code></a></p></td>
+<td><p>When the API return a 'failed-save' error</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></p></td>
+<td><p>When the API return a 'no-such-entity' error: the entity doesn't exist on the Wikibase instance, or its entity type doesn't exist there.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingExtensionError.html#wikibaseintegrator.wbi_exceptions.MissingExtensionError" title="wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingExtensionError.html#wikibaseintegrator.wbi_exceptions.MissingExtensionError" title="wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></p></td>
 <td><p>Raised when a request needs a MediaWiki extension the Wikibase instance doesn't provide, e.g. the lexemes of the WikibaseLexeme extension.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException" title="wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException" title="wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></p></td>
+<td><p>Raised when an entity read from the Wikibase instance is missing, e.g. deleted, or when a MediaInfo title is not found.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html#wikibaseintegrator.wbi_exceptions.EmptyValueError" title="wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html#wikibaseintegrator.wbi_exceptions.EmptyValueError" title="wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></p></td>
 <td><p>Raised before a write when a claim, a qualifier or a reference has no value, while its snak type states that it has one.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError" title="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError" title="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></p></td>
 <td><p>Raised when no data type class handles a datatype, like one added to the Wikibase instance by an extension that WikibaseIntegrator doesn't support.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError" title="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError" title="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></p></td>
 <td><p>Raised when an anonymous edit is attempted while it is not explicitly allowed.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.LoginError.html#wikibaseintegrator.wbi_exceptions.LoginError" title="wikibaseintegrator.wbi_exceptions.LoginError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoginError</span></code></a></p></td>
+<td><p>Raised when there is an issue with the login</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
+<td><p>Raised when the wbsearchentities API answers without success.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
+<td><p>Raised when a request still fails after all its retries: the last failure is its cause (<code class="docutils literal notranslate"><span class="pre">__cause__</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError" title="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></p></td>
+<td><p>Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth: it answers with the HTML login page of Wikimedia Commons instead of the query results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
+<td><p>Raised when a request still fails after all its retries: the last failure is its cause (<code class="docutils literal notranslate"><span class="pre">__cause__</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
+<td><p>Raised when the wbsearchentities API answers without success.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError" title="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></p></td>
 <td><p>Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth: it answers with the HTML login page of Wikimedia Commons instead of the query results.</p></td>
 </tr>
 </tbody>
@@ -703,11 +728,14 @@ Options can be changed at run time. See test/test_wbi_backoff.py for usage examp
 <tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.RetryAfterError.html#wikibaseintegrator.wbi_backoff.RetryAfterError" title="wikibaseintegrator.wbi_backoff.RetryAfterError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RetryAfterError</span></code></a></p></td>
 <td><p>An HTTP 429 (Too Many Requests) response.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html#wikibaseintegrator.wbi_backoff.wbi_backoff_wait" title="wikibaseintegrator.wbi_backoff.wbi_backoff_wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wbi_backoff_wait</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.SPARQLTimeoutError.html#wikibaseintegrator.wbi_backoff.SPARQLTimeoutError" title="wikibaseintegrator.wbi_backoff.SPARQLTimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPARQLTimeoutError</span></code></a></p></td>
+<td><p>Raised when the SPARQL endpoint stopped a query at its time limit: the limit of the endpoint (60 seconds on the Wikidata Query Service), or the query_timeout of wbi_helpers.execute_sparql_query().</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_wait.html#wikibaseintegrator.wbi_backoff.wbi_backoff_wait" title="wikibaseintegrator.wbi_backoff.wbi_backoff_wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wbi_backoff_wait</span></code></a></p></td>
 <td><p>The number of seconds to wait after the given number of failed tries: 1, 2, 4, 8.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup" title="wikibaseintegrator.wbi_backoff.wbi_backoff_giveup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wbi_backoff_giveup</span></code></a></p></td>
-<td><p>Give up immediately on permanent errors: a real JSON decode error, or a client error (HTTP 4xx) other than RETRIED_CLIENT_ERRORS, like a malformed query (400) or an authentication failure (401/403), which retrying the same request cannot fix.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_backoff.wbi_backoff_giveup.html#wikibaseintegrator.wbi_backoff.wbi_backoff_giveup" title="wikibaseintegrator.wbi_backoff.wbi_backoff_giveup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wbi_backoff_giveup</span></code></a></p></td>
+<td><p>Give up immediately on permanent errors: a real JSON decode error, a client error (HTTP 4xx) other than RETRIED_CLIENT_ERRORS, like a malformed query (400) or an authentication failure (401/403), which retrying the same request cannot fix, or a SPARQL query stopped at the time limit of the endpoint, which would be stopped again.</p></td>
 </tr>
 </tbody>
 </table>
@@ -790,7 +818,7 @@ some Wikidata entities. It is installed on the instances of Wikibase.cloud, for 
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -849,8 +877,8 @@ some Wikidata entities. It is installed on the instances of Wikibase.cloud, for 
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -883,7 +911,7 @@ some Wikidata entities. It is installed on the instances of Wikibase.cloud, for 
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>

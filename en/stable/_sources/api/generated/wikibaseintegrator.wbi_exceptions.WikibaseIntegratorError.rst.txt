@@ -1,0 +1,6 @@
+﻿WikibaseIntegratorError
+=======================
+
+.. currentmodule:: wikibaseintegrator.wbi_exceptions
+
+.. autoexception:: WikibaseIntegratorError

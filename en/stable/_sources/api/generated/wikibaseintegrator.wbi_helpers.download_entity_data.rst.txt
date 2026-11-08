@@ -1,0 +1,6 @@
+﻿download\_entity\_data
+======================
+
+.. currentmodule:: wikibaseintegrator.wbi_helpers
+
+.. autofunction:: download_entity_data

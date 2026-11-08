@@ -1,0 +1,6 @@
+﻿SPARQLTimeoutError
+==================
+
+.. currentmodule:: wikibaseintegrator.wbi_backoff
+
+.. autoexception:: SPARQLTimeoutError

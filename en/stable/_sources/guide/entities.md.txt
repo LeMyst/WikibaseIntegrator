@@ -36,6 +36,21 @@ From [import_entity.ipynb](https://github.com/LeMyst/WikibaseIntegrator/blob/mas
 entity = wbi.item.get('Q582')
 ```
 
+### Read an entity at an old revision
+
+Get the entity as it was at one of its revisions, e.g. to compare it with its current state. The MediaWiki API only gives
+the latest revision of an entity: with `revision`, the entity is loaded from `Special:EntityData`, the linked data
+interface of Wikibase, instead.
+
+```python
+entity = wbi.item.get('Q42', revision=1600533266)
+print(entity.lastrevid)  # 1600533266
+```
+
+An entity loaded at a revision can't be written: `write()` raises a `ValueError`. Writing it wouldn't restore this
+revision, as its data would be merged into the latest revision of the entity (the statements added since would be kept).
+To write it anyway, set `entity.loaded_revision` to `None` first.
+
 ### Start a new entity
 
 Start a new local entity.
