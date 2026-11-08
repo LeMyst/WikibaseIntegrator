@@ -20,8 +20,9 @@ import ujson
 from requests import Session
 from requests.auth import AuthBase
 
-# format_amount() lives with the Quantity data type, so that the data model doesn't import this module: re-exported here
-from wikibaseintegrator.datatypes.quantity import format_amount  # pylint: disable=unused-import
+# format_amount() lives with the Quantity data type, so that the data model doesn't import this module: re-exported here, explicitly
+# with the redundant alias (py.typed)
+from wikibaseintegrator.datatypes.quantity import format_amount as format_amount  # pylint: disable=unused-import,useless-import-alias
 from wikibaseintegrator.wbi_backoff import RetryAfterError, SPARQLTimeoutError, wbi_backoff, wbi_backoff_wait
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
