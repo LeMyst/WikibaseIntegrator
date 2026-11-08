@@ -103,9 +103,13 @@ files = "wikibaseintegrator/**/*.py,test/*.py,test/integration/*.py,scripts/*.py
 warn_unused_ignores = true
 
 # The package ships type hints (py.typed): every function of it must be annotated. The tests are exempt.
+# Its modules re-export only the imported names listed in __all__ or imported with a redundant alias, as type checkers read
+# a py.typed package (Pyright reportPrivateImportUsage, mypy --strict): an import of the tests or of the package relying on
+# an implicit re-export fails.
 [[tool.mypy.overrides]]
 module = "wikibaseintegrator.*"
 disallow_untyped_defs = true
+implicit_reexport = false
 
 [tool.pylint.MASTER]
 extension-pkg-allow-list = [

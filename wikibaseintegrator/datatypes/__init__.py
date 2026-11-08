@@ -22,3 +22,28 @@ from .url import URL
 # isort: off
 from .extra import EDTF
 from .extra import LocalMedia
+
+# The public names of the package: a py.typed package re-exports only the imported names listed in __all__
+__all__ = [
+    'BaseDataType',
+    'CommonsMedia',
+    'EntitySchema',
+    'ExternalID',
+    'Form',
+    'GeoShape',
+    'GlobeCoordinate',
+    'Item',
+    'Lexeme',
+    'Math',
+    'MonolingualText',
+    'MusicalNotation',
+    'Property',
+    'Quantity',
+    'Sense',
+    'String',
+    'TabularData',
+    'Time',
+    'URL',
+    'EDTF',
+    'LocalMedia',
+]

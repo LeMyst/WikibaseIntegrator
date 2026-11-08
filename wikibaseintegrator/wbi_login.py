@@ -17,8 +17,9 @@ from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-# LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login
-from wikibaseintegrator.wbi_exceptions import LoginError, WCQSAuthenticationError
+# LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login: the redundant alias re-exports it explicitly (py.typed)
+from wikibaseintegrator.wbi_exceptions import LoginError as LoginError  # pylint: disable=useless-import-alias
+from wikibaseintegrator.wbi_exceptions import WCQSAuthenticationError
 from wikibaseintegrator.wbi_helpers import get_user_agent
 
 log = logging.getLogger(__name__)
