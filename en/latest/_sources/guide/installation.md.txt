@@ -3,7 +3,7 @@
 ## Installation
 
 The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
-3.11 and above.
+3.11.5 and above.
 
 ```bash
 python -m pip install wikibaseintegrator
