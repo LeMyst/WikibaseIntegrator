@@ -42,7 +42,8 @@ classifiers = [
 Changelog = "https://github.com/LeMyst/WikibaseIntegrator/releases"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+# 3.11.5: soupsieve 4 (docs and notebooks groups) requires it
+python = "^3.11.5"
 oauthlib = ">=3.2.2,<5.0.0"
 requests = "^2.32.3"
 requests-oauthlib = "^2.0.0"
@@ -69,6 +70,8 @@ pydata-sphinx-theme = "*"
 myst-parser = "*"
 sphinx-github-changelog = "*"
 sphinx-autodoc-typehints = "*"
+# Force soupsieve 4.0 (beautifulsoup4) to fix a denial of service in the descendant combinator (GHSA-mmhr-3c5m-f64f)
+soupsieve = ">=4.0"
 
 [tool.poetry.group.notebooks]
 optional = true
@@ -79,6 +82,8 @@ jupyter = "*"
 jupyterlab = "^4.2.5"
 # Force nbconvert 7.17.2 to fix a path traversal vulnerability (GHSA-pjvx-prjx-h659)
 nbconvert = ">=7.17.2"
+# Force soupsieve 4.0 (beautifulsoup4) to fix a denial of service in the descendant combinator (GHSA-mmhr-3c5m-f64f)
+soupsieve = ">=4.0"
 
 [tool.poetry.group.coverage]
 optional = true
