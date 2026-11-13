@@ -82,7 +82,7 @@ class SparqlData:
         assert match is not None
         bindings = []
         for sid in re.findall(r'<([^>]+)>', match.group(1)):
-            for pattern, bindings_by_sid in (('wikibase:qualifier', self.qualifiers), ('prov:wasDerivedFrom', self.references), ('wikibase:rank', self.ranks)):
+            for pattern, bindings_by_sid in (('/prop/qualifier/', self.qualifiers), ('prov:wasDerivedFrom', self.references), ('wikibase:rank', self.ranks)):
                 if pattern in query:
                     bindings += [{'sid': uri(sid), **binding} for binding in bindings_by_sid.get(sid, [])]
         return self._page(query, bindings)
@@ -102,15 +102,19 @@ class SparqlData:
         start = int(offset.group(1)) if offset else 0
         return bindings[start:start + int(limit.group(1))] if limit else bindings[start:]
 
-    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None, precision: int | None = None) -> str:
-        """Register a statement binding and return its statement URI."""
+    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str | None, index: int = 0, unit: str | None = None, precision: int | None = None) -> str:
+        """
+        Register a statement binding and return its statement URI. A property_type of None leaves ?property_type unbound,
+        like a graph without the properties (the scholarly articles graph of the Wikidata Query Service).
+        """
         sid = f'{self.wikibase.base_url}/entity/statement/{entity_id}-{prop_nr}-{index}'
         binding = {
             'entity': uri(f'{self.wikibase.base_url}/entity/{entity_id}'),
             'sid': uri(sid),
             'value': value,
-            'property_type': uri(property_type),
         }
+        if property_type is not None:
+            binding['property_type'] = uri(property_type)
         if unit is not None:
             binding['unit'] = uri(unit)
         if precision is not None:
@@ -118,23 +122,25 @@ class SparqlData:
         self.statements.setdefault(prop_nr, []).append(binding)
         return sid
 
-    def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str, precision: int | None = None) -> None:
+    def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str | None, precision: int | None = None) -> None:
         binding = {
             'property': uri(f'{self.wikibase.base_url}/entity/{prop_nr}'),
             'value': value,
-            'property_type': uri(property_type),
         }
+        if property_type is not None:
+            binding['property_type'] = uri(property_type)
         if precision is not None:
             binding['precision'] = literal(str(precision), datatype=XSD_INTEGER)
         self.qualifiers.setdefault(sid, []).append(binding)
 
-    def reference(self, sid: str, prop_nr: str, value: dict, property_type: str, ref_node: str = 'deadbeef', precision: int | None = None) -> None:
+    def reference(self, sid: str, prop_nr: str, value: dict, property_type: str | None, ref_node: str = 'deadbeef', precision: int | None = None) -> None:
         binding = {
             'srid': uri(f'{self.wikibase.base_url}/reference/{ref_node}'),
             'ref_property': uri(f'{self.wikibase.base_url}/entity/{prop_nr}'),
             'ref_value': value,
-            'property_type': uri(property_type),
         }
+        if property_type is not None:
+            binding['property_type'] = uri(property_type)
         if precision is not None:
             binding['ref_precision'] = literal(str(precision), datatype=XSD_INTEGER)
         self.references.setdefault(sid, []).append(binding)
@@ -628,7 +634,7 @@ class TestValueDetails:
 
         [query] = self.queries(wikibase, 'load_statements')
         assert '/prop/statement/value/' not in query
-        assert 'OPTIONAL' not in query
+        assert 'wikibase:quantityUnit' not in query and 'wikibase:timePrecision' not in query
 
     def test_only_the_statements_of_the_entity_filter_are_checked(self, wikibase, sparql_data, frc):
         sid = self.population(sparql_data, 'Q99')
@@ -723,7 +729,7 @@ class TestStatementDetails:
         assert frc.write_required(claims=[self.claim()], use_references=True, use_rank=True) is False
 
         [query] = self.queries(wikibase)
-        assert 'wikibase:qualifier' in query and 'prov:wasDerivedFrom' in query and 'wikibase:rank' in query
+        assert '/prop/qualifier/' in query and 'prov:wasDerivedFrom' in query and 'wikibase:rank' in query
 
     @pytest.mark.parametrize('use_references, use_rank', [(False, False), (True, False), (False, True)])
     def test_only_the_requested_details_are_queried(self, wikibase, sparql_data, frc, use_references, use_rank):
@@ -732,7 +738,7 @@ class TestStatementDetails:
         assert frc.write_required(claims=[self.claim()], use_references=use_references, use_rank=use_rank) is False
 
         [query] = self.queries(wikibase)
-        assert 'wikibase:qualifier' in query
+        assert '/prop/qualifier/' in query
         assert ('prov:wasDerivedFrom' in query) is use_references
         assert ('wikibase:rank' in query) is use_rank
 
@@ -981,3 +987,113 @@ class TestBaseFilter:
         assert f'?entity <{wikibase.base_url}/prop/direct/P352> ?zzP352 .' in base_filter_string
         assert f'?entity <{wikibase.base_url}/prop/direct/P703> <{wikibase.base_url}/entity/Q55983715> .' in base_filter_string
         assert f'?entity <{wikibase.base_url}/prop/direct/P31>/<{wikibase.base_url}/prop/direct/P279>* <{wikibase.base_url}/entity/Q3624078> .' in base_filter_string
+
+
+class TestGraphWithoutProperties:
+    """
+    A graph without the properties, like the scholarly articles graph of the Wikidata Query Service
+    (query-scholarly.wikidata.org): ?property_type is unbound, the types of the properties are loaded from the MediaWiki API.
+    """
+
+    @staticmethod
+    def datatype_requests(wikibase) -> list[list[str]]:
+        """The properties of each wbgetentities request loading datatypes, sorted."""
+        return [sorted(request['ids'].split('|')) for request in wikibase.requests if request.get('action') == 'wbgetentities' and request.get('props') == 'datatype']
+
+    def test_get_entities(self, wikibase, sparql_data, frc):
+        wikibase.add_property('P352', 'external-id')
+        sparql_data.statement('Q99', 'P352', literal('P40095'), None)
+
+        assert frc.get_entities(claims=[ExternalID(value='P40095', prop_nr='P352')]) == ['Q99']
+        assert frc.properties_type == {'P352': PTYPE_EXTERNAL_ID}
+        assert self.datatype_requests(wikibase) == [['P352']]
+
+    def test_types_are_loaded_once(self, wikibase, sparql_data, frc):
+        wikibase.add_property('P352', 'external-id')
+        sparql_data.statement('Q99', 'P352', literal('P40095'), None)
+
+        frc.load_statements(claims=ExternalID(value='P40095', prop_nr='P352'))
+        frc.load_statements(claims=ExternalID(value='P40095', prop_nr='P352'), cache=False)
+
+        assert self.datatype_requests(wikibase) == [['P352']]
+
+    def test_no_api_call_when_the_graph_has_the_properties(self, wikibase, sparql_data, frc):
+        sid = sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
+        sparql_data.qualifier(sid, 'P642', uri(f'{wikibase.base_url}/entity/Q42'), PTYPE_ITEM)
+
+        claim = ExternalID(value='P40095', prop_nr='P352', qualifiers=[Item(value='Q42', prop_nr='P642')])
+        assert frc.write_required(claims=[claim]) is False
+        assert self.datatype_requests(wikibase) == []
+        assert frc.properties_type == {'P352': PTYPE_EXTERNAL_ID, 'P642': PTYPE_ITEM}
+
+    def test_qualifiers_references_and_rank(self, wikibase, sparql_data, frc):
+        for prop_nr, datatype in (('P352', 'external-id'), ('P642', 'wikibase-item'), ('P248', 'wikibase-item'), ('P813', 'time')):
+            wikibase.add_property(prop_nr, datatype)
+        sid = sparql_data.statement('Q99', 'P352', literal('P40095'), None)
+        sparql_data.qualifier(sid, 'P642', uri(f'{wikibase.base_url}/entity/Q42'), None)
+        sparql_data.reference(sid, 'P248', uri(f'{wikibase.base_url}/entity/Q1234'), None)
+        sparql_data.reference(sid, 'P813', literal('2022-07-19T00:00:00Z', datatype=XSD_DATETIME), None, precision=11)
+        sparql_data.rank(sid, 'NormalRank')
+
+        references = [[Item(value='Q1234', prop_nr='P248'), Time(time='+2022-07-19T00:00:00Z', prop_nr='P813', precision=11)]]
+        claim = ExternalID(value='P40095', prop_nr='P352', qualifiers=[Item(value='Q42', prop_nr='P642')], references=references)
+        assert frc.write_required(claims=[claim], use_references=True, use_rank=True) is False
+
+        # One request for the property of the statement, then one for the properties of its qualifiers and references
+        assert self.datatype_requests(wikibase) == [['P352'], ['P248', 'P642', 'P813']]
+
+        # A different reference date is still told apart
+        references = [[Item(value='Q1234', prop_nr='P248'), Time(time='+2022-07-20T00:00:00Z', prop_nr='P813', precision=11)]]
+        claim = ExternalID(value='P40095', prop_nr='P352', qualifiers=[Item(value='Q42', prop_nr='P642')], references=references)
+        assert frc.write_required(claims=[claim], use_references=True, use_rank=True) is True
+
+    def test_unknown_datatype(self, wikibase, sparql_data, frc, caplog):
+        wikibase.add_property('P352', 'some-new-datatype')
+        sparql_data.statement('Q99', 'P352', literal('P40095'), None)
+
+        # The value can't be read: a write is required
+        assert frc.write_required(claims=[ExternalID(value='P40095', prop_nr='P352')]) is True
+        assert 'P352' not in frc.properties_type
+        assert "Unknown datatype 'some-new-datatype' of property 'P352'" in caplog.text
+
+    def test_queries_do_not_need_the_properties(self, wikibase, sparql_data, frc):
+        wikibase.add_property('P1082', 'quantity')
+        sid = sparql_data.statement('Q99', 'P1082', literal('+1234', datatype=XSD_DECIMAL), None, unit='http://www.wikidata.org/entity/Q199')
+        sparql_data.rank(sid, 'NormalRank')
+
+        assert frc.write_required(claims=[Quantity(amount=1234, prop_nr='P1082')], use_references=True, use_rank=True) is False
+
+        queries = '\n'.join(wikibase.sparql_queries)
+        assert f'OPTIONAL {{ <{wikibase.base_url}/entity/P1082> wikibase:propertyType ?property_type. }}' in queries
+        assert 'FILTER(STRENDS(STR(?value_predicate), "/prop/statement/value/P1082"))' in queries
+        assert 'FILTER(REGEX(STR(?predicate), "/prop/qualifier/P[0-9]+$"))' in queries
+        assert 'FILTER(REGEX(STR(?ref_predicate), "/prop/reference/P[0-9]+$"))' in queries
+        # The triples of the properties, absent from the graph, are not required
+        for pattern in ('wikibase:qualifier ', 'wikibase:reference ', 'wikibase:statementValue', 'wikibase:qualifierValue', 'wikibase:referenceValue'):
+            assert pattern not in queries
+
+
+class TestSparqlEndpoint:
+    SCHOLARLY = 'https://query-scholarly.example.org/sparql'
+
+    def test_get_fastrun_container(self, wikibase):
+        default = wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P356')])
+        scholarly = wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P356')], sparql_endpoint_url=self.SCHOLARLY)
+
+        assert default is not scholarly
+        assert default.sparql_endpoint_url == wikibase.sparql_endpoint_url
+        assert scholarly.sparql_endpoint_url == self.SCHOLARLY
+        assert wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P356')], sparql_endpoint_url=self.SCHOLARLY) is scholarly
+        assert wbi_fastrun.get_fastrun_container(base_filter=[BaseDataType(prop_nr='P356')], sparql_endpoint_url=wikibase.sparql_endpoint_url) is default
+
+    def test_entity_write_required(self, wikibase, sparql_data, requests_mock):
+        requests_mock.post(self.SCHOLARLY, json=wikibase._handle_sparql)
+        wikibase.add_property('P356', 'external-id')
+        sparql_data.statement('Q99', 'P356', literal('10.1001/ARCHDERM.1979.04010090001003'), None)
+
+        item = wbi.item.new()
+        item.id = 'Q99'
+        item.claims.add(ExternalID(value='10.1001/ARCHDERM.1979.04010090001003', prop_nr='P356'))
+
+        assert item.write_required(base_filter=[BaseDataType(prop_nr='P356')], sparql_endpoint_url=self.SCHOLARLY) is False
+        assert {request.url for request in requests_mock.request_history if request.method == 'POST' and 'sparql' in request.url} == {self.SCHOLARLY}

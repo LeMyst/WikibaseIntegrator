@@ -20,7 +20,8 @@ from wikibaseintegrator.models.references import References
 from wikibaseintegrator.models.snak import Snak, _require_property_number
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
-from wikibaseintegrator.wbi_helpers import execute_sparql_query
+from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
+from wikibaseintegrator.wbi_helpers import _load_properties_datatype, execute_sparql_query, properties_dt
 
 log = logging.getLogger(__name__)
 
@@ -104,17 +105,51 @@ class FastRunContainer:
         """Reduce an entity URI to its bare entity ID. A bare entity ID is returned unchanged."""
         return entity.rsplit('/', 1)[-1]
 
-    def _datatype_class(self, property_type: str) -> type[BaseDataType]:
+    def _datatype_class(self, property_type: str | None) -> type[BaseDataType]:
         """
         Return the data type class implementing the given SPARQL property type (e.g. 'http://wikiba.se/ontology#Time' -> Time).
 
-        :param property_type: A property type URI from the wikibase ontology
+        :param property_type: A property type URI from the wikibase ontology, None if unknown
         :exception ValueError: if no class implements the given property type
         """
         for subclass in self.base_data_type.subclasses:
             if subclass.PTYPE == property_type:
                 return subclass
         raise ValueError(f"No data type class found for the property type '{property_type}'")
+
+    def _load_property_types(self, prop_nrs: list[str]) -> None:
+        """
+        Load the types of the properties missing from properties_type from the MediaWiki API (config['MEDIAWIKI_API_URL']),
+        50 by 50. The queries read the type of a property from the graph of the SPARQL endpoint (wikibase:propertyType),
+        but a graph can lack the properties: the scholarly articles graph of the Wikidata Query Service only holds the
+        articles. A property of a datatype without data type class is left out, its values can't be compared.
+
+        :param prop_nrs: The property numbers, e.g. ['P356', 'P580']
+        """
+        missing = [prop_nr for prop_nr in dict.fromkeys(prop_nrs) if prop_nr not in self.properties_type]
+        if not missing:
+            return
+
+        _load_properties_datatype(missing)
+
+        mediawiki_api_url = str(config['MEDIAWIKI_API_URL'])
+        for prop_nr in missing:
+            datatype = properties_dt.get((mediawiki_api_url, prop_nr))
+            try:
+                self.properties_type[prop_nr] = self.base_data_type.get_datatype_class(str(datatype)).PTYPE
+            except UnknownDatatypeError:
+                log.warning("Unknown datatype '%s' of property '%s', its values can't be compared", datatype, prop_nr)
+
+    def _property_type(self, result: dict, prop_nr: str) -> str | None:
+        """
+        The type of a property, from a SPARQL result binding ?property_type, else from properties_type (see
+        _load_property_types()). A type read from a result is kept in properties_type.
+        """
+        if 'property_type' in result:
+            property_type: str = result['property_type']['value']
+            self.properties_type.setdefault(prop_nr, property_type)
+            return property_type
+        return self.properties_type.get(prop_nr)
 
     @classmethod
     def _normalize_unit(cls, unit: str) -> str:
@@ -279,7 +314,8 @@ class FastRunContainer:
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
-                      <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type.
+                      # Optional: the graph can lack the properties, see _load_property_types()
+                      OPTIONAL {{ <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type. }}
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
                       ?sid <{wb_url}/prop/statement/{prop_nr}> {value}.
                       {qualifiers_filter_string}
@@ -304,7 +340,8 @@ class FastRunContainer:
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
-                      <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type.
+                      # Optional: the graph can lack the properties, see _load_property_types()
+                      OPTIONAL {{ <{wb_url}/entity/{prop_nr}> wikibase:propertyType ?property_type. }}
                       ?sid <{wb_url}/prop/statement/{prop_nr}> ?value.
                     }}
                     ORDER BY ?sid ?value
@@ -319,10 +356,13 @@ class FastRunContainer:
                 offset += limit  # We increase the offset for the next iteration
                 results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
+                if any('property_type' not in result for result in results):
+                    self._load_property_types([prop_nr])
+
                 for result in results:
                     entity = result['entity']['value']
                     sid = result['sid']['value']
-                    property_type = result['property_type']['value']
+                    property_type = self._property_type(result, prop_nr)
 
                     try:
                         f = self._datatype_class(property_type)().from_sparql_value(sparql_value=result['value'])
@@ -336,9 +376,6 @@ class FastRunContainer:
                     if sparql_value is not None:
                         if sparql_value not in self.data[prop_nr]:
                             self.data[prop_nr][sparql_value] = []
-
-                        if prop_nr not in self.properties_type:
-                            self.properties_type[prop_nr] = property_type
 
                         self.data[prop_nr][sparql_value].append({'entity': entity, 'sid': sid})
 
@@ -381,12 +418,15 @@ class FastRunContainer:
         if use_qualifiers:
             patterns.append('''{
                     ?sid ?predicate ?value.
-                    ?property wikibase:qualifier ?predicate.
-                    ?property wikibase:propertyType ?property_type.
+                    # A qualifier, e.g. <http://www.wikidata.org/prop/qualifier/P580>, recognized from the IRI of its predicate
+                    # rather than from the triples of the property: the graph can lack the properties, see _load_property_types()
+                    FILTER(REGEX(STR(?predicate), "/prop/qualifier/P[0-9]+$"))
+                    BIND(IRI(REPLACE(STR(?predicate), "/prop/qualifier/(P[0-9]+)$", "/entity/$1")) AS ?property)
+                    OPTIONAL { ?property wikibase:propertyType ?property_type. }
                     # The precision of a time value, from the value node holding the same timestamp
                     OPTIONAL {
-                      ?property wikibase:qualifierValue ?value_predicate.
                       ?sid ?value_predicate ?value_node.
+                      FILTER(STR(?value_predicate) = REPLACE(STR(?predicate), "/prop/qualifier/", "/prop/qualifier/value/"))
                       ?value_node wikibase:timeValue ?value;
                                   wikibase:timePrecision ?precision.
                     }
@@ -395,12 +435,14 @@ class FastRunContainer:
             patterns.append('''{
                     ?sid prov:wasDerivedFrom ?srid.
                     ?srid ?ref_predicate ?ref_value.
-                    ?ref_property wikibase:reference ?ref_predicate.
-                    ?ref_property wikibase:propertyType ?property_type.
+                    # A reference snak, e.g. <http://www.wikidata.org/prop/reference/P248>, recognized from the IRI of its predicate
+                    FILTER(REGEX(STR(?ref_predicate), "/prop/reference/P[0-9]+$"))
+                    BIND(IRI(REPLACE(STR(?ref_predicate), "/prop/reference/(P[0-9]+)$", "/entity/$1")) AS ?ref_property)
+                    OPTIONAL { ?ref_property wikibase:propertyType ?property_type. }
                     # The precision of a time value, from the value node holding the same timestamp
                     OPTIONAL {
-                      ?ref_property wikibase:referenceValue ?ref_value_predicate.
                       ?srid ?ref_value_predicate ?ref_value_node.
+                      FILTER(STR(?ref_value_predicate) = REPLACE(STR(?ref_predicate), "/prop/reference/", "/prop/reference/value/"))
                       ?ref_value_node wikibase:timeValue ?ref_value;
                                       wikibase:timePrecision ?ref_precision.
                     }
@@ -436,6 +478,12 @@ class FastRunContainer:
 
                 offset += limit  # We increase the offset for the next iteration
                 results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+
+                # The qualifier and reference snaks whose property type isn't in the graph
+                untyped = [self._entity_id(result['ref_property' if 'srid' in result else 'property']['value']) for result in results
+                           if 'rank' not in result and 'property_type' not in result]
+                if untyped:
+                    self._load_property_types(untyped)
 
                 for result in results:
                     sid = result['sid']['value']
@@ -474,10 +522,7 @@ class FastRunContainer:
         """
         prefix, kind = ('ref_', 'reference snak') if reference else ('', 'qualifier')
         prop_nr = self._entity_id(result[f'{prefix}property']['value'])
-        property_type = result['property_type']['value']
-
-        if prop_nr not in self.properties_type:
-            self.properties_type[prop_nr] = property_type
+        property_type = self._property_type(result, prop_nr)
 
         try:
             f = self._datatype_class(property_type)(prop_nr=prop_nr).from_sparql_value(sparql_value=result[f'{prefix}value'])
@@ -553,7 +598,9 @@ class FastRunContainer:
             SELECT ?sid ?unit ?precision WHERE {{
               VALUES ?sid {{ {values} }}
               ?sid ?value_predicate ?value_node.
-              ?property wikibase:statementValue ?value_predicate.
+              # The value node of the statement, e.g. <http://www.wikidata.org/prop/statement/value/P2067>, recognized from the IRI
+              # of its predicate: the graph can lack the properties, see _load_property_types()
+              FILTER(STRENDS(STR(?value_predicate), "/prop/statement/value/{prop_nr}"))
               # The unit of a quantity value, only bound for quantities
               OPTIONAL {{ ?value_node wikibase:quantityUnit ?unit . }}
               # The precision of a time value, only bound for times
@@ -925,7 +972,7 @@ class FastRunContainer:
 
 
 def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], use_qualifiers: bool = True, use_references: bool = False, use_rank: bool = False,
-                          cache: bool = True, case_insensitive: bool = False) -> FastRunContainer:
+                          cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None) -> FastRunContainer:
     """
     Return a FastRunContainer object, create a new one if it doesn't already exist.
 
@@ -935,6 +982,8 @@ def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], 
     :param use_rank: Use rank during fastrun. Disabled by default.
     :param cache: Put data returned by the SPARQL endpoint in cache. Enabled by default.
     :param case_insensitive: Compare the string values without taking the case into account. Disabled by default.
+    :param sparql_endpoint_url: The SPARQL endpoint, e.g. 'https://query-scholarly.wikidata.org/sparql' for the scholarly articles of
+        Wikidata. Default: config['SPARQL_ENDPOINT_URL']
     :return: a FastRunContainer object
     """
     if base_filter is None:
@@ -942,18 +991,18 @@ def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], 
 
     # We search if we already have a FastRunContainer with the same parameters to reuse it
     fastrun_container = _search_fastrun_store(base_filter=base_filter, use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank,
-                                              case_insensitive=case_insensitive, cache=cache)
+                                              case_insensitive=case_insensitive, cache=cache, sparql_endpoint_url=sparql_endpoint_url)
 
     return fastrun_container
 
 
 def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], use_qualifiers: bool = True, use_references: bool = False, use_rank: bool = False,
-                          cache: bool = True, case_insensitive: bool = False) -> FastRunContainer:
+                          cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None) -> FastRunContainer:
     """
     Search for an existing FastRunContainer with the same parameters or create a new one if it doesn't exist.
 
     The containers are also told apart by the SPARQL endpoint and the Wikibase URL of the configuration: the queries of a
-    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance.
+    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance and endpoint.
 
     :param base_filter: The default filter to initialize the dataset. A list made of BaseDataType or list of BaseDataType.
     :param use_qualifiers: Use qualifiers during fastrun. Enabled by default.
@@ -961,11 +1010,13 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     :param use_rank: Use rank during fastrun. Disabled by default.
     :param cache: Put data returned by the SPARQL endpoint in cache. Enabled by default.
     :param case_insensitive: Compare the string values without taking the case into account. Disabled by default.
+    :param sparql_endpoint_url: The SPARQL endpoint. Default: config['SPARQL_ENDPOINT_URL']
     :return: a FastRunContainer object
     """
+    sparql_endpoint_url = str(sparql_endpoint_url or config['SPARQL_ENDPOINT_URL'])
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_qualifiers == use_qualifiers) and (fastrun.use_references == use_references) and (
-                fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == config['SPARQL_ENDPOINT_URL']) and (
+                fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == sparql_endpoint_url) and (
                 fastrun.wikibase_url == config['WIKIBASE_URL']):
             fastrun.cache = cache
             return fastrun
@@ -974,6 +1025,6 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     log.info("Create a new FastRunContainer")
 
     fastrun_container = FastRunContainer(base_data_type=BaseDataType, base_filter=base_filter, use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank,
-                                         cache=cache, case_insensitive=case_insensitive)
+                                         cache=cache, case_insensitive=case_insensitive, sparql_endpoint_url=sparql_endpoint_url)
     fastrun_store.append(fastrun_container)
     return fastrun_container
