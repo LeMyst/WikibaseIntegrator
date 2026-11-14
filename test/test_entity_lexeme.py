@@ -141,6 +141,41 @@ class TestWriteForm:
         assert lexeme.write_forms(allow_anonymous=True) == []
 
 
+    def test_write_form_refuses_a_removed_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        requests_before = len(wikibase.requests)
+
+        # The 'remove' marker would be sent to wbladdform, which doesn't expect it
+        with pytest.raises(ValueError, match='removed'):
+            lexeme.write_form(new_form().remove(), allow_anonymous=True)
+
+        assert len(wikibase.requests) == requests_before
+
+    def test_write_forms_skips_the_removed_ones(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.forms.add(new_form(representation='pinillo').remove())
+        lexeme.forms.add(new_form(representation='pinito'))
+
+        assert lexeme.write_forms(allow_anonymous=True) == ['L5-F3']
+        assert wikibase.last_edit['data']['representations']['es']['value'] == 'pinito'
+
+
+class TestRemoveForm:
+    def test_write_sends_the_removed_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        assert lexeme.forms.get('L5-F1').remove() is lexeme.forms.get('L5-F1')
+        lexeme.write(allow_anonymous=True)
+
+        forms = {form['id']: form for form in wikibase.last_edit['data']['forms']}
+        assert 'remove' in forms['L5-F1']
+        assert 'remove' not in forms['L5-F2']
+
+    def test_new_removed_form_is_left_out(self, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.forms.add(new_form().remove())
+        assert [form['id'] for form in lexeme.get_json()['forms']] == ['L5-F1', 'L5-F2']
+
+
 class TestWriteSense:
     def test_write_sense(self, wikibase, lexeme_l5):
         lexeme = wbi.lexeme.get('L5')

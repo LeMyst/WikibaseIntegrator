@@ -209,6 +209,9 @@ class LexemeEntity(BaseEntity):
         if form.id:
             raise ValueError(f"The Form {form.id} already exists, adding it again would create a duplicate.")
 
+        if form.removed:
+            raise ValueError('The Form is marked as removed, it cannot be added.')
+
         data = form.get_json()
         # 'add' is a marker used by wbeditentity, the wbladdform action doesn't expect it.
         data.pop('add', None)
@@ -223,12 +226,12 @@ class LexemeEntity(BaseEntity):
     def write_forms(self, **kwargs: Any) -> list[str]:
         """
         Add all the new Forms of the Lexeme, one wbladdform action per Form. The Forms already existing on the
-        Wikibase instance are skipped.
+        Wikibase instance and the Forms marked as removed are skipped.
 
         :param kwargs: Arguments passed to write_form()
         :return: The ids of the newly created Forms
         """
-        return [self.write_form(form, **kwargs) for form in self.forms if not form.id]
+        return [self.write_form(form, **kwargs) for form in self.forms if not form.id and not form.removed]
 
     def write_sense(self, sense: Sense, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
         """
