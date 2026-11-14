@@ -6,6 +6,10 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **A request with a login and `allow_anonymous=True` uses the edit token of the login**: the request is made with
+  the session of the login, which rejects the anonymous token. It used to send the anonymous token, so such an edit
+  failed with a `badtoken` error. A `token` given in the data is still sent as it is.
+
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 
 ```
