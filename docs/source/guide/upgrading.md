@@ -6,6 +6,10 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **`write(as_new=True)` only sends what belongs to the new entity**: the GUIDs of the claims, the ids of the forms
+  and senses of a lexeme, and the claims, terms, forms and senses marked for removal are left out. They used to be
+  sent along with the copy, with the GUIDs of the entity it was read from.
+
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 
 ```
