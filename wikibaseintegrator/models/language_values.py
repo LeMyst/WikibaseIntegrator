@@ -56,15 +56,16 @@ class LanguageValues(BaseModel):
         Create or update the specified language with the valued passed in arguments.
 
         :param language: The desired language.
-        :param value: The desired value of the LanguageValue object. Use None to delete an existing LanguageValue object from the list.
+        :param value: The desired value of the LanguageValue object. Use None or an empty string to delete an existing LanguageValue object
+            from the list, as Wikibase does with an empty value.
         :param action_if_exists: The action if the LanguageValue object is already defined. Can be ActionIfExists.REPLACE_ALL (default) or ActionIfExists.KEEP.
         :return: The created or updated LanguageValue. None if there's no LanguageValue object with this language.
         """
         language = str(language or config['DEFAULT_LANGUAGE'])
         assert action_if_exists in [ActionIfExists.REPLACE_ALL, ActionIfExists.KEEP]
 
-        # Remove value if None
-        if value is None:
+        # Remove the value if None or empty: Wikibase removes a label, description or lemma set to an empty string
+        if not value:
             if language in self.values:
                 self.values[language].remove()
             return None

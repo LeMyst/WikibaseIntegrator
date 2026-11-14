@@ -6,6 +6,13 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **An empty value removes a label, a description or a lemma**: `labels.set('en', '')` marks the existing label
+  for removal, like `labels.set('en', None)` and like Wikibase does with an empty value, and returns `None`. It used
+  to leave the label unchanged.
+- **Replacing the aliases of a language by none removes them**: `aliases.set('en', [], ActionIfExists.REPLACE_ALL)`
+  marks the existing aliases for removal. It used to send an empty list, which left them on the entity. Empty
+  strings in the list are ignored, as `aliases.add()` does.
+
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 
 ```

@@ -77,6 +77,15 @@ class TestLabels:
         item.labels.set(language='non-exist-key', value=None)
         assert 'remove' in item.get_json()['labels']['fr']
 
+    def test_set_empty_label_removes_it(self, item):
+        # Wikibase removes a label set to an empty string, so set() does the same as with None
+        assert item.labels.set(language='fr', value='') is None
+        assert item.get_json()['labels']['fr'] == {'language': 'fr', 'value': 'Villeurbanne', 'remove': ''}
+
+    def test_set_empty_label_in_new_language(self, item):
+        assert item.labels.set(language='ak', value='') is None
+        assert 'ak' not in item.get_json()['labels']
+
     def test_set_label_in_new_language(self, item):
         item.labels.set(value='label', language='ak')
         assert item.labels.get('ak') == 'label'
@@ -139,6 +148,17 @@ class TestAliases:
         assert 'remove' not in item.get_json()['aliases']['ak'][0]
         item.aliases.set(language='ak')
         assert 'remove' in item.get_json()['aliases']['ak'][0]
+
+    @pytest.mark.parametrize('values', [[], [''], ''])
+    def test_replace_all_by_nothing_removes_the_aliases(self, item, values):
+        # An empty list in the JSON would leave the aliases on the entity: they are sent with the remove flag
+        existing = item.get_json()['aliases']['fr']
+        item.aliases.set(language='fr', values=values, action_if_exists=ActionIfExists.REPLACE_ALL)
+        assert item.get_json()['aliases']['fr'] == [dict(alias, remove='') for alias in existing]
+
+    def test_replace_all_ignores_empty_values(self, item):
+        item.aliases.set(language='fr', values=['', 'a'], action_if_exists=ActionIfExists.REPLACE_ALL)
+        assert item.get_json()['aliases']['fr'] == [{'language': 'fr', 'value': 'a'}]
 
     def test_add(self, item):
         existing = [alias.value for alias in item.aliases.get('fr')]

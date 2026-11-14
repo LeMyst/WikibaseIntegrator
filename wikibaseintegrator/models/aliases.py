@@ -89,11 +89,14 @@ class Aliases(BaseModel):
             return self.add(language=language, values=values)
 
         if action_if_exists == ActionIfExists.REPLACE_ALL:
-            aliases = []
-            for value in values:
-                alias = Alias(language, value)
-                aliases.append(alias)
-            self.aliases[language] = aliases
+            # Empty values are ignored, like add() does
+            values = [value for value in values if value]
+            if not values:
+                # Replacing the aliases by none removes them: an empty list in the JSON would leave them on the entity
+                for alias in self.aliases[language]:
+                    alias.remove()
+                return self
+            self.aliases[language] = [Alias(language, value) for value in values]
         elif action_if_exists == ActionIfExists.KEEP:
             # Only when the language has no alias: the removed ones don't count, and are replaced by the new ones
             if all(alias.removed for alias in self.aliases[language]):

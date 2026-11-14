@@ -216,6 +216,14 @@ class TestForms:
         assert forms.get('L1-F2') is None
 
 
+class TestLanguageValues:
+    def test_add_empty_value_is_ignored(self):
+        values = LanguageValues()
+        values.add(LanguageValue('en', 'a'))
+        values.add(LanguageValue('en', ''))
+        assert values.get_json() == {'en': {'language': 'en', 'value': 'a'}}
+
+
 class TestLanguageValue:
     @pytest.mark.parametrize('language', [None, '', 5])
     def test_invalid_language(self, language):
