@@ -27,11 +27,14 @@ def string_claim(property_id: str, value: str, **fields: str) -> dict:
 
 @pytest.fixture(scope='module')
 def created(login):
-    """The pages created by the tests of this module, deleted at the end."""
-    titles: list[str] = []
-    yield titles
-    for title in titles:
-        delete_page(title=title, reason='WikibaseIntegrator integration test cleanup', login=login)
+    """The entities created by the tests of this module, deleted at the end."""
+    entity_ids: list[str] = []
+    yield entity_ids
+    if entity_ids:
+        # The response of wbeditentity has no page title: the namespace of the entities depends on the configuration of the instance
+        entities = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': '|'.join(entity_ids), 'props': 'info', 'format': 'json'}, allow_anonymous=True)['entities']
+        for entity in entities.values():
+            delete_page(title=entity['title'], reason='WikibaseIntegrator integration test cleanup', login=login)
 
 
 @pytest.fixture(scope='module')
@@ -41,7 +44,7 @@ def edit(login, created):
     def edit_entity(data: dict, **params: str) -> dict:
         entity = mediawiki_api_call_helper(data={'action': 'wbeditentity', 'data': json.dumps(data), 'format': 'json', **params}, login=login)['entity']
         if 'new' in params:
-            created.append(entity['title'])
+            created.append(entity['id'])
         return entity
 
     return edit_entity
