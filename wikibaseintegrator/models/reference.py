@@ -52,7 +52,8 @@ class Reference(BaseModel):
             snak = Snak().from_json(snak.get_json()['mainsnak'])
 
         if snak is not None:
-            assert isinstance(snak, Snak)
+            if not isinstance(snak, Snak):
+                raise TypeError(f"Expected a Snak or a Claim, found {type(snak)}")
             self.snaks.add(snak)
 
         return self

@@ -106,7 +106,8 @@ class Claim(BaseModel):
 
     @qualifiers.setter
     def qualifiers(self, value: Qualifiers) -> None:
-        assert isinstance(value, (Qualifiers, list))
+        if not isinstance(value, (Qualifiers, list)):
+            raise TypeError(f"The qualifiers must be a Qualifiers object or a list, found {type(value)}")
         self.__qualifiers: Qualifiers = Qualifiers().set(value) if isinstance(value, list) else value
 
     @property

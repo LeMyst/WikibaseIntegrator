@@ -51,7 +51,8 @@ class References(BaseModel):
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
 
         if reference is not None:
-            assert isinstance(reference, Reference)
+            if not isinstance(reference, Reference):
+                raise TypeError(f"Expected a Reference or a Claim, found {type(reference)}")
 
             if reference not in self.references:
                 self.references.append(reference)
@@ -75,7 +76,8 @@ class References(BaseModel):
         if isinstance(reference_to_remove, Claim):
             reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(reference_to_remove.get_json()['mainsnak'])))
 
-        assert isinstance(reference_to_remove, Reference)
+        if not isinstance(reference_to_remove, Reference):
+            raise TypeError(f"Expected a Reference or a Claim, found {type(reference_to_remove)}")
 
         for reference in self.references:
             if reference == reference_to_remove:

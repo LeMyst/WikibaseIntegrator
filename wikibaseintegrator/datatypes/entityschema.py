@@ -26,7 +26,8 @@ class EntitySchema(BaseDataType):
         self.set_value(value=value)
 
     def set_value(self, value: str | int | None = None) -> None:
-        assert isinstance(value, (str, int)) or value is None, f'Expected str or int, found {type(value)} ({value})'
+        if value is not None and not isinstance(value, (str, int)):
+            raise TypeError(f'Expected str or int, found {type(value)} ({value})')
 
         if value:
             if isinstance(value, str):

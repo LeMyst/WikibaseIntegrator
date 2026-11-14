@@ -38,8 +38,10 @@ class MonolingualText(BaseDataType):
     def set_value(self, text: str | None = None, language: str | None = None) -> None:
         language = language or str(config['DEFAULT_LANGUAGE'])
 
-        assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
-        assert isinstance(language, str), f"Expected str, found {type(language)} ({language})"
+        if text is not None and not isinstance(text, str):
+            raise TypeError(f"Expected str, found {type(text)} ({text})")
+        if not isinstance(language, str):
+            raise TypeError(f"Expected str, found {type(language)} ({language})")
 
         if text and ('\n' in text or '\r' in text):
             raise ValueError("MonolingualText text must not contain newline character")

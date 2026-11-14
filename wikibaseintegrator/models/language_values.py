@@ -31,7 +31,8 @@ class LanguageValues(BaseModel):
         :param language_value: A LanguageValue object
         :return: The current LanguageValues object
         """
-        assert isinstance(language_value, LanguageValue)
+        if not isinstance(language_value, LanguageValue):
+            raise TypeError(f"Expected a LanguageValue, found {type(language_value)}")
 
         if language_value.value:
             self.values[language_value.language] = language_value
@@ -61,7 +62,8 @@ class LanguageValues(BaseModel):
         :return: The created or updated LanguageValue. None if there's no LanguageValue object with this language.
         """
         language = str(language or config['DEFAULT_LANGUAGE'])
-        assert action_if_exists in [ActionIfExists.REPLACE_ALL, ActionIfExists.KEEP]
+        if action_if_exists not in [ActionIfExists.REPLACE_ALL, ActionIfExists.KEEP]:
+            raise ValueError(f'{action_if_exists} is not a valid action_if_exists value, use ActionIfExists.REPLACE_ALL or ActionIfExists.KEEP')
 
         # Remove value if None
         if value is None:

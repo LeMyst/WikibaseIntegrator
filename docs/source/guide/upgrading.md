@@ -6,6 +6,13 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **Invalid arguments raise `TypeError` or `ValueError` instead of `AssertionError`**: a value of the wrong type
+  given to a data type (e.g. `String(value=1)`), to the models (`Qualifiers`, `Reference`, `References`,
+  `LanguageValues`, `Claim.qualifiers`) or to `generate_entity_instances()` raises a `TypeError`, and an
+  `action_if_exists` that `Aliases.set()` or `LanguageValues.set()` doesn't support raises a `ValueError`. These
+  checks were `assert` statements, which `python -O` skips. Catch `TypeError` or `ValueError` instead of
+  `AssertionError`.
+
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 
 ```
