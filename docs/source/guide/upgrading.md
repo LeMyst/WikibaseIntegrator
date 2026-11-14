@@ -1,5 +1,8 @@
 # Upgrading
 
+The breaking changes of each release, and the code to change. The [versioning and deprecation policy](versioning.md)
+says what can change in which release.
+
 ## Breaking changes in v0.15
 
 v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
