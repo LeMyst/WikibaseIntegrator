@@ -253,6 +253,10 @@ class TestDefaultSession:
         with pytest.warns(DeprecationWarning):
             assert getattr(wbi_helpers, name) is wbi_helpers._get_default_session()
 
+    def test_bcolors_is_deprecated(self):
+        with pytest.warns(DeprecationWarning, match='removed in WikibaseIntegrator 1.0'):
+            assert wbi_helpers.BColors.ENDC == '\x1b[0m'
+
     def test_unknown_attribute_still_raises(self):
         with pytest.raises(AttributeError):
             getattr(wbi_helpers, 'does_not_exist')

@@ -6,6 +6,21 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+### Deprecated in v0.15, removed in 1.0
+
+These APIs still work in v0.15 and emit a `DeprecationWarning`. They will be removed in 1.0:
+
+- **`parse_sparql_value()`** of the data types: use `from_sparql_value()`, which takes the JSON binding of the value
+  returned by the SPARQL query (e.g. `{'type': 'literal', 'value': 'Paris'}`) instead of its string form.
+- **`wbi_helpers.BColors`**: the library no longer emits ANSI color codes. Copy the codes into your own code if you
+  use them.
+- **`wbi_helpers.default_session` and `wbi_helpers.helpers_session`** (deprecated since v0.13): the session of the
+  requests made without a login is per-thread and private.
+- **The `max_retries` parameter of `execute_sparql_query()`** (deprecated and ignored since v0.13): the retries of
+  the SPARQL queries are set by `wbi_config['BACKOFF_MAX_TRIES']`.
+- **Importing `Representations` from `wikibaseintegrator.models.forms` and `Glosses` from
+  `wikibaseintegrator.models.senses`**: import them from `wikibaseintegrator.models`.
+
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 
 ```
