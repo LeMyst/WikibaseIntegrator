@@ -149,16 +149,10 @@ class TestAliases:
         item.aliases.set(language='ak')
         assert 'remove' in item.get_json()['aliases']['ak'][0]
 
-    @pytest.mark.parametrize('values', [[], [''], ''])
-    def test_replace_all_by_nothing_removes_the_aliases(self, item, values):
-        # An empty list in the JSON would leave the aliases on the entity: they are sent with the remove flag
-        existing = item.get_json()['aliases']['fr']
-        item.aliases.set(language='fr', values=values, action_if_exists=ActionIfExists.REPLACE_ALL)
-        assert item.get_json()['aliases']['fr'] == [dict(alias, remove='') for alias in existing]
-
-    def test_replace_all_ignores_empty_values(self, item):
-        item.aliases.set(language='fr', values=['', 'a'], action_if_exists=ActionIfExists.REPLACE_ALL)
-        assert item.get_json()['aliases']['fr'] == [{'language': 'fr', 'value': 'a'}]
+    def test_replace_all_by_an_empty_list(self, item):
+        # Wikibase removes the aliases of a language sent with an empty list (test/integration/test_wikibase_behavior.py)
+        item.aliases.set(language='fr', values=[], action_if_exists=ActionIfExists.REPLACE_ALL)
+        assert item.get_json()['aliases']['fr'] == []
 
     def test_add(self, item):
         existing = [alias.value for alias in item.aliases.get('fr')]
