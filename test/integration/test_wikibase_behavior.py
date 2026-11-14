@@ -60,15 +60,25 @@ def labelled(name: str) -> dict:
 
 
 class TestTerms:
-    def test_empty_list_of_aliases_keeps_them(self, edit):
-        # Aliases.set(language, [], REPLACE_ALL) must mark the aliases for removal: an empty list leaves them
+    @staticmethod
+    def aliases(entity_id: str) -> list[str]:
+        entity = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': entity_id, 'props': 'aliases', 'format': 'json'}, allow_anonymous=True)['entities'][entity_id]
+        return [alias['value'] for alias in (entity.get('aliases') or {}).get('en', [])]
+
+    def test_empty_list_of_aliases_removes_them(self, edit):
+        # Aliases.set(language, [], REPLACE_ALL) sends an empty list for the language
         item = edit({**labelled('aliases'), 'aliases': {'en': [term('en', 'a'), term('en', 'b')]}}, new='item')
+        assert self.aliases(item['id']) == ['a', 'b']
 
-        edited = edit({'aliases': {'en': []}}, id=item['id'])
-        assert [alias['value'] for alias in edited['aliases']['en']] == ['a', 'b']
+        edit({'aliases': {'en': []}}, id=item['id'])
+        assert self.aliases(item['id']) == []
 
-        edited = edit({'aliases': {'en': [term('en', 'a', remove=''), term('en', 'b', remove='')]}}, id=item['id'])
-        assert 'en' not in (edited.get('aliases') or {})
+    def test_aliases_marked_for_removal(self, edit):
+        # Aliases.set(language) or set(language, None) marks the aliases for removal
+        item = edit({**labelled('removed aliases'), 'aliases': {'en': [term('en', 'a'), term('en', 'b')]}}, new='item')
+
+        edit({'aliases': {'en': [term('en', 'a', remove='')]}}, id=item['id'])
+        assert self.aliases(item['id']) == ['b']
 
     def test_empty_label_removes_it(self, edit):
         # LanguageValues.set(language, '') marks the value for removal, like Wikibase does with an empty value
