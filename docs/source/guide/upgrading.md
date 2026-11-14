@@ -6,6 +6,9 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **A `Quantity` takes both bounds or none**: a single `upper_bound` or `lower_bound` raises a `ValueError`. Wikibase
+  rejects such a quantity when it is written, so it used to fail later, at the write.
+
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 
 ```
