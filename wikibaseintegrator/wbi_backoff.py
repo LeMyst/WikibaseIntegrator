@@ -115,7 +115,7 @@ def wbi_backoff() -> Callable[[Callable[P, R]], Callable[P, R]]:
     is False. The call is tried up to config['BACKOFF_MAX_TRIES'] times (None for no limit), then the last exception
     is raised.
 
-    A decorated function called by another one, e.g. the __init__() of _Login called by the __init__() of a login
+    A decorated function called by another one, e.g. the __init__() of BaseLogin called by the __init__() of a login
     class, is not retried on its own: its error goes up to the outermost decorated call, which retries the whole
     operation. Otherwise the tries would multiply at each level (5 x 5 token requests for a login).
     """

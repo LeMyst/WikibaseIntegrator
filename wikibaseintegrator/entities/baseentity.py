@@ -17,7 +17,7 @@ from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, download_entity_data, edit_entity, mediawiki_api_call_helper
-from wikibaseintegrator.wbi_login import _Login
+from wikibaseintegrator.wbi_login import BaseLogin
 
 if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
@@ -30,7 +30,7 @@ class BaseEntity:
     subclasses: list[type[BaseEntity]] = []
 
     def __init__(self, api: WikibaseIntegrator | None = None, title: str | None = None, pageid: int | None = None, lastrevid: int | None = None, type: str | None = None,
-                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: _Login | None = None) -> None:
+                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: BaseLogin | None = None) -> None:
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -186,7 +186,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None,
+    def _get(self, entity_id: str, login: BaseLogin | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None,
              revision: int | None = None, **kwargs: Any) -> dict:
         """
         Retrieve an entity in json representation from the Wikibase instance
@@ -243,7 +243,7 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
+    def get_claims(self, property: str, login: BaseLogin | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
         """
         Load the claims of a property from the Wikibase instance. They replace the claims of this property already loaded,
         unsaved changes included, so calling it again refreshes them instead of duplicating them.
@@ -271,7 +271,7 @@ class BaseEntity:
         self.claims.from_json(json_data['claims'])
         return self
 
-    def _write(self, data: dict | None = None, summary: str | None = None, login: _Login | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
+    def _write(self, data: dict | None = None, summary: str | None = None, login: BaseLogin | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
                clear: bool = False, as_new: bool = False, is_bot: bool | None = None, fields_to_update: list | None | EntityField = None, **kwargs: Any) -> dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
@@ -365,7 +365,7 @@ class BaseEntity:
 
         return json_result['entity']
 
-    def delete(self, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:
+    def delete(self, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:
         """
         Delete the current entity. Use the pageid first if available and fallback to the page title.
 
