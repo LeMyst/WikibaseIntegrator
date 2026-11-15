@@ -68,7 +68,7 @@ class FastRunContainer:
 
     def __init__(self, base_filter: list[BaseDataType | list[BaseDataType]], base_data_type: type[BaseDataType] | None = None, use_qualifiers: bool = True,
                  use_references: bool = False, use_rank: bool = False, cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None,
-                 wikibase_url: str | None = None) -> None:
+                 wikibase_url: str | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None) -> None:
 
         for k in base_filter:
             if not isinstance(k, BaseDataType) and not (isinstance(k, list) and len(k) == 2 and isinstance(k[0], BaseDataType) and isinstance(k[1], BaseDataType)):
@@ -84,6 +84,9 @@ class FastRunContainer:
         self.base_data_type = base_data_type or BaseDataType
         self.sparql_endpoint_url = str(sparql_endpoint_url or config['SPARQL_ENDPOINT_URL'])
         self.wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+        # The MediaWiki API giving the datatypes of the properties, and the user agent of the requests
+        self.mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+        self.user_agent = user_agent
         self.use_qualifiers = use_qualifiers
         self.use_references = use_references
         self.use_rank = use_rank
@@ -120,7 +123,7 @@ class FastRunContainer:
 
     def _load_property_types(self, prop_nrs: list[str]) -> None:
         """
-        Load the types of the properties missing from properties_type from the MediaWiki API (config['MEDIAWIKI_API_URL']),
+        Load the types of the properties missing from properties_type from the MediaWiki API (mediawiki_api_url),
         50 by 50. The queries read the type of a property from the graph of the SPARQL endpoint (wikibase:propertyType),
         but a graph can lack the properties: the scholarly articles graph of the Wikidata Query Service only holds the
         articles. A property of a datatype without data type class is left out, its values can't be compared.
@@ -131,11 +134,10 @@ class FastRunContainer:
         if not missing:
             return
 
-        _load_properties_datatype(missing)
+        _load_properties_datatype(missing, mediawiki_api_url=self.mediawiki_api_url, user_agent=self.user_agent)
 
-        mediawiki_api_url = str(config['MEDIAWIKI_API_URL'])
         for prop_nr in missing:
-            datatype = properties_dt.get((mediawiki_api_url, prop_nr))
+            datatype = properties_dt.get((self.mediawiki_api_url, prop_nr))
             try:
                 self.properties_type[prop_nr] = self.base_data_type.get_datatype_class(str(datatype)).PTYPE
             except UnknownDatatypeError:
@@ -175,7 +177,7 @@ class FastRunContainer:
         """
         if claim.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
             return None
-        value = claim.get_sparql_value()
+        value = claim.get_sparql_value(wikibase_url=self.wikibase_url)
         if value is None:
             return None
         if self.case_insensitive:
@@ -376,7 +378,7 @@ class FastRunContainer:
                     query = query.format(base_filter_string=base_filter_string, wb_url=wb_url, prop_nr=prop_nr, offset=str(offset), limit=str(limit))
 
                 offset += limit  # We increase the offset for the next iteration
-                results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+                results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, user_agent=self.user_agent)['results']['bindings']
 
                 if any('property_type' not in result for result in results):
                     self._load_property_types([prop_nr])
@@ -501,7 +503,7 @@ class FastRunContainer:
                 '''
 
                 offset += limit  # We increase the offset for the next iteration
-                results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+                results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, user_agent=self.user_agent)['results']['bindings']
 
                 # The qualifier and reference snaks whose property type isn't in the graph
                 untyped = [self._entity_id(result['ref_property' if 'srid' in result else 'property']['value']) for result in results
@@ -634,7 +636,7 @@ class FastRunContainer:
             }}
             '''
 
-            results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+            results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, user_agent=self.user_agent)['results']['bindings']
 
             # A statement without a value node has neither unit, precision nor calendar model: its value won't match any claim
             for sid in batch:
@@ -950,7 +952,7 @@ class FastRunContainer:
 
         log.debug(query)
 
-        return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
+        return execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url, user_agent=self.user_agent)['results']['bindings']
 
     @staticmethod
     def _language_predicate(lang: str, lang_data_type: str) -> str:
@@ -999,7 +1001,8 @@ class FastRunContainer:
 
 
 def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], use_qualifiers: bool = True, use_references: bool = False, use_rank: bool = False,
-                          cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None) -> FastRunContainer:
+                          cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None,
+                          mediawiki_api_url: str | None = None, user_agent: str | None = None) -> FastRunContainer:
     """
     Return a FastRunContainer object, create a new one if it doesn't already exist.
 
@@ -1011,6 +1014,9 @@ def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], 
     :param case_insensitive: Compare the string values without taking the case into account. Disabled by default.
     :param sparql_endpoint_url: The SPARQL endpoint, e.g. 'https://query-scholarly.wikidata.org/sparql' for the scholarly articles of
         Wikidata. Default: config['SPARQL_ENDPOINT_URL']
+    :param wikibase_url: The Wikibase URL of the entity IRIs of the endpoint. Default: config['WIKIBASE_URL']
+    :param mediawiki_api_url: The MediaWiki API giving the datatypes of the properties. Default: config['MEDIAWIKI_API_URL']
+    :param user_agent: The user agent of the requests. Default: config['USER_AGENT']
     :return: a FastRunContainer object
     """
     if base_filter is None:
@@ -1018,18 +1024,21 @@ def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], 
 
     # We search if we already have a FastRunContainer with the same parameters to reuse it
     fastrun_container = _search_fastrun_store(base_filter=base_filter, use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank,
-                                              case_insensitive=case_insensitive, cache=cache, sparql_endpoint_url=sparql_endpoint_url)
+                                              case_insensitive=case_insensitive, cache=cache, sparql_endpoint_url=sparql_endpoint_url, wikibase_url=wikibase_url,
+                                              mediawiki_api_url=mediawiki_api_url, user_agent=user_agent)
 
     return fastrun_container
 
 
 def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], use_qualifiers: bool = True, use_references: bool = False, use_rank: bool = False,
-                          cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None) -> FastRunContainer:
+                          cache: bool = True, case_insensitive: bool = False, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None,
+                          mediawiki_api_url: str | None = None, user_agent: str | None = None) -> FastRunContainer:
     """
     Search for an existing FastRunContainer with the same parameters or create a new one if it doesn't exist.
 
-    The containers are also told apart by the SPARQL endpoint and the Wikibase URL of the configuration: the queries of a
-    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance and endpoint.
+    The containers are also told apart by the SPARQL endpoint, the Wikibase URL and the MediaWiki API URL: the queries of a
+    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance and endpoint. A
+    reused container takes the user agent and the cache option given.
 
     :param base_filter: The default filter to initialize the dataset. A list made of BaseDataType or list of BaseDataType.
     :param use_qualifiers: Use qualifiers during fastrun. Enabled by default.
@@ -1038,20 +1047,36 @@ def _search_fastrun_store(base_filter: list[BaseDataType | list[BaseDataType]], 
     :param cache: Put data returned by the SPARQL endpoint in cache. Enabled by default.
     :param case_insensitive: Compare the string values without taking the case into account. Disabled by default.
     :param sparql_endpoint_url: The SPARQL endpoint. Default: config['SPARQL_ENDPOINT_URL']
+    :param wikibase_url: The Wikibase URL. Default: config['WIKIBASE_URL']
+    :param mediawiki_api_url: The MediaWiki API URL. Default: config['MEDIAWIKI_API_URL']
+    :param user_agent: The user agent of the requests. Default: config['USER_AGENT']
     :return: a FastRunContainer object
     """
     sparql_endpoint_url = str(sparql_endpoint_url or config['SPARQL_ENDPOINT_URL'])
+    wikibase_url = str(wikibase_url or config['WIKIBASE_URL'])
+    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
     for fastrun in fastrun_store:
         if (fastrun.base_filter == base_filter) and (fastrun.use_qualifiers == use_qualifiers) and (fastrun.use_references == use_references) and (
                 fastrun.use_rank == use_rank) and (fastrun.case_insensitive == case_insensitive) and (fastrun.sparql_endpoint_url == sparql_endpoint_url) and (
-                fastrun.wikibase_url == config['WIKIBASE_URL']):
+                fastrun.wikibase_url == wikibase_url) and (fastrun.mediawiki_api_url == mediawiki_api_url):
             fastrun.cache = cache
+            fastrun.user_agent = user_agent
             return fastrun
 
     # In case nothing was found in the fastrun_store
     log.info("Create a new FastRunContainer")
 
     fastrun_container = FastRunContainer(base_data_type=BaseDataType, base_filter=base_filter, use_qualifiers=use_qualifiers, use_references=use_references, use_rank=use_rank,
-                                         cache=cache, case_insensitive=case_insensitive, sparql_endpoint_url=sparql_endpoint_url)
+                                         cache=cache, case_insensitive=case_insensitive, sparql_endpoint_url=sparql_endpoint_url, wikibase_url=wikibase_url,
+                                         mediawiki_api_url=mediawiki_api_url, user_agent=user_agent)
     fastrun_store.append(fastrun_container)
     return fastrun_container
+
+
+def clear_fastrun_store() -> None:
+    """
+    Forget the fast run containers kept by get_fastrun_container(), with the data they loaded: the next call creates new
+    containers, which query the SPARQL endpoint again. The store keeps every container until it is cleared: clear it, e.g.
+    at the end of a batch, to free their memory or to read the changes made since.
+    """
+    fastrun_store.clear()

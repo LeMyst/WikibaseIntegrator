@@ -179,3 +179,25 @@ def test_dates_needing_a_conversion(wbi, properties, delete_entities, time_value
         assert other.write_required(base_filter=base_filter)
     finally:
         delete_entities([item_id])
+
+
+def test_instance_configuration(login, properties, target_item, synced_item, integration_config, monkeypatch):
+    """A WikibaseIntegrator configured for the instance works while wbi_config points elsewhere (#1193)."""
+    instance = {key: integration_config[key] for key in ('MEDIAWIKI_API_URL', 'SPARQL_ENDPOINT_URL', 'WIKIBASE_URL', 'USER_AGENT')}
+    for key, url in (('MEDIAWIKI_API_URL', 'http://wbi-unreachable.invalid/w/api.php'), ('SPARQL_ENDPOINT_URL', 'http://wbi-unreachable.invalid/sparql'),
+                     ('WIKIBASE_URL', 'http://wbi-unreachable.invalid')):
+        monkeypatch.setitem(wbi_config, key, url)
+    wbi = WikibaseIntegrator(login=login, config=instance)
+
+    # Read, and fast run against the query service of the instance
+    item = wbi.item.get(synced_item.id)
+    assert item.get_entity_url() == f"{instance['WIKIBASE_URL']}/entity/{synced_item.id}"
+    item.claims.add(build_claims(properties, target_item))
+    assert not item.write_required(base_filter=base_filter(properties))
+
+    # Write and delete
+    new = wbi.item.new()
+    new.labels.set(language='en', value=f'WBI integration test instance configuration {RUN_ID}')
+    new = new.write(summary='WikibaseIntegrator integration test: instance configuration')
+    assert wbi.item.get(new.id).labels.get('en').value == f'WBI integration test instance configuration {RUN_ID}'
+    new.delete(reason='WikibaseIntegrator integration test cleanup')
