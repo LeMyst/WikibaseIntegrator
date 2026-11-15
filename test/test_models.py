@@ -610,7 +610,8 @@ class TestForms:
             form.representations.set(language='en', value='English form representation')
             form.representations.set(language='fr', value='French form representation')
             form.claims.add(datatypes.String(prop_nr='P828', value='Create a string claim for form'))
-            lexeme.forms.add(form)
+            # Two of them have the same content and no id, which would make the second one a duplicate of the first
+            lexeme.forms.add(form, action_if_exists=ActionIfExists.FORCE_APPEND)
 
         assert not lexeme.forms.get('L5-F3')
         assert lexeme.forms.get('L5-F4') and lexeme.forms.get('L5-F5')

@@ -70,6 +70,10 @@ class Aliases(BaseModel):
         if not isinstance(action_if_exists, ActionIfExists):
             raise ValueError(f'{action_if_exists} is not a valid action_if_exists value. Use the enum ActionIfExists')
 
+        # Wikibase drops a duplicate alias, and aliases have no references to merge
+        if action_if_exists in (ActionIfExists.FORCE_APPEND, ActionIfExists.MERGE_REFS_OR_APPEND):
+            raise ValueError(f'{action_if_exists} has no meaning for aliases: use APPEND_OR_REPLACE, REPLACE_ALL or KEEP')
+
         assert language is not None
 
         if language not in self.aliases:
@@ -95,7 +99,7 @@ class Aliases(BaseModel):
                 alias = Alias(language, value)
                 aliases.append(alias)
             self.aliases[language] = aliases
-        elif action_if_exists == ActionIfExists.KEEP:
+        else:  # ActionIfExists.KEEP, the other actions are refused above
             # Only when the language has no alias: the removed ones don't count, and are replaced by the new ones
             if all(alias.removed for alias in self.aliases[language]):
                 self.aliases[language] = [Alias(language, value) for value in values]

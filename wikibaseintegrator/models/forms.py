@@ -4,9 +4,10 @@ import warnings
 from collections.abc import Iterator
 from typing import Any, Self
 
-from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
 from wikibaseintegrator.models.form import Form
 from wikibaseintegrator.models.representations import Representations as _Representations
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 
 def __getattr__(name: str) -> Any:
@@ -39,14 +40,29 @@ class Forms(BaseModel):
 
         return None
 
-    def add(self, form: Form) -> Self:
-        self.__forms.append(form)
+    def add(self, form: Form, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
+        """
+        Add a form to the lexeme.
+
+        :param form: The form.
+        :param action_if_exists: What to do when the form already exists, like Claims.add(): two forms are the
+            same when they have the same id, or, when one of them has no id yet, the same content (see Form.__eq__()).
+            Defaults to APPEND_OR_REPLACE.
+            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new form if it isn't there. Otherwise, the new form
+            replaces the one with the same id, or cancels the removal of the one with the same content.
+            FORCE_APPEND: Always add the new form, even if it is already there.
+            KEEP: Add the new form only if the lexeme has no form yet (the ones marked for removal don't count).
+            REPLACE_ALL: Mark for removal the forms that aren't the new one, then add it like APPEND_OR_REPLACE.
+        :return: This Forms object
+        """
+        _add_with_action(self.__forms, form, action_if_exists)
 
         return self
 
     def from_json(self, json_data: list[dict]) -> Self:
         for form in json_data:
-            self.add(form=Form().from_json(form))
+            # As they are on the instance
+            self.add(form=Form().from_json(form), action_if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
 

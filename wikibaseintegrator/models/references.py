@@ -4,7 +4,7 @@ import logging
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
-from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
 from wikibaseintegrator.models.reference import Reference
 from wikibaseintegrator.models.snak import Snak
 from wikibaseintegrator.models.snaks import Snaks
@@ -34,10 +34,20 @@ class References(BaseModel):
                 return reference
         return None
 
-    # TODO: implement action_if_exists
-    # action_if_exists is accepted for symmetry with Claims.add() but not implemented yet
-    # pylint: disable-next=unused-argument
     def add(self, reference: Reference | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
+        """
+        Add a reference.
+
+        :param reference: The reference, as a Reference or as a Claim whose main snak is the only snak of a new
+            reference. None adds nothing.
+        :param action_if_exists: What to do when the reference already exists, like Claims.add(): two references are
+            equal when they hold the same snaks (the hash isn't compared). Defaults to APPEND_OR_REPLACE.
+            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new reference if no equal reference exists.
+            FORCE_APPEND: Always add the new reference, even if an equal reference exists.
+            KEEP: Add the new reference only if the claim has no reference yet.
+            REPLACE_ALL: Remove the references not equal to the new one, then add it if it isn't there.
+        :return: This References object
+        """
         # Imported here because Claim holds References, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim
         if isinstance(reference, Claim):
@@ -54,14 +64,14 @@ class References(BaseModel):
             if not isinstance(reference, Reference):
                 raise TypeError(f"Expected a Reference or a Claim, found {type(reference)}")
 
-            if reference not in self.references:
-                self.references.append(reference)
+            _add_with_action(self.references, reference, action_if_exists)
 
         return self
 
     def from_json(self, json_data: list[dict]) -> Self:
         for reference in json_data:
-            self.add(reference=Reference().from_json(reference))
+            # As they are on the instance
+            self.add(reference=Reference().from_json(reference), action_if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
 

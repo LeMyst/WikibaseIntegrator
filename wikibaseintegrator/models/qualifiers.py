@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
-from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
 from wikibaseintegrator.models.snak import Snak, _require_property_number
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -27,7 +27,7 @@ class Qualifiers(BaseModel):
 
     def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Self:
         """
-        Replace the qualifiers with the given ones.
+        Replace the qualifiers with the given ones, all of them, even the equal ones.
 
         :param qualifiers: The new qualifiers, as a Qualifiers object or a list of Snak or Claim objects. None removes them all.
         :return: This Qualifiers object
@@ -37,7 +37,7 @@ class Qualifiers(BaseModel):
             new_qualifiers = list(qualifiers)
             self.qualifiers = {}
             for qualifier in new_qualifiers:
-                self.add(qualifier)
+                self.add(qualifier, action_if_exists=ActionIfExists.FORCE_APPEND)
         elif qualifiers is None:
             self.qualifiers = {}
         else:
@@ -54,10 +54,20 @@ class Qualifiers(BaseModel):
 
         return []
 
-    # TODO: implement action_if_exists
-    # action_if_exists is accepted for symmetry with Claims.add() but not implemented yet
-    # pylint: disable-next=unused-argument
     def add(self, qualifier: Snak | Claim, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
+        """
+        Add a qualifier.
+
+        :param qualifier: The qualifier, as a Snak or as a Claim whose main snak is taken. None adds nothing.
+        :param action_if_exists: What to do when the qualifier already exists, like Claims.add(): two qualifiers are
+            equal when they have the same property and value. Defaults to APPEND_OR_REPLACE.
+            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new qualifier if no equal qualifier exists.
+            FORCE_APPEND: Always add the new qualifier, even if an equal qualifier exists.
+            KEEP: Add the new qualifier only if the property has no qualifier yet.
+            REPLACE_ALL: Remove the qualifiers of the property not equal to the new one, then add it if it
+            isn't there.
+        :return: This Qualifiers object
+        """
         # Imported here because Claim holds Qualifiers, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim
         if isinstance(qualifier, Claim):
@@ -70,12 +80,7 @@ class Qualifiers(BaseModel):
         if not isinstance(qualifier, Snak):
             raise TypeError(f"Expected a Snak or a Claim, found {type(qualifier)}")
 
-        property = _require_property_number(qualifier)
-
-        if property not in self.qualifiers:
-            self.qualifiers[property] = []
-
-        self.qualifiers[property].append(qualifier)
+        _add_with_action(self.qualifiers.setdefault(_require_property_number(qualifier), []), qualifier, action_if_exists)
 
         return self
 
@@ -120,7 +125,8 @@ class Qualifiers(BaseModel):
     def from_json(self, json_data: dict[str, list]) -> Self:
         for property in json_data:
             for snak in json_data[property]:
-                self.add(qualifier=Snak().from_json(snak))
+                # As they are on the instance
+                self.add(qualifier=Snak().from_json(snak), action_if_exists=ActionIfExists.FORCE_APPEND)
         return self
 
     def get_json(self) -> dict[str, list]:
