@@ -456,12 +456,18 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCQSAuthenticationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_user_agent</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'BaseLogin'</span><span class="p">,</span> <span class="s1">'Clientlogin'</span><span class="p">,</span> <span class="s1">'Login'</span><span class="p">,</span> <span class="s1">'LoginError'</span><span class="p">,</span> <span class="s1">'OAuth1'</span><span class="p">,</span> <span class="s1">'OAuth2'</span><span class="p">,</span> <span class="s1">'WCQSAuth'</span><span class="p">]</span>
+
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">_Login</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseLogin</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    A class which handles the login to Wikidata and the generation of edit-tokens</span>
+<span class="sd">    The base class of the login methods (:class:`OAuth2`, :class:`OAuth1`, :class:`Login` and :class:`Clientlogin`):</span>
+<span class="sd">    it holds the session and generates the edit tokens.</span>
+
+<span class="sd">    Use it to annotate a parameter taking any login, like the ``login`` parameters of the library do. It was named</span>
+<span class="sd">    ``_Login`` in earlier versions, which is still an alias of it.</span>
 <span class="sd">    """</span>
 
     <span class="nd">@wbi_backoff</span><span class="p">()</span>
@@ -558,9 +564,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">instantiation_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
 
+<span class="c1"># The private name of BaseLogin in earlier versions, kept for the code importing it</span>
+<span class="n">_Login</span> <span class="o">=</span> <span class="n">BaseLogin</span>
+
+
 <div class="viewcode-block" id="OAuth2">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.OAuth2.html#wikibaseintegrator.wbi_login.OAuth2">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">OAuth2</span><span class="p">(</span><span class="n">_Login</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OAuth2</span><span class="p">(</span><span class="n">BaseLogin</span><span class="p">):</span>
     <span class="c1"># Seconds before its expiry when the access token is fetched again</span>
     <span class="n">ACCESS_TOKEN_MARGIN</span> <span class="o">=</span> <span class="mi">60</span>
 
@@ -634,7 +644,7 @@
 
 <div class="viewcode-block" id="OAuth1">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.OAuth1.html#wikibaseintegrator.wbi_login.OAuth1">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">OAuth1</span><span class="p">(</span><span class="n">_Login</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OAuth1</span><span class="p">(</span><span class="n">BaseLogin</span><span class="p">):</span>
 
     <span class="nd">@wbi_backoff</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">consumer_secret</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">access_secret</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -739,7 +749,7 @@
 
 <div class="viewcode-block" id="Login">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.Login.html#wikibaseintegrator.wbi_login.Login">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Login</span><span class="p">(</span><span class="n">_Login</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Login</span><span class="p">(</span><span class="n">BaseLogin</span><span class="p">):</span>
     <span class="nd">@wbi_backoff</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">token_renew_period</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -815,7 +825,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">reauthenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Redo the full bot-password login flow on the existing session, then refresh the CSRF token.</span>
-<span class="sd">        See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.</span>
+<span class="sd">        See BaseLogin.reauthenticate() for why this full re-login is needed instead of just fetching a new token.</span>
 <span class="sd">        """</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Session no longer valid, re-authenticating as </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">)</span>
         <span class="n">session_user_agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'User-Agent'</span><span class="p">)</span>
@@ -829,7 +839,7 @@
 
 <div class="viewcode-block" id="Clientlogin">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.Clientlogin.html#wikibaseintegrator.wbi_login.Clientlogin">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Clientlogin</span><span class="p">(</span><span class="n">_Login</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Clientlogin</span><span class="p">(</span><span class="n">BaseLogin</span><span class="p">):</span>
     <span class="nd">@wbi_backoff</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">token_renew_period</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -919,7 +929,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">reauthenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Redo the full clientlogin flow on the existing session, then refresh the CSRF token.</span>
-<span class="sd">        See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.</span>
+<span class="sd">        See BaseLogin.reauthenticate() for why this full re-login is needed instead of just fetching a new token.</span>
 <span class="sd">        """</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Session no longer valid, re-authenticating as </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span><span class="p">)</span>
         <span class="n">session_user_agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'User-Agent'</span><span class="p">)</span>

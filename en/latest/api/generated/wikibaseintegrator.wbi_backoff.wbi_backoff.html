@@ -611,7 +611,7 @@
 <dd><p>Decorator retrying the call on the transient errors: the wbi_backoff_exceptions for which wbi_backoff_giveup()
 is False. The call is tried up to config[‘BACKOFF_MAX_TRIES’] times (None for no limit), then the last exception
 is raised.</p>
-<p>A decorated function called by another one, e.g. the __init__() of _Login called by the __init__() of a login
+<p>A decorated function called by another one, e.g. the __init__() of BaseLogin called by the __init__() of a login
 class, is not retried on its own: its error goes up to the outermost decorated call, which retries the whole
 operation. Otherwise the tries would multiply at each level (5 x 5 token requests for a login).</p>
 <dl class="field-list simple">
