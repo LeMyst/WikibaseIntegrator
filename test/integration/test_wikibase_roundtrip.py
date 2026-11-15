@@ -66,6 +66,31 @@ class TestItemLifecycle:
         # Delete (requires a user with delete rights, e.g. the docker admin)
         updated.delete(reason='WikibaseIntegrator integration test cleanup')
 
+    def test_delete_the_entity_returned_by_write(self, wbi):
+        # The response of wbeditentity has no page: delete() resolves it from the id (#1217)
+        item = wbi.item.new()
+        item.labels.set(language='en', value=f'WBI integration test deleted item {RUN_ID}')
+        written = item.write(summary='WikibaseIntegrator integration test: create')
+        assert written.pageid is None
+
+        written.delete(reason='WikibaseIntegrator integration test cleanup')
+
+        with pytest.raises(MissingEntityException):
+            wbi.item.get(written.id)
+
+    def test_delete_a_copy_keeps_the_original(self, wbi):
+        item = wbi.item.new()
+        item.labels.set(language='en', value=f'WBI integration test original item {RUN_ID}')
+        original_id = item.write(summary='WikibaseIntegrator integration test: create').id
+
+        copy = wbi.item.get(original_id).write(as_new=True, summary='WikibaseIntegrator integration test: copy')
+        copy.delete(reason='WikibaseIntegrator integration test cleanup')
+
+        with pytest.raises(MissingEntityException):
+            wbi.item.get(copy.id)
+        original = wbi.item.get(original_id)
+        original.delete(reason='WikibaseIntegrator integration test cleanup')
+
     def test_get_nonexistent_item(self, wbi):
         # A well-formed but non-existent numeric ID doesn't trigger an API-level error: wbgetentities
         # replies 200 with the entity marked 'missing', which BaseEntity.from_json turns into
