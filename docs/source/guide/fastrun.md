@@ -106,11 +106,22 @@ known) holds all the compared claims.
 * `action_if_exists` (default `ActionIfExists.REPLACE_ALL`): the action that will be used for the write. With
   `FORCE_APPEND`, the statements are always appended and a write is always reported as required. With the other
   actions, the claims must already exist on the entity for the write to be skipped.
-* `sparql_endpoint_url` (default `wbi_config['SPARQL_ENDPOINT_URL']`): the SPARQL endpoint to query, e.g. the one of
-  the scholarly articles of Wikidata (see below).
+* `sparql_endpoint_url` (default: the `SPARQL_ENDPOINT_URL` of the configuration of the `WikibaseIntegrator`
+  instance, see [Several instances in one process](installation.md#several-instances-in-one-process)): the SPARQL
+  endpoint to query, e.g. the one of the scholarly articles of Wikidata (see below).
+* `wikibase_url` (default: the `WIKIBASE_URL` of the configuration of the instance): the first part of the entity IRIs
+  of the endpoint.
 
 The preloaded data is shared: containers are cached at the module level and reused by every `write_required()` call
-using the same base filter and options, so the SPARQL queries are only executed once per property.
+using the same base filter and options, on the same instance, so the SPARQL queries are only executed once per
+property. The containers are kept until `wbi_fastrun.clear_fastrun_store()` is called: call it to free their memory,
+e.g. at the end of a batch, or to read again the data changed since.
+
+```python
+from wikibaseintegrator import wbi_fastrun
+
+wbi_fastrun.clear_fastrun_store()
+```
 
 ## Checking labels, descriptions and aliases
 

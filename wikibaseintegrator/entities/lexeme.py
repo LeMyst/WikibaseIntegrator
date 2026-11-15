@@ -9,7 +9,6 @@ from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
 from wikibaseintegrator.models.sense import Sense
 from wikibaseintegrator.models.senses import Senses
-from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense, lexeme_edit_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense
 from wikibaseintegrator.wbi_login import BaseLogin
 
@@ -23,7 +22,7 @@ class LexemeEntity(BaseEntity):
 
         self.lemmas: Lemmas = lemmas if lemmas is not None else Lemmas()
         self.lexical_category: str | None = lexical_category
-        self.language: str = str(language or config['DEFAULT_LEXEME_LANGUAGE'])
+        self.language: str = str(language or self.api.config['DEFAULT_LEXEME_LANGUAGE'])
         self.forms: Forms = forms if forms is not None else Forms()
         self.senses: Senses = senses if senses is not None else Senses()
 
@@ -219,7 +218,7 @@ class LexemeEntity(BaseEntity):
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        response = lexeme_add_form(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        response = lexeme_add_form(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **self._request_kwargs(kwargs))
         self._set_lastrevid(response)
         form.id = response['form']['id']
 
@@ -258,7 +257,7 @@ class LexemeEntity(BaseEntity):
         # The id is the formId parameter of the action
         data.pop('id', None)
 
-        response = lexeme_edit_form(form_id=form_id, data=data, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        response = lexeme_edit_form(form_id=form_id, data=data, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **self._request_kwargs(kwargs))
         self._set_lastrevid(response)
 
         return form.from_json(response['form'])
@@ -277,7 +276,7 @@ class LexemeEntity(BaseEntity):
         """
         form_id = self._sub_entity_id(form.id if isinstance(form, Form) else form, kind='Form')
 
-        response = lexeme_remove_form(form_id=form_id, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        response = lexeme_remove_form(form_id=form_id, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **self._request_kwargs(kwargs))
         self._set_lastrevid(response)
 
         self.forms.forms = [existing for existing in self.forms if existing.id != form_id]
@@ -311,7 +310,7 @@ class LexemeEntity(BaseEntity):
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        response = lexeme_add_sense(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        response = lexeme_add_sense(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **self._request_kwargs(kwargs))
         self._set_lastrevid(response)
         sense.id = response['sense']['id']
 
@@ -352,14 +351,14 @@ class LexemeEntity(BaseEntity):
         data.pop('id', None)
 
         login = login or self.api.login
-        response = lexeme_edit_sense(sense_id=sense_id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        response = lexeme_edit_sense(sense_id=sense_id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **self._request_kwargs(kwargs))
         self._set_lastrevid(response)
 
         sense_json = response['sense']
         if 'claims' not in sense_json:
             # wbleditsenseelements leaves the claims out of its response, unlike wbleditformelements: they are read from
             # the lexeme, so that the new claims get their GUID and the removed ones are dropped
-            lexeme_json = self._get(entity_id=self.id, login=login, mediawiki_api_url=kwargs.get('mediawiki_api_url'), user_agent=kwargs.get('user_agent'))
+            lexeme_json = self._get(entity_id=self.id, login=login, **{key: kwargs[key] for key in ('mediawiki_api_url', 'user_agent') if key in kwargs})
             senses = {existing['id']: existing for existing in lexeme_json['entities'][self.id]['senses']}
             sense_json = {**sense_json, 'claims': senses[sense_id]['claims']}
 
@@ -379,7 +378,7 @@ class LexemeEntity(BaseEntity):
         """
         sense_id = self._sub_entity_id(sense.id if isinstance(sense, Sense) else sense, kind='Sense')
 
-        response = lexeme_remove_sense(sense_id=sense_id, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        response = lexeme_remove_sense(sense_id=sense_id, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **self._request_kwargs(kwargs))
         self._set_lastrevid(response)
 
         self.senses.senses = [existing for existing in self.senses if existing.id != sense_id]

@@ -128,7 +128,7 @@ class MediaInfoEntity(TermsEntity):
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **self._request_kwargs(kwargs))
 
         entities = json_data['entities']
         # The API answers {'-1': {'title': ..., 'missing': ''}} for a page that doesn't exist

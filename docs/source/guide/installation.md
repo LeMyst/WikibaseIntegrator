@@ -92,6 +92,42 @@ The manifest also maps some Wikidata entities to their local ID, when the admini
 equivalent. `get_manifest()` raises a `MissingExtensionError` if the instance doesn't have the extension, which is the
 case of Wikidata.
 
+### Several instances in one process
+
+wbi_config is shared by the whole process. To work with several instances at the same time, e.g. to copy data from
+Wikidata to another Wikibase, give each `WikibaseIntegrator` its own configuration, with the keys of wbi_config. The
+options it doesn't set are read from wbi_config, when they're used:
+
+```python
+from wikibaseintegrator import WikibaseIntegrator, wbi_login, wbi_manifest
+
+wikidata = WikibaseIntegrator()  # wbi_config: Wikidata by default
+
+login = wbi_login.Login(user='MyBot@MyBot', password='...', mediawiki_api_url='https://wikibase.world/w/api.php')
+world = WikibaseIntegrator(login=login, config=wbi_manifest.get_manifest('https://wikibase.world/w/rest.php').config())
+# Or by hand:
+# world = WikibaseIntegrator(login=login, config={'MEDIAWIKI_API_URL': 'https://wikibase.world/w/api.php',
+#                                                 'SPARQL_ENDPOINT_URL': 'https://wikibase.world/query/sparql',
+#                                                 'WIKIBASE_URL': 'https://wikibase.world'})
+
+label = wikidata.item.get('Q42').labels.get('en').value
+item = world.item.new()
+item.labels.set(language='en', value=label)
+item.write()
+```
+
+The entities of an instance (`wbi.item`, `wbi.property`, `wbi.lexeme`, `wbi.mediainfo`) use its `MEDIAWIKI_API_URL`,
+`USER_AGENT` and `MAX_REQUEST_SIZE` for their requests, its `WIKIBASE_URL` for `get_entity_url()`, its
+`DEFAULT_LEXEME_LANGUAGE` for the new lexemes, and its `SPARQL_ENDPOINT_URL` and `WIKIBASE_URL` for the fast run mode
+(`write_required()`). The arguments given to a method, like `mediawiki_api_url`, take precedence. `wbi.config` gives the
+configuration of the instance, read-only.
+
+The rest still reads wbi_config: the functions of `wbi_helpers` (pass them `mediawiki_api_url`, `wikibase_url`... as
+before), the retries and the timeouts, the default language of the labels, and the data types. A `Quantity`, a `Time`
+or a `GlobeCoordinate` built with a bare ID as unit, calendar model or globe (e.g. `unit='Q11573'`) gets the IRI of
+`wbi_config['WIKIBASE_URL']`: pass `wikibase_url=world.config['WIKIBASE_URL']` for another instance. A login has its
+own URLs, given when it is created, and its MediaWiki API URL must be the one of the instance.
+
 ### Request size limit
 
 Some Wikibase instances (e.g. Wikibase.cloud) reject a request larger than a given size with an

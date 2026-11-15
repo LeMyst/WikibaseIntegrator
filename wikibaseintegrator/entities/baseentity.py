@@ -229,7 +229,21 @@ class BaseEntity:
 
         return self
 
-    # noinspection PyMethodMayBeStatic
+    def _request_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """
+        The keyword arguments of a request of this entity: the MediaWiki API URL and the user agent of the configuration of its
+        WikibaseIntegrator instance, unless the caller gives them.
+        """
+        return self._with_config(kwargs, mediawiki_api_url='MEDIAWIKI_API_URL', user_agent='USER_AGENT')
+
+    def _with_config(self, kwargs: dict[str, Any], **options: str) -> dict[str, Any]:
+        """A copy of kwargs, where the arguments missing or None take the value of their option in the configuration of the WikibaseIntegrator instance."""
+        kwargs = dict(kwargs)
+        for argument, option in options.items():
+            if kwargs.get(argument) is None:
+                kwargs[argument] = self.api.config[option]
+        return kwargs
+
     def _get(self, entity_id: str, login: BaseLogin | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None,
              revision: int | None = None, **kwargs: Any) -> dict:
         """
@@ -249,6 +263,7 @@ class BaseEntity:
         """
 
         login = login or self.api.login
+        kwargs = self._request_kwargs(kwargs)
 
         if revision is not None:
             try:
@@ -310,7 +325,7 @@ class BaseEntity:
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        json_data = mediawiki_api_call_helper(data=params, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **self._request_kwargs(kwargs))
         # Claims.from_json() appends: drop the claims already loaded for the property first
         self.claims.claims.pop(property, None)
         self.claims.from_json(json_data['claims'])
@@ -403,6 +418,7 @@ class BaseEntity:
         else:
             entity_id = self.id
 
+        kwargs = self._with_config(kwargs, mediawiki_api_url='MEDIAWIKI_API_URL', user_agent='USER_AGENT', max_request_size='MAX_REQUEST_SIZE')
         json_result: dict = edit_entity(data=data, id=entity_id, type=self.type, summary=summary, clear=clear, is_bot=is_bot, allow_anonymous=allow_anonymous, login=login,
                                         **kwargs)
 
@@ -431,6 +447,7 @@ class BaseEntity:
         """
 
         login = login or self.api.login
+        kwargs = self._request_kwargs(kwargs)
 
         if not self.pageid and not self.title:
             if not self.id:
@@ -467,6 +484,8 @@ class BaseEntity:
         self.pageid = entity.get('pageid')
 
     def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
+        # The fast run container of the instance of this entity, unless the caller gives another endpoint or Wikibase URL
+        kwargs = self._with_config(kwargs, sparql_endpoint_url='SPARQL_ENDPOINT_URL', wikibase_url='WIKIBASE_URL', mediawiki_api_url='MEDIAWIKI_API_URL', user_agent='USER_AGENT')
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
 
         # Collect the property numbers targeted by the base_filter. It supports both the simple form (a
@@ -493,8 +512,12 @@ class BaseEntity:
         return fastrun_container.write_required(claims=self.claims, entity_filter=entity_filter, property_filter=property_filter, action_if_exists=action_if_exists)
 
     def get_entity_url(self, wikibase_url: str | None = None) -> str:
-        from wikibaseintegrator.wbi_config import config
-        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
+        """
+        The concept URI of the entity, e.g. http://www.wikidata.org/entity/Q42.
+
+        :param wikibase_url: The Wikibase URL. Default: the WIKIBASE_URL of the configuration of the WikibaseIntegrator instance
+        """
+        wikibase_url = wikibase_url or str(self.api.config['WIKIBASE_URL'])
         if wikibase_url and self.id:
             return wikibase_url + '/entity/' + self.id
 
