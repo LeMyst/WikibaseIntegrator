@@ -153,6 +153,62 @@ class TestLexemeFormsAndSenses:
 
         fetched.delete(reason='WikibaseIntegrator integration test cleanup')
 
+    def test_edit_and_remove_forms_and_senses(self, wbi, lexeme_prerequisites):
+        lexical_category = lexeme_prerequisites['lexical category'].id
+        lexeme = wbi.lexeme.new(language=lexeme_prerequisites['language'].id, lexical_category=lexical_category)
+        lexeme.lemmas.set(language='en', value=f'wbi-edit-lemma-{RUN_ID}')
+        for name in ('kept', 'removed'):
+            form = Form(grammatical_features=lexical_category)
+            form.representations.set(language='en', value=f'wbi-{name}-form-{RUN_ID}')
+            lexeme.forms.add(form)
+        sense = Sense()
+        sense.glosses.set(language='en', value=f'removed gloss {RUN_ID}')
+        lexeme.senses.add(sense)
+        lexeme_id = lexeme.write(summary='WikibaseIntegrator integration test: create lexeme with forms and senses').id
+
+        # Edit a form, remove the other form and the sense, in a single write()
+        fetched = wbi.lexeme.get(lexeme_id)
+        assert len(fetched.forms) == 2
+        assert len(fetched.senses) == 1
+        forms = {form.representations.get('en').value: form for form in fetched.forms}
+        kept = forms[f'wbi-kept-form-{RUN_ID}']
+        kept.representations.set(language='en', value=f'wbi-edited-form-{RUN_ID}')
+        forms[f'wbi-removed-form-{RUN_ID}'].remove()
+        next(iter(fetched.senses)).remove()
+        fetched.write(summary='WikibaseIntegrator integration test: edit and remove forms and senses')
+
+        result = wbi.lexeme.get(lexeme_id)
+        assert [(form.id, form.representations.get('en').value) for form in result.forms] == [(kept.id, f'wbi-edited-form-{RUN_ID}')]
+        assert len(result.senses) == 0
+
+        result.delete(reason='WikibaseIntegrator integration test cleanup')
+
+    def test_write_as_new_copies_the_forms_and_senses(self, wbi, lexeme_prerequisites):
+        lexical_category = lexeme_prerequisites['lexical category'].id
+        lexeme = wbi.lexeme.new(language=lexeme_prerequisites['language'].id, lexical_category=lexical_category)
+        lexeme.lemmas.set(language='en', value=f'wbi-copied-lemma-{RUN_ID}')
+        form = Form(grammatical_features=lexical_category)
+        form.representations.set(language='en', value=f'wbi-copied-form-{RUN_ID}')
+        lexeme.forms.add(form)
+        sense = Sense()
+        sense.glosses.set(language='en', value=f'copied gloss {RUN_ID}')
+        lexeme.senses.add(sense)
+        original_id = lexeme.write(summary='WikibaseIntegrator integration test: create lexeme to copy').id
+
+        # The forms and senses of the copy are new ones, of the copy (#1208)
+        copy_id = wbi.lexeme.get(original_id).write(as_new=True, summary='WikibaseIntegrator integration test: copy lexeme').id
+        assert copy_id != original_id
+
+        copy = wbi.lexeme.get(copy_id)
+        assert [(form.id, form.representations.get('en').value) for form in copy.forms] == [(f'{copy_id}-F1', f'wbi-copied-form-{RUN_ID}')]
+        assert [(sense.id, sense.glosses.get('en').value) for sense in copy.senses] == [(f'{copy_id}-S1', f'copied gloss {RUN_ID}')]
+
+        original = wbi.lexeme.get(original_id)
+        assert [form.id for form in original.forms] == [f'{original_id}-F1']
+
+        for entity in (copy, original):
+            entity.delete(reason='WikibaseIntegrator integration test cleanup')
+
 
 class TestSearch:
     def test_search_finds_created_entity(self, wbi, string_property):

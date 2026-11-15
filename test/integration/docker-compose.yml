@@ -1,9 +1,13 @@
-# Minimal Wikibase instance for the WikibaseIntegrator integration tests.
+# Wikibase instance for the WikibaseIntegrator integration tests: Wikibase with the
+# WikibaseLexeme extension (built from ./Dockerfile) and a query service (WDQS)
+# kept up to date by its updater, for the fast run mode.
 #
-#   docker compose -f test/integration/docker-compose.yml up -d
+#   docker compose -f test/integration/docker-compose.yml up -d --build
 #   # wait for http://localhost:8880 to answer (first boot runs the MediaWiki
 #   # installer and can take a minute), then:
 #   WBI_INTEGRATION_MEDIAWIKI_API_URL=http://localhost:8880/w/api.php \
+#   WBI_INTEGRATION_SPARQL_ENDPOINT_URL=http://localhost:9999/bigdata/namespace/wdq/sparql \
+#   WBI_INTEGRATION_WIKIBASE_URL=http://localhost:8880 \
 #   WBI_INTEGRATION_USER=WikibaseAdmin \
 #   WBI_INTEGRATION_PASSWORD=WikibaseDockerAdminPass \
 #   pytest -m integration
@@ -22,7 +26,8 @@
 # Elasticsearch/CirrusSearch stay disabled as long as ELASTICSEARCH_HOST is unset.
 services:
   wikibase:
-    image: wikibase/wikibase:7
+    build: .
+    image: wikibaseintegrator-integration-wikibase
     ports:
       - "8880:80"
     environment:
@@ -45,6 +50,42 @@ services:
       mysql:
         condition: service_healthy
 
+  # The query service, read by the fast run mode
+  wdqs:
+    image: wikibase/wdqs:2
+    command: /runBlazegraph.sh
+    ports:
+      - "9999:9999"
+    # Blazegraph aborts with a lower limit of open files
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    volumes:
+      - wdqs-data:/wdqs/data
+    healthcheck:
+      test: curl --silent --fail localhost:9999/bigdata/namespace/wdq/sparql
+      start_period: 2m
+      interval: 5s
+      retries: 30
+
+  # Loads the recent changes of the wiki into the query service (every few seconds)
+  wdqs-updater:
+    image: wikibase/wdqs:2
+    command: /runUpdate.sh
+    # It exits when the wiki isn't installed yet: it's started again until it is
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    environment:
+      # The concept URI of the wiki, from MW_WG_SERVER: http://localhost:8880/entity/Q1
+      WIKIBASE_CONCEPT_URI: http://localhost:8880
+    depends_on:
+      wdqs:
+        condition: service_healthy
+
   mysql:
     image: mariadb:10.11
     environment:
@@ -64,3 +105,4 @@ volumes:
   wikibase-config:
   wikibase-image-data:
   mysql-data:
+  wdqs-data:
