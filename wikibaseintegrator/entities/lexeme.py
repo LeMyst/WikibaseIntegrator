@@ -339,7 +339,8 @@ class LexemeEntity(BaseEntity):
         :param allow_anonymous: Force a check if the query can be anonymous or not
         :param is_bot: Add the bot flag to the query
         :param kwargs: More arguments for lexeme_edit_sense (e.g. baserevid, tags) and Python requests
-        :return: The Sense, updated from the Sense returned by the instance (e.g. with the GUIDs of its new claims)
+        :return: The Sense, updated from the Sense on the instance (e.g. with the GUIDs of its new claims). The response
+            of wbleditsenseelements has no claims: they are read from the lexeme, with one more request.
         """
         sense_id = self._sub_entity_id(sense.id, kind='Sense')
 
@@ -350,10 +351,19 @@ class LexemeEntity(BaseEntity):
         # The id is the senseId parameter of the action
         data.pop('id', None)
 
-        response = lexeme_edit_sense(sense_id=sense_id, data=data, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        login = login or self.api.login
+        response = lexeme_edit_sense(sense_id=sense_id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
         self._set_lastrevid(response)
 
-        return sense.from_json(response['sense'])
+        sense_json = response['sense']
+        if 'claims' not in sense_json:
+            # wbleditsenseelements leaves the claims out of its response, unlike wbleditformelements: they are read from
+            # the lexeme, so that the new claims get their GUID and the removed ones are dropped
+            lexeme_json = self._get(entity_id=self.id, login=login, mediawiki_api_url=kwargs.get('mediawiki_api_url'), user_agent=kwargs.get('user_agent'))
+            senses = {existing['id']: existing for existing in lexeme_json['entities'][self.id]['senses']}
+            sense_json = {**sense_json, 'claims': senses[sense_id]['claims']}
+
+        return sense.from_json(sense_json)
 
     def remove_sense(self, sense: Sense | str, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> None:
         """

@@ -485,7 +485,11 @@ class MockWikibase:
 
         lexeme['lastrevid'] = lexeme.get('lastrevid', 0) + 1
 
-        return {response_key: deepcopy(sub_entity), 'lastrevid': lexeme['lastrevid'], 'success': 1}
+        response = deepcopy(sub_entity)
+        if section == 'senses':
+            # Like WikibaseLexeme, wbleditsenseelements leaves the claims out of its response, unlike wbleditformelements
+            del response['claims']
+        return {response_key: response, 'lastrevid': lexeme['lastrevid'], 'success': 1}
 
     def _remove_lexeme_sub_entity(self, params: dict[str, str], section: str) -> dict:
         """Shared implementation of the wblremoveform and wblremovesense actions."""

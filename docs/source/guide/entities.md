@@ -286,8 +286,8 @@ lexeme.write_senses()  # ['L5-S2']
 `edit_form()` and `edit_sense()` only send one existing Form or Sense to the Wikibase instance (with the
 `wbleditformelements` and `wbleditsenseelements` actions): the representations, the grammatical features and the claims
 of a Form, the glosses and the claims of a Sense. The representations, glosses and claims marked for removal are
-removed. The Form or the Sense is updated from the response of the instance, e.g. with the GUIDs of its new claims, and
-returned.
+removed. The Form or the Sense is updated from the instance, e.g. with the GUIDs of its new claims, and returned. The
+response of `wbleditsenseelements` has no claims, so `edit_sense()` reads them from the lexeme, with one more request.
 
 ```python
 lexeme = wbi.lexeme.get('L5')

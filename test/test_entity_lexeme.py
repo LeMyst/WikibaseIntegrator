@@ -348,8 +348,30 @@ class TestEditAndRemoveSense:
         stored = wikibase.entities['L5']['senses'][0]
         assert stored['glosses'] == {'en': {'language': 'en', 'value': 'a pine'}}
         assert 'P828' in stored['claims']
-        assert sense.claims.get('P828')[0].id
         assert lexeme.lastrevid == wikibase.entities['L5']['lastrevid']
+
+        # The response has no claims: they are read from the lexeme, the new claim has the GUID assigned by the instance
+        assert wikibase.last_request['action'] == 'wbgetentities'
+        assert sense.claims.get('P828')[0].id == stored['claims']['P828'][0]['id']
+        assert sense.glosses.get('en').value == 'a pine'
+
+        # Removing the claim drops it from the Sense
+        sense.claims.get('P828')[0].remove()
+        lexeme.edit_sense(sense, allow_anonymous=True)
+        assert wikibase.entities['L5']['senses'][0]['claims'] == {}
+        assert len(sense.claims) == 0
+
+    def test_edit_sense_with_the_claims_in_the_response(self, wikibase, lexeme_l5, monkeypatch):
+        # If a version of WikibaseLexeme answers with the claims of the Sense, like wbleditformelements, the lexeme isn't read
+        lexeme = wbi.lexeme.get('L5')
+        sense = lexeme.senses.get('L5-S1')
+        response = {'sense': {'id': 'L5-S1', 'glosses': {'en': {'language': 'en', 'value': 'a pine'}}, 'claims': {}}, 'lastrevid': 42, 'success': 1}
+        monkeypatch.setattr('wikibaseintegrator.entities.lexeme.lexeme_edit_sense', lambda **kwargs: response)
+        requests_before = len(wikibase.requests)
+
+        assert lexeme.edit_sense(sense, allow_anonymous=True).glosses.get('en').value == 'a pine'
+        assert len(wikibase.requests) == requests_before
+        assert lexeme.lastrevid == 42
 
     @pytest.mark.parametrize('sense, error', [
         (new_sense(), "has no id"),
