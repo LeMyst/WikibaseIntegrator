@@ -24,6 +24,12 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 - **A request with a login and `allow_anonymous=True` uses the edit token of the login**: the request is made with
   the session of the login, which rejects the anonymous token. It used to send the anonymous token, so such an edit
   failed with a `badtoken` error. A `token` given in the data is still sent as it is.
+- **Invalid arguments raise `TypeError` or `ValueError` instead of `AssertionError`**: a value of the wrong type
+  given to a data type (e.g. `String(value=1)`), to the models (`Qualifiers`, `Reference`, `References`,
+  `LanguageValues`, `Claim.qualifiers`) or to `generate_entity_instances()` raises a `TypeError`, and an
+  `action_if_exists` that `Aliases.set()` or `LanguageValues.set()` doesn't support raises a `ValueError`. These
+  checks were `assert` statements, which `python -O` skips. Catch `TypeError` or `ValueError` instead of
+  `AssertionError`.
 
 ### Deprecated in v0.15, removed in 1.0
 

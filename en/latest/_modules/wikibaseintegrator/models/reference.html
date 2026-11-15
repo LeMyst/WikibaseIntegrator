@@ -490,7 +490,8 @@
             <span class="n">snak</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">snak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">Snak</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">Snak</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a Snak or a Claim, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>

@@ -469,7 +469,8 @@
 <span class="sd">        :param language_value: A LanguageValue object</span>
 <span class="sd">        :return: The current LanguageValues object</span>
 <span class="sd">        """</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language_value</span><span class="p">,</span> <span class="n">LanguageValue</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language_value</span><span class="p">,</span> <span class="n">LanguageValue</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a LanguageValue, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">language_value</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">language_value</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">language_value</span><span class="o">.</span><span class="n">language</span><span class="p">]</span> <span class="o">=</span> <span class="n">language_value</span>
@@ -506,7 +507,8 @@
 <span class="sd">        :return: The created or updated LanguageValue. None if there's no LanguageValue object with this language.</span>
 <span class="sd">        """</span>
         <span class="n">language</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'DEFAULT_LANGUAGE'</span><span class="p">])</span>
-        <span class="k">assert</span> <span class="n">action_if_exists</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">KEEP</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">action_if_exists</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">KEEP</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action_if_exists</span><span class="si">}</span><span class="s1"> is not a valid action_if_exists value, use ActionIfExists.REPLACE_ALL or ActionIfExists.KEEP'</span><span class="p">)</span>
 
         <span class="c1"># Remove the value if None or empty: Wikibase removes a label, description or lemma set to an empty string</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
