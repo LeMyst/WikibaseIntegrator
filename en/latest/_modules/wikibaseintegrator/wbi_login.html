@@ -461,6 +461,8 @@
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="BaseLogin">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseLogin</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    The base class of the login methods (:class:`OAuth2`, :class:`OAuth1`, :class:`Login` and :class:`Clientlogin`):</span>
@@ -495,6 +497,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">generate_edit_credentials</span><span class="p">()</span>
 
+<div class="viewcode-block" id="BaseLogin.generate_edit_credentials">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin.generate_edit_credentials">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_edit_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RequestsCookieJar</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Request an edit token and update the cookie_jar in order to add the session cookie</span>
@@ -514,8 +518,11 @@
             <span class="k">raise</span> <span class="n">LoginError</span><span class="p">(</span><span class="s2">"Login failed. An anonymous token was returned."</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edit_token</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">'query'</span><span class="p">][</span><span class="s1">'tokens'</span><span class="p">][</span><span class="s1">'csrftoken'</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">cookies</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">cookies</span></div>
 
+
+<div class="viewcode-block" id="BaseLogin.get_edit_cookie">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin.get_edit_cookie">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_edit_cookie</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RequestsCookieJar</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Can be called in order to retrieve the cookies from an instance of wbi_login.Login</span>
@@ -526,8 +533,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">generate_edit_credentials</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">instantiation_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">cookies</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">cookies</span></div>
 
+
+<div class="viewcode-block" id="BaseLogin.get_edit_token">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin.get_edit_token">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_edit_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Can be called in order to retrieve the edit token from an instance of wbi_login.Login</span>
@@ -538,16 +548,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">generate_edit_credentials</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">instantiation_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edit_token</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edit_token</span></div>
 
+
+<div class="viewcode-block" id="BaseLogin.get_session">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin.get_session">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Session</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the requests.Session object used for the login.</span>
 
 <span class="sd">        :return: Object of type requests.Session()</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span></div>
 
+
+<div class="viewcode-block" id="BaseLogin.reauthenticate">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin.reauthenticate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reauthenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Recover from a session that the server has invalidated (e.g. MediaWiki returning</span>
@@ -561,7 +577,9 @@
 <span class="sd">        (OAuth1). Login and Clientlogin override this to redo the full username/password login.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">generate_edit_credentials</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">instantiation_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instantiation_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div>
+</div>
+
 
 
 <span class="c1"># The private name of BaseLogin in earlier versions, kept for the code importing it</span>

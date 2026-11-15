@@ -1,0 +1,6 @@
+﻿BaseLogin
+=========
+
+.. currentmodule:: wikibaseintegrator.wbi_login
+
+.. autoclass:: BaseLogin
