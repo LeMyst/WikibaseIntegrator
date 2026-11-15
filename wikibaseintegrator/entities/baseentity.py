@@ -412,6 +412,12 @@ class BaseEntity:
             log.exception('Error while writing to the Wikibase instance')
             raise
 
+        if as_new:
+            # The page id and title describe the page of the original entity, and the response of wbeditentity has neither: kept, they
+            # would make delete() remove the original entity instead of the new one
+            self.pageid = None
+            self.title = None
+
         return json_result['entity']
 
     def delete(self, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:

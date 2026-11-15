@@ -236,6 +236,55 @@ class TestWrite:
         assert 'fr' not in data['labels']
         assert removed_aliases and 'fr' not in data['aliases']
 
+    def test_write_as_new_forgets_the_page_of_the_original(self, wikibase, item_q582, monkeypatch, requests_mock):
+        # Unlike the simulated instance, the response of wbeditentity has no page id nor title (#1217)
+        edit = type(wikibase)._action_wbeditentity
+
+        def without_page(instance, params):
+            response = edit(instance, params)
+            response['entity'].pop('pageid', None)
+            response['entity'].pop('title', None)
+            return response
+
+        monkeypatch.setattr(type(wikibase), '_action_wbeditentity', without_page)
+        item = wbi.item.get('Q582')
+        assert item.pageid is not None
+        assert item.title == 'Q582'
+
+        copy = item.write(allow_anonymous=True, as_new=True)
+
+        assert copy.id != 'Q582'
+        assert copy.pageid is None
+        assert copy.title is None
+        # delete() used to remove the page of Q582, the original
+        with pytest.raises(ValueError, match='pageid or a page title'):
+            copy.delete(allow_anonymous=True)
+        assert not [request for request in requests_mock.request_history if 'action=delete' in (request.text or '')]
+
+    def test_write_as_new_takes_the_page_of_the_response(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        original_pageid = item.pageid
+
+        copy = item.write(allow_anonymous=True, as_new=True)
+
+        # When the response has them, the page id and title are the ones of the new entity
+        assert copy.title == copy.id
+        assert copy.pageid != original_pageid
+
+    def test_failed_write_as_new_keeps_the_page(self, wikibase, item_q582, monkeypatch):
+        item = wbi.item.get('Q582')
+        pageid, title = item.pageid, item.title
+
+        def failing_edit(**kwargs):
+            raise MWApiError({'code': 'failed-save', 'info': 'The save has failed.'})
+
+        monkeypatch.setattr('wikibaseintegrator.entities.baseentity.edit_entity', failing_edit)
+        with pytest.raises(MWApiError):
+            item.write(allow_anonymous=True, as_new=True)
+
+        # Nothing was created: the entity still describes the original
+        assert (item.id, item.pageid, item.title) == ('Q582', pageid, title)
+
     def test_write_limited_claims(self, wikibase, item_q582):
         item = wbi.item.get('Q582')
         item.write(allow_anonymous=True, limit_claims=['P31'])
