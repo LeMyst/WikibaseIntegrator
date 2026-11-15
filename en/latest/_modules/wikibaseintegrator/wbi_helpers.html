@@ -488,17 +488,23 @@
 <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="c1"># Backward compatibility for the former module-level sessions</span>
     <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'default_session'</span><span class="p">,</span> <span class="s1">'helpers_session'</span><span class="p">):</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"wbi_helpers.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is deprecated, the session is now per-thread and private."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"wbi_helpers.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is deprecated and will be removed in WikibaseIntegrator 1.0, the session is now per-thread and private."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                      <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_get_default_session</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">'BColors'</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"wbi_helpers.BColors is deprecated and will be removed in WikibaseIntegrator 1.0, the library no longer emits ANSI color codes."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                      <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_BColors</span>
     <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">BColors</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_BColors</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Default colors for pretty outputs.</span>
+<span class="sd">    Default colors for pretty outputs, available as ``wbi_helpers.BColors``.</span>
 
-<span class="sd">    .. deprecated::</span>
-<span class="sd">        Kept for backward compatibility only. The library no longer emits ANSI color codes in its logs.</span>
+<span class="sd">    .. deprecated:: 0.15</span>
+<span class="sd">        Kept for backward compatibility only, and removed in WikibaseIntegrator 1.0. The library no longer emits ANSI</span>
+<span class="sd">        color codes in its logs.</span>
 <span class="sd">    """</span>
     <span class="n">HEADER</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[95m'</span>
     <span class="n">OKBLUE</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\033</span><span class="s1">[94m'</span>
@@ -901,7 +907,8 @@
 <span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">max_retries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES']."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES']. "</span>
+                      <span class="s2">"It will be removed in WikibaseIntegrator 1.0."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span>
                       <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
     <span class="n">sparql_endpoint_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">endpoint</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">])</span>

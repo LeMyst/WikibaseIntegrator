@@ -477,10 +477,26 @@
 <p>v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> and removed in 1.0.</p>
+<section id="deprecated-in-v0-15-removed-in-1-0">
+<span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
+<p>These APIs still work in v0.15 and emit a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>. They will be removed in 1.0:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">parse_sparql_value()</span></code></strong> of the data types: use <code class="docutils literal notranslate"><span class="pre">from_sparql_value()</span></code>, which takes the JSON binding of the value
+returned by the SPARQL query (e.g. <code class="docutils literal notranslate"><span class="pre">{'type':</span> <span class="pre">'literal',</span> <span class="pre">'value':</span> <span class="pre">'Paris'}</span></code>) instead of its string form.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">wbi_helpers.BColors</span></code></strong>: the library no longer emits ANSI color codes. Copy the codes into your own code if you
+use them.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">wbi_helpers.default_session</span></code> and <code class="docutils literal notranslate"><span class="pre">wbi_helpers.helpers_session</span></code></strong> (deprecated since v0.13): the session of the
+requests made without a login is per-thread and private.</p></li>
+<li><p><strong>The <code class="docutils literal notranslate"><span class="pre">max_retries</span></code> parameter of <code class="docutils literal notranslate"><span class="pre">execute_sparql_query()</span></code></strong> (deprecated and ignored since v0.13): the retries of
+the SPARQL queries are set by <code class="docutils literal notranslate"><span class="pre">wbi_config['BACKOFF_MAX_TRIES']</span></code>.</p></li>
+<li><p><strong>Importing <code class="docutils literal notranslate"><span class="pre">Representations</span></code> from <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.models.forms</span></code> and <code class="docutils literal notranslate"><span class="pre">Glosses</span></code> from
+<code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.models.senses</span></code></strong>: import them from <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.models</span></code>.</p></li>
+</ul>
 <p>If you want to stay on v0.14.x, you can put this line in your requirements.txt:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wikibaseintegrator</span><span class="o">~=</span><span class="mf">0.14.0</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="breaking-changes-in-v0-14">
 <span id="breaking-changes-in-v014"></span><h2>Breaking changes in v0.14<a class="headerlink" href="#breaking-changes-in-v0-14" title="Link to this heading">#</a></h2>
@@ -623,7 +639,10 @@ entities (in addition to Item).</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-15">Breaking changes in v0.15</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-15">Breaking changes in v0.15</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecated-in-v0-15-removed-in-1-0">Deprecated in v0.15, removed in 1.0</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-14">Breaking changes in v0.14</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-13">Breaking changes in v0.13</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-12">Breaking changes in v0.12</a></li>

@@ -434,13 +434,23 @@
   <h1>Source code for wikibaseintegrator.models.senses</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.glosses</span><span class="w"> </span><span class="kn">import</span> <span class="n">Glosses</span>  <span class="c1"># pylint: disable=unused-import  # Re-exported: Sense and Glosses used to be defined in this module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.glosses</span><span class="w"> </span><span class="kn">import</span> <span class="n">Glosses</span> <span class="k">as</span> <span class="n">_Glosses</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.sense</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sense</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="c1"># Sense and Glosses used to be defined in this module: Sense is still imported here, Glosses only until 1.0</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">'Glosses'</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Importing Glosses from </span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is deprecated and will be removed in WikibaseIntegrator 1.0, import it from wikibaseintegrator.models instead."</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_Glosses</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Senses">
