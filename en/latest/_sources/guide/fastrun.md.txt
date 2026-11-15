@@ -106,6 +106,8 @@ known) holds all the compared claims.
 * `action_if_exists` (default `ActionIfExists.REPLACE_ALL`): the action that will be used for the write. With
   `FORCE_APPEND`, the statements are always appended and a write is always reported as required. With the other
   actions, the claims must already exist on the entity for the write to be skipped.
+* `sparql_endpoint_url` (default `wbi_config['SPARQL_ENDPOINT_URL']`): the SPARQL endpoint to query, e.g. the one of
+  the scholarly articles of Wikidata (see below).
 
 The preloaded data is shared: containers are cached at the module level and reused by every `write_required()` call
 using the same base filter and options, so the SPARQL queries are only executed once per property.
@@ -133,17 +135,33 @@ frc.check_language_data(qid=qids[0], lang_data=['CDK7'], lang='en', lang_data_ty
 Since the [graph split of the Wikidata Query Service](https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/WDQS_graph_split),
 `https://query.wikidata.org/sparql`, the default `wbi_config['SPARQL_ENDPOINT_URL']`, only holds the main graph of
 Wikidata. The items of the scholarly articles are in a separate query service, `https://query-scholarly.wikidata.org/sparql`.
-The fast run mode can't check them:
+With the default endpoint, they are missing: `get_entities()` doesn't find an existing article, e.g. by its DOI (P356),
+and `write_required()` always reports a write as required. A bot creating a new item when `get_entities()` finds nothing
+would create a duplicate of the article.
 
-* With the default endpoint, they are missing: `get_entities()` doesn't find an existing article, e.g. by its DOI
-  (P356), and `write_required()` always reports a write as required. A bot creating a new item when `get_entities()`
-  finds nothing would create a duplicate of the article.
-* With `sparql_endpoint_url='https://query-scholarly.wikidata.org/sparql'`, the fast run queries find nothing either:
-  they read the datatype of the properties (`wikibase:propertyType`), and the scholarly graph doesn't hold the
-  properties.
+To check scholarly articles, give the endpoint of the scholarly articles with `sparql_endpoint_url`:
 
-To find an existing scholarly article, use the search of the MediaWiki API with the `haswbstatement` keyword instead: it
-covers every item of Wikidata.
+```python
+from wikibaseintegrator import wbi_fastrun
+from wikibaseintegrator.datatypes import ExternalID
+
+SCHOLARLY = 'https://query-scholarly.wikidata.org/sparql'
+
+frc = wbi_fastrun.get_fastrun_container(base_filter=[ExternalID(prop_nr='P356')], sparql_endpoint_url=SCHOLARLY, cache=False)
+qids = frc.get_entities(claims=[ExternalID(value='10.1001/ARCHDERM.1979.04010090001003', prop_nr='P356')])  # ['Q44048456']
+
+# Or through an entity
+item.write_required(base_filter=[ExternalID(prop_nr='P356')], sparql_endpoint_url=SCHOLARLY)
+```
+
+The scholarly graph doesn't hold the properties, so the type of the properties is loaded from the MediaWiki API instead
+(`wbi_config['MEDIAWIKI_API_URL']`), once per property. The graph doesn't hold the other items either: a base filter with a
+property path through the classes (e.g. `[Item(prop_nr='P31', value='Q13442814'), Item(prop_nr='P279')]`) only matches
+the direct instances. With millions of articles, disable the cache (`cache=False`) so that the queries are restricted to
+the values of the claims, instead of loading every DOI.
+
+To find an existing scholarly article without SPARQL, use the search of the MediaWiki API with the `haswbstatement`
+keyword: it covers every item of Wikidata.
 
 ```python
 from wikibaseintegrator import wbi_helpers
