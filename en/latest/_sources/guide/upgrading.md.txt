@@ -30,6 +30,13 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   `action_if_exists` that `Aliases.set()` or `LanguageValues.set()` doesn't support raises a `ValueError`. These
   checks were `assert` statements, which `python -O` skips. Catch `TypeError` or `ValueError` instead of
   `AssertionError`.
+- **Fast run matches the BCE dates and the dates of the Julian calendar**, and compares the calendar model of the
+  dates. `Time.sparql_time()` gives the timestamp of the RDF export of Wikibase: from the year precision, the BCE
+  years are numbered like in XSD 1.1 (`-0044` is `-0043`), and from the day precision, a date of the Julian calendar
+  is converted to the Gregorian calendar. `Time.from_sparql_value()` reads the timestamp back as a date of the
+  Gregorian calendar, the calendar of `xsd:dateTime` (`-0043-03-15T00:00:00Z` is `-0044-03-15T00:00:00Z`), and the
+  new `Time.time_from_sparql()` reads it knowing its precision and calendar model. Fast run used to report a write as
+  required for these dates, and to match a date with the same timestamp in another calendar.
 
 ### Deprecated in v0.15, removed in 1.0
 

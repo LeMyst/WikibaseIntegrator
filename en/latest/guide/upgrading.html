@@ -502,6 +502,13 @@ given to a data type (e.g. <code class="docutils literal notranslate"><span clas
 <code class="docutils literal notranslate"><span class="pre">action_if_exists</span></code> that <code class="docutils literal notranslate"><span class="pre">Aliases.set()</span></code> or <code class="docutils literal notranslate"><span class="pre">LanguageValues.set()</span></code> doesn’t support raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. These
 checks were <code class="docutils literal notranslate"><span class="pre">assert</span></code> statements, which <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-O</span></code> skips. Catch <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> or <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">AssertionError</span></code>.</p></li>
+<li><p><strong>Fast run matches the BCE dates and the dates of the Julian calendar</strong>, and compares the calendar model of the
+dates. <code class="docutils literal notranslate"><span class="pre">Time.sparql_time()</span></code> gives the timestamp of the RDF export of Wikibase: from the year precision, the BCE
+years are numbered like in XSD 1.1 (<code class="docutils literal notranslate"><span class="pre">-0044</span></code> is <code class="docutils literal notranslate"><span class="pre">-0043</span></code>), and from the day precision, a date of the Julian calendar
+is converted to the Gregorian calendar. <code class="docutils literal notranslate"><span class="pre">Time.from_sparql_value()</span></code> reads the timestamp back as a date of the
+Gregorian calendar, the calendar of <code class="docutils literal notranslate"><span class="pre">xsd:dateTime</span></code> (<code class="docutils literal notranslate"><span class="pre">-0043-03-15T00:00:00Z</span></code> is <code class="docutils literal notranslate"><span class="pre">-0044-03-15T00:00:00Z</span></code>), and the
+new <code class="docutils literal notranslate"><span class="pre">Time.time_from_sparql()</span></code> reads it knowing its precision and calendar model. Fast run used to report a write as
+required for these dates, and to match a date with the same timestamp in another calendar.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>

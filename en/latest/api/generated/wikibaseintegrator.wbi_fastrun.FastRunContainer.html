@@ -732,8 +732,8 @@ qualifiers, references and ranks stays case sensitive. Disabled by default.</p><
 cache is disabled and the claim carries a value, only the statements holding the same value (and the same
 qualifiers if use_qualifiers is enabled) are loaded; such a partial load is never reused as a cache.</p>
 <p>A complete load only reads the simple values: joining the value node of every statement, for the unit of a
-quantity or the precision of a time, makes the query of a large dataset exceed the time limit of the SPARQL
-endpoint. The unit and the precision are loaded later, only for the statements holding the value of a claim
+quantity or the precision and the calendar model of a time, makes the query of a large dataset exceed the time
+limit of the SPARQL endpoint. They are loaded later, only for the statements holding the value of a claim
 (see _filter_value_details()). A partial load, restricted to one value, reads them directly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
