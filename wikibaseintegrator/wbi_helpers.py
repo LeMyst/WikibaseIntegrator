@@ -54,17 +54,23 @@ def _get_default_session() -> Session:
 def __getattr__(name: str) -> Any:
     # Backward compatibility for the former module-level sessions
     if name in ('default_session', 'helpers_session'):
-        warnings.warn(f"wbi_helpers.{name} is deprecated, the session is now per-thread and private.", DeprecationWarning, stacklevel=2)
+        warnings.warn(f"wbi_helpers.{name} is deprecated and will be removed in WikibaseIntegrator 1.0, the session is now per-thread and private.", DeprecationWarning,
+                      stacklevel=2)
         return _get_default_session()
+    if name == 'BColors':
+        warnings.warn("wbi_helpers.BColors is deprecated and will be removed in WikibaseIntegrator 1.0, the library no longer emits ANSI color codes.", DeprecationWarning,
+                      stacklevel=2)
+        return _BColors
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-class BColors:
+class _BColors:
     """
-    Default colors for pretty outputs.
+    Default colors for pretty outputs, available as ``wbi_helpers.BColors``.
 
-    .. deprecated::
-        Kept for backward compatibility only. The library no longer emits ANSI color codes in its logs.
+    .. deprecated:: 0.15
+        Kept for backward compatibility only, and removed in WikibaseIntegrator 1.0. The library no longer emits ANSI
+        color codes in its logs.
     """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -459,7 +465,8 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     """
 
     if max_retries is not None:
-        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES'].", DeprecationWarning,
+        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES']. "
+                      "It will be removed in WikibaseIntegrator 1.0.", DeprecationWarning,
                       stacklevel=3)
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
