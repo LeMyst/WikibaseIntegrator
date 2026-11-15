@@ -863,6 +863,12 @@
             <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">'Error while writing to the Wikibase instance'</span><span class="p">)</span>
             <span class="k">raise</span>
 
+        <span class="k">if</span> <span class="n">as_new</span><span class="p">:</span>
+            <span class="c1"># The page id and title describe the page of the original entity, and the response of wbeditentity has neither: kept, they</span>
+            <span class="c1"># would make delete() remove the original entity instead of the new one</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="k">return</span> <span class="n">json_result</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">]</span>
 
 <div class="viewcode-block" id="BaseEntity.delete">
