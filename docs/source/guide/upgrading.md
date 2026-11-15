@@ -1,5 +1,17 @@
 # Upgrading
 
+## Breaking changes in v0.15
+
+v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
+changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
+old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
+
+If you want to stay on v0.14.x, you can put this line in your requirements.txt:
+
+```
+wikibaseintegrator~=0.14.0
+```
+
 ## Breaking changes in v0.14
 
 v0.14 changes some behaviors of v0.13 that your code may rely on:
