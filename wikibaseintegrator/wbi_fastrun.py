@@ -30,7 +30,7 @@ fastrun_store: list[FastRunContainer] = []
 # with the Wikidata entity Q199 (the number one), whatever the instance.
 UNITLESS_UNIT_URIS = ('1', 'http://www.wikidata.org/entity/Q199', 'https://www.wikidata.org/entity/Q199')
 
-# The number of statements whose unit and precision are loaded by one SPARQL query
+# The number of statements whose unit, precision and calendar model are loaded by one SPARQL query
 VALUE_DETAILS_BATCH_SIZE = 100
 
 # The number of statements whose qualifiers, references and rank are loaded by one SPARQL query
@@ -95,9 +95,10 @@ class FastRunContainer:
         self._qualifiers_cache: dict[str, Qualifiers] = {}
         self._references_cache: dict[str, References] = {}
         self._rank_cache: dict[str, WikibaseRank | None] = {}
-        # The lazily loaded unit and precision of the values: property number -> statement ID -> (unit, precision).
+        # The lazily loaded unit, precision and calendar model of the values:
+        # property number -> statement ID -> (unit, precision, calendar model).
         # Reset with the statements of the property, so that they are never older than the statements.
-        self._value_details: dict[str, dict[str, tuple[str | None, int | None]]] = {}
+        self._value_details: dict[str, dict[str, tuple[str | None, int | None, str | None]]] = {}
 
     @staticmethod
     def _entity_id(entity: str) -> str:
@@ -133,9 +134,9 @@ class FastRunContainer:
         The key indexing the value of the given claim in self.data, casefolded when case_insensitive is enabled.
         An unknown value or no value has no key: it can't be compared through SPARQL.
 
-        The key is the simple value, which holds neither the unit of a quantity nor the precision of a time: two
-        amounts only differing by their unit, or '1987' and '1987-01-01', share the same key. They are told apart by
-        _filter_value_details().
+        The key is the simple value, which holds neither the unit of a quantity nor the precision and the calendar
+        model of a time: two amounts only differing by their unit, or '1987' and '1987-01-01', share the same key.
+        They are told apart by _filter_value_details().
         """
         if claim.mainsnak.snaktype != WikibaseSnakType.KNOWN_VALUE:
             return None
@@ -151,29 +152,48 @@ class FastRunContainer:
         """The type of the datavalue of the claim (e.g. 'quantity' or 'time'), or None if it has no datavalue."""
         return claim.mainsnak.datavalue.get('type')
 
-    def _value_details_from_result(self, result: dict) -> tuple[str | None, int | None]:
-        """The normalized unit and the precision of a value, from a SPARQL result binding ?unit and ?precision."""
+    def _value_details_from_result(self, result: dict) -> tuple[str | None, int | None, str | None]:
+        """
+        The normalized unit, the precision and the calendar model of a value, from a SPARQL result binding ?unit,
+        ?precision and ?calendar.
+        """
         unit = self._normalize_unit(result['unit']['value']) if 'unit' in result else None
         precision = int(result['precision']['value']) if 'precision' in result else None
-        return unit, precision
+        calendar = result['calendar']['value'] if 'calendar' in result else None
+        return unit, precision, calendar
 
     @staticmethod
     def _snak_key(snak: Snak) -> str:
         """
         The key comparing a snak loaded from the SPARQL endpoint with a local snak. The timestamps are compared in the
-        form the SPARQL endpoint stores them: '+1987-00-00T00:00:00Z' and '+1987-01-01T00:00:00Z' are the same year.
+        form the SPARQL endpoint stores them (see Time.sparql_time()): '+1987-00-00T00:00:00Z' and
+        '+1987-01-01T00:00:00Z' are the same year.
         """
         datavalue = snak.datavalue
         if datavalue.get('type') == 'time':
             datavalue = copy.deepcopy(datavalue)
-            datavalue['value']['time'] = Time.sparql_time(datavalue['value']['time'], datavalue['value'].get('precision'))
+            value = datavalue['value']
+            value['time'] = Time.sparql_time(value['time'], value.get('precision'), value.get('calendarmodel'))
         return json.dumps([snak.property_number, snak.snaktype.value, snak.datatype, datavalue], sort_keys=True)
 
     @staticmethod
-    def _set_precision(f: BaseDataType, result: dict, name: str) -> None:
-        """Set the precision of a time loaded from the SPARQL endpoint, the simple value does not carry it."""
-        if name in result and f.mainsnak.datavalue.get('type') == 'time':
-            f.mainsnak.datavalue['value']['precision'] = int(result[name]['value'])
+    def _set_time_details(f: BaseDataType, result: dict, prefix: str) -> None:
+        """
+        Set the precision and the calendar model of a time loaded from the SPARQL endpoint, which the simple value
+        doesn't carry, then the timestamp of the JSON representation they give (see Time.time_from_sparql()).
+
+        :param f: The snak built from the simple value of the result.
+        :param result: The result, binding the value, the precision and the calendar model with the names starting with prefix.
+        :param prefix: The prefix of the names of the variables ('' for a qualifier, 'ref_' for a reference snak).
+        """
+        if f.mainsnak.datavalue.get('type') != 'time':
+            return
+        value = f.mainsnak.datavalue['value']
+        if f'{prefix}precision' in result:
+            value['precision'] = int(result[f'{prefix}precision']['value'])
+        if f'{prefix}calendar' in result:
+            value['calendarmodel'] = result[f'{prefix}calendar']['value']
+        value['time'] = Time.time_from_sparql(result[f'{prefix}value']['value'], value['precision'], value['calendarmodel'])
 
     def _base_filter_string(self, wb_url: str | None = None) -> str:
         """Generate the SPARQL triples restricting ?entity to the entities matching the base filter."""
@@ -211,8 +231,8 @@ class FastRunContainer:
         qualifiers if use_qualifiers is enabled) are loaded; such a partial load is never reused as a cache.
 
         A complete load only reads the simple values: joining the value node of every statement, for the unit of a
-        quantity or the precision of a time, makes the query of a large dataset exceed the time limit of the SPARQL
-        endpoint. The unit and the precision are loaded later, only for the statements holding the value of a claim
+        quantity or the precision and the calendar model of a time, makes the query of a large dataset exceed the time
+        limit of the SPARQL endpoint. They are loaded later, only for the statements holding the value of a claim
         (see _filter_value_details()). A partial load, restricted to one value, reads them directly.
 
         :param claims: A Claim, Claims or list of Claim
@@ -275,7 +295,7 @@ class FastRunContainer:
                 if partial_load:
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
-                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision WHERE {{
+                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision ?calendar WHERE {{
                       # Base filter string
                       {base_filter_string}
                       ?entity <{wb_url}/prop/{prop_nr}> ?sid.
@@ -287,8 +307,10 @@ class FastRunContainer:
                       OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:quantityUnit ?unit ] . }}
                       # The precision of a time value, only bound for times
                       OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:timePrecision ?precision ] . }}
+                      # The calendar model of a time value, only bound for times
+                      OPTIONAL {{ ?sid <{wb_url}/prop/statement/value/{prop_nr}> [ wikibase:timeCalendarModel ?calendar ] . }}
                     }}
-                    ORDER BY ?sid ?value ?unit ?precision
+                    ORDER BY ?sid ?value ?unit ?precision ?calendar
                     OFFSET {offset}
                     LIMIT {limit}
                     '''
@@ -297,7 +319,7 @@ class FastRunContainer:
                     query = query.format(base_filter_string=base_filter_string, wb_url=wb_url, prop_nr=prop_nr, offset=str(offset), limit=str(limit),
                                          value=claim.get_sparql_value(wikibase_url=wb_url), qualifiers_filter_string=qualifiers_filter_string)
                 else:
-                    # Without the unit and the precision, which are on the value node: see the docstring
+                    # Without the unit, the precision and the calendar model, which are on the value node: see the docstring
                     query = '''
                     #Tool: WikibaseIntegrator wbi_fastrun.load_statements
                     SELECT ?entity ?sid ?value ?property_type WHERE {{
@@ -342,7 +364,7 @@ class FastRunContainer:
 
                         self.data[prop_nr][sparql_value].append({'entity': entity, 'sid': sid})
 
-                        # Only the query of a partial load reads the unit and the precision
+                        # Only the query of a partial load reads the unit, the precision and the calendar model
                         if partial_load:
                             self._value_details[prop_nr][sid] = self._value_details_from_result(result)
 
@@ -383,12 +405,13 @@ class FastRunContainer:
                     ?sid ?predicate ?value.
                     ?property wikibase:qualifier ?predicate.
                     ?property wikibase:propertyType ?property_type.
-                    # The precision of a time value, from the value node holding the same timestamp
+                    # The precision and the calendar model of a time value, from the value node holding the same timestamp
                     OPTIONAL {
                       ?property wikibase:qualifierValue ?value_predicate.
                       ?sid ?value_predicate ?value_node.
                       ?value_node wikibase:timeValue ?value;
-                                  wikibase:timePrecision ?precision.
+                                  wikibase:timePrecision ?precision;
+                                  wikibase:timeCalendarModel ?calendar.
                     }
                   }''')
         if use_references:
@@ -397,12 +420,13 @@ class FastRunContainer:
                     ?srid ?ref_predicate ?ref_value.
                     ?ref_property wikibase:reference ?ref_predicate.
                     ?ref_property wikibase:propertyType ?property_type.
-                    # The precision of a time value, from the value node holding the same timestamp
+                    # The precision and the calendar model of a time value, from the value node holding the same timestamp
                     OPTIONAL {
                       ?ref_property wikibase:referenceValue ?ref_value_predicate.
                       ?srid ?ref_value_predicate ?ref_value_node.
                       ?ref_value_node wikibase:timeValue ?ref_value;
-                                      wikibase:timePrecision ?ref_precision.
+                                      wikibase:timePrecision ?ref_precision;
+                                      wikibase:timeCalendarModel ?ref_calendar.
                     }
                   }''')
         if use_rank:
@@ -425,11 +449,11 @@ class FastRunContainer:
                 # change from one page to the next, so that a page could repeat a qualifier or a reference snak and skip another
                 query = f'''
                 #Tool: WikibaseIntegrator wbi_fastrun._load_statement_details
-                SELECT ?sid ?property ?value ?property_type ?precision ?srid ?ref_property ?ref_value ?ref_precision ?rank WHERE {{
+                SELECT ?sid ?property ?value ?property_type ?precision ?calendar ?srid ?ref_property ?ref_value ?ref_precision ?ref_calendar ?rank WHERE {{
                   VALUES ?sid {{ {values} }}
                   {union}
                 }}
-                ORDER BY ?sid ?srid ?ref_property ?ref_value ?ref_precision ?property ?value ?precision ?rank
+                ORDER BY ?sid ?srid ?ref_property ?ref_value ?ref_precision ?ref_calendar ?property ?value ?precision ?calendar ?rank
                 OFFSET {offset}
                 LIMIT {limit}
                 '''
@@ -485,7 +509,7 @@ class FastRunContainer:
             log.warning("Skipping a %s of statement '%s': %s", kind, sid, exception)
             return None
 
-        self._set_precision(f, result, f'{prefix}precision')
+        self._set_time_details(f, result, prefix)
 
         return f
 
@@ -535,8 +559,8 @@ class FastRunContainer:
 
     def _load_value_details(self, prop_nr: str, sids: list[str]) -> None:
         """
-        Load the unit (of a quantity) and the precision (of a time) of the values of the given statements, which are
-        on the value node, not on the simple value loaded by load_statements(). The statements already known are not
+        Load the unit (of a quantity), the precision and the calendar model (of a time) of the values of the given
+        statements, which are on the value node, not on the simple value loaded by load_statements(). The statements already known are not
         queried again.
 
         :param prop_nr: The property of the statements.
@@ -550,7 +574,7 @@ class FastRunContainer:
             values = ' '.join(f'<{sid}>' for sid in batch)
             query = f'''
             #Tool: WikibaseIntegrator wbi_fastrun._load_value_details
-            SELECT ?sid ?unit ?precision WHERE {{
+            SELECT ?sid ?unit ?precision ?calendar WHERE {{
               VALUES ?sid {{ {values} }}
               ?sid ?value_predicate ?value_node.
               ?property wikibase:statementValue ?value_predicate.
@@ -558,19 +582,21 @@ class FastRunContainer:
               OPTIONAL {{ ?value_node wikibase:quantityUnit ?unit . }}
               # The precision of a time value, only bound for times
               OPTIONAL {{ ?value_node wikibase:timePrecision ?precision . }}
+              # The calendar model of a time value, only bound for times
+              OPTIONAL {{ ?value_node wikibase:timeCalendarModel ?calendar . }}
             }}
             '''
 
             results = execute_sparql_query(query=query, endpoint=self.sparql_endpoint_url)['results']['bindings']
 
-            # A statement without a value node has neither unit nor precision: its value won't match any claim
+            # A statement without a value node has neither unit, precision nor calendar model: its value won't match any claim
             for sid in batch:
-                details[sid] = (None, None)
+                details[sid] = (None, None, None)
             for result in results:
                 details[result['sid']['value']] = self._value_details_from_result(result)
 
     def _statements_with_value(self, claim: Claim) -> list[dict[str, str]]:
-        """The loaded statements holding the simple value of the claim, whatever the unit or the precision of the value."""
+        """The loaded statements holding the simple value of the claim, whatever the unit, the precision or the calendar model of the value."""
         value_key = self._value_key(claim)
         if value_key is None:
             return []
@@ -578,10 +604,10 @@ class FastRunContainer:
 
     def _filter_value_details(self, claim: Claim, statements: list[dict[str, str]]) -> list[dict[str, str]]:
         """
-        Keep the statements whose value has the same unit as the claim, for a quantity, or the same precision, for a
-        time. The statements of the other data types are returned unchanged.
+        Keep the statements whose value has the same unit as the claim, for a quantity, or the same precision and
+        calendar model, for a time. The statements of the other data types are returned unchanged.
 
-        The unit and the precision are loaded for the given statements only: pass the statements holding the value of
+        These details are loaded for the given statements only: pass the statements holding the value of
         the claim, restricted as much as possible (e.g. to the entities holding the other claims).
 
         :param claim: The claim.
@@ -601,9 +627,10 @@ class FastRunContainer:
             unit = self._normalize_unit(datavalue['value'].get('unit', '1'))
             return [statement for statement in statements if details[statement['sid']][0] == unit]
 
-        # The simple value of a time drops the precision: '1987' and '1987-01-01' share the same timestamp
-        precision = datavalue['value'].get('precision')
-        return [statement for statement in statements if details[statement['sid']][1] == precision]
+        # The simple value of a time drops the precision and the calendar model: '1987' and '1987-01-01' share the same
+        # timestamp, and so do a date of the Julian calendar and the same day in the Gregorian calendar
+        precision, calendarmodel = datavalue['value'].get('precision'), datavalue['value'].get('calendarmodel')
+        return [statement for statement in statements if details[statement['sid']][1:] == (precision, calendarmodel)]
 
     def get_entities(self, claims: list[Claim] | Claims | Claim, cache: bool | None = None, query_limit: int | None = None) -> list[str]:
         """
@@ -627,7 +654,7 @@ class FastRunContainer:
             self.load_statements(claims=claim, cache=cache, limit=query_limit)
             candidates.append((claim, self._statements_with_value(claim)))
 
-        # The entities holding every simple value, then among them only, the ones with the same unit or precision
+        # The entities holding every simple value, then among them only, the ones with the same unit, or precision and calendar model
         entities = set.intersection(*({self._entity_id(statement['entity']) for statement in statements} for _, statements in candidates))
         for claim, statements in candidates:
             statements = self._filter_value_details(claim, [statement for statement in statements if self._entity_id(statement['entity']) in entities])
@@ -761,7 +788,7 @@ class FastRunContainer:
 
             candidates.append((claim, statements))
 
-        # The entities holding every simple value, then among them only, the ones with the same unit or precision
+        # The entities holding every simple value, then among them only, the ones with the same unit, or precision and calendar model
         common_entities = set.intersection(*({self._entity_id(statement['entity']) for statement in statements} for _, statements in candidates))
         if common_entities:
             candidates = [(claim, self._filter_value_details(claim, [statement for statement in statements if self._entity_id(statement['entity']) in common_entities]))

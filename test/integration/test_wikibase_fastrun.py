@@ -142,30 +142,40 @@ class TestFastRunContainer:
         assert frc.check_language_data(qid=synced_item.id, lang_data=['another label'], lang='en', lang_data_type='label')
 
 
-# Fast run never matches BCE dates nor Julian dates (#1197): the RDF export numbers the BCE years per XSD 1.1 (-0044 in
-# JSON is -0043 in RDF) and converts the Julian dates to Gregorian in the simple value, which Time.sparql_time() doesn't
-# do. Strict: these tests fail once it's fixed, to be turned into normal tests.
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason='#1197: fast run never matches BCE or Julian dates')
+# The RDF export numbers the BCE years like XSD 1.1 (-0044 in JSON is -0043 in RDF) and converts the days of the
+# Julian calendar to the Gregorian calendar, the calendar model is on the value node (#1197)
 @pytest.mark.parametrize('time_value, precision, calendarmodel', [
     ('-0044-03-15T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN),
     ('-0100-00-00T00:00:00Z', WikibaseTimePrecision.YEAR, GREGORIAN),
+    ('-0500-00-00T00:00:00Z', WikibaseTimePrecision.CENTURY, GREGORIAN),
     ('+1500-03-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN),
-], ids=['bce-day', 'bce-year', 'julian-day'])
+    ('-0044-03-15T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN),
+    ('+1500-00-00T00:00:00Z', WikibaseTimePrecision.YEAR, JULIAN),
+], ids=['bce-day', 'bce-year', 'bce-century', 'julian-day', 'julian-bce-day', 'julian-year'])
 def test_dates_needing_a_conversion(wbi, properties, delete_entities, time_value, precision, calendarmodel):
     prop_nr = properties[WikibaseDatatype.TIME]
-    unique = ExternalID(prop_nr=properties[WikibaseDatatype.EXTERNALID], value=f'date-{time_value}-{calendarmodel[-7:]}-{RUN_ID}')
+    unique = ExternalID(prop_nr=properties[WikibaseDatatype.EXTERNALID], value=f'date-{time_value}-{precision}-{calendarmodel[-7:]}-{RUN_ID}')
 
-    def claims():
-        return [ExternalID(prop_nr=unique.mainsnak.property_number, value=unique.mainsnak.datavalue['value']),
-                Time(prop_nr=prop_nr, time=time_value, precision=precision, calendarmodel=calendarmodel)]
+    def claims(calendar=calendarmodel):
+        # The date as a statement, and as a qualifier
+        return [ExternalID(prop_nr=unique.mainsnak.property_number, value=unique.mainsnak.datavalue['value'],
+                           qualifiers=[Time(prop_nr=prop_nr, time=time_value, precision=precision, calendarmodel=calendar)]),
+                Time(prop_nr=prop_nr, time=time_value, precision=precision, calendarmodel=calendar)]
 
     item = wbi.item.new()
     item.claims.add(claims())
     item_id = item.write(summary='WikibaseIntegrator integration test: fast run dates').id
     try:
         wait_for_query_service(item_id, unique.mainsnak.property_number, f'"{unique.mainsnak.datavalue["value"]}"')
+        base_filter = [ExternalID(prop_nr=unique.mainsnak.property_number), Time(prop_nr=prop_nr)]
+
         local = wbi.item.new()
         local.claims.add(claims())
-        assert not local.write_required(base_filter=[ExternalID(prop_nr=unique.mainsnak.property_number), Time(prop_nr=prop_nr)])
+        assert not local.write_required(base_filter=base_filter)
+
+        # The same timestamp in the other calendar is another value
+        other = wbi.item.new()
+        other.claims.add(claims(calendar=GREGORIAN if calendarmodel == JULIAN else JULIAN))
+        assert other.write_required(base_filter=base_filter)
     finally:
         delete_entities([item_id])

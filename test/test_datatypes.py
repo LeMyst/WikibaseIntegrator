@@ -3,12 +3,15 @@ Serialization tests for the datatypes: they validate that the JSON produced
 locally by the library matches what a Wikibase instance expects. No network
 interaction is involved.
 """
+import itertools
+
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes
 from wikibaseintegrator.datatypes import (URL, BaseDataType, CommonsMedia, EntitySchema, ExternalID, Form, GeoShape, GlobeCoordinate, Item, Lexeme, Math, MonolingualText,
                                           MusicalNotation, Property, Quantity, Sense, String, TabularData, Time)
 from wikibaseintegrator.datatypes.extra import EDTF, LocalMedia
+from wikibaseintegrator.datatypes.time import GREGORIAN_CALENDAR, JULIAN_CALENDAR
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseRank, WikibaseSnakType, WikibaseTimePrecision
 from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
 
@@ -135,6 +138,104 @@ class TestTime:
 
         # Ordering keeps working across the 4/5-digit boundary
         assert Time(time='+9999-01-01T00:00:00Z', prop_nr='P5') < time
+
+
+class TestTimeRdfExport:
+    """
+    Time.sparql_time() gives the xsd:dateTime of the Wikibase RDF export (DateTimeValueCleaner and
+    JulianDateTimeValueCleaner of Wikibase), Time.time_from_sparql() the timestamp of the JSON representation back.
+    """
+
+    @pytest.mark.parametrize('time, precision, calendarmodel, expected', [
+        # The BCE years are numbered like in XSD 1.1, from the year precision: 44 BCE is the year -43, 1 BCE the year 0
+        ('-0044-03-15T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '-0043-03-15T00:00:00Z'),
+        ('-0100-00-00T00:00:00Z', WikibaseTimePrecision.YEAR, GREGORIAN_CALENDAR, '-0099-01-01T00:00:00Z'),
+        ('-0001-05-00T00:00:00Z', WikibaseTimePrecision.MONTH, GREGORIAN_CALENDAR, '+0000-05-01T00:00:00Z'),
+        ('-0500-00-00T00:00:00Z', WikibaseTimePrecision.CENTURY, GREGORIAN_CALENDAR, '-0500-01-01T00:00:00Z'),
+        ('-13700000000-00-00T00:00:00Z', WikibaseTimePrecision.HUNDRED_MILLION_YEARS, GREGORIAN_CALENDAR, '-13700000000-01-01T00:00:00Z'),
+        # A day of the Julian calendar is converted to the Gregorian calendar
+        ('+1582-10-05T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '+1582-10-15T00:00:00Z'),
+        ('+1500-03-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '+1500-03-11T00:00:00Z'),
+        ('+1500-02-29T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '+1500-03-10T00:00:00Z'),
+        ('-0044-03-15T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '-0043-03-13T00:00:00Z'),
+        # Below the day precision, a Julian date isn't converted
+        ('+1500-03-00T00:00:00Z', WikibaseTimePrecision.MONTH, JULIAN_CALENDAR, '+1500-03-01T00:00:00Z'),
+        ('-0044-00-00T00:00:00Z', WikibaseTimePrecision.YEAR, JULIAN_CALENDAR, '-0043-01-01T00:00:00Z'),
+        # Out of the range of the calendar functions of PHP, a Julian date is exported as a Gregorian date
+        ('-4713-01-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '-4712-01-01T00:00:00Z'),
+        ('-5000-03-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '-4999-03-01T00:00:00Z'),
+        # A day beyond the end of the month is the last day of the month
+        ('+1987-02-30T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '+1987-02-28T00:00:00Z'),
+        ('+2000-02-31T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '+2000-02-29T00:00:00Z'),
+        ('+1987-04-31T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '+1987-04-30T00:00:00Z'),
+        ('-0005-02-29T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '-0004-02-29T00:00:00Z'),
+        # Leading zeros of the year are dropped, the year keeps at least 4 digits
+        ('+00001987-05-17T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '+1987-05-17T00:00:00Z'),
+        # Any other calendar model is read as the Gregorian calendar
+        ('-0044-03-15T00:00:00Z', WikibaseTimePrecision.DAY, 'http://example.org/entity/Q1', '-0043-03-15T00:00:00Z'),
+        # Without a precision nor a calendar model: a day of the Gregorian calendar
+        ('-0044-03-15T00:00:00Z', None, None, '-0043-03-15T00:00:00Z'),
+        # The year 0 doesn't exist in the JSON representation, Wikibase doesn't export it as an xsd:dateTime
+        ('+0000-01-01T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '+0000-01-01T00:00:00Z'),
+    ])
+    def test_sparql_time(self, time, precision, calendarmodel, expected):
+        assert Time.sparql_time(time, precision, calendarmodel) == expected
+
+    @pytest.mark.parametrize('time, precision, calendarmodel, expected', [
+        ('-0043-03-15T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '-0044-03-15T00:00:00Z'),
+        ('0000-01-01T00:00:00Z', WikibaseTimePrecision.YEAR, GREGORIAN_CALENDAR, '-0001-01-01T00:00:00Z'),
+        ('-0500-01-01T00:00:00Z', WikibaseTimePrecision.CENTURY, GREGORIAN_CALENDAR, '-0500-01-01T00:00:00Z'),
+        ('1987-05-17T00:00:00Z', WikibaseTimePrecision.DAY, GREGORIAN_CALENDAR, '+1987-05-17T00:00:00Z'),
+        ('1582-10-15T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '+1582-10-05T00:00:00Z'),
+        ('-0043-03-13T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '-0044-03-15T00:00:00Z'),
+        ('-0043-01-01T00:00:00Z', WikibaseTimePrecision.YEAR, JULIAN_CALENDAR, '-0044-01-01T00:00:00Z'),
+        # 1 January 4713 BCE of the Julian calendar is exported as a Gregorian date, like 8 February
+        ('-4712-01-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '-4713-02-08T00:00:00Z'),
+        ('-4999-03-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN_CALENDAR, '-5000-03-01T00:00:00Z'),
+        ('-0043-03-15T00:00:00Z', None, None, '-0044-03-15T00:00:00Z'),
+    ])
+    def test_time_from_sparql(self, time, precision, calendarmodel, expected):
+        assert Time.time_from_sparql(time, precision, calendarmodel) == expected
+
+    @pytest.mark.parametrize('time', ['2020', '+2020-01-01', ''])
+    def test_time_from_sparql_not_a_timestamp(self, time):
+        assert Time.time_from_sparql(time, WikibaseTimePrecision.YEAR) == time
+
+    @pytest.mark.parametrize('calendarmodel', [GREGORIAN_CALENDAR, JULIAN_CALENDAR], ids=['gregorian', 'julian'])
+    def test_round_trip(self, calendarmodel):
+        """A timestamp exported then read back is the same timestamp, for the days that exist in its calendar."""
+        for year, month, day, precision in itertools.product((-5000, -1000, -45, -44, -1, 1, 4, 1500, 1582, 1700, 2000, 2024, 1465072, 1465073),
+                                                             range(1, 13), (1, 15, 28, 29, 30, 31), (7, 9, 10, 11)):
+            astronomical_year = year + 1 if year < 0 else year
+            if calendarmodel == JULIAN_CALENDAR and precision >= 11 and -4713 <= year <= 1465072:
+                leap = astronomical_year % 4 == 0
+            else:
+                leap = astronomical_year % 4 == 0 and (astronomical_year % 100 != 0 or astronomical_year % 400 == 0)
+            if day > ((29 if leap else 28) if month == 2 else 30 if month in (4, 6, 9, 11) else 31):
+                continue
+            if precision < 10:
+                month = 1
+            if precision < 11:
+                day = 1
+            time = f"{'-' if year < 0 else '+'}{abs(year):04d}-{month:02d}-{day:02d}T00:00:00Z"
+            exported = Time.sparql_time(time, precision, calendarmodel)
+            read_back = Time.time_from_sparql(exported.lstrip('+'), precision, calendarmodel)
+            assert Time.sparql_time(read_back, precision, calendarmodel) == exported, (time, precision, exported)
+            # Out of the range of the conversion, a Julian date can be exported like a Julian date of the range: the
+            # years after 1465072 are exported unchanged, as the dates about 30 years before
+            if year <= 1465072:
+                assert read_back == time, (time, precision, exported)
+
+    def test_from_sparql_value(self):
+        # The simple value is a day of the Gregorian calendar, with the years numbered like in XSD 1.1
+        time = Time(prop_nr='P1').from_sparql_value({'datatype': 'http://www.w3.org/2001/XMLSchema#dateTime', 'type': 'literal', 'value': '-0043-03-13T00:00:00Z'})
+        assert time.mainsnak.datavalue['value']['time'] == '-0044-03-13T00:00:00Z'
+        assert time.mainsnak.datavalue['value']['calendarmodel'] == GREGORIAN_CALENDAR
+        assert time.get_sparql_value() == '"-0043-03-13T00:00:00Z"^^xsd:dateTime'
+
+    def test_get_sparql_value_of_a_julian_date(self):
+        time = Time(time='-0044-03-15T00:00:00Z', precision=WikibaseTimePrecision.DAY, calendarmodel=JULIAN_CALENDAR, prop_nr='P1')
+        assert time.get_sparql_value() == '"-0043-03-13T00:00:00Z"^^xsd:dateTime'
 
 
 class TestRank:
