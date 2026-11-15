@@ -28,7 +28,7 @@ from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, c
 
 
 class FakeLogin:
-    """Minimal stand-in for wbi_login._Login, without any HTTP interaction."""
+    """Minimal stand-in for wbi_login.BaseLogin, without any HTTP interaction."""
 
     def __init__(self, mediawiki_api_url, edit_token='fakelogintoken+\\'):
         self.mediawiki_api_url = mediawiki_api_url
@@ -252,6 +252,10 @@ class TestDefaultSession:
     def test_former_module_sessions_are_deprecated(self, name):
         with pytest.warns(DeprecationWarning):
             assert getattr(wbi_helpers, name) is wbi_helpers._get_default_session()
+
+    def test_bcolors_is_deprecated(self):
+        with pytest.warns(DeprecationWarning, match='removed in WikibaseIntegrator 1.0'):
+            assert wbi_helpers.BColors.ENDC == '\x1b[0m'
 
     def test_unknown_attribute_still_raises(self):
         with pytest.raises(AttributeError):

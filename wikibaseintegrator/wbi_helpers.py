@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
     from wikibaseintegrator.entities.baseentity import BaseEntity
     from wikibaseintegrator.models import Claim
-    from wikibaseintegrator.wbi_login import _Login
+    from wikibaseintegrator.wbi_login import BaseLogin
 
 log = logging.getLogger(__name__)
 
@@ -54,17 +54,23 @@ def _get_default_session() -> Session:
 def __getattr__(name: str) -> Any:
     # Backward compatibility for the former module-level sessions
     if name in ('default_session', 'helpers_session'):
-        warnings.warn(f"wbi_helpers.{name} is deprecated, the session is now per-thread and private.", DeprecationWarning, stacklevel=2)
+        warnings.warn(f"wbi_helpers.{name} is deprecated and will be removed in WikibaseIntegrator 1.0, the session is now per-thread and private.", DeprecationWarning,
+                      stacklevel=2)
         return _get_default_session()
+    if name == 'BColors':
+        warnings.warn("wbi_helpers.BColors is deprecated and will be removed in WikibaseIntegrator 1.0, the library no longer emits ANSI color codes.", DeprecationWarning,
+                      stacklevel=2)
+        return _BColors
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-class BColors:
+class _BColors:
     """
-    Default colors for pretty outputs.
+    Default colors for pretty outputs, available as ``wbi_helpers.BColors``.
 
-    .. deprecated::
-        Kept for backward compatibility only. The library no longer emits ANSI color codes in its logs.
+    .. deprecated:: 0.15
+        Kept for backward compatibility only, and removed in WikibaseIntegrator 1.0. The library no longer emits ANSI
+        color codes in its logs.
     """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -187,7 +193,7 @@ def _retry_after_delay(response: requests.Response, default: float) -> float:
     return delay if max_value is None else min(delay, max_value)
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 20, retry_after: int = 60,
+def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: BaseLogin | None = None, max_retries: int = 20, retry_after: int = 60,
                        **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
@@ -352,14 +358,14 @@ def _warn_missing_user_agent(url: str, user_agent: str | None) -> None:
                     "https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy", hostname)
 
 
-def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
+def mediawiki_api_call_helper(data: dict[str, Any], login: BaseLogin | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
                               max_retries: int = 20, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
 
     :param data: A dictionary containing the JSON data to send to the API
-    :param login: A wbi_login._Login instance
+    :param login: A wbi_login.BaseLogin instance
     :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
     :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False). With a login, the request is still made with
@@ -465,7 +471,8 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     """
 
     if max_retries is not None:
-        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES'].", DeprecationWarning,
+        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES']. "
+                      "It will be removed in WikibaseIntegrator 1.0.", DeprecationWarning,
                       stacklevel=3)
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
@@ -703,7 +710,7 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     return json_result
 
 
-def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+def merge_items(from_id: str, to_id: str, login: BaseLogin | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
                 **kwargs: Any) -> dict:
     """
     A static method to merge two items. Wikibase turns the emptied item into a redirect to the target item.
@@ -735,7 +742,7 @@ def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_co
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+def merge_multiple_items(item_ids: list[str], login: BaseLogin | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
                          **kwargs: Any) -> str:
     """
     Merge several items into the one with the lowest numeric ID, one wbmergeitems call per merged item.
@@ -771,7 +778,7 @@ def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignor
     return to_id
 
 
-def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def create_redirect(from_id: str, to_id: str, login: BaseLogin | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A static method to turn an item into a redirect to another item, with the wbcreateredirect API.
 
@@ -799,7 +806,7 @@ def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bo
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, tags: list[str] | None = None,
+def merge_lexemes(source: str, target: str, login: BaseLogin | None = None, summary: str | None = None, is_bot: bool = False, tags: list[str] | None = None,
                   **kwargs: Any) -> dict:
     """
     A static method to merge two lexemes
@@ -865,7 +872,7 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
 
 
 def set_claim(claim: Claim, entity_id: str | None = None, index: int | None = None, baserevid: int | None = None, summary: str | None = None, tags: list[str] | None = None,
-              ignore_duplicate_mainsnak: bool = False, login: _Login | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+              ignore_duplicate_mainsnak: bool = False, login: BaseLogin | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Create or replace a single statement, with its qualifiers and references, with the wbsetclaim API.
 
@@ -1404,7 +1411,7 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
 
 
 def delete_page(title: str | None = None, pageid: int | None = None, reason: str | None = None, deletetalk: bool = False, watchlist: str = 'preferences',
-                watchlistexpiry: str | None = None, login: _Login | None = None, **kwargs: Any) -> dict:
+                watchlistexpiry: str | None = None, login: BaseLogin | None = None, **kwargs: Any) -> dict:
     """
     Delete a page
 
@@ -1677,7 +1684,7 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
 
 
 @wbi_backoff()
-def download_entity_data(entity: str, format: str = 'json', flavor: str | None = None, revision: int | None = None, login: _Login | None = None,
+def download_entity_data(entity: str, format: str = 'json', flavor: str | None = None, revision: int | None = None, login: BaseLogin | None = None,
                          mediawiki_api_url: str | None = None, user_agent: str | None = None) -> str:
     """
     Download an entity from Special:EntityData, the linked data interface of Wikibase: its JSON at a given revision, which
@@ -1783,7 +1790,7 @@ class WikibaseCheck:
 
 
 def check_wikibase(mediawiki_api_url: str | None = None, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None, check_sparql: bool = True,
-                   login: _Login | None = None, **kwargs: Any) -> WikibaseCheck:
+                   login: BaseLogin | None = None, **kwargs: Any) -> WikibaseCheck:
     """
     Check the features of a Wikibase instance: the MediaWiki version, the installed extensions, the entity types and the
     datatypes it supports, and whether the SPARQL endpoint answers. It also checks the configuration of
