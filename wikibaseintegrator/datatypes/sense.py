@@ -32,7 +32,8 @@ class Sense(BaseDataType):
         self.set_value(value=value)
 
     def set_value(self, value: str | None = None) -> None:
-        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"Expected str, found {type(value)} ({value})")
 
         if value:
             pattern = re.compile(r'^L[0-9]+-S[0-9]+$')

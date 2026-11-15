@@ -54,7 +54,8 @@ class Time(BaseDataType):
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        assert isinstance(time, str) or time is None, f"Expected str, found {type(time)} ({time})"
+        if time is not None and not isinstance(time, str):
+            raise TypeError(f"Expected str, found {type(time)} ({time})")
 
         if time:
             if time == "now":

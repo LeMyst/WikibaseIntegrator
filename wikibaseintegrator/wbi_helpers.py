@@ -1381,7 +1381,8 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     if isinstance(entities, str):
         entities = [entities]
 
-    assert isinstance(entities, list)
+    if not isinstance(entities, list):
+        raise TypeError(f"The entities must be a str or a list of str, found {type(entities)}")
 
     wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
     entity_instances = []

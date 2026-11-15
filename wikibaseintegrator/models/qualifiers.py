@@ -21,7 +21,8 @@ class Qualifiers(BaseModel):
 
     @qualifiers.setter
     def qualifiers(self, value: dict[str, list[Snak]]) -> None:
-        assert isinstance(value, dict)
+        if not isinstance(value, dict):
+            raise TypeError(f"The qualifiers must be a dict, found {type(value)}")
         self.__qualifiers = value
 
     def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Self:
@@ -66,7 +67,8 @@ class Qualifiers(BaseModel):
         if qualifier is None:
             return self
 
-        assert isinstance(qualifier, Snak)
+        if not isinstance(qualifier, Snak):
+            raise TypeError(f"Expected a Snak or a Claim, found {type(qualifier)}")
 
         property = _require_property_number(qualifier)
 
@@ -88,8 +90,8 @@ class Qualifiers(BaseModel):
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
 
-        if qualifier is not None:
-            assert isinstance(qualifier, Snak)
+        if not isinstance(qualifier, Snak):
+            raise TypeError(f"Expected a Snak or a Claim, found {type(qualifier)}")
 
         # Removing a qualifier that isn't there does nothing, whether its property has other qualifiers or none, or it has no property
         property = qualifier.property_number

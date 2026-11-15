@@ -295,7 +295,7 @@ class TestQualifiers:
         assert [snak.datavalue['value'] for snak in qualifiers.get('P1')] == ['b']
 
     def test_remove_none(self):
-        with pytest.raises(AttributeError):
+        with pytest.raises(TypeError):
             Qualifiers().remove(None)
 
     def test_clear_with_an_int(self):
@@ -358,7 +358,7 @@ class TestEnumArguments:
     """A value that isn't a member of the enum is rejected the same way on every Python version (3.11 to 3.13 raised a TypeError)."""
 
     def test_aliases_set_rejects_an_invalid_action(self):
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             Aliases().set('en', 'a', action_if_exists='keep')
 
     def test_time_rejects_a_precision_of_another_type(self):
