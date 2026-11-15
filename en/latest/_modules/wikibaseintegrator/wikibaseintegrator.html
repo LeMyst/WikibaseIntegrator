@@ -437,31 +437,71 @@
 <span class="sd">"""</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.entities.item</span><span class="w"> </span><span class="kn">import</span> <span class="n">ItemEntity</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.entities.lexeme</span><span class="w"> </span><span class="kn">import</span> <span class="n">LexemeEntity</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.entities.mediainfo</span><span class="w"> </span><span class="kn">import</span> <span class="n">MediaInfoEntity</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.entities.property</span><span class="w"> </span><span class="kn">import</span> <span class="n">PropertyEntity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">wbi_config</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLogin</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_InstanceConfig</span><span class="p">(</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The configuration of a WikibaseIntegrator instance, read-only: its own values, then the ones of wbi_config, read when they're</span>
+<span class="sd">    used, so that a change of wbi_config applies to the options the instance doesn't set.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="k">else</span> <span class="n">wbi_config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">({</span><span class="o">**</span><span class="n">wbi_config</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">({</span><span class="o">**</span><span class="n">wbi_config</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="si">!r}</span><span class="s1">)'</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_InstanceConfig</span><span class="p">:</span>
+        <span class="c1"># Read-only: a copy of an entity keeps the configuration of its instance, still backed by wbi_config</span>
+        <span class="k">return</span> <span class="bp">self</span>
 
 
 <div class="viewcode-block" id="WikibaseIntegrator">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wikibaseintegrator.WikibaseIntegrator.html#wikibaseintegrator.wikibaseintegrator.WikibaseIntegrator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WikibaseIntegrator</span><span class="p">:</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This function initializes a WikibaseIntegrator instance to quickly access different entity type instances.</span>
 
 <span class="sd">        :param is_bot: declare if the bot flag must be set when you interact with the MediaWiki API.</span>
 <span class="sd">        :param login: a wbi_login instance needed when you try to access a restricted MediaWiki instance.</span>
+<span class="sd">        :param config: The configuration of this instance, with the keys of wbi_config, e.g. ``{'MEDIAWIKI_API_URL': ...,</span>
+<span class="sd">            'SPARQL_ENDPOINT_URL': ..., 'WIKIBASE_URL': ...}`` or ``get_manifest(url).config()``. The keys it doesn't set</span>
+<span class="sd">            are read from wbi_config, when they're used. The entities of this instance (``item``, ``property``,</span>
+<span class="sd">            ``lexeme``, ``mediainfo``) use its MEDIAWIKI_API_URL, USER_AGENT, MAX_REQUEST_SIZE, WIKIBASE_URL,</span>
+<span class="sd">            SPARQL_ENDPOINT_URL (fast run) and DEFAULT_LEXEME_LANGUAGE. The other options are read from wbi_config.</span>
+<span class="sd">        :raises ValueError: If a key of config isn't an option of wbi_config</span>
 <span class="sd">        """</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="p">{})</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">wbi_config</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown configuration options: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span><span class="si">}</span><span class="s2">. The options are the keys of wbi_config: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wbi_config</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+
         <span class="c1"># Runtime variables</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_bot</span> <span class="o">=</span> <span class="n">is_bot</span> <span class="ow">or</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">login</span> <span class="o">=</span> <span class="n">login</span>
+        <span class="c1">#: The configuration of this instance, read-only: the values given to the constructor, and wbi_config for the others.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">_InstanceConfig</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="p">{})</span>
 
         <span class="c1"># Quick access to entities</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">item</span> <span class="o">=</span> <span class="n">ItemEntity</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>

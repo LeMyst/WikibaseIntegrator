@@ -504,6 +504,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../fastrun.html">Fast run</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.FastRunContainer.html">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../configuration.html">Configuration, enums and exceptions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -763,9 +764,13 @@ unsaved changes included, so calling it again refreshes them instead of duplicat
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.entities.property.PropertyEntity.get_entity_url">
 <span class="sig-name descname"><span class="pre">get_entity_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wikibase_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.entities.property.PropertyEntity.get_entity_url" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd><p>The concept URI of the entity, e.g. <a class="reference external" href="http://www.wikidata.org/entity/Q42">http://www.wikidata.org/entity/Q42</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wikibase_url</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The Wikibase URL. Default: the WIKIBASE_URL of the configuration of the WikibaseIntegrator instance</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>

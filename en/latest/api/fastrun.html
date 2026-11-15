@@ -504,6 +504,7 @@
 <li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">Fast run</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.FastRunContainer.html">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="configuration.html">Configuration, enums and exceptions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -610,6 +611,9 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.get_fastrun_container.html#wikibaseintegrator.wbi_fastrun.get_fastrun_container" title="wikibaseintegrator.wbi_fastrun.get_fastrun_container"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fastrun_container</span></code></a></p></td>
 <td><p>Return a FastRunContainer object, create a new one if it doesn't already exist.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html#wikibaseintegrator.wbi_fastrun.clear_fastrun_store" title="wikibaseintegrator.wbi_fastrun.clear_fastrun_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_fastrun_store</span></code></a></p></td>
+<td><p>Forget the fast run containers kept by get_fastrun_container(), with the data they loaded: the next call creates new containers, which query the SPARQL endpoint again.</p></td>
 </tr>
 </tbody>
 </table>

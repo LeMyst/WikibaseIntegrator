@@ -549,6 +549,39 @@ concept URIs. <code class="docutils literal notranslate"><span class="pre">wbi_m
 equivalent. <code class="docutils literal notranslate"><span class="pre">get_manifest()</span></code> raises a <code class="docutils literal notranslate"><span class="pre">MissingExtensionError</span></code> if the instance doesn’t have the extension, which is the
 case of Wikidata.</p>
 </section>
+<section id="several-instances-in-one-process">
+<h3>Several instances in one process<a class="headerlink" href="#several-instances-in-one-process" title="Link to this heading">#</a></h3>
+<p>wbi_config is shared by the whole process. To work with several instances at the same time, e.g. to copy data from
+Wikidata to another Wikibase, give each <code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator</span></code> its own configuration, with the keys of wbi_config. The
+options it doesn’t set are read from wbi_config, when they’re used:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseIntegrator</span><span class="p">,</span> <span class="n">wbi_login</span><span class="p">,</span> <span class="n">wbi_manifest</span>
+
+<span class="n">wikidata</span> <span class="o">=</span> <span class="n">WikibaseIntegrator</span><span class="p">()</span>  <span class="c1"># wbi_config: Wikidata by default</span>
+
+<span class="n">login</span> <span class="o">=</span> <span class="n">wbi_login</span><span class="o">.</span><span class="n">Login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s1">'MyBot@MyBot'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">'...'</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="s1">'https://wikibase.world/w/api.php'</span><span class="p">)</span>
+<span class="n">world</span> <span class="o">=</span> <span class="n">WikibaseIntegrator</span><span class="p">(</span><span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">wbi_manifest</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">(</span><span class="s1">'https://wikibase.world/w/rest.php'</span><span class="p">)</span><span class="o">.</span><span class="n">config</span><span class="p">())</span>
+<span class="c1"># Or by hand:</span>
+<span class="c1"># world = WikibaseIntegrator(login=login, config={'MEDIAWIKI_API_URL': 'https://wikibase.world/w/api.php',</span>
+<span class="c1">#                                                 'SPARQL_ENDPOINT_URL': 'https://wikibase.world/query/sparql',</span>
+<span class="c1">#                                                 'WIKIBASE_URL': 'https://wikibase.world'})</span>
+
+<span class="n">label</span> <span class="o">=</span> <span class="n">wikidata</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'Q42'</span><span class="p">)</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'en'</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+<span class="n">item</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>
+<span class="n">item</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="s1">'en'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+<span class="n">item</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The entities of an instance (<code class="docutils literal notranslate"><span class="pre">wbi.item</span></code>, <code class="docutils literal notranslate"><span class="pre">wbi.property</span></code>, <code class="docutils literal notranslate"><span class="pre">wbi.lexeme</span></code>, <code class="docutils literal notranslate"><span class="pre">wbi.mediainfo</span></code>) use its <code class="docutils literal notranslate"><span class="pre">MEDIAWIKI_API_URL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">USER_AGENT</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_REQUEST_SIZE</span></code> for their requests, its <code class="docutils literal notranslate"><span class="pre">WIKIBASE_URL</span></code> for <code class="docutils literal notranslate"><span class="pre">get_entity_url()</span></code>, its
+<code class="docutils literal notranslate"><span class="pre">DEFAULT_LEXEME_LANGUAGE</span></code> for the new lexemes, and its <code class="docutils literal notranslate"><span class="pre">SPARQL_ENDPOINT_URL</span></code> and <code class="docutils literal notranslate"><span class="pre">WIKIBASE_URL</span></code> for the fast run mode
+(<code class="docutils literal notranslate"><span class="pre">write_required()</span></code>). The arguments given to a method, like <code class="docutils literal notranslate"><span class="pre">mediawiki_api_url</span></code>, take precedence. <code class="docutils literal notranslate"><span class="pre">wbi.config</span></code> gives the
+configuration of the instance, read-only.</p>
+<p>The rest still reads wbi_config: the functions of <code class="docutils literal notranslate"><span class="pre">wbi_helpers</span></code> (pass them <code class="docutils literal notranslate"><span class="pre">mediawiki_api_url</span></code>, <code class="docutils literal notranslate"><span class="pre">wikibase_url</span></code>… as
+before), the retries and the timeouts, the default language of the labels, and the data types. A <code class="docutils literal notranslate"><span class="pre">Quantity</span></code>, a <code class="docutils literal notranslate"><span class="pre">Time</span></code>
+or a <code class="docutils literal notranslate"><span class="pre">GlobeCoordinate</span></code> built with a bare ID as unit, calendar model or globe (e.g. <code class="docutils literal notranslate"><span class="pre">unit='Q11573'</span></code>) gets the IRI of
+<code class="docutils literal notranslate"><span class="pre">wbi_config['WIKIBASE_URL']</span></code>: pass <code class="docutils literal notranslate"><span class="pre">wikibase_url=world.config['WIKIBASE_URL']</span></code> for another instance. A login has its
+own URLs, given when it is created, and its MediaWiki API URL must be the one of the instance.</p>
+</section>
 <section id="request-size-limit">
 <h3>Request size limit<a class="headerlink" href="#request-size-limit" title="Link to this heading">#</a></h3>
 <p>Some Wikibase instances (e.g. Wikibase.cloud) reject a request larger than a given size with an
@@ -644,6 +677,7 @@ of the Wikimedia Meta-Wiki.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-a-wikibase-instance">Using a Wikibase instance</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-the-manifest-of-the-instance">From the manifest of the instance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#several-instances-in-one-process">Several instances in one process</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#request-size-limit">Request size limit</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikimedia-foundation-user-agent-policy">Wikimedia Foundation User-Agent policy</a></li>
 </ul>
