@@ -422,7 +422,8 @@ class BaseEntity:
 
     def delete(self, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:
         """
-        Delete the current entity. Use the pageid first if available and fallback to the page title.
+        Delete the current entity. Use the pageid first if available and fallback to the page title. Without either, as on the entity
+        returned by write() (the response of wbeditentity has no page), the page is resolved from the id of the entity first.
 
         :param login: A wbi_login.Login instance
         :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
@@ -431,12 +432,17 @@ class BaseEntity:
         :param deletetalk: Delete the talk page, if it exists.
         :param kwargs: Any additional keyword arguments to pass to mediawiki_api_call_helper and requests.request
         :return: The data returned by the API as a dictionary
+        :raises ValueError: If the entity has no id, pageid nor page title, or if its id is a redirect to another entity
+        :raises MissingEntityException: If the page is resolved from the id, and the entity doesn't exist (or was deleted)
+        :raises NonExistentEntityError: If the page is resolved from the id, and the instance doesn't know the id
         """
 
         login = login or self.api.login
 
         if not self.pageid and not self.title:
-            raise ValueError("A pageid or a page title attribute must be set before deleting an entity object.")
+            if not self.id:
+                raise ValueError("A pageid, a page title or an id must be set before deleting an entity object.")
+            self._resolve_page(login=login, mediawiki_api_url=kwargs.get('mediawiki_api_url'), user_agent=kwargs.get('user_agent'))
 
         # If there is no pageid, fallback to using the page title. It's not the preferred method.
         if not self.pageid:
@@ -446,6 +452,26 @@ class BaseEntity:
             raise ValueError(f"The entity must have a pageid attribute correctly set ({self.pageid})")
 
         return delete_page(title=None, pageid=self.pageid, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+
+    def _resolve_page(self, login: BaseLogin | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None) -> None:
+        """
+        Set the pageid and the page title of the entity from its id. The page title can't be built from the id: the namespace of the
+        entities depends on the configuration of the instance.
+
+        :raises ValueError: If the id is a redirect to another entity: deleting the page of the target would delete another entity
+        :raises MissingEntityException: If the entity doesn't exist
+        """
+        entities = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': self.id, 'props': 'info', 'redirects': 'no', 'format': 'json'}, login=login,
+                                             mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=True)['entities']
+
+        entity = entities.get(str(self.id))
+        if entity is None:
+            raise ValueError(f"The entity {self.id} is a redirect to {', '.join(entities)}: it isn't deleted.")
+        if 'missing' in entity:
+            raise MissingEntityException(f'The entity {self.id} does not exist.')
+
+        self.title = entity.get('title')
+        self.pageid = entity.get('pageid')
 
     def write_required(self, base_filter: list[BaseDataType | list[BaseDataType]], action_if_exists: ActionIfExists = ActionIfExists.REPLACE_ALL, **kwargs: Any) -> bool:
         fastrun_container = wbi_fastrun.get_fastrun_container(base_filter=base_filter, **kwargs)
