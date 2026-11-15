@@ -221,7 +221,13 @@ class TestQuantity:
 
     def test_upper_bound_too_small(self):
         with pytest.raises(ValueError, match='Upper bound too small'):
-            Quantity(amount=5, upper_bound=4, prop_nr='P1')
+            Quantity(amount=5, upper_bound=4, lower_bound=3, prop_nr='P1')
+
+    @pytest.mark.parametrize('lower_bound,upper_bound', [(None, 7), (3, None), ('', 7), (3, ''), (6, None)])
+    def test_single_bound(self, lower_bound, upper_bound):
+        # Wikibase rejects a quantity with one bound, even a lower bound above the amount used to be accepted alone
+        with pytest.raises(ValueError, match='bounds must be given together'):
+            Quantity(amount=5, lower_bound=lower_bound, upper_bound=upper_bound, prop_nr='P1')
 
 
 class TestTime:
