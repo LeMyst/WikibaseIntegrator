@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
 from wikibaseintegrator.models.reference import Reference
-from wikibaseintegrator.models.snak import Snak
+from wikibaseintegrator.models.snak import Snak, _copy_json
 from wikibaseintegrator.models.snaks import Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -55,7 +55,7 @@ class References(BaseModel):
                 parts = ' and '.join(part for part, present in (('qualifiers', reference.qualifiers), ('references', reference.references)) if present)
                 raise ValueError(f"A claim with {parts} can't be used as a reference: a reference only holds snaks. Pass the claim without them, or a Reference.")
 
-            reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
+            reference = Reference(snaks=Snaks().add(Snak().from_json(_copy_json(reference.mainsnak))))
 
         if reference is not None:
             if not isinstance(reference, Reference):
@@ -81,7 +81,7 @@ class References(BaseModel):
     def remove(self, reference_to_remove: Claim | Reference) -> bool:
         from wikibaseintegrator.models.claim import Claim
         if isinstance(reference_to_remove, Claim):
-            reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(reference_to_remove.get_json()['mainsnak'])))
+            reference_to_remove = Reference(snaks=Snaks().add(Snak().from_json(_copy_json(reference_to_remove.mainsnak))))
 
         if not isinstance(reference_to_remove, Reference):
             raise TypeError(f"Expected a Reference or a Claim, found {type(reference_to_remove)}")

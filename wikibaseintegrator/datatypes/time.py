@@ -6,6 +6,7 @@ from functools import total_ordering
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.models.snak import _entity_iri
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType, WikibaseTimePrecision
 
@@ -96,6 +97,9 @@ class Time(BaseDataType):
                           (https://www.wikidata.org/wiki/Special:ListDatatypes#time)
         :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
         :param calendarmodel: The calendar model used for the date. URL to the Wikibase calendar model item or the QID.
+        :param wikibase_url: The Wikibase URL completing a calendar model given as an ID like 'Q1985727'. Default: the ID is kept, and
+            completed when the value is serialized, with the WIKIBASE_URL of the WikibaseIntegrator instance of the entity, else
+            wbi_config['WIKIBASE_URL']
         """
 
         super().__init__(**kwargs)
@@ -106,9 +110,9 @@ class Time(BaseDataType):
     def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
                   calendarmodel: str | None = None, wikibase_url: str | None = None) -> None:
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
-        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
-        if calendarmodel.startswith('Q'):
+        # Without wikibase_url, a bare ID is completed when the value is serialized (see Snak.get_json())
+        if wikibase_url and calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
         if time is not None and not isinstance(time, str):
@@ -250,7 +254,10 @@ class Time(BaseDataType):
 
     def get_sparql_value(self, **kwargs: Any) -> str:
         value = self.mainsnak.datavalue['value']
-        return '"' + self.sparql_time(value['time'], value.get('precision'), value.get('calendarmodel')) + '"^^xsd:dateTime'
+        calendarmodel = value.get('calendarmodel')
+        if calendarmodel:
+            calendarmodel = _entity_iri(calendarmodel, kwargs.get('wikibase_url'))
+        return '"' + self.sparql_time(value['time'], value.get('precision'), calendarmodel) + '"^^xsd:dateTime'
 
     def _time_parts(self) -> tuple[int, int, int]:
         """

@@ -17,7 +17,7 @@ from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.reference import Reference
 from wikibaseintegrator.models.references import References
-from wikibaseintegrator.models.snak import Snak, _require_property_number
+from wikibaseintegrator.models.snak import Snak, _require_property_number, _resolve_datavalue
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseRank, WikibaseSnakType
 from wikibaseintegrator.wbi_exceptions import UnknownDatatypeError
@@ -287,6 +287,7 @@ class FastRunContainer:
             cache = self.cache
 
         wb_url = wb_url or self.wikibase_url
+        claims = _with_entity_iris(claims, wb_url)
 
         limit = limit or int(config['SPARQL_QUERY_LIMIT'])
 
@@ -697,6 +698,7 @@ class FastRunContainer:
 
         if len(claims) == 0:
             raise ValueError("claims must have at least one claim")
+        claims = _with_entity_iris(claims, self.wikibase_url)
 
         candidates: list[tuple[Claim, list[dict[str, str]]]] = []
         for claim in claims:
@@ -788,6 +790,7 @@ class FastRunContainer:
 
         if len(claims) == 0:
             raise ValueError("claims must have at least one claim")
+        claims = _with_entity_iris(claims, self.wikibase_url)
 
         if action_if_exists == ActionIfExists.FORCE_APPEND:
             # The new statements are always appended, a write is always required
@@ -998,6 +1001,24 @@ class FastRunContainer:
             id=id(self) & 0xFFFFFF,
             attrs="\r\n\t ".join(f"{k}={v!r}" for k, v in self.__dict__.items()),
         )
+
+
+def _with_entity_iris(claims: list[Claim] | Claims, wikibase_url: str) -> list[Claim]:
+    """
+    The claims, their values completed with the Wikibase URL of the container where they hold a bare entity ID, like
+    Quantity(unit='Q11573') (see Snak.get_json()): copies of the claims concerned, the others as they are.
+    """
+    def snaks(claim: Claim) -> list[Snak]:
+        return [claim.mainsnak, *claim.qualifiers, *(snak for reference in claim.references for snak in reference)]
+
+    resolved = []
+    for claim in claims:
+        if any(_resolve_datavalue(snak.datavalue, wikibase_url) is not snak.datavalue for snak in snaks(claim)):
+            claim = copy.deepcopy(claim)
+            for snak in snaks(claim):
+                snak.datavalue = _resolve_datavalue(snak.datavalue, wikibase_url)
+        resolved.append(claim)
+    return resolved
 
 
 def get_fastrun_container(base_filter: list[BaseDataType | list[BaseDataType]], use_qualifiers: bool = True, use_references: bool = False, use_rank: bool = False,

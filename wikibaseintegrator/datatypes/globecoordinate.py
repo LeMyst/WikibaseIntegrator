@@ -7,6 +7,7 @@ from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.models.claim import Claim
+from wikibaseintegrator.models.snak import _entity_iri, _same_datavalue
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
@@ -59,7 +60,8 @@ class GlobeCoordinate(BaseDataType):
         :param altitude: Altitude (in decimal format?) (Always None at this moment)
         :param precision: Precision of the position measurement, default 1 / 3600
         :param globe: The globe entity concept URI (ex: http://www.wikidata.org/entity/Q2) or 'Q2'
-        :param wikibase_url: The default wikibase URL, used when the globe is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.
+        :param wikibase_url: The Wikibase URL completing a globe given as an ID like 'Q2'. Default: the ID is kept, and completed when the
+            value is serialized, with the WIKIBASE_URL of the WikibaseIntegrator instance of the entity, else wbi_config['WIKIBASE_URL']
         """
 
         super().__init__(**kwargs)
@@ -72,15 +74,15 @@ class GlobeCoordinate(BaseDataType):
         # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
         precision = precision or 1 / 3600
         globe = globe or str(config['COORDINATE_GLOBE_QID'])
-        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
-        if globe.startswith('Q'):
+        # Without wikibase_url, a bare ID is completed when the value is serialized (see Snak.get_json())
+        if wikibase_url and globe.startswith('Q'):
             globe = wikibase_url + '/entity/' + globe
 
         if latitude is not None and longitude is not None:
             # Wikibase accepts -360 to 360 for both, which the coordinates of other globes use (e.g. Mars longitudes go from 0
             # to 360). On Earth, the geographic ranges are kept, catching a latitude and a longitude swapped.
-            if globe in (GLOBE_EARTH, str(config['COORDINATE_GLOBE_QID'])):
+            if _entity_iri(globe) in (GLOBE_EARTH, _entity_iri(str(config['COORDINATE_GLOBE_QID']))):
                 max_latitude, max_longitude = 90, 180
             else:
                 max_latitude, max_longitude = 360, 360
@@ -112,7 +114,7 @@ class GlobeCoordinate(BaseDataType):
                     value['precision'] = round(value['precision'], 17)
                 return {**datavalue, 'value': value}
 
-            return rounded(self.mainsnak.datavalue) == rounded(other.mainsnak.datavalue) and self.mainsnak.property_number == other.mainsnak.property_number \
+            return _same_datavalue(rounded(self.mainsnak.datavalue), rounded(other.mainsnak.datavalue)) and self.mainsnak.property_number == other.mainsnak.property_number \
                 and self.has_equal_qualifiers(other)
 
         return super().__eq__(other)
@@ -159,7 +161,7 @@ class GlobeCoordinate(BaseDataType):
         """
         value = self.mainsnak.datavalue['value']
         point = f"Point({_wdqs_number(value['longitude'])} {_wdqs_number(value['latitude'])})"
-        globe = value.get('globe') or GLOBE_EARTH
+        globe = _entity_iri(value.get('globe') or GLOBE_EARTH, kwargs.get('wikibase_url'))
         if globe != GLOBE_EARTH:
             point = f"<{globe.replace('>', '%3E')}> {point}"
         return f'"{point}"^^geo:wktLiteral'

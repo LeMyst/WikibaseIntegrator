@@ -13,6 +13,7 @@ from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
+from wikibaseintegrator.models.snak import _serializing_for
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 from wikibaseintegrator.wbi_helpers import delete_page, download_entity_data, edit_entity, mediawiki_api_call_helper
@@ -196,9 +197,12 @@ class BaseEntity:
 
         :return:
         """
+        # The bare entity IDs of the values (e.g. Quantity(unit='Q11573')) get the Wikibase URL of the instance of the entity
+        with _serializing_for(self.api.config['WIKIBASE_URL']):
+            claims = self.claims.get_json()
         json_data: dict = {
             'type': self.type,
-            'claims': self.claims.get_json()
+            'claims': claims
         }
         if self.id:
             json_data['id'] = self.id

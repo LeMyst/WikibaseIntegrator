@@ -73,6 +73,15 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   appeared twice. Log it where you catch it.
 - **`Claim.ref_present()` no longer emits a `UserWarning`** when the new claim has no reference or several, a
   normal case of `MERGE_REFS_OR_APPEND`. The result is the same.
+- **A bare entity ID given to `Quantity`, `Time` or `GlobeCoordinate` is completed when the value is serialized**
+  (`unit='Q11573'`, `calendarmodel='Q1985786'`, `globe='Q111'`), with the `WIKIBASE_URL` of the `WikibaseIntegrator`
+  instance of the entity (see [Several instances in one process](installation.md#several-instances-in-one-process)),
+  else `wbi_config['WIKIBASE_URL']`. It used to be completed with `wbi_config['WIKIBASE_URL']` when the data type was
+  built. The JSON written and returned by `get_json()` is the same as before with a single instance, but the
+  datavalue of a value built this way holds the bare ID: `claim.mainsnak.datavalue['value']['unit']` is `'Q11573'`
+  until the value is written and read back. Read the IRI from `claim.get_json()`, or pass `wikibase_url` to build it at
+  once, as before. A bare ID is equal to the IRI of this entity, so `Claims.add()` still finds the claims read from
+  the instance.
 
 ### Deprecated in v0.15, removed in 1.0
 
