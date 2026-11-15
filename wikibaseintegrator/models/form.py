@@ -16,6 +16,7 @@ class Form(BaseModel):
         self.representations = representations if representations is not None else Representations()
         self.grammatical_features = grammatical_features or []
         self.claims = claims if claims is not None else Claims()
+        self.removed = False
 
     @property
     def id(self) -> str | None:
@@ -81,7 +82,19 @@ class Form(BaseModel):
             json_data['add'] = ''
             del json_data['id']
 
+        if self.removed:
+            json_data['remove'] = ''
+
         return json_data
+
+    def remove(self) -> Self:
+        """
+        Mark the Form for removal: the next write() of the Lexeme removes it from the Wikibase instance.
+
+        :return: This Form
+        """
+        self.removed = True
+        return self
 
     def _content(self) -> str:
         # The id is assigned by the Wikibase instance, so two forms are considered equal when they hold the same content

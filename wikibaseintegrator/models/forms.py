@@ -53,6 +53,9 @@ class Forms(BaseModel):
     def get_json(self) -> list[dict]:
         json_data: list[dict] = []
         for form in self.forms:
+            # A new form removed before being written is left out, like a removed new claim: there is nothing to remove
+            if form.removed and not form.id:
+                continue
             json_data.append(form.get_json())
 
         return json_data
