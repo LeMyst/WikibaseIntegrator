@@ -86,6 +86,9 @@ autodoc_default_options = {
 autodoc_member_order = 'groupwise'
 # The documentation of the class and of its __init__() are shown together, instead of a separate __init__ entry
 autoclass_content = 'both'
+# Warn on every reference that can't be resolved (e.g. a class missing from the API reference), which the CI build turns
+# into a failure: without it, Sphinx renders such a reference as plain text, silently
+nitpicky = True
 
 # sphinx-autodoc-typehints: the types are shown in the parameter descriptions, not in the signatures
 typehints_defaults = 'comma'

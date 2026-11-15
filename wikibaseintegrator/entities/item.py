@@ -121,7 +121,7 @@ class ItemEntity(TermsEntity):
     def write(self, **kwargs: Any) -> ItemEntity:
         """
         Write the ItemEntity data to the Wikibase instance and return the ItemEntity object returned by the instance.
-        This function extend :func:`~wikibaseintegrator.entities.baseentity.BaseEntity._write`
+        This function extends ``BaseEntity._write()``.
 
         :param data: The serialized object that is used as the data source. A newly created entity will be assigned an 'id'.
         :param summary: A summary of the edit
