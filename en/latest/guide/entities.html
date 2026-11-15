@@ -725,16 +725,46 @@ instance, which is also set on the object.</p>
 </pre></div>
 </div>
 </section>
+<section id="edit-a-form-or-a-sense-of-a-lexeme">
+<h3>Edit a form or a sense of a lexeme<a class="headerlink" href="#edit-a-form-or-a-sense-of-a-lexeme" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">edit_form()</span></code> and <code class="docutils literal notranslate"><span class="pre">edit_sense()</span></code> only send one existing Form or Sense to the Wikibase instance (with the
+<code class="docutils literal notranslate"><span class="pre">wbleditformelements</span></code> and <code class="docutils literal notranslate"><span class="pre">wbleditsenseelements</span></code> actions): the representations, the grammatical features and the claims
+of a Form, the glosses and the claims of a Sense. The representations, glosses and claims marked for removal are
+removed. The Form or the Sense is updated from the instance, e.g. with the GUIDs of its new claims, and returned. The
+response of <code class="docutils literal notranslate"><span class="pre">wbleditsenseelements</span></code> has no claims, so <code class="docutils literal notranslate"><span class="pre">edit_sense()</span></code> reads them from the lexeme, with one more request.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lexeme</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">lexeme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5'</span><span class="p">)</span>
+
+<span class="n">form</span> <span class="o">=</span> <span class="n">lexeme</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-F1'</span><span class="p">)</span>
+<span class="n">form</span><span class="o">.</span><span class="n">representations</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="s1">'en'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">'pines'</span><span class="p">)</span>
+<span class="n">form</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">datatypes</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">prop_nr</span><span class="o">=</span><span class="s1">'P828'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">'a claim on a form'</span><span class="p">))</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">edit_form</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+
+<span class="n">sense</span> <span class="o">=</span> <span class="n">lexeme</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-S1'</span><span class="p">)</span>
+<span class="n">sense</span><span class="o">.</span><span class="n">glosses</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="s1">'es'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># Removes the Spanish gloss</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">edit_sense</span><span class="p">(</span><span class="n">sense</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="remove-a-form-or-a-sense-from-a-lexeme">
 <h3>Remove a form or a sense from a lexeme<a class="headerlink" href="#remove-a-form-or-a-sense-from-a-lexeme" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">remove()</span></code> marks a Form or a Sense for removal, and the next <code class="docutils literal notranslate"><span class="pre">write()</span></code> of the lexeme removes it from the Wikibase
-instance. A new Form or Sense removed before being written is simply left out.</p>
+<p><code class="docutils literal notranslate"><span class="pre">remove_form()</span></code> and <code class="docutils literal notranslate"><span class="pre">remove_sense()</span></code> remove one Form or Sense, given as an object or by its id, from the Wikibase
+instance (with the <code class="docutils literal notranslate"><span class="pre">wblremoveform</span></code> and <code class="docutils literal notranslate"><span class="pre">wblremovesense</span></code> actions) and from the lexeme object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lexeme</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">lexeme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5'</span><span class="p">)</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">remove_form</span><span class="p">(</span><span class="s1">'L5-F2'</span><span class="p">)</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">remove_sense</span><span class="p">(</span><span class="n">lexeme</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-S1'</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>To remove them with the other changes of the lexeme in a single edit, <code class="docutils literal notranslate"><span class="pre">remove()</span></code> marks a Form or a Sense for removal,
+and the next <code class="docutils literal notranslate"><span class="pre">write()</span></code> of the lexeme removes it from the Wikibase instance. A new Form or Sense removed before being
+written is simply left out.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lexeme</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">lexeme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5'</span><span class="p">)</span>
 <span class="n">lexeme</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-F2'</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
 <span class="n">lexeme</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-S1'</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
 <span class="n">lexeme</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>These methods and <code class="docutils literal notranslate"><span class="pre">write_form()</span></code> / <code class="docutils literal notranslate"><span class="pre">write_sense()</span></code> act on the Forms and Senses of the lexeme they’re called on: a Form
+or a Sense of another lexeme is refused. Each one is a revision of the lexeme, whose <code class="docutils literal notranslate"><span class="pre">lastrevid</span></code> is updated.</p>
 </section>
 </section>
 </section>
@@ -809,6 +839,7 @@ instance. A new Form or Sense removed before being written is simply left out.</
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-gloss-to-a-sense-on-lexeme">Add gloss to a sense on lexeme</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-form-to-a-lexeme">Add form to a lexeme</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-form-or-a-sense-to-an-existing-lexeme">Add a form or a sense to an existing lexeme</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#edit-a-form-or-a-sense-of-a-lexeme">Edit a form or a sense of a lexeme</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#remove-a-form-or-a-sense-from-a-lexeme">Remove a form or a sense from a lexeme</a></li>
 </ul>
 </li>

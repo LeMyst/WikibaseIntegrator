@@ -281,10 +281,41 @@ lexeme.senses.add(sense)
 lexeme.write_senses()  # ['L5-S2']
 ```
 
+### Edit a form or a sense of a lexeme
+
+`edit_form()` and `edit_sense()` only send one existing Form or Sense to the Wikibase instance (with the
+`wbleditformelements` and `wbleditsenseelements` actions): the representations, the grammatical features and the claims
+of a Form, the glosses and the claims of a Sense. The representations, glosses and claims marked for removal are
+removed. The Form or the Sense is updated from the instance, e.g. with the GUIDs of its new claims, and returned. The
+response of `wbleditsenseelements` has no claims, so `edit_sense()` reads them from the lexeme, with one more request.
+
+```python
+lexeme = wbi.lexeme.get('L5')
+
+form = lexeme.forms.get('L5-F1')
+form.representations.set(language='en', value='pines')
+form.claims.add(datatypes.String(prop_nr='P828', value='a claim on a form'))
+lexeme.edit_form(form)
+
+sense = lexeme.senses.get('L5-S1')
+sense.glosses.set(language='es', value=None)  # Removes the Spanish gloss
+lexeme.edit_sense(sense)
+```
+
 ### Remove a form or a sense from a lexeme
 
-`remove()` marks a Form or a Sense for removal, and the next `write()` of the lexeme removes it from the Wikibase
-instance. A new Form or Sense removed before being written is simply left out.
+`remove_form()` and `remove_sense()` remove one Form or Sense, given as an object or by its id, from the Wikibase
+instance (with the `wblremoveform` and `wblremovesense` actions) and from the lexeme object:
+
+```python
+lexeme = wbi.lexeme.get('L5')
+lexeme.remove_form('L5-F2')
+lexeme.remove_sense(lexeme.senses.get('L5-S1'))
+```
+
+To remove them with the other changes of the lexeme in a single edit, `remove()` marks a Form or a Sense for removal,
+and the next `write()` of the lexeme removes it from the Wikibase instance. A new Form or Sense removed before being
+written is simply left out.
 
 ```python
 lexeme = wbi.lexeme.get('L5')
@@ -292,3 +323,6 @@ lexeme.forms.get('L5-F2').remove()
 lexeme.senses.get('L5-S1').remove()
 lexeme.write()
 ```
+
+These methods and `write_form()` / `write_sense()` act on the Forms and Senses of the lexeme they're called on: a Form
+or a Sense of another lexeme is refused. Each one is a revision of the lexeme, whose `lastrevid` is updated.
