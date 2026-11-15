@@ -95,7 +95,7 @@ class TestClaimsWithQualifiersAndReferences:
 
 
 @pytest.fixture(scope='module')
-def lexeme_prerequisites(login):
+def lexeme_prerequisites(login, delete_entities):
     """The items used as language and lexical category of the lexemes created for this test run."""
     from wikibaseintegrator import WikibaseIntegrator
     wbi = WikibaseIntegrator(login=login)
@@ -113,8 +113,7 @@ def lexeme_prerequisites(login):
 
     yield items
 
-    for item in items.values():
-        item.delete(reason='WikibaseIntegrator integration test cleanup')
+    delete_entities([item.id for item in items.values()])
 
 
 class TestLexemeFormsAndSenses:

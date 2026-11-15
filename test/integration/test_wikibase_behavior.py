@@ -9,7 +9,7 @@ import uuid
 import pytest
 
 from wikibaseintegrator.wbi_exceptions import MWApiError
-from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
+from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 pytestmark = pytest.mark.integration
 
@@ -26,15 +26,11 @@ def string_claim(property_id: str, value: str, **fields: str) -> dict:
 
 
 @pytest.fixture(scope='module')
-def created(login):
+def created(delete_entities):
     """The entities created by the tests of this module, deleted at the end."""
     entity_ids: list[str] = []
     yield entity_ids
-    if entity_ids:
-        # The response of wbeditentity has no page title: the namespace of the entities depends on the configuration of the instance
-        entities = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': '|'.join(entity_ids), 'props': 'info', 'format': 'json'}, allow_anonymous=True)['entities']
-        for entity in entities.values():
-            delete_page(title=entity['title'], reason='WikibaseIntegrator integration test cleanup', login=login)
+    delete_entities(entity_ids)
 
 
 @pytest.fixture(scope='module')

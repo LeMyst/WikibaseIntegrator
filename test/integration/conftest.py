@@ -18,6 +18,7 @@ import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
 
 API_URL = os.getenv('WBI_INTEGRATION_MEDIAWIKI_API_URL')
 SPARQL_URL = os.getenv('WBI_INTEGRATION_SPARQL_ENDPOINT_URL')
@@ -70,6 +71,23 @@ def login(integration_api_url, integration_config):
     if not USER or not PASSWORD:
         pytest.skip('WBI_INTEGRATION_USER / WBI_INTEGRATION_PASSWORD are not set')
     return wbi_login.Login(user=USER, password=PASSWORD, mediawiki_api_url=integration_api_url, user_agent='WikibaseIntegrator-integration-tests/1.0')
+
+
+@pytest.fixture(scope='session')
+def delete_entities(login):
+    """
+    Delete entities by id. The entity returned by write() can't delete itself: the response of wbeditentity has no page
+    id or title, and the namespace of the entities depends on the configuration of the instance.
+    """
+
+    def delete(entity_ids: list[str]) -> None:
+        if not entity_ids:
+            return
+        entities = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': '|'.join(entity_ids), 'props': 'info', 'format': 'json'}, allow_anonymous=True)['entities']
+        for entity in entities.values():
+            delete_page(title=entity['title'], reason='WikibaseIntegrator integration test cleanup', login=login)
+
+    return delete
 
 
 @pytest.fixture(scope='session')

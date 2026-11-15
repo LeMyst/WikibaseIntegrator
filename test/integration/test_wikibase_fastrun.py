@@ -62,14 +62,14 @@ def properties(login, query_service):
 
 
 @pytest.fixture(scope='module')
-def target_item(login, query_service):
+def target_item(login, query_service, delete_entities):
     """The value of the item claim."""
     wbi = WikibaseIntegrator(login=login)
     item = wbi.item.new()
     item.labels.set(language='en', value=f'WBI integration test fast run target {RUN_ID}')
-    item = item.write(summary='WikibaseIntegrator integration test setup')
-    yield item.id
-    item.delete(reason='WikibaseIntegrator integration test cleanup')
+    item_id = item.write(summary='WikibaseIntegrator integration test setup').id
+    yield item_id
+    delete_entities([item_id])
 
 
 def build_claims(properties, target_item, string_value=f'fast run string {RUN_ID}'):
@@ -96,7 +96,7 @@ def base_filter(properties):
 
 
 @pytest.fixture(scope='module')
-def synced_item(login, properties, target_item):
+def synced_item(login, properties, target_item, delete_entities):
     """The item holding build_claims(), once the query service has loaded it."""
     wbi = WikibaseIntegrator(login=login)
     item = wbi.item.new()
@@ -105,7 +105,7 @@ def synced_item(login, properties, target_item):
     item = item.write(summary='WikibaseIntegrator integration test: fast run')
     wait_for_query_service(item.id, properties[WikibaseDatatype.EXTERNALID], f'"id-{RUN_ID}"')
     yield item
-    item.delete(reason='WikibaseIntegrator integration test cleanup')
+    delete_entities([item.id])
 
 
 class TestWriteRequired:
@@ -151,7 +151,7 @@ class TestFastRunContainer:
     ('-0100-00-00T00:00:00Z', WikibaseTimePrecision.YEAR, GREGORIAN),
     ('+1500-03-01T00:00:00Z', WikibaseTimePrecision.DAY, JULIAN),
 ], ids=['bce-day', 'bce-year', 'julian-day'])
-def test_dates_needing_a_conversion(wbi, properties, time_value, precision, calendarmodel):
+def test_dates_needing_a_conversion(wbi, properties, delete_entities, time_value, precision, calendarmodel):
     prop_nr = properties[WikibaseDatatype.TIME]
     unique = ExternalID(prop_nr=properties[WikibaseDatatype.EXTERNALID], value=f'date-{time_value}-{calendarmodel[-7:]}-{RUN_ID}')
 
@@ -161,11 +161,11 @@ def test_dates_needing_a_conversion(wbi, properties, time_value, precision, cale
 
     item = wbi.item.new()
     item.claims.add(claims())
-    item = item.write(summary='WikibaseIntegrator integration test: fast run dates')
+    item_id = item.write(summary='WikibaseIntegrator integration test: fast run dates').id
     try:
-        wait_for_query_service(item.id, unique.mainsnak.property_number, f'"{unique.mainsnak.datavalue["value"]}"')
+        wait_for_query_service(item_id, unique.mainsnak.property_number, f'"{unique.mainsnak.datavalue["value"]}"')
         local = wbi.item.new()
         local.claims.add(claims())
         assert not local.write_required(base_filter=[ExternalID(prop_nr=unique.mainsnak.property_number), Time(prop_nr=prop_nr)])
     finally:
-        item.delete(reason='WikibaseIntegrator integration test cleanup')
+        delete_entities([item_id])
