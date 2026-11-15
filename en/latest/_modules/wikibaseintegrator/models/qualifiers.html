@@ -463,8 +463,17 @@
 <div class="viewcode-block" id="Qualifiers.set">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.qualifiers.Qualifiers.html#wikibaseintegrator.models.qualifiers.Qualifiers.set">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qualifiers</span><span class="p">:</span> <span class="n">Qualifiers</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snak</span> <span class="o">|</span> <span class="n">Claim</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Replace the qualifiers with the given ones.</span>
+
+<span class="sd">        :param qualifiers: The new qualifiers, as a Qualifiers object or a list of Snak or Claim objects. None removes them all.</span>
+<span class="sd">        :return: This Qualifiers object</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifiers</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">Qualifiers</span><span class="p">)):</span>
-            <span class="k">for</span> <span class="n">qualifier</span> <span class="ow">in</span> <span class="n">qualifiers</span><span class="p">:</span>
+            <span class="c1"># Copied first: the new qualifiers can be these qualifiers themselves</span>
+            <span class="n">new_qualifiers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qualifiers</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">qualifier</span> <span class="ow">in</span> <span class="n">new_qualifiers</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">qualifiers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span> <span class="o">=</span> <span class="p">{}</span>
@@ -497,8 +506,11 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
             <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">qualifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">)</span>
+        <span class="c1"># Adding no qualifier does nothing, like Reference.add() and References.add()</span>
+        <span class="k">if</span> <span class="n">qualifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">)</span>
 
         <span class="nb">property</span> <span class="o">=</span> <span class="n">_require_property_number</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span>
 

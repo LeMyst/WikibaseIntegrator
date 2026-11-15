@@ -480,6 +480,12 @@ says what can change in which release.</p>
 <p>v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> and removed in 1.0.</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Qualifiers.set()</span></code> replaces the qualifiers</strong> given as a list or a <code class="docutils literal notranslate"><span class="pre">Qualifiers</span></code> object, like it already did with
+a dict or <code class="docutils literal notranslate"><span class="pre">None</span></code>. It used to add them to the existing qualifiers: call <code class="docutils literal notranslate"><span class="pre">add()</span></code> for each qualifier to keep that.</p></li>
+<li><p><strong>The <code class="docutils literal notranslate"><span class="pre">references</span></code> of a claim reject the items they can’t use</strong>: an item of the list that is neither a <code class="docutils literal notranslate"><span class="pre">Claim</span></code>, a
+list of <code class="docutils literal notranslate"><span class="pre">Claim</span></code> nor a <code class="docutils literal notranslate"><span class="pre">Reference</span></code> raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. It used to add an empty reference.</p></li>
+</ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
 <p>These APIs still work in v0.15 and emit a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>. They will be removed in 1.0:</p>

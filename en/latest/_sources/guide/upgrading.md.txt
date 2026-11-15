@@ -9,6 +9,11 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **`Qualifiers.set()` replaces the qualifiers** given as a list or a `Qualifiers` object, like it already did with
+  a dict or `None`. It used to add them to the existing qualifiers: call `add()` for each qualifier to keep that.
+- **The `references` of a claim reject the items they can't use**: an item of the list that is neither a `Claim`, a
+  list of `Claim` nor a `Reference` raises a `ValueError`. It used to add an empty reference.
+
 ### Deprecated in v0.15, removed in 1.0
 
 These APIs still work in v0.15 and emit a `DeprecationWarning`. They will be removed in 1.0:
