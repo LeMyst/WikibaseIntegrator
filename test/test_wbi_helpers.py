@@ -28,7 +28,7 @@ from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, c
 
 
 class FakeLogin:
-    """Minimal stand-in for wbi_login._Login, without any HTTP interaction."""
+    """Minimal stand-in for wbi_login.BaseLogin, without any HTTP interaction."""
 
     def __init__(self, mediawiki_api_url, edit_token='fakelogintoken+\\'):
         self.mediawiki_api_url = mediawiki_api_url
