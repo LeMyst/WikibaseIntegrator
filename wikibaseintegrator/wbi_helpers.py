@@ -368,7 +368,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: BaseLogin | None = No
     :param login: A wbi_login.BaseLogin instance
     :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
-    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
+    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False). With a login, the request is still made with
+        its session and its edit token.
     :param max_retries: The maximum number of tries of the request, see mediawiki_api_call()
     :param retry_after: The maximum wait between two tries, see mediawiki_api_call()
     :param maxlag: If applicable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)
@@ -395,7 +396,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: BaseLogin | None = No
     }
 
     # Default token is anonymous
-    if isinstance(data, dict) and 'token' not in data:
+    token_given = isinstance(data, dict) and 'token' in data
+    if isinstance(data, dict) and not token_given:
         data.update({'token': '+\\'})
 
     if data is not None:
@@ -415,6 +417,10 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: BaseLogin | None = No
                 raise AnonymousEditNotAllowedError("Anonymous edit are not allowed by default. "
                                                    "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         else:
+            if login is not None and not token_given:
+                # The request is made with the session of the login, which rejects the anonymous token (badtoken)
+                data.update({'token': login.get_edit_token()})
+
             if 'assert' not in data and login is None:
                 # Assert anon if allow_anonymous is True and no Login instance
                 data.update({'assert': 'anon'})

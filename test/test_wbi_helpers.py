@@ -9,7 +9,7 @@ import logging
 import threading
 import uuid
 from types import MappingProxyType
-from urllib.parse import quote_plus
+from urllib.parse import parse_qs, quote_plus
 
 import pytest
 import requests
@@ -280,6 +280,33 @@ class TestAnonymousEdit:
         login = FakeLogin(mediawiki_api_url=wikibase.mediawiki_api_url, edit_token='+\\')
         with pytest.raises(AnonymousEditNotAllowedError):
             mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json'}, login=login, mediawiki_api_url=wikibase.mediawiki_api_url)
+
+    @staticmethod
+    def _sent(requests_mock):
+        return parse_qs(requests_mock.last_request.text)
+
+    def test_allowed_anonymous_edit_with_a_login_uses_its_token(self, requests_mock):
+        # The request is made with the session of the login, which would reject the anonymous token
+        url = 'https://login.example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+        login = FakeLogin(mediawiki_api_url=url)
+        mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json'}, login=login, mediawiki_api_url=url, allow_anonymous=True)
+        assert self._sent(requests_mock)['token'] == ['fakelogintoken+\\']
+        assert 'assert' not in self._sent(requests_mock)
+
+    def test_allowed_anonymous_edit_with_a_login_keeps_a_given_token(self, requests_mock):
+        url = 'https://login.example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+        login = FakeLogin(mediawiki_api_url=url)
+        mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json', 'token': 'given'}, login=login, mediawiki_api_url=url, allow_anonymous=True)
+        assert self._sent(requests_mock)['token'] == ['given']
+
+    def test_allowed_anonymous_edit_without_a_login_uses_the_anonymous_token(self, requests_mock):
+        url = 'https://login.example.org/w/api.php'
+        requests_mock.post(url, json={'success': 1})
+        mediawiki_api_call_helper(data={'action': 'wbeditentity', 'id': 'Q1', 'format': 'json'}, mediawiki_api_url=url, allow_anonymous=True)
+        assert self._sent(requests_mock)['token'] == ['+\\']
+        assert self._sent(requests_mock)['assert'] == ['anon']
 
 
 class TestErrorMapping:
