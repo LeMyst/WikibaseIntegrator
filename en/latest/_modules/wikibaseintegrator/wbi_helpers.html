@@ -807,7 +807,8 @@
 <span class="sd">    :param login: A wbi_login.BaseLogin instance</span>
 <span class="sd">    :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)</span>
 <span class="sd">    :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)</span>
-<span class="sd">    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)</span>
+<span class="sd">    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False). With a login, the request is still made with</span>
+<span class="sd">        its session and its edit token.</span>
 <span class="sd">    :param max_retries: The maximum number of tries of the request, see mediawiki_api_call()</span>
 <span class="sd">    :param retry_after: The maximum wait between two tries, see mediawiki_api_call()</span>
 <span class="sd">    :param maxlag: If applicable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)</span>
@@ -834,7 +835,8 @@
     <span class="p">}</span>
 
     <span class="c1"># Default token is anonymous</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">'token'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+    <span class="n">token_given</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">'token'</span> <span class="ow">in</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">token_given</span><span class="p">:</span>
         <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'token'</span><span class="p">:</span> <span class="s1">'+</span><span class="se">\\</span><span class="s1">'</span><span class="p">})</span>
 
     <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -854,6 +856,10 @@
                 <span class="k">raise</span> <span class="n">AnonymousEditNotAllowedError</span><span class="p">(</span><span class="s2">"Anonymous edit are not allowed by default. "</span>
                                                    <span class="s2">"Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object."</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">login</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">token_given</span><span class="p">:</span>
+                <span class="c1"># The request is made with the session of the login, which rejects the anonymous token (badtoken)</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'token'</span><span class="p">:</span> <span class="n">login</span><span class="o">.</span><span class="n">get_edit_token</span><span class="p">()})</span>
+
             <span class="k">if</span> <span class="s1">'assert'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="n">login</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Assert anon if allow_anonymous is True and no Login instance</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'assert'</span><span class="p">:</span> <span class="s1">'anon'</span><span class="p">})</span>

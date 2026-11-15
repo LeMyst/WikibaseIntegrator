@@ -493,6 +493,9 @@ rejects such a quantity when it is written, so it used to fail later, at the wri
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">write(as_new=True)</span></code> only sends what belongs to the new entity</strong>: the GUIDs of the claims, the ids of the forms
 and senses of a lexeme, and the claims, terms, forms and senses marked for removal are left out. They used to be
 sent along with the copy, with the GUIDs of the entity it was read from.</p></li>
+<li><p><strong>A request with a login and <code class="docutils literal notranslate"><span class="pre">allow_anonymous=True</span></code> uses the edit token of the login</strong>: the request is made with
+the session of the login, which rejects the anonymous token. It used to send the anonymous token, so such an edit
+failed with a <code class="docutils literal notranslate"><span class="pre">badtoken</span></code> error. A <code class="docutils literal notranslate"><span class="pre">token</span></code> given in the data is still sent as it is.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>

@@ -21,6 +21,9 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 - **`write(as_new=True)` only sends what belongs to the new entity**: the GUIDs of the claims, the ids of the forms
   and senses of a lexeme, and the claims, terms, forms and senses marked for removal are left out. They used to be
   sent along with the copy, with the GUIDs of the entity it was read from.
+- **A request with a login and `allow_anonymous=True` uses the edit token of the login**: the request is made with
+  the session of the login, which rejects the anonymous token. It used to send the anonymous token, so such an edit
+  failed with a `badtoken` error. A `token` given in the data is still sent as it is.
 
 ### Deprecated in v0.15, removed in 1.0
 
