@@ -6,6 +6,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_login
 from wikibaseintegrator.entities.baseentity import _new_entity_data
 from wikibaseintegrator.models import Form, Sense
+from wikibaseintegrator.wbi_exceptions import MWApiError
 
 wbi = WikibaseIntegrator()
 
@@ -201,6 +202,220 @@ class TestRemoveForm:
         assert [form['id'] for form in lexeme.get_json()['forms']] == ['L5-F1', 'L5-F2']
 
 
+class TestEditAndRemoveForm:
+    def test_edit_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        form = lexeme.forms.get('L5-F1')
+        form.representations.set(language='es', value='pinares')
+        form.representations.set(language='en', value='pines')
+        form.grammatical_features = ['Q1084']
+        form.claims.add(datatypes.String(prop_nr='P828', value='a claim on a form'))
+
+        assert lexeme.edit_form(form, allow_anonymous=True) is form
+
+        edit = wikibase.last_edit
+        assert edit['params']['action'] == 'wbleditformelements'
+        assert edit['params']['formId'] == 'L5-F1'
+        assert 'id' not in edit['data']
+        assert edit['data']['representations']['en'] == {'language': 'en', 'value': 'pines'}
+        assert edit['data']['grammaticalFeatures'] == ['Q1084']
+
+        stored = wikibase.entities['L5']['forms']
+        assert stored[0]['representations'] == {'es': {'language': 'es', 'value': 'pinares'}, 'en': {'language': 'en', 'value': 'pines'}}
+        assert stored[0]['grammaticalFeatures'] == ['Q1084']
+        # Only the Form is sent: the other Form is left untouched
+        assert stored[1]['representations'] == {'es': {'language': 'es', 'value': 'pino'}}
+
+        # The Form is updated from the response: its new claim has the GUID assigned by the instance
+        assert form.claims.get('P828')[0].id
+        assert lexeme.lastrevid == wikibase.entities['L5']['lastrevid']
+
+    def test_edit_form_removes_what_is_marked_for_removal(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        form = lexeme.forms.get('L5-F1')
+        form.representations.set(language='en', value='pines')
+        form.claims.add(datatypes.String(prop_nr='P828', value='a claim on a form'))
+        lexeme.edit_form(form, allow_anonymous=True)
+
+        form.representations.set(language='en', value=None)
+        form.claims.get('P828')[0].remove()
+        lexeme.edit_form(form, allow_anonymous=True)
+
+        stored = wikibase.entities['L5']['forms'][0]
+        assert stored['representations'] == {'es': {'language': 'es', 'value': 'pinos'}}
+        assert stored['claims'] == {}
+        assert len(form.claims) == 0
+
+    @pytest.mark.parametrize('form, error', [
+        (new_form(), "has no id"),
+        (Form(form_id='L6-F1'), "isn't the id of a Form of the Lexeme L5"),
+        (Form(form_id='L5-S1'), "isn't the id of a Form of the Lexeme L5"),
+        (Form(form_id='L5-F1').remove(), 'remove it with remove_form'),
+    ], ids=['new', 'other-lexeme', 'sense-id', 'removed'])
+    def test_edit_form_refuses(self, wikibase, lexeme_l5, form, error):
+        lexeme = wbi.lexeme.get('L5')
+        requests_before = len(wikibase.requests)
+
+        with pytest.raises(ValueError, match=error):
+            lexeme.edit_form(form, allow_anonymous=True)
+
+        assert len(wikibase.requests) == requests_before
+
+    def test_edit_form_requires_a_lexeme_id(self, wikibase):
+        with pytest.raises(ValueError, match='Lexeme id'):
+            wbi.lexeme.new().edit_form(Form(form_id='L5-F1'), allow_anonymous=True)
+
+        assert wikibase.requests == []
+
+    def test_edit_an_unknown_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        form = new_form()
+        form.id = 'L5-F9'
+
+        with pytest.raises(MWApiError, match='L5-F9'):
+            lexeme.edit_form(form, allow_anonymous=True)
+
+    @pytest.mark.parametrize('form', ['L5-F1', 'https://wikibase.example.org/entity/L5-F1', 'form object'])
+    def test_remove_form(self, wikibase, lexeme_l5, form):
+        lexeme = wbi.lexeme.get('L5')
+        if form == 'form object':
+            form = lexeme.forms.get('L5-F1')
+
+        assert lexeme.remove_form(form, allow_anonymous=True) is None
+
+        assert wikibase.last_edit['params']['action'] == 'wblremoveform'
+        assert wikibase.last_edit['params']['id'] == 'L5-F1'
+        assert [stored['id'] for stored in wikibase.entities['L5']['forms']] == ['L5-F2']
+        # The Form is removed from the object too, a later write() doesn't send it again
+        assert [form.id for form in lexeme.forms] == ['L5-F2']
+        assert lexeme.lastrevid == wikibase.entities['L5']['lastrevid']
+
+    def test_remove_form_refuses_another_type(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+
+        with pytest.raises(TypeError, match='must be a Form or a Form id'):
+            lexeme.remove_form(1, allow_anonymous=True)
+
+    def test_remove_form_refuses_a_new_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+
+        with pytest.raises(ValueError, match='add it with write_form'):
+            lexeme.remove_form(new_form(), allow_anonymous=True)
+
+    def test_write_form_hints_at_edit_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+
+        with pytest.raises(ValueError, match=r'edit it with edit_form\(\)'):
+            lexeme.write_form(lexeme.forms.get('L5-F1'), allow_anonymous=True)
+
+    def test_unknown_lexeme_of_a_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.id = 'L6'
+
+        with pytest.raises(MWApiError, match='L6-F1'):
+            lexeme.remove_form('L6-F1', allow_anonymous=True)
+
+    def test_response_without_a_revision(self, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lastrevid = lexeme.lastrevid
+
+        lexeme._set_lastrevid({'success': 1})
+
+        assert lexeme.lastrevid == lastrevid
+
+    def test_write_form_updates_the_last_revision(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.write_form(new_form(), allow_anonymous=True)
+
+        assert lexeme.lastrevid == wikibase.entities['L5']['lastrevid']
+
+
+class TestEditAndRemoveSense:
+    def test_edit_sense(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        sense = lexeme.senses.get('L5-S1')
+        sense.glosses.set(language='en', value='a pine')
+        sense.glosses.set(language='es', value=None)
+        sense.claims.add(datatypes.String(prop_nr='P828', value='a claim on a sense'))
+
+        assert lexeme.edit_sense(sense, allow_anonymous=True) is sense
+
+        edit = wikibase.last_edit
+        assert edit['params']['action'] == 'wbleditsenseelements'
+        assert edit['params']['senseId'] == 'L5-S1'
+        assert 'id' not in edit['data']
+
+        stored = wikibase.entities['L5']['senses'][0]
+        assert stored['glosses'] == {'en': {'language': 'en', 'value': 'a pine'}}
+        assert 'P828' in stored['claims']
+        assert lexeme.lastrevid == wikibase.entities['L5']['lastrevid']
+
+        # The response has no claims: they are read from the lexeme, the new claim has the GUID assigned by the instance
+        assert wikibase.last_request['action'] == 'wbgetentities'
+        assert sense.claims.get('P828')[0].id == stored['claims']['P828'][0]['id']
+        assert sense.glosses.get('en').value == 'a pine'
+
+        # Removing the claim drops it from the Sense
+        sense.claims.get('P828')[0].remove()
+        lexeme.edit_sense(sense, allow_anonymous=True)
+        assert wikibase.entities['L5']['senses'][0]['claims'] == {}
+        assert len(sense.claims) == 0
+
+    def test_edit_sense_with_the_claims_in_the_response(self, wikibase, lexeme_l5, monkeypatch):
+        # If a version of WikibaseLexeme answers with the claims of the Sense, like wbleditformelements, the lexeme isn't read
+        lexeme = wbi.lexeme.get('L5')
+        sense = lexeme.senses.get('L5-S1')
+        response = {'sense': {'id': 'L5-S1', 'glosses': {'en': {'language': 'en', 'value': 'a pine'}}, 'claims': {}}, 'lastrevid': 42, 'success': 1}
+        monkeypatch.setattr('wikibaseintegrator.entities.lexeme.lexeme_edit_sense', lambda **kwargs: response)
+        requests_before = len(wikibase.requests)
+
+        assert lexeme.edit_sense(sense, allow_anonymous=True).glosses.get('en').value == 'a pine'
+        assert len(wikibase.requests) == requests_before
+        assert lexeme.lastrevid == 42
+
+    @pytest.mark.parametrize('sense, error', [
+        (new_sense(), "has no id"),
+        (Sense(sense_id='L6-S1'), "isn't the id of a Sense of the Lexeme L5"),
+        (Sense(sense_id='L5-S1').remove(), 'remove it with remove_sense'),
+    ], ids=['new', 'other-lexeme', 'removed'])
+    def test_edit_sense_refuses(self, wikibase, lexeme_l5, sense, error):
+        lexeme = wbi.lexeme.get('L5')
+        requests_before = len(wikibase.requests)
+
+        with pytest.raises(ValueError, match=error):
+            lexeme.edit_sense(sense, allow_anonymous=True)
+
+        assert len(wikibase.requests) == requests_before
+
+    @pytest.mark.parametrize('sense', ['L5-S1', 'sense object'])
+    def test_remove_sense(self, wikibase, lexeme_l5, sense):
+        lexeme = wbi.lexeme.get('L5')
+        if sense == 'sense object':
+            sense = lexeme.senses.get('L5-S1')
+
+        assert lexeme.remove_sense(sense, allow_anonymous=True) is None
+
+        assert wikibase.last_edit['params']['action'] == 'wblremovesense'
+        assert wikibase.last_edit['params']['id'] == 'L5-S1'
+        assert wikibase.entities['L5']['senses'] == []
+        assert len(lexeme.senses) == 0
+        assert lexeme.lastrevid == wikibase.entities['L5']['lastrevid']
+
+    def test_remove_an_unknown_sense(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+
+        with pytest.raises(MWApiError, match='L5-S9'):
+            lexeme.remove_sense('L5-S9', allow_anonymous=True)
+
+        assert [sense.id for sense in lexeme.senses] == ['L5-S1']
+
+    def test_write_sense_hints_at_edit_sense(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+
+        with pytest.raises(ValueError, match=r'edit it with edit_sense\(\)'):
+            lexeme.write_sense(lexeme.senses.get('L5-S1'), allow_anonymous=True)
+
+
 class TestWriteSense:
     def test_write_sense(self, wikibase, lexeme_l5):
         lexeme = wbi.lexeme.get('L5')
@@ -279,6 +494,28 @@ class TestWriteSubEntityAuthentication:
         params = wikibase.last_edit['params']
         assert params['token'] == wikibase.csrf_token
         assert 'bot' in params
+
+    @pytest.mark.parametrize('method, argument', [('edit_form', 'L5-F1'), ('remove_form', 'L5-F1'), ('edit_sense', 'L5-S1'), ('remove_sense', 'L5-S1')])
+    def test_edit_and_remove_take_the_login_of_the_api_instance(self, wikibase, lexeme_l5, method, argument):
+        wikibase.valid_credentials['TestUser@bot'] = 'botpassword'
+        login = wbi_login.Login(user='TestUser@bot', password='botpassword')
+        lexeme = WikibaseIntegrator(login=login, is_bot=True).lexeme.get('L5')
+        sub_entity = lexeme.forms.get(argument) if 'form' in method else lexeme.senses.get(argument)
+
+        getattr(lexeme, method)(sub_entity)
+
+        params = wikibase.last_edit['params']
+        assert params['token'] == wikibase.csrf_token
+        assert 'bot' in params
+
+    def test_edit_and_remove_refuse_an_anonymous_edit(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+
+        with pytest.raises(ValueError, match='allow_anonymous'):
+            lexeme.edit_form(lexeme.forms.get('L5-F1'))
+
+        with pytest.raises(ValueError, match='allow_anonymous'):
+            lexeme.remove_sense('L5-S1')
 
     def test_login_can_be_passed_explicitly(self, wikibase, lexeme_l5):
         wikibase.valid_credentials['TestUser@bot'] = 'botpassword'

@@ -432,6 +432,79 @@ class MockWikibase:
 
         return {response_key: deepcopy(sub_entity), 'lastrevid': lexeme['lastrevid'], 'success': 1}
 
+    def _action_wbleditformelements(self, params: dict[str, str]) -> dict:
+        return self._edit_lexeme_sub_entity(params, params['formId'], section='forms', response_key='form', language_values='representations')
+
+    def _action_wbleditsenseelements(self, params: dict[str, str]) -> dict:
+        return self._edit_lexeme_sub_entity(params, params['senseId'], section='senses', response_key='sense', language_values='glosses')
+
+    def _action_wblremoveform(self, params: dict[str, str]) -> dict:
+        return self._remove_lexeme_sub_entity(params, section='forms')
+
+    def _action_wblremovesense(self, params: dict[str, str]) -> dict:
+        return self._remove_lexeme_sub_entity(params, section='senses')
+
+    def _find_lexeme_sub_entity(self, sub_entity_id: str, section: str) -> tuple[dict, dict] | None:
+        lexeme = self.entities.get(sub_entity_id.split('-', 1)[0])
+        if lexeme is None:
+            return None
+        for sub_entity in lexeme.get(section, []):
+            if sub_entity['id'] == sub_entity_id:
+                return lexeme, sub_entity
+        return None
+
+    @staticmethod
+    def _sub_entity_not_found(sub_entity_id: str) -> dict:
+        return {'error': {'code': 'not-found', 'info': f'Could not find a Form or a Sense with the ID "{sub_entity_id}".'}, 'servedby': 'mock'}
+
+    def _edit_lexeme_sub_entity(self, params: dict[str, str], sub_entity_id: str, section: str, response_key: str, language_values: str) -> dict:
+        """
+        Shared implementation of the wbleditformelements and wbleditsenseelements actions. Like WikibaseLexeme, the
+        representations or the glosses are merged, honoring the 'remove' marker, the grammatical features are replaced
+        and the claims are merged like wbeditentity does.
+        """
+        data = json.loads(params['data'])
+        self.edits.append({'params': params, 'data': data})
+
+        found = self._find_lexeme_sub_entity(sub_entity_id, section)
+        if found is None:
+            return self._sub_entity_not_found(sub_entity_id)
+        lexeme, sub_entity = found
+
+        if language_values in data:
+            target = sub_entity.setdefault(language_values, {})
+            for language, value in data[language_values].items():
+                if 'remove' in value:
+                    target.pop(language, None)
+                else:
+                    target[language] = {'language': value['language'], 'value': value['value']}
+        if 'grammaticalFeatures' in data:
+            sub_entity['grammaticalFeatures'] = list(data['grammaticalFeatures'])
+        if 'claims' in data:
+            sub_entity['claims'] = self._apply_claims(sub_entity.get('claims', {}), data['claims'], sub_entity_id)
+
+        lexeme['lastrevid'] = lexeme.get('lastrevid', 0) + 1
+
+        response = deepcopy(sub_entity)
+        if section == 'senses':
+            # Like WikibaseLexeme, wbleditsenseelements leaves the claims out of its response, unlike wbleditformelements
+            del response['claims']
+        return {response_key: response, 'lastrevid': lexeme['lastrevid'], 'success': 1}
+
+    def _remove_lexeme_sub_entity(self, params: dict[str, str], section: str) -> dict:
+        """Shared implementation of the wblremoveform and wblremovesense actions."""
+        self.edits.append({'params': params, 'data': None})
+
+        found = self._find_lexeme_sub_entity(params['id'], section)
+        if found is None:
+            return self._sub_entity_not_found(params['id'])
+        lexeme, sub_entity = found
+
+        lexeme[section].remove(sub_entity)
+        lexeme['lastrevid'] = lexeme.get('lastrevid', 0) + 1
+
+        return {'lastrevid': lexeme['lastrevid'], 'success': 1}
+
     def _action_query(self, params: dict[str, str]) -> dict:
         if params.get('meta') == 'tokens':
             if params.get('type') == 'login':

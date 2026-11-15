@@ -207,6 +207,62 @@ class TestLexemeFormsAndSenses:
 
         result.delete(reason='WikibaseIntegrator integration test cleanup')
 
+    def test_targeted_edit_and_removal(self, wbi, lexeme_prerequisites, string_property):
+        lexical_category = lexeme_prerequisites['lexical category'].id
+        lexeme = wbi.lexeme.new(language=lexeme_prerequisites['language'].id, lexical_category=lexical_category)
+        lexeme.lemmas.set(language='en', value=f'wbi-targeted-lemma-{RUN_ID}')
+        for name in ('edited', 'removed'):
+            form = Form(grammatical_features=lexical_category)
+            form.representations.set(language='en', value=f'wbi-{name}-form-{RUN_ID}')
+            lexeme.forms.add(form)
+            sense = Sense()
+            sense.glosses.set(language='en', value=f'{name} gloss {RUN_ID}')
+            lexeme.senses.add(sense)
+        lexeme_id = lexeme.write(summary='WikibaseIntegrator integration test: create lexeme for targeted edits').id
+
+        lexeme = wbi.lexeme.get(lexeme_id)
+        lemma_revision = lexeme.lastrevid
+        forms = {form.representations.get('en').value: form for form in lexeme.forms}
+        senses = {sense.glosses.get('en').value: sense for sense in lexeme.senses}
+
+        # Edit a Form: a representation, the grammatical features and a new claim (#1198). The actions of the forms
+        # and senses take no summary, WikibaseLexeme writes it
+        form = forms[f'wbi-edited-form-{RUN_ID}']
+        form.representations.set(language='en', value=f'wbi-changed-form-{RUN_ID}')
+        form.representations.set(language='fr', value=f'wbi-forme-{RUN_ID}')
+        form.grammatical_features = [lexeme_prerequisites['language'].id]
+        form.claims.add(String(prop_nr=string_property.id, value='a claim on a form'))
+        assert lexeme.edit_form(form) is form
+        assert form.claims.get(string_property.id)[0].id
+        assert lexeme.lastrevid > lemma_revision
+
+        # Then remove the French representation and the claim
+        form.representations.set(language='fr', value=None)
+        form.claims.get(string_property.id)[0].remove()
+        lexeme.edit_form(form)
+
+        # Edit a Sense, and remove the other Form and the other Sense, by object and by id
+        sense = senses[f'edited gloss {RUN_ID}']
+        sense.glosses.set(language='en', value=f'changed gloss {RUN_ID}')
+        sense.claims.add(String(prop_nr=string_property.id, value='a claim on a sense'))
+        lexeme.edit_sense(sense)
+        lexeme.remove_form(forms[f'wbi-removed-form-{RUN_ID}'])
+        lexeme.remove_sense(senses[f'removed gloss {RUN_ID}'].id)
+        assert [form.id for form in lexeme.forms] == [form.id]
+        assert [sense.id for sense in lexeme.senses] == [sense.id]
+
+        result = wbi.lexeme.get(lexeme_id)
+        assert result.lastrevid == lexeme.lastrevid
+        assert [(form.id, form.representations.get_json()) for form in result.forms] == [(form.id, {'en': {'language': 'en', 'value': f'wbi-changed-form-{RUN_ID}'}})]
+        assert result.forms.get(form.id).grammatical_features == [lexeme_prerequisites['language'].id]
+        assert len(result.forms.get(form.id).claims) == 0
+        assert [(sense.id, sense.glosses.get('en').value) for sense in result.senses] == [(sense.id, f'changed gloss {RUN_ID}')]
+        assert result.senses.get(sense.id).claims.get(string_property.id)[0].mainsnak.datavalue['value'] == 'a claim on a sense'
+        # The lemma is left untouched
+        assert result.lemmas.get('en').value == f'wbi-targeted-lemma-{RUN_ID}'
+
+        result.delete(reason='WikibaseIntegrator integration test cleanup')
+
     def test_write_as_new_copies_the_forms_and_senses(self, wbi, lexeme_prerequisites):
         lexical_category = lexeme_prerequisites['lexical category'].id
         lexeme = wbi.lexeme.new(language=lexeme_prerequisites['language'].id, lexical_category=lexical_category)

@@ -10,7 +10,7 @@ from wikibaseintegrator.models.lemmas import Lemmas
 from wikibaseintegrator.models.sense import Sense
 from wikibaseintegrator.models.senses import Senses
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense
+from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense, lexeme_edit_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense
 from wikibaseintegrator.wbi_login import BaseLogin
 
 
@@ -207,7 +207,7 @@ class LexemeEntity(BaseEntity):
             raise ValueError('You must set a Lexeme id before writing a Form.')
 
         if form.id:
-            raise ValueError(f"The Form {form.id} already exists, adding it again would create a duplicate.")
+            raise ValueError(f"The Form {form.id} already exists, adding it again would create a duplicate: edit it with edit_form().")
 
         if form.removed:
             raise ValueError('The Form is marked as removed, it cannot be added.')
@@ -219,7 +219,9 @@ class LexemeEntity(BaseEntity):
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        form.id = lexeme_add_form(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)['form']['id']
+        response = lexeme_add_form(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        self._set_lastrevid(response)
+        form.id = response['form']['id']
 
         return form.id
 
@@ -232,6 +234,53 @@ class LexemeEntity(BaseEntity):
         :return: The ids of the newly created Forms
         """
         return [self.write_form(form, **kwargs) for form in self.forms if not form.id and not form.removed]
+
+    def edit_form(self, form: Form, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> Form:
+        """
+        Edit a single existing Form of the Lexeme with the wbleditformelements action: its representations, its
+        grammatical features and its claims. The representations and the claims marked for removal are removed.
+
+        Contrary to write(), only the Form is sent to the Wikibase instance, the rest of the Lexeme is left untouched.
+
+        :param form: The Form to edit, with the id of a Form of the Lexeme.
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for lexeme_edit_form (e.g. baserevid, tags) and Python requests
+        :return: The Form, updated from the Form returned by the instance (e.g. with the GUIDs of its new claims)
+        """
+        form_id = self._sub_entity_id(form.id, kind='Form')
+
+        if form.removed:
+            raise ValueError(f'The Form {form_id} is marked as removed: remove it with remove_form().')
+
+        data = form.get_json()
+        # The id is the formId parameter of the action
+        data.pop('id', None)
+
+        response = lexeme_edit_form(form_id=form_id, data=data, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        self._set_lastrevid(response)
+
+        return form.from_json(response['form'])
+
+    def remove_form(self, form: Form | str, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> None:
+        """
+        Remove a single Form from the Lexeme with the wblremoveform action, and from the forms of this object.
+
+        Contrary to write(), only the removal is sent to the Wikibase instance, the rest of the Lexeme is left untouched.
+
+        :param form: The Form to remove, or its id, e.g. L10-F2
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for lexeme_remove_form (e.g. baserevid, tags) and Python requests
+        """
+        form_id = self._sub_entity_id(form.id if isinstance(form, Form) else form, kind='Form')
+
+        response = lexeme_remove_form(form_id=form_id, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        self._set_lastrevid(response)
+
+        self.forms.forms = [existing for existing in self.forms if existing.id != form_id]
 
     def write_sense(self, sense: Sense, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
         """
@@ -250,7 +299,7 @@ class LexemeEntity(BaseEntity):
             raise ValueError('You must set a Lexeme id before writing a Sense.')
 
         if sense.id:
-            raise ValueError(f"The Sense {sense.id} already exists, adding it again would create a duplicate.")
+            raise ValueError(f"The Sense {sense.id} already exists, adding it again would create a duplicate: edit it with edit_sense().")
 
         if sense.removed:
             raise ValueError('The Sense is marked as removed, it cannot be added.')
@@ -262,7 +311,9 @@ class LexemeEntity(BaseEntity):
         login = login or self.api.login
         is_bot = is_bot if is_bot is not None else self.api.is_bot
 
-        sense.id = lexeme_add_sense(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)['sense']['id']
+        response = lexeme_add_sense(lexeme_id=self.id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=is_bot, **kwargs)
+        self._set_lastrevid(response)
+        sense.id = response['sense']['id']
 
         return sense.id
 
@@ -275,3 +326,91 @@ class LexemeEntity(BaseEntity):
         :return: The ids of the newly created Senses
         """
         return [self.write_sense(sense, **kwargs) for sense in self.senses if not sense.id and not sense.removed]
+
+    def edit_sense(self, sense: Sense, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> Sense:
+        """
+        Edit a single existing Sense of the Lexeme with the wbleditsenseelements action: its glosses and its claims. The
+        glosses and the claims marked for removal are removed.
+
+        Contrary to write(), only the Sense is sent to the Wikibase instance, the rest of the Lexeme is left untouched.
+
+        :param sense: The Sense to edit, with the id of a Sense of the Lexeme.
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for lexeme_edit_sense (e.g. baserevid, tags) and Python requests
+        :return: The Sense, updated from the Sense on the instance (e.g. with the GUIDs of its new claims). The response
+            of wbleditsenseelements has no claims: they are read from the lexeme, with one more request.
+        """
+        sense_id = self._sub_entity_id(sense.id, kind='Sense')
+
+        if sense.removed:
+            raise ValueError(f'The Sense {sense_id} is marked as removed: remove it with remove_sense().')
+
+        data = sense.get_json()
+        # The id is the senseId parameter of the action
+        data.pop('id', None)
+
+        login = login or self.api.login
+        response = lexeme_edit_sense(sense_id=sense_id, data=data, login=login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        self._set_lastrevid(response)
+
+        sense_json = response['sense']
+        if 'claims' not in sense_json:
+            # wbleditsenseelements leaves the claims out of its response, unlike wbleditformelements: they are read from
+            # the lexeme, so that the new claims get their GUID and the removed ones are dropped
+            lexeme_json = self._get(entity_id=self.id, login=login, mediawiki_api_url=kwargs.get('mediawiki_api_url'), user_agent=kwargs.get('user_agent'))
+            senses = {existing['id']: existing for existing in lexeme_json['entities'][self.id]['senses']}
+            sense_json = {**sense_json, 'claims': senses[sense_id]['claims']}
+
+        return sense.from_json(sense_json)
+
+    def remove_sense(self, sense: Sense | str, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> None:
+        """
+        Remove a single Sense from the Lexeme with the wblremovesense action, and from the senses of this object.
+
+        Contrary to write(), only the removal is sent to the Wikibase instance, the rest of the Lexeme is left untouched.
+
+        :param sense: The Sense to remove, or its id, e.g. L10-S2
+        :param login: A login instance
+        :param allow_anonymous: Force a check if the query can be anonymous or not
+        :param is_bot: Add the bot flag to the query
+        :param kwargs: More arguments for lexeme_remove_sense (e.g. baserevid, tags) and Python requests
+        """
+        sense_id = self._sub_entity_id(sense.id if isinstance(sense, Sense) else sense, kind='Sense')
+
+        response = lexeme_remove_sense(sense_id=sense_id, login=login or self.api.login, allow_anonymous=allow_anonymous, is_bot=self._is_bot(is_bot), **kwargs)
+        self._set_lastrevid(response)
+
+        self.senses.senses = [existing for existing in self.senses if existing.id != sense_id]
+
+    def _sub_entity_id(self, sub_entity_id: Any, kind: str) -> str:
+        """
+        Check that the id is the one of a Form or a Sense of this Lexeme, already on the Wikibase instance.
+
+        :param sub_entity_id: The id of the Form or the Sense, or its concept URI.
+        :param kind: 'Form' or 'Sense'
+        :return: The id, e.g. L10-F2
+        """
+        if not self.id:
+            raise ValueError(f'You must set a Lexeme id before editing or removing a {kind}.')
+
+        if sub_entity_id is None:
+            raise ValueError(f"The {kind} has no id: it isn't on the Wikibase instance, add it with write_{kind.lower()}().")
+
+        if not isinstance(sub_entity_id, str):
+            raise TypeError(f"The {kind} must be a {kind} or a {kind} id, got '{type(sub_entity_id)}'")
+
+        sub_entity_id = sub_entity_id.rsplit('/', 1)[-1]
+        if not re.fullmatch(rf'{re.escape(self.id)}-{kind[0]}[0-9]+', sub_entity_id):
+            raise ValueError(f"'{sub_entity_id}' isn't the id of a {kind} of the Lexeme {self.id}.")
+
+        return sub_entity_id
+
+    def _is_bot(self, is_bot: bool | None) -> bool:
+        return is_bot if is_bot is not None else self.api.is_bot
+
+    def _set_lastrevid(self, response: dict) -> None:
+        """The edits of a Form or a Sense are revisions of the Lexeme: keep its last revision id up to date."""
+        if 'lastrevid' in response:
+            self.lastrevid = int(response['lastrevid'])
