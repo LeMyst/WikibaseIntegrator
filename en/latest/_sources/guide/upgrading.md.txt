@@ -13,6 +13,9 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   a dict or `None`. It used to add them to the existing qualifiers: call `add()` for each qualifier to keep that.
 - **The `references` of a claim reject the items they can't use**: an item of the list that is neither a `Claim`, a
   list of `Claim` nor a `Reference` raises a `ValueError`. It used to add an empty reference.
+- **An empty value removes a label, a description or a lemma**: `labels.set('en', '')` marks the existing label
+  for removal, like `labels.set('en', None)` and like Wikibase does with an empty value, and returns `None`. It used
+  to leave the label unchanged.
 
 ### Deprecated in v0.15, removed in 1.0
 

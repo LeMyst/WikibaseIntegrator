@@ -500,15 +500,16 @@
 <span class="sd">        Create or update the specified language with the valued passed in arguments.</span>
 
 <span class="sd">        :param language: The desired language.</span>
-<span class="sd">        :param value: The desired value of the LanguageValue object. Use None to delete an existing LanguageValue object from the list.</span>
+<span class="sd">        :param value: The desired value of the LanguageValue object. Use None or an empty string to delete an existing LanguageValue object</span>
+<span class="sd">            from the list, as Wikibase does with an empty value.</span>
 <span class="sd">        :param action_if_exists: The action if the LanguageValue object is already defined. Can be ActionIfExists.REPLACE_ALL (default) or ActionIfExists.KEEP.</span>
 <span class="sd">        :return: The created or updated LanguageValue. None if there's no LanguageValue object with this language.</span>
 <span class="sd">        """</span>
         <span class="n">language</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'DEFAULT_LANGUAGE'</span><span class="p">])</span>
         <span class="k">assert</span> <span class="n">action_if_exists</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">KEEP</span><span class="p">]</span>
 
-        <span class="c1"># Remove value if None</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Remove the value if None or empty: Wikibase removes a label, description or lemma set to an empty string</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">language</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">language</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">None</span>
