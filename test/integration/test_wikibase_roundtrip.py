@@ -13,7 +13,7 @@ import pytest
 
 from wikibaseintegrator.datatypes import String
 from wikibaseintegrator.models import Form, Sense
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper, search_entities
 
 pytestmark = pytest.mark.integration
@@ -75,7 +75,7 @@ class TestItemLifecycle:
 
         written.delete(reason='WikibaseIntegrator integration test cleanup')
 
-        with pytest.raises(MissingEntityException):
+        with pytest.raises(NonExistentEntityError):
             wbi.item.get(written.id)
 
     def test_delete_a_copy_keeps_the_original(self, wbi):
@@ -86,18 +86,18 @@ class TestItemLifecycle:
         copy = wbi.item.get(original_id).write(as_new=True, summary='WikibaseIntegrator integration test: copy')
         copy.delete(reason='WikibaseIntegrator integration test cleanup')
 
-        with pytest.raises(MissingEntityException):
+        with pytest.raises(NonExistentEntityError):
             wbi.item.get(copy.id)
         original = wbi.item.get(original_id)
         original.delete(reason='WikibaseIntegrator integration test cleanup')
 
     def test_get_nonexistent_item(self, wbi):
         # A well-formed but non-existent numeric ID doesn't trigger an API-level error: wbgetentities
-        # replies 200 with the entity marked 'missing', which BaseEntity.from_json turns into
-        # MissingEntityException. NonExistentEntityError is for the separate no-such-entity/missingtitle
-        # API error path (e.g. an invalid site+title lookup).
-        with pytest.raises(MissingEntityException):
+        # replies 200 with the entity marked 'missing', which BaseEntity.from_json turns into a
+        # NonExistentEntityError with the code 'missing' (the no-such-entity API error has its own code).
+        with pytest.raises(NonExistentEntityError) as excinfo:
             wbi.item.get('Q999999999')
+        assert excinfo.value.code == 'missing'
 
 
 class TestClaimsWithQualifiersAndReferences:

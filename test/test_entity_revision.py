@@ -9,7 +9,7 @@ import requests
 
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.entities import ItemEntity, LexemeEntity, MediaInfoEntity, PropertyEntity
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 from wikibaseintegrator.wbi_helpers import download_entity_data, download_entity_ttl
 
 wbi = WikibaseIntegrator()
@@ -79,8 +79,10 @@ class TestGetRevision:
         assert entity.labels.get('en').value == 'old value'
 
     def test_missing_revision(self, wikibase, item_q582):
-        with pytest.raises(MissingEntityException, match="The revision 1234 of the entity Q582 doesn't exist") as excinfo:
+        with pytest.raises(NonExistentEntityError, match="The revision 1234 of the entity Q582 doesn't exist") as excinfo:
             wbi.item.get('Q582', revision=1234)
+
+        assert excinfo.value.code == 'nosuchrevid'
 
         assert isinstance(excinfo.value.__cause__, requests.HTTPError)
         assert excinfo.value.__cause__.response.status_code == 404
@@ -89,7 +91,7 @@ class TestGetRevision:
         add_old_revision(wikibase, 'Q582')
         wikibase.add_entity({**deepcopy(item_q582), 'id': 'Q583', 'title': 'Q583', 'lastrevid': 2000})
 
-        with pytest.raises(MissingEntityException):
+        with pytest.raises(NonExistentEntityError):
             wbi.item.get('Q583', revision=OLD_REVISION)
 
     def test_other_error_is_raised(self, wikibase, requests_mock):

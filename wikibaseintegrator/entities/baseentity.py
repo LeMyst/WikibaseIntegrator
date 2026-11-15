@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Self
 
@@ -15,14 +14,12 @@ from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 from wikibaseintegrator.wbi_helpers import delete_page, download_entity_data, edit_entity, mediawiki_api_call_helper
 from wikibaseintegrator.wbi_login import BaseLogin
 
 if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
-
-log = logging.getLogger(__name__)
 
 
 def _new_claims_data(claims: dict[str, list[dict]]) -> dict[str, list[dict]]:
@@ -217,7 +214,7 @@ class BaseEntity:
         """
         # wbgetentities answers {'id': ..., 'missing': ''} for an entity that doesn't exist (or was deleted)
         if 'missing' in json_data:
-            raise MissingEntityException('The MW API returned that the entity was missing.')
+            raise NonExistentEntityError({'code': 'missing', 'info': f"The entity {json_data.get('id')} is missing (deleted?) on the Wikibase instance."})
 
         # Absent from the entity JSON of older MediaWiki versions (1.35)
         if 'title' in json_data:
@@ -248,7 +245,7 @@ class BaseEntity:
             props is ignored. Default: the latest revision
         :param kwargs: More arguments for Python requests
         :return: python complex dictionary representation of a json
-        :raises MissingEntityException: If the revision doesn't exist, or isn't a revision of this entity
+        :raises NonExistentEntityError: If the revision doesn't exist, or isn't a revision of this entity (code nosuchrevid)
         """
 
         login = login or self.api.login
@@ -259,7 +256,8 @@ class BaseEntity:
                                                        user_agent=kwargs.get('user_agent')))
             except requests.HTTPError as e:
                 if e.response is not None and e.response.status_code == 404:
-                    raise MissingEntityException(f"The revision {revision} of the entity {entity_id} doesn't exist, or isn't a revision of this entity.") from e
+                    raise NonExistentEntityError({'code': 'nosuchrevid', 'info': f"The revision {revision} of the entity {entity_id} doesn't exist, or isn't a revision of this "
+                                                                                 "entity."}) from e
                 raise
 
         params = {
@@ -405,12 +403,8 @@ class BaseEntity:
         else:
             entity_id = self.id
 
-        try:
-            json_result: dict = edit_entity(data=data, id=entity_id, type=self.type, summary=summary, clear=clear, is_bot=is_bot, allow_anonymous=allow_anonymous,
-                                            login=login, **kwargs)
-        except Exception:
-            log.exception('Error while writing to the Wikibase instance')
-            raise
+        json_result: dict = edit_entity(data=data, id=entity_id, type=self.type, summary=summary, clear=clear, is_bot=is_bot, allow_anonymous=allow_anonymous, login=login,
+                                        **kwargs)
 
         if as_new:
             # The page id and title describe the page of the original entity, and the response of wbeditentity has neither: kept, they
@@ -433,8 +427,7 @@ class BaseEntity:
         :param kwargs: Any additional keyword arguments to pass to mediawiki_api_call_helper and requests.request
         :return: The data returned by the API as a dictionary
         :raises ValueError: If the entity has no id, pageid nor page title, or if its id is a redirect to another entity
-        :raises MissingEntityException: If the page is resolved from the id, and the entity doesn't exist (or was deleted)
-        :raises NonExistentEntityError: If the page is resolved from the id, and the instance doesn't know the id
+        :raises NonExistentEntityError: If the page is resolved from the id, and the instance doesn't know the id, or the entity was deleted
         """
 
         login = login or self.api.login
@@ -459,7 +452,7 @@ class BaseEntity:
         entities depends on the configuration of the instance.
 
         :raises ValueError: If the id is a redirect to another entity: deleting the page of the target would delete another entity
-        :raises MissingEntityException: If the entity doesn't exist
+        :raises NonExistentEntityError: If the entity doesn't exist
         """
         entities = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': self.id, 'props': 'info', 'redirects': 'no', 'format': 'json'}, login=login,
                                              mediawiki_api_url=mediawiki_api_url, user_agent=user_agent, allow_anonymous=True)['entities']
@@ -468,7 +461,7 @@ class BaseEntity:
         if entity is None:
             raise ValueError(f"The entity {self.id} is a redirect to {', '.join(entities)}: it isn't deleted.")
         if 'missing' in entity:
-            raise MissingEntityException(f'The entity {self.id} does not exist.')
+            raise NonExistentEntityError({'code': 'missing', 'info': f'The entity {self.id} does not exist.'}, response={'entities': entities})
 
         self.title = entity.get('title')
         self.pageid = entity.get('pageid')

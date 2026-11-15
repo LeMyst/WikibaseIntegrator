@@ -570,17 +570,25 @@ class TestReferences:
         assert claim.references.get(reference.hash) is reference
         assert claim.references.get('no-such-hash') is None
 
-    def test_add_a_claim_keeps_only_its_main_snak(self, caplog):
+    def test_add_a_claim_keeps_its_main_snak(self):
         references = datatypes.Item(value='Q1', prop_nr='P1').references
-        source = String(value='source', prop_nr='P2', qualifiers=[String(value='q', prop_nr='P3')], references=[[String(value='r', prop_nr='P4')]])
-
-        with caplog.at_level('WARNING'):
-            references.add(source)
-
-        # A reference has no qualifiers nor references: they are dropped, with a warning for each
+        references.add(String(value='source', prop_nr='P2'))
         assert [[snak.property_number for snak in reference] for reference in references] == [['P2']]
-        assert 'not possible to use a qualifier in a reference' in caplog.text
-        assert 'not possible to use a reference in a reference' in caplog.text
+
+    @pytest.mark.parametrize(('qualifiers', 'nested', 'parts'), [
+        (True, False, 'qualifiers'),
+        (False, True, 'references'),
+        (True, True, 'qualifiers and references'),
+    ])
+    def test_add_a_claim_with_qualifiers_or_references_raises(self, qualifiers, nested, parts):
+        # A reference only holds snaks: they would be lost
+        references = datatypes.Item(value='Q1', prop_nr='P1').references
+        source = String(value='source', prop_nr='P2', qualifiers=[String(value='q', prop_nr='P3')] if qualifiers else None,
+                        references=[[String(value='r', prop_nr='P4')]] if nested else None)
+
+        with pytest.raises(ValueError, match=f"A claim with {parts} can't be used as a reference"):
+            references.add(source)
+        assert len(references) == 0
 
     def test_add_ignores_a_duplicate_and_none(self):
         references = datatypes.Item(value='Q1', prop_nr='P1').references

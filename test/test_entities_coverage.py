@@ -16,7 +16,7 @@ from wikibaseintegrator.datatypes import BaseDataType, Item, String
 from wikibaseintegrator.entities import ItemEntity, LexemeEntity, MediaInfoEntity, PropertyEntity
 from wikibaseintegrator.models import Claims
 from wikibaseintegrator.wbi_enums import EntityField, WikibaseDatatype
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 
 from .conftest import load_fixture, uri
 
@@ -60,10 +60,11 @@ class TestBaseEntity:
     def test_missing_entity(self, wikibase):
         # wbgetentities answers {'id': ..., 'missing': ''} for a deleted entity
         wikibase.deleted_entities.add('Q1')
-        with pytest.raises(MissingEntityException):
+        with pytest.raises(NonExistentEntityError, match='The entity Q1 is missing') as excinfo:
             wbi.item.get('Q1')
+        assert excinfo.value.code == 'missing'
 
-        with pytest.raises(MissingEntityException):
+        with pytest.raises(NonExistentEntityError, match='The entity Q1 is missing'):
             ItemEntity().from_json({'id': 'Q1', 'missing': ''})
 
     def test_get_props_string(self, wikibase, item_q582):

@@ -6,7 +6,7 @@ import pytest
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.datatypes import String
 from wikibaseintegrator.wbi_enums import EntityField
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 
 wbi = WikibaseIntegrator()
 
@@ -43,11 +43,13 @@ class TestGet:
 
     def test_get_by_title_not_found(self, wikibase):
         # The API answers {'-1': {'title': 'File:Missing.jpg', 'missing': ''}}, as Wikimedia Commons does
-        with pytest.raises(MissingEntityException, match='Title not found: File:Missing.jpg'):
+        with pytest.raises(NonExistentEntityError, match='Title not found: File:Missing.jpg') as excinfo:
             wbi.mediainfo.get_by_title(titles='File:Missing.jpg')
+        assert excinfo.value.code == 'missingtitle'
+        assert excinfo.value.response is not None and 'entities' in excinfo.value.response
 
     def test_get_by_title_one_title_missing(self, wikibase, mediainfo_budapest):
-        with pytest.raises(MissingEntityException, match='Title not found: File:Missing.jpg'):
+        with pytest.raises(NonExistentEntityError, match='Title not found: File:Missing.jpg'):
             wbi.mediainfo.get_by_title(titles=['File:2018-07-05-budapest-buda-hill.jpg', 'File:Missing.jpg'])
 
     def test_get_by_title_uses_the_login(self, wikibase, mediainfo_budapest):

@@ -1,4 +1,5 @@
 import re
+import warnings
 from typing import Any
 
 # An entity link of the parameters of an error message, e.g. [[Q42|Q42]] or [[Property:P50|P50]]
@@ -115,8 +116,15 @@ class SaveFailed(MWApiError):
 
 class NonExistentEntityError(MWApiError):
     """
-    When the API return a 'no-such-entity' error: the entity doesn't exist on the Wikibase instance, or its entity type
-    doesn't exist there.
+    Raised when an entity, a revision or a page doesn't exist on the Wikibase instance. Its code tells why:
+
+    * ``no-such-entity``: the instance doesn't know the id, or its entity type doesn't exist there (an API error)
+    * ``missingtitle``: the page doesn't exist (an API error), or a MediaInfo title isn't found
+    * ``missing``: the entity is missing, e.g. deleted
+    * ``nosuchrevid``: the revision doesn't exist, or isn't a revision of this entity
+
+    It replaces MissingEntityException, deprecated in 0.15 and removed in 1.0: ``MissingEntityException`` is now
+    another name of this class.
     """
 
 
@@ -175,12 +183,6 @@ class MaxRetriesReachedException(WikibaseIntegratorError):
     """
 
 
-class MissingEntityException(WikibaseIntegratorError):
-    """
-    Raised when an entity read from the Wikibase instance is missing, e.g. deleted, or when a MediaInfo title is not found.
-    """
-
-
 class SearchError(WikibaseIntegratorError):
     """
     Raised when the wbsearchentities API answers without success.
@@ -197,3 +199,12 @@ class AnonymousEditNotAllowedError(WikibaseIntegratorError):
 
     Set ``allow_anonymous=True`` or provide a valid ``login`` object to edit the MediaWiki instance.
     """
+
+
+def __getattr__(name: str) -> Any:
+    # MissingEntityException was merged into NonExistentEntityError in 0.15 (#453)
+    if name == 'MissingEntityException':
+        warnings.warn("MissingEntityException is deprecated and will be removed in WikibaseIntegrator 1.0: catch NonExistentEntityError, which is now raised for the "
+                      "missing entities too.", DeprecationWarning, stacklevel=2)
+        return NonExistentEntityError
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

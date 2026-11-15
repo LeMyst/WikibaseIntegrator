@@ -297,7 +297,6 @@ class Claim(BaseModel):
         newrefs = newitem.references
 
         if len(newrefs) != 1:
-            warnings.warn("New item has more or less than 1 reference block.")
             return False
 
         return any(any(_ref_equal(oldref, newref) for oldref in oldrefs) for newref in newrefs)

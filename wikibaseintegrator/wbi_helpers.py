@@ -25,8 +25,8 @@ from requests.auth import AuthBase
 from wikibaseintegrator.datatypes.quantity import format_amount as format_amount  # pylint: disable=unused-import,useless-import-alias
 from wikibaseintegrator.wbi_backoff import RetryAfterError, SPARQLTimeoutError, wbi_backoff, wbi_backoff_wait
 from wikibaseintegrator.wbi_config import config
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
-                                               ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError)
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
+                                               NonExistentEntityError, SaveFailed, SearchError)
 
 if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
@@ -1370,8 +1370,7 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     :param entities: A list of IDs. Item, Property, Lexeme or MediaInfo.
     :param allow_anonymous: Allow an anonymous request to the MediaWiki API. Enabled by default.
     :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.
-    :raises NonExistentEntityError: If an ID doesn't exist on the Wikibase instance
-    :raises MissingEntityException: If an entity is missing, e.g. deleted
+    :raises NonExistentEntityError: If an ID doesn't exist on the Wikibase instance, or an entity is missing, e.g. deleted (code missing)
     :raises ValueError: If an entity has a type that no subclass of BaseEntity implements
     """
 
@@ -1398,7 +1397,7 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
         for entity_id, entity_json in reply['entities'].items():
             # A deleted entity is returned as {'id': ..., 'missing': ''}, without its type
             if 'missing' in entity_json:
-                raise MissingEntityException(f'The entity {entity_id} is missing (deleted?) on the Wikibase instance.')
+                raise NonExistentEntityError({'code': 'missing', 'info': f'The entity {entity_id} is missing (deleted?) on the Wikibase instance.'}, response=reply)
 
             # Use the recursive subclass registry (not __subclasses__(), which only returns direct subclasses) so that
             # entities inheriting through an intermediate base (Item/Property/MediaInfo via TermsEntity) are found.
