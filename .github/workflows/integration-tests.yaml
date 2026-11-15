@@ -64,6 +64,15 @@ jobs:
           echo "::error::The Wikibase instance didn't answer after 5 minutes"
           exit 1
 
+      - name: Diagnostic (temporary)
+        run: |
+          docker compose exec -T wikibase ls /var/www/html/extensions
+          echo ----- LocalSettings
+          docker compose exec -T wikibase sh -c 'ls -la /config /var/www/html/LocalSettings*; grep -n -i "wfLoadExtension\|require\|include\|LocalSettings.d" /config/LocalSettings.php /var/www/html/LocalSettings.php 2>/dev/null | head -60'
+          echo ----- entrypoint
+          docker compose exec -T wikibase sh -c 'ls / /templates 2>/dev/null; cat /entrypoint.sh 2>/dev/null | head -120'
+          docker image inspect wikibase/wikibase:7 --format '{{json .Config.Labels}} {{.Config.Entrypoint}} {{.Config.Cmd}}'
+
       - name: Run the integration tests
         run: python -m poetry run pytest -m integration -v -rs -p no:cacheprovider
 
