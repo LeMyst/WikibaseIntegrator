@@ -30,6 +30,8 @@ jobs:
     env:
       COMPOSE_FILE: test/integration/docker-compose.yml
       WBI_INTEGRATION_MEDIAWIKI_API_URL: http://localhost:8880/w/api.php
+      WBI_INTEGRATION_SPARQL_ENDPOINT_URL: http://localhost:9999/bigdata/namespace/wdq/sparql
+      WBI_INTEGRATION_WIKIBASE_URL: http://localhost:8880
       # The administrator of the throwaway instance, set in docker-compose.yml: not a secret
       WBI_INTEGRATION_USER: WikibaseAdmin
       WBI_INTEGRATION_PASSWORD: WikibaseDockerAdminPass
@@ -37,8 +39,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Builds the Wikibase image with the WikibaseLexeme extension (test/integration/Dockerfile)
       - name: Start the Wikibase instance
-        run: docker compose up --detach
+        run: docker compose up --detach --build
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -64,12 +67,25 @@ jobs:
           echo "::error::The Wikibase instance didn't answer after 5 minutes"
           exit 1
 
+      - name: Wait for the query service
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail --get --data-urlencode 'query=ASK {}' "${WBI_INTEGRATION_SPARQL_ENDPOINT_URL}" > /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The query service didn't answer after 5 minutes"
+          exit 1
+
       - name: Run the integration tests
         run: python -m poetry run pytest -m integration -v -rs -p no:cacheprovider
 
       - name: Show the logs of the Wikibase instance
         if: failure()
-        run: docker compose logs --tail=200
+        run: |
+          docker compose ps --all
+          docker compose logs --tail=200
 
       - name: Stop the Wikibase instance
         if: always()
