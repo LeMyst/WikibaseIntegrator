@@ -10,10 +10,11 @@ from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
-# The field of the values holding the IRI of an entity, by value type. A bare entity ID given to a data type without
-# wikibase_url (e.g. Quantity(unit='Q11573')) is kept as it is, and completed with the Wikibase URL when the value is
-# serialized: the one of the WikibaseIntegrator instance of the entity serializing itself, else wbi_config's (#1193).
-_ENTITY_IRI_FIELDS = {'quantity': 'unit', 'time': 'calendarmodel', 'globecoordinate': 'globe'}
+# The field of the values holding the IRI of an entity of the instance, by value type. A bare entity ID given to a data type
+# without wikibase_url (e.g. Quantity(unit='Q11573')) is kept as it is, and completed with the Wikibase URL when the value is
+# serialized: the one of the WikibaseIntegrator instance of the entity serializing itself, else wbi_config's (#1193). The
+# calendar models and the globes are entities of Wikidata on every instance: Time and GlobeCoordinate complete them at once.
+_ENTITY_IRI_FIELDS = {'quantity': 'unit'}
 
 # The Wikibase URL of the entity being serialized, see _serializing_for()
 _serialization_wikibase_url: ContextVar[str | None] = ContextVar('wikibaseintegrator_serialization_wikibase_url', default=None)
@@ -34,13 +35,6 @@ def _is_bare_entity_id(value: object) -> bool:
     return isinstance(value, str) and value.startswith('Q')
 
 
-def _entity_iri(value: str, wikibase_url: str | None = None) -> str:
-    """The IRI of a value of an entity IRI field: a bare entity ID completed with the Wikibase URL, an IRI unchanged."""
-    if not _is_bare_entity_id(value):
-        return value
-    return f'{wikibase_url or _serialization_wikibase_url.get() or config["WIKIBASE_URL"]}/entity/{value}'
-
-
 def _resolve_datavalue(datavalue: dict, wikibase_url: str | None = None) -> dict:
     """
     The datavalue with its bare entity ID completed (see _ENTITY_IRI_FIELDS), or the datavalue itself if it has none.
@@ -51,7 +45,8 @@ def _resolve_datavalue(datavalue: dict, wikibase_url: str | None = None) -> dict
     value = datavalue.get('value')
     if field is None or not isinstance(value, dict) or not _is_bare_entity_id(value.get(field)):
         return datavalue
-    return {**datavalue, 'value': {**value, field: _entity_iri(value[field], wikibase_url)}}
+    wikibase_url = wikibase_url or _serialization_wikibase_url.get() or config['WIKIBASE_URL']
+    return {**datavalue, 'value': {**value, field: f'{wikibase_url}/entity/{value[field]}'}}
 
 
 def _same_entity_iri(first: object, second: object) -> bool:

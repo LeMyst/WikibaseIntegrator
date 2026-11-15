@@ -232,8 +232,9 @@ class TestQuantity:
 
 class TestTime:
     def test_calendar_model_id(self):
-        claim = Time(time='+2020-01-01T00:00:00Z', calendarmodel='Q1985727', wikibase_url='https://example.org', prop_nr='P1')
-        assert claim.mainsnak.datavalue['value']['calendarmodel'] == 'https://example.org/entity/Q1985727'
+        # An item of Wikidata on every instance: Wikibase only accepts the calendar models of Wikidata
+        claim = Time(time='+2020-01-01T00:00:00Z', calendarmodel='Q1985727', prop_nr='P1')
+        assert claim.mainsnak.datavalue['value']['calendarmodel'] == 'http://www.wikidata.org/entity/Q1985727'
 
     def test_precision_not_a_time_precision(self):
         # Neither an int nor a WikibaseTimePrecision: refused before choosing the pattern

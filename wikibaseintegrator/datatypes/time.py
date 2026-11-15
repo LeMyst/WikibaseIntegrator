@@ -5,8 +5,7 @@ import re
 from functools import total_ordering
 from typing import Any, Self
 
-from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.models.snak import _entity_iri
+from wikibaseintegrator.datatypes.basedatatype import _WIKIDATA_ENTITY_URI, BaseDataType, _warn_wikibase_url
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType, WikibaseTimePrecision
 
@@ -96,24 +95,27 @@ class Time(BaseDataType):
         :param precision: Precision value for dates and time as specified in the Wikibase data model
                           (https://www.wikidata.org/wiki/Special:ListDatatypes#time)
         :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
-        :param calendarmodel: The calendar model used for the date. URL to the Wikibase calendar model item or the QID.
-        :param wikibase_url: The Wikibase URL completing a calendar model given as an ID like 'Q1985727'. Default: the ID is kept, and
-            completed when the value is serialized, with the WIKIBASE_URL of the WikibaseIntegrator instance of the entity, else
-            wbi_config['WIKIBASE_URL']
+        :param calendarmodel: The calendar model used for the date: the IRI of the Wikidata item of the calendar, or its ID, e.g. 'Q1985786'
+            for the Julian calendar. Wikibase only accepts the calendar models of Wikidata, on every instance.
+        :param wikibase_url: Deprecated and ignored: a calendar model given as an ID is always an entity of Wikidata.
         """
+        if wikibase_url is not None:
+            _warn_wikibase_url('Time', 'calendar model', 'Q1985786')
 
         super().__init__(**kwargs)
-        self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
+        self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel)
 
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
     def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
                   calendarmodel: str | None = None, wikibase_url: str | None = None) -> None:
+        if wikibase_url is not None:
+            _warn_wikibase_url('Time', 'calendar model', 'Q1985786')
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
 
-        # Without wikibase_url, a bare ID is completed when the value is serialized (see Snak.get_json())
-        if wikibase_url and calendarmodel.startswith('Q'):
-            calendarmodel = wikibase_url + '/entity/' + calendarmodel
+        # An item of Wikidata, whatever the instance
+        if calendarmodel.startswith('Q'):
+            calendarmodel = _WIKIDATA_ENTITY_URI + calendarmodel
 
         if time is not None and not isinstance(time, str):
             raise TypeError(f"Expected str, found {type(time)} ({time})")
@@ -254,10 +256,7 @@ class Time(BaseDataType):
 
     def get_sparql_value(self, **kwargs: Any) -> str:
         value = self.mainsnak.datavalue['value']
-        calendarmodel = value.get('calendarmodel')
-        if calendarmodel:
-            calendarmodel = _entity_iri(calendarmodel, kwargs.get('wikibase_url'))
-        return '"' + self.sparql_time(value['time'], value.get('precision'), calendarmodel) + '"^^xsd:dateTime'
+        return '"' + self.sparql_time(value['time'], value.get('precision'), value.get('calendarmodel')) + '"^^xsd:dateTime'
 
     def _time_parts(self) -> tuple[int, int, int]:
         """

@@ -195,12 +195,17 @@ def test_instance_configuration(login, properties, target_item, synced_item, int
     item.claims.add(build_claims(properties, target_item))
     assert not item.write_required(base_filter=base_filter(properties))
 
-    # Write and delete. The unit given as a bare ID gets the Wikibase URL of the instance, not the one of wbi_config
+    # Write and delete. The unit given as a bare ID gets the Wikibase URL of the instance, not the one of wbi_config. The calendar
+    # model and the globe given as bare IDs are items of Wikidata: Wikibase rejects any other prefix (bad-prefix), on every instance.
     new = wbi.item.new()
     new.labels.set(language='en', value=f'WBI integration test instance configuration {RUN_ID}')
-    new.claims.add(Quantity(prop_nr=properties[WikibaseDatatype.QUANTITY], amount='3', unit=target_item))
+    new.claims.add([Quantity(prop_nr=properties[WikibaseDatatype.QUANTITY], amount='3', unit=target_item),
+                    Time(prop_nr=properties[WikibaseDatatype.TIME], time='+1500-01-01T00:00:00Z', precision=WikibaseTimePrecision.DAY, calendarmodel='Q1985786'),
+                    GlobeCoordinate(prop_nr=properties[WikibaseDatatype.GLOBECOORDINATE], latitude=10, longitude=20, precision=0.0001, globe='Q2')])
     new = new.write(summary='WikibaseIntegrator integration test: instance configuration')
     read = wbi.item.get(new.id)
     assert read.labels.get('en').value == f'WBI integration test instance configuration {RUN_ID}'
     assert read.claims.get(properties[WikibaseDatatype.QUANTITY])[0].mainsnak.datavalue['value']['unit'] == f"{instance['WIKIBASE_URL']}/entity/{target_item}"
+    assert read.claims.get(properties[WikibaseDatatype.TIME])[0].mainsnak.datavalue['value']['calendarmodel'] == JULIAN
+    assert read.claims.get(properties[WikibaseDatatype.GLOBECOORDINATE])[0].mainsnak.datavalue['value']['globe'] == 'http://www.wikidata.org/entity/Q2'
     new.delete(reason='WikibaseIntegrator integration test cleanup')

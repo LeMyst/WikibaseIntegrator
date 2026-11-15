@@ -1,8 +1,10 @@
 """
-The bare entity IDs given to Quantity, Time and GlobeCoordinate (e.g. unit='Q11573') are completed with the Wikibase URL
-when the value is serialized: the one of the WikibaseIntegrator instance of the entity, else wbi_config's (#1193).
+The bare entity IDs given as the unit of a Quantity (unit='Q11573') are completed with the Wikibase URL when the value is
+serialized: the one of the WikibaseIntegrator instance of the entity, else wbi_config's (#1193). The calendar models and the
+globes are entities of Wikidata on every instance.
 """
 import json
+import warnings
 
 import pytest
 
@@ -12,6 +14,7 @@ from wikibaseintegrator.models import Claims, Form, Qualifiers, Reference, Refer
 from wikibaseintegrator.models.snak import _resolve_datavalue, _same_datavalue, _same_entity_iri, _serializing_for
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
+from wikibaseintegrator.wbi_helpers import format2wbi
 
 from .conftest import MockWikibase, literal
 from .test_wbi_fastrun import PTYPE_QUANTITY, XSD_DECIMAL, SparqlData
@@ -37,54 +40,82 @@ def unit(claim_json):
 
 
 class TestDatatypes:
-    @pytest.mark.parametrize(('build', 'field', 'bare'), [
-        (lambda **kwargs: Quantity(amount=12, unit='Q11573', prop_nr='P1', **kwargs), 'unit', 'Q11573'),
-        (lambda **kwargs: Time(time='+2020-01-01T00:00:00Z', calendarmodel='Q1985786', prop_nr='P1', **kwargs), 'calendarmodel', 'Q1985786'),
-        (lambda **kwargs: GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1', **kwargs), 'globe', MARS),
-    ], ids=['quantity', 'time', 'globecoordinate'])
-    def test_the_id_is_kept_and_completed_when_serialized(self, wikibase, build, field, bare):
-        claim = build()
-        assert claim.mainsnak.datavalue['value'][field] == bare
-        assert claim.get_json()['mainsnak']['datavalue']['value'][field] == f'{wikibase.base_url}/entity/{bare}'
+    def test_a_unit_id_is_kept_and_completed_when_serialized(self, wikibase):
+        claim = Quantity(amount=12, unit='Q11573', prop_nr='P1')
+        assert claim.mainsnak.datavalue['value']['unit'] == 'Q11573'
+        assert unit(claim.get_json()) == f'{wikibase.base_url}/entity/Q11573'
 
         # Read when serialized
         wbi_config['WIKIBASE_URL'] = 'https://changed.example.org'
-        assert claim.get_json()['mainsnak']['datavalue']['value'][field] == f'https://changed.example.org/entity/{bare}'
+        assert unit(claim.get_json()) == 'https://changed.example.org/entity/Q11573'
         # The datavalue isn't changed
-        assert claim.mainsnak.datavalue['value'][field] == bare
+        assert claim.mainsnak.datavalue['value']['unit'] == 'Q11573'
 
         # With a Wikibase URL, the IRI is built at once, as before
-        assert build(wikibase_url=WIKIDATA).mainsnak.datavalue['value'][field] == f'{WIKIDATA}/entity/{bare}'
+        assert Quantity(amount=12, unit='Q11573', prop_nr='P1', wikibase_url=WIKIDATA).mainsnak.datavalue['value']['unit'] == f'{WIKIDATA}/entity/Q11573'
 
     def test_the_iris_are_kept(self, wikibase):
         claim = Quantity(amount=12, unit=f'{WIKIDATA}/entity/Q11573', prop_nr='P1')
         assert claim.get_json()['mainsnak']['datavalue'] is claim.mainsnak.datavalue
         assert unit(Quantity(amount=12, prop_nr='P1').get_json()) == '1'
 
-    def test_the_default_calendar_and_globe_are_iris(self, wikibase):
+
+class TestCalendarModelsAndGlobes:
+    """Wikibase only accepts the calendar models and the globes of Wikidata, on every instance (ValidatorBuilders::$wikidataBaseUri)."""
+
+    @pytest.mark.parametrize('wikibase_url', ['https://other.example.org', WIKIDATA])
+    def test_an_id_is_an_entity_of_wikidata_on_every_instance(self, wikibase, wikibase_url):
+        wbi_config['WIKIBASE_URL'] = wikibase_url
+        assert Time(time='+2020-01-01T00:00:00Z', calendarmodel='Q1985786', prop_nr='P1').mainsnak.datavalue['value']['calendarmodel'] == JULIAN
+        assert GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1').mainsnak.datavalue['value']['globe'] == f'{WIKIDATA}/entity/{MARS}'
+
+    def test_in_an_entity_of_another_instance(self, other, wbi_other):
+        item = wbi_other.item.new()
+        item.claims.add([Time(time='+1500-01-01T00:00:00Z', calendarmodel='Q1985786', prop_nr='P1'), GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P2')])
+        claims = item.get_json()['claims']
+        assert claims['P1'][0]['mainsnak']['datavalue']['value']['calendarmodel'] == JULIAN
+        assert claims['P2'][0]['mainsnak']['datavalue']['value']['globe'] == f'{WIKIDATA}/entity/{MARS}'
+
+    def test_the_defaults(self, wikibase):
         assert Time(time='+2020-01-01T00:00:00Z', prop_nr='P1').mainsnak.datavalue['value']['calendarmodel'] == wbi_config['CALENDAR_MODEL_QID']
         assert GlobeCoordinate(latitude=1, longitude=2, prop_nr='P1').mainsnak.datavalue['value']['globe'] == wbi_config['COORDINATE_GLOBE_QID']
 
-    def test_earth_ranges_with_a_bare_globe(self, wikibase):
-        # Q2 is the Earth on Wikidata only, as when the IRI was built at once
-        wbi_config['WIKIBASE_URL'] = WIKIDATA
-        with pytest.raises(ValueError, match='latitude must be between -90 and 90'):
-            GlobeCoordinate(latitude=100, longitude=2, globe='Q2', prop_nr='P1')
+        wbi_config['CALENDAR_MODEL_QID'] = 'Q1985786'
         wbi_config['COORDINATE_GLOBE_QID'] = 'Q2'
+        wbi_config['WIKIBASE_URL'] = 'https://other.example.org'
+        assert Time(time='+2020-01-01T00:00:00Z', prop_nr='P1').mainsnak.datavalue['value']['calendarmodel'] == JULIAN
+        # Q2 is the Earth, on every instance
         with pytest.raises(ValueError, match='latitude must be between -90 and 90'):
             GlobeCoordinate(latitude=100, longitude=2, prop_nr='P1')
-
-        wbi_config['WIKIBASE_URL'] = 'https://other.example.org'
+        with pytest.raises(ValueError, match='latitude must be between -90 and 90'):
+            GlobeCoordinate(latitude=100, longitude=2, globe='Q2', prop_nr='P1')
         assert GlobeCoordinate(latitude=100, longitude=2, globe=MARS, prop_nr='P1').mainsnak.datavalue['value']['latitude'] == 100
 
-    def test_sparql_values(self, wikibase):
-        julian = Time(time='+1500-01-01T00:00:00Z', calendarmodel='Q1985786', prop_nr='P1')
-        assert julian.get_sparql_value(wikibase_url=WIKIDATA) == Time(time='+1500-01-01T00:00:00Z', calendarmodel=JULIAN, prop_nr='P1').get_sparql_value()
-        assert julian.get_sparql_value(wikibase_url=wikibase.base_url) == '"+1500-01-01T00:00:00Z"^^xsd:dateTime'
+    def test_wikibase_url_is_deprecated_and_ignored(self, wikibase):
+        with pytest.warns(DeprecationWarning, match=r"The wikibase_url argument of Time is deprecated .* \(http://www.wikidata.org/entity/Q1985786\)") as record:
+            time = Time(time='+2020-01-01T00:00:00Z', calendarmodel='Q1985786', wikibase_url='https://other.example.org', prop_nr='P1')
+        assert time.mainsnak.datavalue['value']['calendarmodel'] == JULIAN
+        assert record[0].filename == __file__
+        with pytest.warns(DeprecationWarning, match='The wikibase_url argument of Time is deprecated'):
+            time.set_value(time='+2020-01-01T00:00:00Z', wikibase_url='https://other.example.org')
 
-        mars = GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1')
-        assert mars.get_sparql_value(wikibase_url=WIKIDATA) == f'"<{WIKIDATA}/entity/{MARS}> Point(2.0 1.0)"^^geo:wktLiteral'
-        assert mars.get_sparql_value() == f'"<{wikibase.base_url}/entity/{MARS}> Point(2.0 1.0)"^^geo:wktLiteral'
+        with pytest.warns(DeprecationWarning, match='The wikibase_url argument of GlobeCoordinate is deprecated') as record:
+            globe = GlobeCoordinate(latitude=1, longitude=2, globe=MARS, wikibase_url='https://other.example.org', prop_nr='P1')
+        assert globe.mainsnak.datavalue['value']['globe'] == f'{WIKIDATA}/entity/{MARS}'
+        assert record[0].filename == __file__
+        with pytest.warns(DeprecationWarning, match='The wikibase_url argument of GlobeCoordinate is deprecated'):
+            globe.set_value(latitude=1, longitude=2, wikibase_url='https://other.example.org')
+
+    def test_format2wbi_doesnt_warn(self, wikibase):
+        wikibase.add_property('P1', 'time')
+        wikibase.add_property('P2', 'globe-coordinate')
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', DeprecationWarning)
+            warnings.filterwarnings('ignore', message='format2wbi.. is experimental')
+            item = format2wbi('item', json.dumps({'claims': {'P1': {'time': '+2020-01-01T00:00:00Z', 'calendarmodel': 'Q1985786'},
+                                                             'P2': {'latitude': 1, 'longitude': 2, 'globe': MARS}}}), wikibase_url='https://other.example.org')
+        assert item.claims.get('P1')[0].mainsnak.datavalue['value']['calendarmodel'] == JULIAN
+        assert item.claims.get('P2')[0].mainsnak.datavalue['value']['globe'] == f'{WIKIDATA}/entity/{MARS}'
 
 
 class TestEntities:
@@ -174,9 +205,9 @@ class TestEquality:
         claims.add(Quantity(amount=12, unit='Q11573', prop_nr='P1'))
         assert len(claims) == 1
 
-    def test_globe_coordinates(self, wikibase, other):
-        assert GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1') == GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1',
-                                                                                                    wikibase_url=other.base_url)
+    def test_globe_coordinates(self, wikibase):
+        assert GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1') == GlobeCoordinate(latitude=1, longitude=2, globe=f'{WIKIDATA}/entity/{MARS}',
+                                                                                                    prop_nr='P1')
         assert GlobeCoordinate(latitude=1, longitude=2, globe=MARS, prop_nr='P1') != GlobeCoordinate(latitude=1, longitude=2, globe='Q112', prop_nr='P1')
 
     @pytest.mark.parametrize(('first', 'second', 'same'), [
@@ -195,7 +226,10 @@ class TestEquality:
     def test_resolve_datavalue(self, wikibase):
         for datavalue in ({}, {'type': 'string', 'value': 'Q1'}, {'type': 'quantity', 'value': 'Q1'}, {'type': 'quantity', 'value': {'amount': '+1'}}):
             assert _resolve_datavalue(datavalue) is datavalue
-        assert _resolve_datavalue({'type': 'time', 'value': {'calendarmodel': 'Q1985786'}}, wikibase_url=WIKIDATA) == {'type': 'time', 'value': {'calendarmodel': JULIAN}}
+        # Only the units: the calendar models and the globes are entities of Wikidata
+        for datavalue in ({'type': 'time', 'value': {'calendarmodel': 'Q1985786'}}, {'type': 'globecoordinate', 'value': {'globe': 'Q2'}}):
+            assert _resolve_datavalue(datavalue) is datavalue
+        assert _resolve_datavalue({'type': 'quantity', 'value': {'unit': 'Q1'}}, wikibase_url=WIKIDATA) == {'type': 'quantity', 'value': {'unit': f'{WIKIDATA}/entity/Q1'}}
 
     def test_same_entity_iri(self):
         assert _same_entity_iri('Q1', 'Q1')

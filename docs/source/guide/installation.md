@@ -122,10 +122,11 @@ The entities of an instance (`wbi.item`, `wbi.property`, `wbi.lexeme`, `wbi.medi
 (`write_required()`). The arguments given to a method, like `mediawiki_api_url`, take precedence. `wbi.config` gives the
 configuration of the instance, read-only.
 
-A `Quantity`, a `Time` or a `GlobeCoordinate` built with a bare ID as unit, calendar model or globe (e.g.
-`unit='Q11573'`) keeps it, and it is completed with the `WIKIBASE_URL` of the instance when the entity holding the value
-is serialized, e.g. written. Out of an entity, as with `claim.get_json()`, `wbi_config['WIKIBASE_URL']` is used. Pass
-`wikibase_url` to the data type to build the IRI at once.
+A `Quantity` built with a bare ID as unit (e.g. `unit='Q11573'`) keeps it, and it is completed with the `WIKIBASE_URL`
+of the instance when the entity holding the value is serialized, e.g. written. Out of an entity, as with
+`claim.get_json()`, `wbi_config['WIKIBASE_URL']` is used. Pass `wikibase_url` to the quantity to build the IRI at once.
+The calendar models of the times and the globes of the coordinates are items of Wikidata on every Wikibase instance:
+`calendarmodel='Q1985786'` and `globe='Q2'` give the IRIs of Wikidata, whatever the instance.
 
 The rest still reads wbi_config: the functions of `wbi_helpers` (pass them `mediawiki_api_url`, `wikibase_url`... as
 before), the retries and the timeouts, and the default language of the labels. A login has its own URLs, given when it
