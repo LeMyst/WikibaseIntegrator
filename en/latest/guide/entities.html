@@ -497,6 +497,15 @@ see <a class="reference internal" href="mediainfo.html"><span class="std std-doc
 <li><p>Full access to the entire Wikibase entity in the form of a JSON dict representation.</p></li>
 </ul>
 </section>
+<section id="claims-and-statements">
+<h3>Claims and statements<a class="headerlink" href="#claims-and-statements" title="Link to this heading">#</a></h3>
+<p>The <a class="reference external" href="https://www.mediawiki.org/wiki/Wikibase/DataModel#Statements">Wikibase data model</a> calls a claim with references
+and a rank a statement. WikibaseIntegrator calls them claims (<code class="docutils literal notranslate"><span class="pre">entity.claims</span></code>, <code class="docutils literal notranslate"><span class="pre">Claims</span></code>, <code class="docutils literal notranslate"><span class="pre">Claim</span></code>), like the <code class="docutils literal notranslate"><span class="pre">claims</span></code>
+field of the JSON of items, properties, lexemes, forms and senses, and the API actions (<code class="docutils literal notranslate"><span class="pre">wbsetclaim</span></code>, <code class="docutils literal notranslate"><span class="pre">wbremoveclaims</span></code>).
+A <code class="docutils literal notranslate"><span class="pre">Claim</span></code> holds the whole statement: its main snak, qualifiers, references and rank. These names stay the same in 1.0.</p>
+<p>MediaInfo entities name this field <code class="docutils literal notranslate"><span class="pre">statements</span></code> in their JSON. WikibaseIntegrator still reads and writes them as
+<code class="docutils literal notranslate"><span class="pre">media.claims</span></code>, see <a class="reference internal" href="mediainfo.html"><span class="std std-doc">Structured Data on Commons</span></a>.</p>
+</section>
 </section>
 <section id="common-use-cases">
 <h2>Common use cases<a class="headerlink" href="#common-use-cases" title="Link to this heading">#</a></h2>
@@ -818,6 +827,7 @@ or a Sense of another lexeme is refused. Each one is a revision of the lexeme, w
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-core-parts">The Core Parts</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#entity-manipulation">Entity manipulation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#claims-and-statements">Claims and statements</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-use-cases">Common use cases</a><ul class="pst-show_toc_level nav section-nav flex-column">

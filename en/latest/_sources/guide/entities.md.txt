@@ -24,6 +24,16 @@ Features:
 * All Wikibase data types are implemented (and some data types implemented by extensions).
 * Full access to the entire Wikibase entity in the form of a JSON dict representation.
 
+### Claims and statements
+
+The [Wikibase data model](https://www.mediawiki.org/wiki/Wikibase/DataModel#Statements) calls a claim with references
+and a rank a statement. WikibaseIntegrator calls them claims (`entity.claims`, `Claims`, `Claim`), like the `claims`
+field of the JSON of items, properties, lexemes, forms and senses, and the API actions (`wbsetclaim`, `wbremoveclaims`).
+A `Claim` holds the whole statement: its main snak, qualifiers, references and rank. These names stay the same in 1.0.
+
+MediaInfo entities name this field `statements` in their JSON. WikibaseIntegrator still reads and writes them as
+`media.claims`, see [Structured Data on Commons](mediainfo.md).
+
 ## Common use cases
 
 ### Read an existing entity
