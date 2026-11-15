@@ -31,6 +31,8 @@ GEO_WKT_LITERAL = 'http://www.opengis.net/ont/geosparql#wktLiteral'
 XSD_DATETIME = 'http://www.w3.org/2001/XMLSchema#dateTime'
 XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal'
 XSD_INTEGER = 'http://www.w3.org/2001/XMLSchema#integer'
+GREGORIAN = 'http://www.wikidata.org/entity/Q1985727'
+JULIAN = 'http://www.wikidata.org/entity/Q1985786'
 
 
 class SparqlData:
@@ -62,18 +64,18 @@ class SparqlData:
             match = re.search(r'/prop/(P\d+)> \?sid', query)
             assert match is not None
             bindings = self.statements.get(match.group(1), [])
-            # Like a real endpoint, only bind the unit and the precision when the query selects them
+            # Like a real endpoint, only bind the unit, the precision and the calendar model when the query selects them
             if '?unit' not in query.split('WHERE', 1)[0]:
-                bindings = [{k: v for k, v in binding.items() if k not in ('unit', 'precision')} for binding in bindings]
+                bindings = [{k: v for k, v in binding.items() if k not in ('unit', 'precision', 'calendar')} for binding in bindings]
             return bindings
         return []
 
     def _value_details(self, query: str) -> list[dict]:
-        """The unit and the precision of the statements listed in the VALUES clause of the query."""
+        """The unit, the precision and the calendar model of the statements listed in the VALUES clause of the query."""
         match = re.search(r'VALUES \?sid \{ ([^}]+) \}', query)
         assert match is not None
         sids = set(re.findall(r'<([^>]+)>', match.group(1)))
-        return [{k: v for k, v in binding.items() if k in ('sid', 'unit', 'precision')}
+        return [{k: v for k, v in binding.items() if k in ('sid', 'unit', 'precision', 'calendar')}
                 for bindings in self.statements.values() for binding in bindings if binding['sid']['value'] in sids]
 
     def _statement_details(self, query: str) -> list[dict]:
@@ -102,8 +104,9 @@ class SparqlData:
         start = int(offset.group(1)) if offset else 0
         return bindings[start:start + int(limit.group(1))] if limit else bindings[start:]
 
-    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None, precision: int | None = None) -> str:
-        """Register a statement binding and return its statement URI."""
+    def statement(self, entity_id: str, prop_nr: str, value: dict, property_type: str, index: int = 0, unit: str | None = None, precision: int | None = None,
+                  calendar: str = GREGORIAN) -> str:
+        """Register a statement binding and return its statement URI. The calendar model is bound with the precision, like on a time value node."""
         sid = f'{self.wikibase.base_url}/entity/statement/{entity_id}-{prop_nr}-{index}'
         binding = {
             'entity': uri(f'{self.wikibase.base_url}/entity/{entity_id}'),
@@ -115,10 +118,11 @@ class SparqlData:
             binding['unit'] = uri(unit)
         if precision is not None:
             binding['precision'] = literal(str(precision), datatype=XSD_INTEGER)
+            binding['calendar'] = uri(calendar)
         self.statements.setdefault(prop_nr, []).append(binding)
         return sid
 
-    def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str, precision: int | None = None) -> None:
+    def qualifier(self, sid: str, prop_nr: str, value: dict, property_type: str, precision: int | None = None, calendar: str = GREGORIAN) -> None:
         binding = {
             'property': uri(f'{self.wikibase.base_url}/entity/{prop_nr}'),
             'value': value,
@@ -126,9 +130,11 @@ class SparqlData:
         }
         if precision is not None:
             binding['precision'] = literal(str(precision), datatype=XSD_INTEGER)
+            binding['calendar'] = uri(calendar)
         self.qualifiers.setdefault(sid, []).append(binding)
 
-    def reference(self, sid: str, prop_nr: str, value: dict, property_type: str, ref_node: str = 'deadbeef', precision: int | None = None) -> None:
+    def reference(self, sid: str, prop_nr: str, value: dict, property_type: str, ref_node: str = 'deadbeef', precision: int | None = None,
+                  calendar: str = GREGORIAN) -> None:
         binding = {
             'srid': uri(f'{self.wikibase.base_url}/reference/{ref_node}'),
             'ref_property': uri(f'{self.wikibase.base_url}/entity/{prop_nr}'),
@@ -137,6 +143,7 @@ class SparqlData:
         }
         if precision is not None:
             binding['ref_precision'] = literal(str(precision), datatype=XSD_INTEGER)
+            binding['ref_calendar'] = uri(calendar)
         self.references.setdefault(sid, []).append(binding)
 
     def rank(self, sid: str, rank: str) -> None:
@@ -598,6 +605,87 @@ class TestWriteRequiredTimePrecision:
         item.claims.add(String(value='The secret war against Sweden', prop_nr='P1476'))
         item.claims.add(Time(time='+1988-00-00T00:00:00Z', prop_nr='P577', qualifiers=[Time(time='+2022-07-00T00:00:00Z', prop_nr='P585')]))
         assert item.write_required(base_filter=[BaseDataType(prop_nr='P1476'), BaseDataType(prop_nr='P577')]) is False
+
+
+class TestWriteRequiredTimeCalendar:
+    """
+    The RDF export numbers the BCE years like XSD 1.1 (44 BCE is -0043) and converts the days of the Julian calendar to
+    the Gregorian calendar (#1197). The calendar model is only on the value node.
+    """
+
+    @pytest.mark.parametrize('time, sparql_time, precision', [
+        ('-0044-03-15T00:00:00Z', '-0043-03-15T00:00:00Z', 11),
+        ('-0100-00-00T00:00:00Z', '-0099-01-01T00:00:00Z', 9),
+        ('-0001-00-00T00:00:00Z', '0000-01-01T00:00:00Z', 9),
+        ('-0500-00-00T00:00:00Z', '-0500-01-01T00:00:00Z', 7),
+    ], ids=['day', 'year', '1-bce', 'century'])
+    def test_bce_date(self, wikibase, sparql_data, frc, time, sparql_time, precision):
+        sparql_data.statement('Q99', 'P577', literal(sparql_time, datatype=XSD_DATETIME), PTYPE_TIME, precision=precision)
+
+        assert frc.write_required(claims=[Time(time=time, precision=precision, prop_nr='P577')]) is False
+
+    def test_bce_year_is_not_the_next_one(self, wikibase, sparql_data, frc):
+        sparql_data.statement('Q99', 'P577', literal('-0043-03-15T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=11)
+
+        assert frc.write_required(claims=[Time(time='-0043-03-15T00:00:00Z', precision=11, prop_nr='P577')]) is True
+
+    @pytest.mark.parametrize('time, sparql_time, precision', [
+        ('+1500-03-01T00:00:00Z', '1500-03-11T00:00:00Z', 11),
+        ('-0044-03-15T00:00:00Z', '-0043-03-13T00:00:00Z', 11),
+        ('+1500-03-00T00:00:00Z', '1500-03-01T00:00:00Z', 10),
+        ('+1500-00-00T00:00:00Z', '1500-01-01T00:00:00Z', 9),
+    ], ids=['day', 'bce-day', 'month', 'year'])
+    def test_julian_date(self, wikibase, sparql_data, frc, time, sparql_time, precision):
+        sparql_data.statement('Q99', 'P577', literal(sparql_time, datatype=XSD_DATETIME), PTYPE_TIME, precision=precision, calendar=JULIAN)
+
+        assert frc.write_required(claims=[Time(time=time, precision=precision, calendarmodel=JULIAN, prop_nr='P577')]) is False
+        # The same timestamp in the Gregorian calendar is another value
+        assert frc.write_required(claims=[Time(time=time, precision=precision, prop_nr='P577')]) is True
+
+    def test_gregorian_date_is_not_the_julian_one(self, wikibase, sparql_data, frc):
+        """The Gregorian day of the simple value of a Julian date is another value."""
+        sparql_data.statement('Q99', 'P577', literal('1500-03-11T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=11, calendar=JULIAN)
+
+        assert frc.write_required(claims=[Time(time='+1500-03-11T00:00:00Z', precision=11, prop_nr='P577')]) is True
+        assert frc.get_entities(claims=Time(time='+1500-03-01T00:00:00Z', precision=11, calendarmodel=JULIAN, prop_nr='P577')) == ['Q99']
+
+    def test_partial_load_queries_the_stored_timestamp(self, wikibase, sparql_data):
+        sparql_data.statement('Q99', 'P577', literal('1500-03-11T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME, precision=11, calendar=JULIAN)
+
+        frc = wbi_fastrun.FastRunContainer(base_filter=[BaseDataType(prop_nr='P577')], base_data_type=BaseDataType, cache=False)
+        assert frc.write_required(claims=[Time(time='+1500-03-01T00:00:00Z', precision=11, calendarmodel=JULIAN, prop_nr='P577')]) is False
+        assert frc.write_required(claims=[Time(time='+1500-03-01T00:00:00Z', precision=11, prop_nr='P577')]) is True
+        assert any('"+1500-03-11T00:00:00Z"^^xsd:dateTime' in query for query in wikibase.sparql_queries)
+
+    @pytest.mark.parametrize('time, calendarmodel, sparql_time, precision, sparql_calendar, expected', [
+        ('-0044-03-15T00:00:00Z', GREGORIAN, '-0043-03-15T00:00:00Z', 11, GREGORIAN, False),
+        ('-0500-00-00T00:00:00Z', GREGORIAN, '-0500-01-01T00:00:00Z', 7, GREGORIAN, False),
+        ('+1500-03-01T00:00:00Z', JULIAN, '1500-03-11T00:00:00Z', 11, JULIAN, False),
+        ('+1500-03-11T00:00:00Z', GREGORIAN, '1500-03-11T00:00:00Z', 11, JULIAN, True),
+        ('+1500-03-01T00:00:00Z', JULIAN, '1500-03-01T00:00:00Z', 11, GREGORIAN, True),
+    ], ids=['bce-day', 'bce-century', 'julian', 'gregorian-vs-julian', 'julian-vs-gregorian'])
+    def test_qualifier_and_reference(self, wikibase, sparql_data, frc, time, calendarmodel, sparql_time, precision, sparql_calendar, expected):
+        sid = sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
+        sparql_data.qualifier(sid, 'P585', literal(sparql_time, datatype=XSD_DATETIME), PTYPE_TIME, precision=precision, calendar=sparql_calendar)
+        sparql_data.reference(sid, 'P577', literal(sparql_time, datatype=XSD_DATETIME), PTYPE_TIME, precision=precision, calendar=sparql_calendar)
+
+        def local_time():
+            return Time(time=time, precision=precision, calendarmodel=calendarmodel, prop_nr='P585')
+
+        qualified = ExternalID(value='P40095', prop_nr='P352', qualifiers=[local_time()])
+        assert frc.write_required(claims=[qualified]) is expected
+
+        reference = local_time()
+        reference.mainsnak.property_number = 'P577'
+        referenced = ExternalID(value='P40095', prop_nr='P352', references=[[reference]])
+        assert frc.write_required(claims=[referenced], use_qualifiers=False, use_references=True) is expected
+
+    def test_qualifier_without_a_value_node(self, wikibase, sparql_data, frc):
+        """Without the precision and the calendar model of the value node, a qualifier is read as a day of the Gregorian calendar."""
+        sid = sparql_data.statement('Q99', 'P352', literal('P40095'), PTYPE_EXTERNAL_ID)
+        sparql_data.qualifier(sid, 'P585', literal('-0043-03-15T00:00:00Z', datatype=XSD_DATETIME), PTYPE_TIME)
+
+        assert frc.write_required(claims=[ExternalID(value='P40095', prop_nr='P352', qualifiers=[Time(time='-0044-03-15T00:00:00Z', prop_nr='P585')])]) is False
 
 
 class TestValueDetails:
