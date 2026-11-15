@@ -42,6 +42,8 @@ ENTITY_PREFIXES = {
 
 # Entity sections that can be filtered with the 'props' API parameter.
 ENTITY_SECTIONS = {'labels', 'descriptions', 'aliases', 'claims', 'statements', 'sitelinks', 'lemmas', 'forms', 'senses'}
+# The page of an entity: in the entities of wbgetentities, not in the entity of the response of wbeditentity
+PAGE_FIELDS = {'pageid', 'ns', 'title', 'modified'}
 
 
 def load_fixture(name: str) -> dict:
@@ -287,7 +289,8 @@ class MockWikibase:
         entity = self._apply_edit(base, data, entity_id, entity_type)
         self.entities[entity_id] = deepcopy(entity)
 
-        return {'entity': entity, 'success': 1}
+        # Like Wikibase, the response has no page of the entity, unlike wbgetentities (test_wikibase_behavior.py::TestEditResponse)
+        return {'entity': {key: value for key, value in entity.items() if key not in PAGE_FIELDS}, 'success': 1}
 
     def _apply_edit(self, base: dict, data: dict, entity_id: str, entity_type: str) -> dict:
         entity = base or {'type': entity_type, 'ns': 0, 'title': entity_id, 'pageid': self.next_entity_id, 'lastrevid': 0}
