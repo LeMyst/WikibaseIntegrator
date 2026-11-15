@@ -524,6 +524,17 @@ item they are given.</p>
 </li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Aliases.set()</span></code> refuses <code class="docutils literal notranslate"><span class="pre">FORCE_APPEND</span></code> and <code class="docutils literal notranslate"><span class="pre">MERGE_REFS_OR_APPEND</span></code></strong> with a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: a duplicate alias is
 dropped by Wikibase and aliases have no references, and these actions used to do nothing at all, silently.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">len()</span></code> counts the elements of every collection</strong>, like the iteration: the claims of <code class="docutils literal notranslate"><span class="pre">Claims</span></code>, the qualifiers of
+<code class="docutils literal notranslate"><span class="pre">Qualifiers</span></code>, the snaks of <code class="docutils literal notranslate"><span class="pre">Snaks</span></code> and of a <code class="docutils literal notranslate"><span class="pre">Reference</span></code>, the aliases of <code class="docutils literal notranslate"><span class="pre">Aliases</span></code>. It used to count their distinct
+properties, or languages for <code class="docutils literal notranslate"><span class="pre">Aliases</span></code>: <code class="docutils literal notranslate"><span class="pre">len(item.claims)</span></code> was the number of properties with a claim. Count them
+with <code class="docutils literal notranslate"><span class="pre">len({claim.mainsnak.property_number</span> <span class="pre">for</span> <span class="pre">claim</span> <span class="pre">in</span> <span class="pre">item.claims})</span></code> if you need it. The elements marked for
+removal are counted, like the iteration gives them.</p>
+<ul class="simple">
+<li><p>Every collection has a <code class="docutils literal notranslate"><span class="pre">count()</span></code>, the same as <code class="docutils literal notranslate"><span class="pre">len()</span></code>. <code class="docutils literal notranslate"><span class="pre">Claims.count()</span></code> and <code class="docutils literal notranslate"><span class="pre">Qualifiers.count()</span></code> already counted
+the elements.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Aliases</span></code> is iterable over its aliases, of every language.</p></li>
+</ul>
+</li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
@@ -539,6 +550,9 @@ requests made without a login is per-thread and private.</p></li>
 the SPARQL queries are set by <code class="docutils literal notranslate"><span class="pre">wbi_config['BACKOFF_MAX_TRIES']</span></code>.</p></li>
 <li><p><strong>Importing <code class="docutils literal notranslate"><span class="pre">Representations</span></code> from <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.models.forms</span></code> and <code class="docutils literal notranslate"><span class="pre">Glosses</span></code> from
 <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.models.senses</span></code></strong>: import them from <code class="docutils literal notranslate"><span class="pre">wikibaseintegrator.models</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">in</span></code> on a <code class="docutils literal notranslate"><span class="pre">Claim</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">in</span> <span class="pre">claim</span></code>): a claim isn’t a collection. Compare the claims with <code class="docutils literal notranslate"><span class="pre">==</span></code>, and read the
+value of a claim from <code class="docutils literal notranslate"><span class="pre">claim.mainsnak.datavalue</span></code>. With a string, it never matched anything. <code class="docutils literal notranslate"><span class="pre">'P31'</span> <span class="pre">in</span> <span class="pre">item.claims</span></code>
+isn’t concerned.</p></li>
 </ul>
 <p>If you want to stay on v0.14.x, you can put this line in your requirements.txt:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wikibaseintegrator</span><span class="o">~=</span><span class="mf">0.14.0</span>

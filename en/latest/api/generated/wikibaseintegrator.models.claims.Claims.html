@@ -644,9 +644,7 @@ it cancels the removal, whatever the action, except FORCE_APPEND, which adds a n
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.claims.Claims.count">
 <span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/claims.html#Claims.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.claims.Claims.count" title="Link to this definition">#</a></dt>
-<dd><p>Return the total number of individual claims, across every property.</p>
-<p>Note: <code class="docutils literal notranslate"><span class="pre">len(claims)</span></code> returns the number of distinct properties, while iterating (<code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">claim</span> <span class="pre">in</span> <span class="pre">claims</span></code>)
-yields the individual claims. Use this method when you need the claim count.</p>
+<dd><p>Return the number of claims, across every property, including the ones marked for removal: the same as <code class="docutils literal notranslate"><span class="pre">len()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>

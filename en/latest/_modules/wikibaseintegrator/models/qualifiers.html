@@ -595,13 +595,8 @@
 <div class="viewcode-block" id="Qualifiers.count">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.qualifiers.Qualifiers.html#wikibaseintegrator.models.qualifiers.Qualifiers.count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Return the total number of individual qualifier snaks, across every property.</span>
-
-<span class="sd">        Note: ``len(qualifiers)`` returns the number of distinct properties, while iterating yields the individual</span>
-<span class="sd">        snaks. Use this method when you need the qualifier count.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">snak_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">snak_list</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+<span class="w">        </span><span class="sd">"""Return the number of qualifiers, across every property: the same as ``len()``."""</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Snak</span><span class="p">]:</span>
@@ -611,8 +606,8 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">iterate</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="c1"># Returns the number of distinct properties. See count() for the total number of individual snaks.</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">)</span></div>
+        <span class="c1"># The qualifiers, like the iteration: not the properties</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">snak_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">snak_list</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
 </pre></div>
 

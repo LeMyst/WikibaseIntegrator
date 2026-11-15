@@ -632,13 +632,8 @@
 <div class="viewcode-block" id="Claims.count">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.claims.Claims.html#wikibaseintegrator.models.claims.Claims.count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Return the total number of individual claims, across every property.</span>
-
-<span class="sd">        Note: ``len(claims)`` returns the number of distinct properties, while iterating (``for claim in claims``)</span>
-<span class="sd">        yields the individual claims. Use this method when you need the claim count.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">claim_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">claim_list</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+<span class="w">        </span><span class="sd">"""Return the number of claims, across every property, including the ones marked for removal: the same as ``len()``."""</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Claim</span><span class="p">]:</span>
@@ -648,8 +643,8 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">iterate</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="c1"># Returns the number of distinct properties. See count() for the total number of individual claims.</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="p">)</span></div>
+        <span class="c1"># The claims, like the iteration: not the properties</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">claim_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">claim_list</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">claims</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
 </pre></div>
 

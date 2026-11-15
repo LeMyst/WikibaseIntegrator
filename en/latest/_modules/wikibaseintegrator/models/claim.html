@@ -679,6 +679,9 @@
 
     <span class="c1"># TODO: rewrite this?</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"'in' on a Claim is deprecated and will be removed in WikibaseIntegrator 1.0: a claim isn't a collection. Compare the claims with ==, "</span>
+                      <span class="s2">"or read the value from claim.mainsnak.datavalue."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">item</span>
 
