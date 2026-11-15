@@ -30,3 +30,10 @@ codespell) and before each push (mypy, pylint), using the tools installed by Poe
 pipx install pre-commit  # or use "uvx pre-commit"
 pre-commit install
 ```
+
+## Changing the public API
+
+The [versioning and deprecation policy](versioning.md) says which changes are breaking. A breaking change goes in
+the breaking changes of the [upgrading guide](upgrading.md), and its pull request gets the `breaking change` label.
+Where a transition is possible, deprecate the old API first: a `DeprecationWarning` naming the replacement and the
+version of the removal, a `deprecated` note in the docstring, and an entry in the upgrading guide.
