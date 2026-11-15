@@ -280,3 +280,15 @@ sense.glosses.set(language='en', value='English gloss')
 lexeme.senses.add(sense)
 lexeme.write_senses()  # ['L5-S2']
 ```
+
+### Remove a form or a sense from a lexeme
+
+`remove()` marks a Form or a Sense for removal, and the next `write()` of the lexeme removes it from the Wikibase
+instance. A new Form or Sense removed before being written is simply left out.
+
+```python
+lexeme = wbi.lexeme.get('L5')
+lexeme.forms.get('L5-F2').remove()
+lexeme.senses.get('L5-S1').remove()
+lexeme.write()
+```

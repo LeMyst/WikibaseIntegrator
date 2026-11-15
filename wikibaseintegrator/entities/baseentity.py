@@ -17,7 +17,7 @@ from wikibaseintegrator.models.labels import Labels
 from wikibaseintegrator.wbi_enums import ActionIfExists, EntityField
 from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import delete_page, download_entity_data, edit_entity, mediawiki_api_call_helper
-from wikibaseintegrator.wbi_login import _Login
+from wikibaseintegrator.wbi_login import BaseLogin
 
 if TYPE_CHECKING:
     from wikibaseintegrator import WikibaseIntegrator
@@ -25,12 +25,59 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+def _new_claims_data(claims: dict[str, list[dict]]) -> dict[str, list[dict]]:
+    # The claims of a new entity: without the claims marked for removal, and without the GUIDs, which belong to the entity they were read from
+    new_claims = {}
+    for property, property_claims in claims.items():
+        kept = [{key: value for key, value in claim.items() if key != 'id'} for claim in property_claims if 'remove' not in claim]
+        if kept:
+            new_claims[property] = kept
+    return new_claims
+
+
+def _new_entity_data(data: dict[str, Any]) -> None:
+    """
+    Turn, in place, the data of an entity into the data of a new entity (``write(as_new=True)``): remove its id, the GUIDs of
+    its claims, the ids of its forms and senses, and everything marked for removal, which only makes sense on the entity
+    the data was read from.
+    """
+    data.pop('id', None)
+
+    for claims_key in ('claims', 'statements'):
+        if isinstance(data.get(claims_key), dict):
+            data[claims_key] = _new_claims_data(data[claims_key])
+
+    for terms_key in ('labels', 'descriptions', 'lemmas'):
+        if isinstance(data.get(terms_key), dict):
+            data[terms_key] = {language: term for language, term in data[terms_key].items() if 'remove' not in term}
+
+    if isinstance(data.get('aliases'), dict):
+        aliases = {language: [alias for alias in language_aliases if 'remove' not in alias] for language, language_aliases in data['aliases'].items()}
+        data['aliases'] = {language: language_aliases for language, language_aliases in aliases.items() if language_aliases}
+
+    # The forms and senses of a lexeme are added to the new lexeme, with their claims
+    for sub_entities_key, terms_key in (('forms', 'representations'), ('senses', 'glosses')):
+        if isinstance(data.get(sub_entities_key), list):
+            sub_entities = []
+            for sub_entity in data[sub_entities_key]:
+                if 'remove' in sub_entity:
+                    continue
+                sub_entity = {key: value for key, value in sub_entity.items() if key != 'id'}
+                sub_entity['add'] = ''
+                if isinstance(sub_entity.get(terms_key), dict):
+                    sub_entity[terms_key] = {language: term for language, term in sub_entity[terms_key].items() if 'remove' not in term}
+                if isinstance(sub_entity.get('claims'), dict):
+                    sub_entity['claims'] = _new_claims_data(sub_entity['claims'])
+                sub_entities.append(sub_entity)
+            data[sub_entities_key] = sub_entities
+
+
 class BaseEntity:
     ETYPE = 'base-entity'
     subclasses: list[type[BaseEntity]] = []
 
     def __init__(self, api: WikibaseIntegrator | None = None, title: str | None = None, pageid: int | None = None, lastrevid: int | None = None, type: str | None = None,
-                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: _Login | None = None) -> None:
+                 id: str | None = None, claims: Claims | None = None, is_bot: bool | None = None, login: BaseLogin | None = None) -> None:
         if not api:
             from wikibaseintegrator import WikibaseIntegrator
             self.api = WikibaseIntegrator()
@@ -186,7 +233,7 @@ class BaseEntity:
         return self
 
     # noinspection PyMethodMayBeStatic
-    def _get(self, entity_id: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None,
+    def _get(self, entity_id: str, login: BaseLogin | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, props: str | list | None = None,
              revision: int | None = None, **kwargs: Any) -> dict:
         """
         Retrieve an entity in json representation from the Wikibase instance
@@ -243,7 +290,7 @@ class BaseEntity:
         """
         return self._write(data={}, clear=True, **kwargs)
 
-    def get_claims(self, property: str, login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
+    def get_claims(self, property: str, login: BaseLogin | None = None, allow_anonymous: bool = True, is_bot: bool | None = None, **kwargs: Any) -> Self:
         """
         Load the claims of a property from the Wikibase instance. They replace the claims of this property already loaded,
         unsaved changes included, so calling it again refreshes them instead of duplicating them.
@@ -271,7 +318,7 @@ class BaseEntity:
         self.claims.from_json(json_data['claims'])
         return self
 
-    def _write(self, data: dict | None = None, summary: str | None = None, login: _Login | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
+    def _write(self, data: dict | None = None, summary: str | None = None, login: BaseLogin | None = None, allow_anonymous: bool = False, limit_claims: list[str | int] | None = None,
                clear: bool = False, as_new: bool = False, is_bot: bool | None = None, fields_to_update: list | None | EntityField = None, **kwargs: Any) -> dict[str, Any]:
         """
         Writes the entity JSON to the Wikibase instance and after successful write, returns the "entity" part of the response.
@@ -282,7 +329,8 @@ class BaseEntity:
         :param allow_anonymous: Force a check if the query can be anonymous or not
         :param limit_claims: Limit to a list of specific claims to reduce the data sent and avoid sending the complete entity.
         :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
-        :param as_new: Write the entity as a new one
+        :param as_new: Write the entity as a new one, without the id of the entity, the GUIDs of its claims, the ids of its forms and senses,
+            and what is marked for removal
         :param is_bot: Add the bot flag to the query
         :param fields_to_update: A list or a single EntityField to update. If not set, all fields will be updated.
         :param kwargs: More arguments for Python requests
@@ -351,8 +399,9 @@ class BaseEntity:
 
         if as_new:
             entity_id = None
-            # Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API.
-            data.pop('id', None)
+            # Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API. Neither the GUIDs of
+            # the claims, nor what is marked for removal, belong to the new entity.
+            _new_entity_data(data)
         else:
             entity_id = self.id
 
@@ -365,7 +414,7 @@ class BaseEntity:
 
         return json_result['entity']
 
-    def delete(self, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:
+    def delete(self, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> dict:
         """
         Delete the current entity. Use the pageid first if available and fallback to the page title.
 

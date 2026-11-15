@@ -1,5 +1,51 @@
 # Upgrading
 
+The breaking changes of each release, and the code to change. The [versioning and deprecation policy](versioning.md)
+says what can change in which release.
+
+## Breaking changes in v0.15
+
+v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
+changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
+old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
+
+- **`Qualifiers.set()` replaces the qualifiers** given as a list or a `Qualifiers` object, like it already did with
+  a dict or `None`. It used to add them to the existing qualifiers: call `add()` for each qualifier to keep that.
+- **The `references` of a claim reject the items they can't use**: an item of the list that is neither a `Claim`, a
+  list of `Claim` nor a `Reference` raises a `ValueError`. It used to add an empty reference.
+- **An empty value removes a label, a description or a lemma**: `labels.set('en', '')` marks the existing label
+  for removal, like `labels.set('en', None)` and like Wikibase does with an empty value, and returns `None`. It used
+  to leave the label unchanged.
+- **A `Quantity` takes both bounds or none**: a single `upper_bound` or `lower_bound` raises a `ValueError`. Wikibase
+  rejects such a quantity when it is written, so it used to fail later, at the write.
+- **`write(as_new=True)` only sends what belongs to the new entity**: the GUIDs of the claims, the ids of the forms
+  and senses of a lexeme, and the claims, terms, forms and senses marked for removal are left out. They used to be
+  sent along with the copy, with the GUIDs of the entity it was read from.
+- **A request with a login and `allow_anonymous=True` uses the edit token of the login**: the request is made with
+  the session of the login, which rejects the anonymous token. It used to send the anonymous token, so such an edit
+  failed with a `badtoken` error. A `token` given in the data is still sent as it is.
+
+### Deprecated in v0.15, removed in 1.0
+
+These APIs still work in v0.15 and emit a `DeprecationWarning`. They will be removed in 1.0:
+
+- **`parse_sparql_value()`** of the data types: use `from_sparql_value()`, which takes the JSON binding of the value
+  returned by the SPARQL query (e.g. `{'type': 'literal', 'value': 'Paris'}`) instead of its string form.
+- **`wbi_helpers.BColors`**: the library no longer emits ANSI color codes. Copy the codes into your own code if you
+  use them.
+- **`wbi_helpers.default_session` and `wbi_helpers.helpers_session`** (deprecated since v0.13): the session of the
+  requests made without a login is per-thread and private.
+- **The `max_retries` parameter of `execute_sparql_query()`** (deprecated and ignored since v0.13): the retries of
+  the SPARQL queries are set by `wbi_config['BACKOFF_MAX_TRIES']`.
+- **Importing `Representations` from `wikibaseintegrator.models.forms` and `Glosses` from
+  `wikibaseintegrator.models.senses`**: import them from `wikibaseintegrator.models`.
+
+If you want to stay on v0.14.x, you can put this line in your requirements.txt:
+
+```
+wikibaseintegrator~=0.14.0
+```
+
 ## Breaking changes in v0.14
 
 v0.14 changes some behaviors of v0.13 that your code may rely on:
