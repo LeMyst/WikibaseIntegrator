@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
@@ -13,7 +12,6 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 if TYPE_CHECKING:
     from wikibaseintegrator.models.claim import Claim
 
-log = logging.getLogger(__name__)
 
 
 class References(BaseModel):
@@ -47,16 +45,15 @@ class References(BaseModel):
             KEEP: Add the new reference only if the claim has no reference yet.
             REPLACE_ALL: Remove the references not equal to the new one, then add it if it isn't there.
         :return: This References object
+        :raises ValueError: If the reference is a Claim with qualifiers or references: a reference only holds snaks
         """
         # Imported here because Claim holds References, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim
         if isinstance(reference, Claim):
-
-            if reference.qualifiers:
-                log.warning("WARNING: It is not possible to use a qualifier in a reference, it will be ignored.")
-
-            if reference.references:
-                log.warning("WARNING: It is not possible to use a reference in a reference, it will be ignored.")
+            # Dropping them would lose data silently
+            if reference.qualifiers or reference.references:
+                parts = ' and '.join(part for part, present in (('qualifiers', reference.qualifiers), ('references', reference.references)) if present)
+                raise ValueError(f"A claim with {parts} can't be used as a reference: a reference only holds snaks. Pass the claim without them, or a Reference.")
 
             reference = Reference(snaks=Snaks().add(Snak().from_json(reference.get_json()['mainsnak'])))
 

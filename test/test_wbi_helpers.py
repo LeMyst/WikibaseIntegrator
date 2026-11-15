@@ -19,8 +19,8 @@ from wikibaseintegrator import WikibaseIntegrator, wbi_helpers
 from wikibaseintegrator.datatypes import Item, MonolingualText, Quantity, String, Time
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_enums import WikibaseSnakType
-from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
-                                               ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed)
+from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingExtensionError, ModificationFailed, MWApiError,
+                                               NonExistentEntityError, SaveFailed)
 from wikibaseintegrator.wbi_helpers import (check_constraints, check_wikibase, create_redirect, delete_page, download_entity_ttl, edit_entity, execute_sparql_query, format2wbi,
                                             format_amount, fulltext_search, generate_entity_instances, get_available_badges, get_user_agent, lexeme_add_form, lexeme_edit_sense,
                                             lexeme_remove_form, lexeme_remove_sense, mediawiki_api_call, mediawiki_api_call_helper, merge_items, merge_lexemes,
@@ -1290,8 +1290,10 @@ class TestGenerateEntityInstances:
         # A deleted entity is returned as {'id': ..., 'missing': ''}, without its type
         wikibase.deleted_entities.add('Q9363993')
 
-        with pytest.raises(MissingEntityException, match='Q9363993'):
+        with pytest.raises(NonExistentEntityError, match='Q9363993') as excinfo:
             generate_entity_instances(entities=['Q582', 'Q9363993'])
+        assert excinfo.value.code == 'missing'
+        assert excinfo.value.response is not None and 'Q9363993' in excinfo.value.response['entities']
 
     def test_unknown_entity_type(self, wikibase):
         wikibase.entities['X1'] = {'id': 'X1', 'type': 'unknown-type'}

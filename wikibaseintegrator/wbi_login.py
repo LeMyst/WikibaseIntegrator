@@ -26,6 +26,16 @@ __all__ = ['BaseLogin', 'Clientlogin', 'Login', 'LoginError', 'OAuth1', 'OAuth2'
 
 log = logging.getLogger(__name__)
 
+# The keyword arguments of Login and Clientlogin, passed to the login requests
+_LOGIN_REQUEST_KWARGS = frozenset({'headers', 'proxies', 'timeout', 'verify'})
+
+
+def _check_login_kwargs(class_name: str, kwargs: dict[str, Any]) -> None:
+    unsupported = set(kwargs) - _LOGIN_REQUEST_KWARGS
+    if unsupported:
+        raise TypeError(f"{class_name}() got unsupported keyword arguments: {', '.join(sorted(unsupported))}. Only headers, proxies, timeout and verify are passed to the "
+                        "login requests.")
+
 
 class BaseLogin:
     """
@@ -310,8 +320,10 @@ class Login(BaseLogin):
         :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :param user_agent: UA string to use for API requests.
-        :param kwargs: Additional parameters to pass to the requests.sessions.Session.post method, such as headers or proxies.
+        :param kwargs: Additional parameters of the login requests (requests.Session.post): headers, proxies, timeout and verify.
+        :raises TypeError: If another keyword argument is given
         """
+        _check_login_kwargs(type(self).__name__, kwargs)
 
         mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
         user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
@@ -337,10 +349,8 @@ class Login(BaseLogin):
             'format': 'json'
         }
 
-        allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
-        filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
-        if len(filtered_kwargs) < len(kwargs):
-            log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
+        # Checked by __init__
+        filtered_kwargs = dict(kwargs)
         filtered_kwargs.setdefault('timeout', config['TIMEOUT'])
         # The headers given by the caller are added to the default ones (the User-Agent)
         headers = {**default_headers, **(filtered_kwargs.pop('headers', None) or {})}
@@ -394,8 +404,10 @@ class Clientlogin(BaseLogin):
         :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
         :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server
         :param user_agent: UA string to use for API requests.
-        :param kwargs: Additional parameters to pass to the requests.sessions.Session.post method, such as headers or proxies.
+        :param kwargs: Additional parameters of the login requests (requests.Session.post): headers, proxies, timeout and verify.
+        :raises TypeError: If another keyword argument is given
         """
+        _check_login_kwargs(type(self).__name__, kwargs)
 
         mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
         user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
@@ -421,10 +433,8 @@ class Clientlogin(BaseLogin):
             'format': 'json'
         }
 
-        allowed_kwargs = {'headers', 'proxies', 'timeout', 'verify'}
-        filtered_kwargs = {key: value for key, value in kwargs.items() if key in allowed_kwargs}
-        if len(filtered_kwargs) < len(kwargs):
-            log.warning("Unsupported kwargs were ignored: %s", set(kwargs) - allowed_kwargs)
+        # Checked by __init__
+        filtered_kwargs = dict(kwargs)
         filtered_kwargs.setdefault('timeout', config['TIMEOUT'])
         # The headers given by the caller are added to the default ones (the User-Agent)
         headers = {**default_headers, **(filtered_kwargs.pop('headers', None) or {})}

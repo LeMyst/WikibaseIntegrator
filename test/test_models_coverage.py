@@ -3,6 +3,8 @@ Tests covering the less used paths of the entity data models: the error cases, t
 special operators and a few documented quirks. The models are pure data structures, so no network interaction
 is required.
 """
+import warnings
+
 import pytest
 
 from wikibaseintegrator.datatypes import Item, String, Time
@@ -183,7 +185,9 @@ class TestClaims:
     def test_add_merge_refs_adds_only_the_missing_references(self):
         claims = Claims().add(String(prop_nr='P1', value='a', references=[_reference('https://example.org')]))
         new_claim = String(prop_nr='P1', value='a', references=[_reference('https://example.org'), _reference('https://example.com')])
-        with pytest.warns(UserWarning, match='more or less than 1 reference block'):
+        # Two references in the new claim is a normal case: no warning (#453)
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
             claims.add(new_claim, action_if_exists=ActionIfExists.MERGE_REFS_OR_APPEND)
         assert claims.count() == 1
         assert list(claims.get('P1')[0].references) == [_reference('https://example.org'), _reference('https://example.com')]

@@ -11,7 +11,7 @@ from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import Item, String
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import EntityField
-from wikibaseintegrator.wbi_exceptions import MissingEntityException, ModificationFailed, MWApiError, NonExistentEntityError
+from wikibaseintegrator.wbi_exceptions import ModificationFailed, MWApiError, NonExistentEntityError
 
 wbi = WikibaseIntegrator()
 
@@ -106,8 +106,10 @@ class TestDelete:
         item = wbi.item.new()
         item.id = 'Q999999'
 
-        with pytest.raises(MissingEntityException, match='Q999999'):
+        with pytest.raises(NonExistentEntityError, match='Q999999') as excinfo:
             item.delete(allow_anonymous=True)
+        assert excinfo.value.code == 'missing'
+        assert excinfo.value.response == {'entities': {'Q999999': {'id': 'Q999999', 'missing': ''}}}
         assert not [request for request in wikibase.requests if request.get('action') == 'delete']
 
     def test_delete_of_an_unknown_entity(self, wikibase):
@@ -372,12 +374,14 @@ class TestWrite:
         with pytest.raises(ModificationFailed):
             item.write(allow_anonymous=True)
 
-    def test_write_generic_api_error(self, wikibase, item_q582):
+    def test_write_generic_api_error(self, wikibase, item_q582, caplog):
         item = wbi.item.get('Q582')
         wikibase.fail_next(code='badtoken', info='Invalid CSRF token.')
 
-        with pytest.raises(MWApiError):
+        with caplog.at_level('DEBUG', logger='wikibaseintegrator.entities'), pytest.raises(MWApiError):
             item.write(allow_anonymous=True)
+        # Raised, not logged too (#453)
+        assert not [record for record in caplog.records if record.name.startswith('wikibaseintegrator.entities')]
 
     def test_write_invalid_json_response(self, wikibase, requests_mock, item_q582):
         item = wbi.item.get('Q582')

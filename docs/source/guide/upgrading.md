@@ -58,6 +58,21 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   - Every collection has a `count()`, the same as `len()`. `Claims.count()` and `Qualifiers.count()` already counted
     the elements.
   - `Aliases` is iterable over its aliases, of every language.
+- **A missing entity raises `NonExistentEntityError`**, like an unknown id already did, instead of
+  `MissingEntityException`: a deleted entity, a revision that doesn't exist, a MediaInfo title that isn't found.
+  Its `code` tells the cases apart: `no-such-entity` (unknown id), `missingtitle`, `missing` (e.g. deleted),
+  `nosuchrevid`. `MissingEntityException` is now another name of `NonExistentEntityError` (see below), so the code
+  catching it keeps working, and also catches the unknown ids. `NonExistentEntityError` is an `MWApiError`: the code
+  catching `MWApiError` now catches the missing entities too.
+- **A claim with qualifiers or references given to `References.add()` raises a `ValueError`**: a reference only
+  holds snaks. They used to be dropped, with a warning in the log. Pass the claim without them.
+- **`Login` and `Clientlogin` raise a `TypeError` for an unsupported keyword argument**, like any Python function.
+  Only `headers`, `proxies`, `timeout` and `verify` are passed to the login requests: the others used to be ignored,
+  with a warning in the log.
+- **`write()` no longer logs the exception it raises**: it was logged with its traceback, then raised, so it
+  appeared twice. Log it where you catch it.
+- **`Claim.ref_present()` no longer emits a `UserWarning`** when the new claim has no reference or several, a
+  normal case of `MERGE_REFS_OR_APPEND`. The result is the same.
 
 ### Deprecated in v0.15, removed in 1.0
 
@@ -76,6 +91,8 @@ These APIs still work in v0.15 and emit a `DeprecationWarning`. They will be rem
 - **`in` on a `Claim`** (`x in claim`): a claim isn't a collection. Compare the claims with `==`, and read the
   value of a claim from `claim.mainsnak.datavalue`. With a string, it never matched anything. `'P31' in item.claims`
   isn't concerned.
+- **`MissingEntityException`**: catch `NonExistentEntityError`, which is raised instead (see above).
+  `MissingEntityException` is another name of it until 1.0.
 
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 

@@ -210,13 +210,12 @@ class TestLoginAnswers:
     (wbi_login.Clientlogin, 'TestUser', 'password', 'clientlogin'),
 ])
 class TestLoginRequestParameters:
-    def test_unsupported_kwargs_are_ignored(self, credentials, caplog, login_class, user, password, action):
-        with caplog.at_level(logging.WARNING, logger='wikibaseintegrator.wbi_login'):
-            login = login_class(user=user, password=password, unknown_parameter='value')
+    def test_unsupported_kwargs_raise(self, credentials, login_class, user, password, action):
+        with pytest.raises(TypeError, match=rf"{login_class.__name__}\(\) got unsupported keyword arguments: other, unknown_parameter\. Only headers"):
+            login_class(user=user, password=password, unknown_parameter='value', other=1, timeout=12)
 
-        assert login.get_edit_token() == credentials.csrf_token
-        assert [record.getMessage() for record in caplog.records] == ["Unsupported kwargs were ignored: {'unknown_parameter'}"]
-        assert _actions(credentials) == ['query', action, 'query']
+        # Raised before any request
+        assert not _actions(credentials)
 
     def test_supported_kwargs_are_passed_to_the_login_requests(self, credentials, requests_mock, login_class, user, password, action):
         login = login_class(user=user, password=password, timeout=12, verify=False)

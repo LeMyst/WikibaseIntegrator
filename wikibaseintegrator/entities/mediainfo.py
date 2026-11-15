@@ -16,7 +16,7 @@ from wikibaseintegrator.models.aliases import Aliases
 from wikibaseintegrator.models.claims import Claims
 from wikibaseintegrator.models.descriptions import Descriptions
 from wikibaseintegrator.models.labels import Labels
-from wikibaseintegrator.wbi_exceptions import MissingEntityException
+from wikibaseintegrator.wbi_exceptions import NonExistentEntityError
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 if TYPE_CHECKING:
@@ -112,7 +112,7 @@ class MediaInfoEntity(TermsEntity):
         :param is_bot: Add the bot flag to the request. The is_bot of the WikibaseIntegrator instance by default.
         :param kwargs: More arguments for mediawiki_api_call_helper()
         :return: a MediaInfoEntity instance
-        :exception MissingEntityException: If the page doesn't exist.
+        :exception NonExistentEntityError: If the page doesn't exist (code missingtitle).
         :exception ValueError: If the titles match more than one entity.
         """
         if isinstance(titles, list):
@@ -134,7 +134,7 @@ class MediaInfoEntity(TermsEntity):
         # The API answers {'-1': {'title': ..., 'missing': ''}} for a page that doesn't exist
         missing = [entity.get('title', entity_id) for entity_id, entity in entities.items() if 'missing' in entity]
         if len(entities) == 0 or missing:
-            raise MissingEntityException(f"Title not found: {', '.join(missing) or titles}")
+            raise NonExistentEntityError({'code': 'missingtitle', 'info': f"Title not found: {', '.join(missing) or titles}"}, response=json_data)
         if len(entities) > 1:
             raise ValueError('More than one element for this title')
 
