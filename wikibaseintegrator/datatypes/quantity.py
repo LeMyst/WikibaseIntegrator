@@ -62,8 +62,8 @@ class Quantity(BaseDataType):
         Constructor, calls the superclass BaseDataType
 
         :param amount: The amount value
-        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations
-        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations
+        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.
+        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.
         :param unit: The unit item URL or the QID a certain amount has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
             The default is dimensionless, represented by a '1'
         :param wikibase_url: The default wikibase URL, used when the unit is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.
@@ -101,12 +101,16 @@ class Quantity(BaseDataType):
             except ValueError as error:
                 raise ValueError("Value, bounds and units must parse as integers or float") from error
 
-            # Compared as Decimal, without the rounding of float
-            if (lower_bound is not None and upper_bound is not None) and (Decimal(lower_bound) > Decimal(upper_bound) or Decimal(lower_bound) > Decimal(amount)):
-                raise ValueError("Lower bound too large")
+            # Wikibase only accepts a quantity with both bounds or none
+            if (upper_bound is None) != (lower_bound is None):
+                raise ValueError("The upper and lower bounds must be given together, or not at all")
 
-            if upper_bound is not None and Decimal(upper_bound) < Decimal(amount):
-                raise ValueError("Upper bound too small")
+            # Compared as Decimal, without the rounding of float
+            if lower_bound is not None and upper_bound is not None:
+                if Decimal(lower_bound) > Decimal(upper_bound) or Decimal(lower_bound) > Decimal(amount):
+                    raise ValueError("Lower bound too large")
+                if Decimal(upper_bound) < Decimal(amount):
+                    raise ValueError("Upper bound too small")
 
             self.mainsnak.datavalue = {
                 'value': {
@@ -121,8 +125,6 @@ class Quantity(BaseDataType):
             # remove bounds from json if they are undefined
             if upper_bound is None:
                 del self.mainsnak.datavalue['value']['upperBound']
-
-            if lower_bound is None:
                 del self.mainsnak.datavalue['value']['lowerBound']
 
     def from_sparql_value(self, sparql_value: dict) -> Self:
@@ -153,6 +155,6 @@ class Quantity(BaseDataType):
     def get_sparql_value(self, **kwargs: Any) -> str:
         return '"' + format_amount(self.mainsnak.datavalue['value']['amount']) + '"^^xsd:decimal'
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         self.set_value(amount=value, unit=unit)
         return True

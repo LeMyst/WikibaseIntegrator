@@ -56,7 +56,7 @@ class TestTokenRenewal:
         assert len(credentials.requests) == requests_before
 
     def test_default_reauthenticate_only_renews_the_csrf_token(self, credentials):
-        # OAuth1 authenticates every request: reauthenticate() of _Login only requests a new CSRF token
+        # OAuth1 authenticates every request: reauthenticate() of BaseLogin only requests a new CSRF token
         login = wbi_login.OAuth1(consumer_token='consumer-token', consumer_secret='consumer-secret', access_token='access-token', access_secret='access-secret')
         requests_before = len(credentials.requests)
         login.edit_token = None

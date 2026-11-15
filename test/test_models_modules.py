@@ -56,6 +56,9 @@ LEGACY_LOCATIONS = {
 }
 
 
+# The legacy locations only imported to be re-exported: they warn, and are removed in 1.0
+DEPRECATED_LEGACY_LOCATIONS = {'Glosses', 'Representations'}
+
 def _top_level_model_imports(path: Path) -> set[str]:
     # Imports done at module level, ignoring the ones inside functions or behind `if TYPE_CHECKING:`
     imported = set()
@@ -86,8 +89,25 @@ def test_class_defined_in_own_module(name, module):
 @pytest.mark.parametrize('name, legacy_module', LEGACY_LOCATIONS.items())
 def test_legacy_import_location(name, legacy_module):
     # The classes used to share a module with their container class, keep these imports working
-    legacy = getattr(importlib.import_module(f'wikibaseintegrator.models.{legacy_module}'), name)
+    if name in DEPRECATED_LEGACY_LOCATIONS:
+        with pytest.warns(DeprecationWarning, match='removed in WikibaseIntegrator 1.0'):
+            legacy = getattr(importlib.import_module(f'wikibaseintegrator.models.{legacy_module}'), name)
+    else:
+        legacy = getattr(importlib.import_module(f'wikibaseintegrator.models.{legacy_module}'), name)
     assert legacy is getattr(importlib.import_module(f'wikibaseintegrator.models.{CLASSES[name]}'), name)
+
+
+@pytest.mark.parametrize('legacy_module', ['forms', 'senses'])
+def test_legacy_module_unknown_attribute(legacy_module):
+    with pytest.raises(AttributeError):
+        getattr(importlib.import_module(f'wikibaseintegrator.models.{legacy_module}'), 'does_not_exist')
+
+
+def test_deprecated_legacy_import_statement():
+    with pytest.warns(DeprecationWarning):
+        # pylint: disable-next=import-outside-toplevel,no-name-in-module  # Served by the module __getattr__ of forms
+        from wikibaseintegrator.models.forms import Representations as LegacyRepresentations
+    assert LegacyRepresentations is Representations
 
 
 def test_no_circular_import_at_module_level():
