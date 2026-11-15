@@ -95,6 +95,27 @@ class TestNewEntity:
             edit({**labelled('copy'), 'claims': [string_claim(property_id, 'a value', id=guid)]}, new='item')
 
 
+class TestEditResponse:
+    # The page of the entity, in wbgetentities but not in the response of wbeditentity: after write(), the entity can't take
+    # its page from the response (#1217), and the simulated instance of test/conftest.py answers the same way
+    PAGE_FIELDS = {'pageid', 'ns', 'title', 'modified'}
+
+    def test_new_entity(self, edit):
+        entity = edit(labelled('edit response'), new='item')
+        assert {'id', 'type', 'lastrevid'} <= set(entity)
+        assert not self.PAGE_FIELDS & set(entity), sorted(entity)
+
+    def test_existing_entity(self, edit):
+        item_id = edit(labelled('edited response'), new='item')['id']
+        entity = edit({'descriptions': {'en': term('en', 'an edit')}}, id=item_id)
+        assert {'id', 'type', 'lastrevid'} <= set(entity)
+        assert not self.PAGE_FIELDS & set(entity), sorted(entity)
+
+        # wbgetentities has them
+        fetched = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': item_id, 'format': 'json'}, allow_anonymous=True)['entities'][item_id]
+        assert self.PAGE_FIELDS <= set(fetched), sorted(fetched)
+
+
 class TestValues:
     @pytest.mark.parametrize('bound', ['upperBound', 'lowerBound'])
     def test_quantity_with_a_single_bound_is_rejected(self, edit, bound):

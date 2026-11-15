@@ -236,17 +236,20 @@ class TestWrite:
         assert 'fr' not in data['labels']
         assert removed_aliases and 'fr' not in data['aliases']
 
-    def test_write_as_new_forgets_the_page_of_the_original(self, wikibase, item_q582, monkeypatch, requests_mock):
-        # Unlike the simulated instance, the response of wbeditentity has no page id nor title (#1217)
-        edit = type(wikibase)._action_wbeditentity
+    def test_written_new_entity_has_no_page(self, wikibase):
+        # Like Wikibase, the simulated instance answers wbeditentity without the page of the entity, which wbgetentities gives
+        item = wbi.item.new()
+        item.labels.set('en', 'new item')
+        written = item.write(allow_anonymous=True)
 
-        def without_page(instance, params):
-            response = edit(instance, params)
-            response['entity'].pop('pageid', None)
-            response['entity'].pop('title', None)
-            return response
+        assert written.id
+        assert (written.pageid, written.title) == (None, None)
+        fetched = wbi.item.get(written.id)
+        assert fetched.pageid is not None
+        assert fetched.title is not None
 
-        monkeypatch.setattr(type(wikibase), '_action_wbeditentity', without_page)
+    def test_write_as_new_forgets_the_page_of_the_original(self, wikibase, item_q582, requests_mock):
+        # The response of wbeditentity has no page id nor title (#1217)
         item = wbi.item.get('Q582')
         assert item.pageid is not None
         assert item.title == 'Q582'
@@ -260,16 +263,6 @@ class TestWrite:
         with pytest.raises(ValueError, match='pageid or a page title'):
             copy.delete(allow_anonymous=True)
         assert not [request for request in requests_mock.request_history if 'action=delete' in (request.text or '')]
-
-    def test_write_as_new_takes_the_page_of_the_response(self, wikibase, item_q582):
-        item = wbi.item.get('Q582')
-        original_pageid = item.pageid
-
-        copy = item.write(allow_anonymous=True, as_new=True)
-
-        # When the response has them, the page id and title are the ones of the new entity
-        assert copy.title == copy.id
-        assert copy.pageid != original_pageid
 
     def test_failed_write_as_new_keeps_the_page(self, wikibase, item_q582, monkeypatch):
         item = wbi.item.get('Q582')
