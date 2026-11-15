@@ -439,7 +439,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.basedatatype</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDataType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.basedatatype</span><span class="w"> </span><span class="kn">import</span> <span class="n">_WIKIDATA_ENTITY_URI</span><span class="p">,</span> <span class="n">BaseDataType</span><span class="p">,</span> <span class="n">_warn_wikibase_url</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
@@ -494,12 +494,15 @@
 <span class="sd">        :param longitude: Longitude in decimal format, between -180 and 180 on Earth, -360 and 360 on another globe (like Wikibase)</span>
 <span class="sd">        :param altitude: Altitude (in decimal format?) (Always None at this moment)</span>
 <span class="sd">        :param precision: Precision of the position measurement, default 1 / 3600</span>
-<span class="sd">        :param globe: The globe entity concept URI (ex: http://www.wikidata.org/entity/Q2) or 'Q2'</span>
-<span class="sd">        :param wikibase_url: The default wikibase URL, used when the globe is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.</span>
+<span class="sd">        :param globe: The IRI of the Wikidata item of the globe (ex: http://www.wikidata.org/entity/Q2) or its ID, 'Q2'. Wikibase only</span>
+<span class="sd">            accepts the globes of Wikidata, on every instance.</span>
+<span class="sd">        :param wikibase_url: Deprecated and ignored: a globe given as an ID is always an entity of Wikidata.</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">wikibase_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_warn_wikibase_url</span><span class="p">(</span><span class="s1">'GlobeCoordinate'</span><span class="p">,</span> <span class="s1">'globe'</span><span class="p">,</span> <span class="s1">'Q111'</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="n">longitude</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="n">altitude</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">globe</span><span class="o">=</span><span class="n">globe</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="o">=</span><span class="n">wikibase_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="n">longitude</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="n">altitude</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">globe</span><span class="o">=</span><span class="n">globe</span><span class="p">)</span>
 
     <span class="c1"># The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType</span>
     <span class="c1"># pylint: disable-next=arguments-renamed</span>
@@ -509,11 +512,13 @@
                   <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120</span>
         <span class="n">precision</span> <span class="o">=</span> <span class="n">precision</span> <span class="ow">or</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">3600</span>
+        <span class="k">if</span> <span class="n">wikibase_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_warn_wikibase_url</span><span class="p">(</span><span class="s1">'GlobeCoordinate'</span><span class="p">,</span> <span class="s1">'globe'</span><span class="p">,</span> <span class="s1">'Q111'</span><span class="p">)</span>
         <span class="n">globe</span> <span class="o">=</span> <span class="n">globe</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'COORDINATE_GLOBE_QID'</span><span class="p">])</span>
-        <span class="n">wikibase_url</span> <span class="o">=</span> <span class="n">wikibase_url</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">])</span>
 
+        <span class="c1"># An item of Wikidata, whatever the instance</span>
         <span class="k">if</span> <span class="n">globe</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'Q'</span><span class="p">):</span>
-            <span class="n">globe</span> <span class="o">=</span> <span class="n">wikibase_url</span> <span class="o">+</span> <span class="s1">'/entity/'</span> <span class="o">+</span> <span class="n">globe</span>
+            <span class="n">globe</span> <span class="o">=</span> <span class="n">_WIKIDATA_ENTITY_URI</span> <span class="o">+</span> <span class="n">globe</span>
 
         <span class="k">if</span> <span class="n">latitude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">longitude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Wikibase accepts -360 to 360 for both, which the coordinates of other globes use (e.g. Mars longitudes go from 0</span>

@@ -459,6 +459,17 @@
     <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s1">'"'</span>
 
 
+<span class="c1"># Wikibase only accepts the calendar models of the times and the globes of the coordinates of Wikidata, on every instance: their</span>
+<span class="c1"># IRIs must start with this prefix (the $wikidataBaseUri of ValidatorBuilders, a hardcoded value of Wikibase).</span>
+<span class="n">_WIKIDATA_ENTITY_URI</span> <span class="o">=</span> <span class="s1">'http://www.wikidata.org/entity/'</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_wikibase_url</span><span class="p">(</span><span class="n">datatype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">part</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">example</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The wikibase_url argument of </span><span class="si">{</span><span class="n">datatype</span><span class="si">}</span><span class="s2"> is deprecated and will be removed in WikibaseIntegrator 1.0, it is ignored: a </span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2"> given as an ID "</span>
+                  <span class="sa">f</span><span class="s2">"like '</span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2">' is an entity of Wikidata (</span><span class="si">{</span><span class="n">_WIKIDATA_ENTITY_URI</span><span class="si">}{</span><span class="n">example</span><span class="si">}</span><span class="s2">) on every Wikibase instance, the only </span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2">s Wikibase accepts."</span><span class="p">,</span>
+                  <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="BaseDataType">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.basedatatype.BaseDataType.html#wikibaseintegrator.datatypes.basedatatype.BaseDataType">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseDataType</span><span class="p">(</span><span class="n">Claim</span><span class="p">):</span>

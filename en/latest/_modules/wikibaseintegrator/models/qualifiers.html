@@ -438,7 +438,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">_add_with_action</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_copy_json</span><span class="p">,</span> <span class="n">_require_property_number</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -515,7 +515,7 @@
         <span class="c1"># Imported here because Claim holds Qualifiers, which would make a circular import at module level</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
-            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
+            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">_copy_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">))</span>
 
         <span class="c1"># Adding no qualifier does nothing, like Reference.add() and References.add()</span>
         <span class="k">if</span> <span class="n">qualifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -540,7 +540,7 @@
 <span class="sd">        """</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
-            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
+            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">_copy_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a Snak or a Claim, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>

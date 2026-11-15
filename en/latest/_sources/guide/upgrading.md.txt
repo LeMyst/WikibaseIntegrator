@@ -73,6 +73,20 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   appeared twice. Log it where you catch it.
 - **`Claim.ref_present()` no longer emits a `UserWarning`** when the new claim has no reference or several, a
   normal case of `MERGE_REFS_OR_APPEND`. The result is the same.
+- **A unit given to `Quantity` as a bare entity ID is completed when the value is serialized** (`unit='Q11573'`),
+  with the `WIKIBASE_URL` of the `WikibaseIntegrator` instance of the entity (see
+  [Several instances in one process](installation.md#several-instances-in-one-process)), else
+  `wbi_config['WIKIBASE_URL']`. It used to be completed with `wbi_config['WIKIBASE_URL']` when the quantity was built.
+  The JSON written and returned by `get_json()` is the same as before with a single instance, but the datavalue of a
+  quantity built this way holds the bare ID: `claim.mainsnak.datavalue['value']['unit']` is `'Q11573'` until the value
+  is written and read back. Read the IRI from `claim.get_json()`, or pass `wikibase_url` to build it at once, as before.
+  A bare ID is equal to the IRI of this entity, so `Claims.add()` still finds the claims read from the instance.
+- **A calendar model or a globe given as a bare entity ID is an item of Wikidata, on every instance**:
+  `Time(calendarmodel='Q1985786')` gets `http://www.wikidata.org/entity/Q1985786` and `GlobeCoordinate(globe='Q2')`
+  `http://www.wikidata.org/entity/Q2`, the only calendar models and globes Wikibase accepts, whatever the instance
+  (the other prefixes are rejected with a `bad-prefix` error). They used to be completed with
+  `wbi_config['WIKIBASE_URL']`, which only worked on Wikidata. On another instance, `globe='Q2'` is now the Earth, with
+  its latitude and longitude ranges.
 
 ### Deprecated in v0.15, removed in 1.0
 
@@ -91,6 +105,9 @@ These APIs still work in v0.15 and emit a `DeprecationWarning`. They will be rem
 - **`in` on a `Claim`** (`x in claim`): a claim isn't a collection. Compare the claims with `==`, and read the
   value of a claim from `claim.mainsnak.datavalue`. With a string, it never matched anything. `'P31' in item.claims`
   isn't concerned.
+- **The `wikibase_url` argument of `Time` and `GlobeCoordinate`** (and of their `set_value()`), which is ignored: a
+  calendar model or a globe given as an ID is always an item of Wikidata (see above). `Quantity` keeps its
+  `wikibase_url`.
 - **`MissingEntityException`**: catch `NonExistentEntityError`, which is raised instead (see above).
   `MissingEntityException` is another name of it until 1.0.
 

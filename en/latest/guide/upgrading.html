@@ -550,6 +550,20 @@ with a warning in the log.</p></li>
 appeared twice. Log it where you catch it.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Claim.ref_present()</span></code> no longer emits a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code></strong> when the new claim has no reference or several, a
 normal case of <code class="docutils literal notranslate"><span class="pre">MERGE_REFS_OR_APPEND</span></code>. The result is the same.</p></li>
+<li><p><strong>A unit given to <code class="docutils literal notranslate"><span class="pre">Quantity</span></code> as a bare entity ID is completed when the value is serialized</strong> (<code class="docutils literal notranslate"><span class="pre">unit='Q11573'</span></code>),
+with the <code class="docutils literal notranslate"><span class="pre">WIKIBASE_URL</span></code> of the <code class="docutils literal notranslate"><span class="pre">WikibaseIntegrator</span></code> instance of the entity (see
+<a class="reference internal" href="installation.html#several-instances-in-one-process"><span class="std std-ref">Several instances in one process</span></a>), else
+<code class="docutils literal notranslate"><span class="pre">wbi_config['WIKIBASE_URL']</span></code>. It used to be completed with <code class="docutils literal notranslate"><span class="pre">wbi_config['WIKIBASE_URL']</span></code> when the quantity was built.
+The JSON written and returned by <code class="docutils literal notranslate"><span class="pre">get_json()</span></code> is the same as before with a single instance, but the datavalue of a
+quantity built this way holds the bare ID: <code class="docutils literal notranslate"><span class="pre">claim.mainsnak.datavalue['value']['unit']</span></code> is <code class="docutils literal notranslate"><span class="pre">'Q11573'</span></code> until the value
+is written and read back. Read the IRI from <code class="docutils literal notranslate"><span class="pre">claim.get_json()</span></code>, or pass <code class="docutils literal notranslate"><span class="pre">wikibase_url</span></code> to build it at once, as before.
+A bare ID is equal to the IRI of this entity, so <code class="docutils literal notranslate"><span class="pre">Claims.add()</span></code> still finds the claims read from the instance.</p></li>
+<li><p><strong>A calendar model or a globe given as a bare entity ID is an item of Wikidata, on every instance</strong>:
+<code class="docutils literal notranslate"><span class="pre">Time(calendarmodel='Q1985786')</span></code> gets <code class="docutils literal notranslate"><span class="pre">http://www.wikidata.org/entity/Q1985786</span></code> and <code class="docutils literal notranslate"><span class="pre">GlobeCoordinate(globe='Q2')</span></code>
+<code class="docutils literal notranslate"><span class="pre">http://www.wikidata.org/entity/Q2</span></code>, the only calendar models and globes Wikibase accepts, whatever the instance
+(the other prefixes are rejected with a <code class="docutils literal notranslate"><span class="pre">bad-prefix</span></code> error). They used to be completed with
+<code class="docutils literal notranslate"><span class="pre">wbi_config['WIKIBASE_URL']</span></code>, which only worked on Wikidata. On another instance, <code class="docutils literal notranslate"><span class="pre">globe='Q2'</span></code> is now the Earth, with
+its latitude and longitude ranges.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
@@ -568,6 +582,9 @@ the SPARQL queries are set by <code class="docutils literal notranslate"><span c
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">in</span></code> on a <code class="docutils literal notranslate"><span class="pre">Claim</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">in</span> <span class="pre">claim</span></code>): a claim isn’t a collection. Compare the claims with <code class="docutils literal notranslate"><span class="pre">==</span></code>, and read the
 value of a claim from <code class="docutils literal notranslate"><span class="pre">claim.mainsnak.datavalue</span></code>. With a string, it never matched anything. <code class="docutils literal notranslate"><span class="pre">'P31'</span> <span class="pre">in</span> <span class="pre">item.claims</span></code>
 isn’t concerned.</p></li>
+<li><p><strong>The <code class="docutils literal notranslate"><span class="pre">wikibase_url</span></code> argument of <code class="docutils literal notranslate"><span class="pre">Time</span></code> and <code class="docutils literal notranslate"><span class="pre">GlobeCoordinate</span></code></strong> (and of their <code class="docutils literal notranslate"><span class="pre">set_value()</span></code>), which is ignored: a
+calendar model or a globe given as an ID is always an item of Wikidata (see above). <code class="docutils literal notranslate"><span class="pre">Quantity</span></code> keeps its
+<code class="docutils literal notranslate"><span class="pre">wikibase_url</span></code>.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code></strong>: catch <code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code>, which is raised instead (see above).
 <code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code> is another name of it until 1.0.</p></li>
 </ul>

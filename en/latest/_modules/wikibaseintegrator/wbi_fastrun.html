@@ -451,7 +451,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.qualifiers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qualifiers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.reference</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">References</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span><span class="p">,</span> <span class="n">_resolve_datavalue</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span><span class="p">,</span> <span class="n">WikibaseRank</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnknownDatatypeError</span>
@@ -725,6 +725,7 @@
             <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span>
 
         <span class="n">wb_url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="n">wb_url</span><span class="p">)</span>
 
         <span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_QUERY_LIMIT'</span><span class="p">])</span>
 
@@ -1138,6 +1139,7 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"claims must have at least one claim"</span><span class="p">)</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span><span class="p">)</span>
 
         <span class="n">candidates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Claim</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
@@ -1232,6 +1234,7 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"claims must have at least one claim"</span><span class="p">)</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">:</span>
             <span class="c1"># The new statements are always appended, a write is always required</span>
@@ -1456,6 +1459,24 @@
             <span class="n">attrs</span><span class="o">=</span><span class="s2">"</span><span class="se">\r\n\t</span><span class="s2"> "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
         <span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Claim</span><span class="p">]</span> <span class="o">|</span> <span class="n">Claims</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Claim</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The claims, their values completed with the Wikibase URL of the container where they hold a bare entity ID, like</span>
+<span class="sd">    Quantity(unit='Q11573') (see Snak.get_json()): copies of the claims concerned, the others as they are.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">snaks</span><span class="p">(</span><span class="n">claim</span><span class="p">:</span> <span class="n">Claim</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snak</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">,</span> <span class="o">*</span><span class="n">claim</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">snak</span> <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">claim</span><span class="o">.</span><span class="n">references</span> <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">)]</span>
+
+    <span class="n">resolved</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_resolve_datavalue</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span> <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">snaks</span><span class="p">(</span><span class="n">claim</span><span class="p">)):</span>
+            <span class="n">claim</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">snaks</span><span class="p">(</span><span class="n">claim</span><span class="p">):</span>
+                <span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">=</span> <span class="n">_resolve_datavalue</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">)</span>
+        <span class="n">resolved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resolved</span>
 
 
 <div class="viewcode-block" id="get_fastrun_container">
