@@ -11,12 +11,12 @@ from wikibaseintegrator.entities.mediainfo import MediaInfoEntity
 from wikibaseintegrator.entities.property import PropertyEntity
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.wbi_login import _Login
+    from wikibaseintegrator.wbi_login import BaseLogin
 
 
 class WikibaseIntegrator:
 
-    def __init__(self, is_bot: bool = False, login: _Login | None = None) -> None:
+    def __init__(self, is_bot: bool = False, login: BaseLogin | None = None) -> None:
         """
         This function initializes a WikibaseIntegrator instance to quickly access different entity type instances.
 

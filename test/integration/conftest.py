@@ -18,9 +18,12 @@ import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, wbi_login
 from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator.wbi_helpers import delete_page, mediawiki_api_call_helper
 
 API_URL = os.getenv('WBI_INTEGRATION_MEDIAWIKI_API_URL')
 SPARQL_URL = os.getenv('WBI_INTEGRATION_SPARQL_ENDPOINT_URL')
+# The first part of the concept URIs of the instance (e.g. http://localhost:8880 for http://localhost:8880/entity/Q1), for the SPARQL queries
+WIKIBASE_URL = os.getenv('WBI_INTEGRATION_WIKIBASE_URL')
 USER = os.getenv('WBI_INTEGRATION_USER')
 PASSWORD = os.getenv('WBI_INTEGRATION_PASSWORD')
 
@@ -56,6 +59,8 @@ def integration_config(integration_api_url):
     wbi_config['MEDIAWIKI_API_URL'] = integration_api_url
     if SPARQL_URL:
         wbi_config['SPARQL_ENDPOINT_URL'] = SPARQL_URL
+    if WIKIBASE_URL:
+        wbi_config['WIKIBASE_URL'] = WIKIBASE_URL
     yield wbi_config
     wbi_config.clear()
     wbi_config.update(original)
@@ -66,6 +71,31 @@ def login(integration_api_url, integration_config):
     if not USER or not PASSWORD:
         pytest.skip('WBI_INTEGRATION_USER / WBI_INTEGRATION_PASSWORD are not set')
     return wbi_login.Login(user=USER, password=PASSWORD, mediawiki_api_url=integration_api_url, user_agent='WikibaseIntegrator-integration-tests/1.0')
+
+
+@pytest.fixture(scope='session')
+def delete_entities(login):
+    """
+    Delete entities by id. The entity returned by write() can't delete itself: the response of wbeditentity has no page
+    id or title, and the namespace of the entities depends on the configuration of the instance.
+    """
+
+    def delete(entity_ids: list[str]) -> None:
+        if not entity_ids:
+            return
+        entities = mediawiki_api_call_helper(data={'action': 'wbgetentities', 'ids': '|'.join(entity_ids), 'props': 'info', 'format': 'json'}, allow_anonymous=True)['entities']
+        for entity in entities.values():
+            delete_page(title=entity['title'], reason='WikibaseIntegrator integration test cleanup', login=login)
+
+    return delete
+
+
+@pytest.fixture(scope='session')
+def query_service(integration_config) -> str:
+    """The SPARQL endpoint of the instance, for the fast run mode."""
+    if not SPARQL_URL or not WIKIBASE_URL:
+        pytest.skip('WBI_INTEGRATION_SPARQL_ENDPOINT_URL / WBI_INTEGRATION_WIKIBASE_URL are not set')
+    return SPARQL_URL
 
 
 @pytest.fixture

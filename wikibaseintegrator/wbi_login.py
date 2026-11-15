@@ -17,16 +17,23 @@ from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from wikibaseintegrator.wbi_backoff import wbi_backoff
 from wikibaseintegrator.wbi_config import config
-# LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login
-from wikibaseintegrator.wbi_exceptions import LoginError, WCQSAuthenticationError
+# LoginError is defined in wbi_exceptions with the other exceptions, and still importable from wbi_login: the redundant alias re-exports it explicitly (py.typed)
+from wikibaseintegrator.wbi_exceptions import LoginError as LoginError  # pylint: disable=useless-import-alias
+from wikibaseintegrator.wbi_exceptions import WCQSAuthenticationError
 from wikibaseintegrator.wbi_helpers import get_user_agent
+
+__all__ = ['BaseLogin', 'Clientlogin', 'Login', 'LoginError', 'OAuth1', 'OAuth2', 'WCQSAuth']
 
 log = logging.getLogger(__name__)
 
 
-class _Login:
+class BaseLogin:
     """
-    A class which handles the login to Wikidata and the generation of edit-tokens
+    The base class of the login methods (:class:`OAuth2`, :class:`OAuth1`, :class:`Login` and :class:`Clientlogin`):
+    it holds the session and generates the edit tokens.
+
+    Use it to annotate a parameter taking any login, like the ``login`` parameters of the library do. It was named
+    ``_Login`` in earlier versions, which is still an alias of it.
     """
 
     @wbi_backoff()
@@ -123,7 +130,11 @@ class _Login:
         self.instantiation_time = time.time()
 
 
-class OAuth2(_Login):
+# The private name of BaseLogin in earlier versions, kept for the code importing it
+_Login = BaseLogin
+
+
+class OAuth2(BaseLogin):
     # Seconds before its expiry when the access token is fetched again
     ACCESS_TOKEN_MARGIN = 60
 
@@ -188,7 +199,7 @@ class OAuth2(_Login):
         return super().generate_edit_credentials()
 
 
-class OAuth1(_Login):
+class OAuth1(BaseLogin):
 
     @wbi_backoff()
     def __init__(self, consumer_token: str | None = None, consumer_secret: str | None = None, access_token: str | None = None, access_secret: str | None = None,
@@ -287,7 +298,7 @@ class OAuth1(_Login):
         super().__init__(session=session, token_renew_period=self.token_renew_period, user_agent=self.user_agent, mediawiki_api_url=self.mediawiki_api_url)
 
 
-class Login(_Login):
+class Login(BaseLogin):
     @wbi_backoff()
     def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None,
                  **kwargs: Any) -> None:
@@ -361,7 +372,7 @@ class Login(_Login):
     def reauthenticate(self) -> None:
         """
         Redo the full bot-password login flow on the existing session, then refresh the CSRF token.
-        See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
+        See BaseLogin.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
         """
         log.warning("Session no longer valid, re-authenticating as %s", self._user)
         session_user_agent = self.session.headers.get('User-Agent')
@@ -371,7 +382,7 @@ class Login(_Login):
         self.instantiation_time = time.time()
 
 
-class Clientlogin(_Login):
+class Clientlogin(BaseLogin):
     @wbi_backoff()
     def __init__(self, user: str | None = None, password: str | None = None, mediawiki_api_url: str | None = None, token_renew_period: int = 1800, user_agent: str | None = None,
                  **kwargs: Any) -> None:
@@ -459,7 +470,7 @@ class Clientlogin(_Login):
     def reauthenticate(self) -> None:
         """
         Redo the full clientlogin flow on the existing session, then refresh the CSRF token.
-        See _Login.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
+        See BaseLogin.reauthenticate() for why this full re-login is needed instead of just fetching a new token.
         """
         log.warning("Session no longer valid, re-authenticating as %s", self._user)
         session_user_agent = self.session.headers.get('User-Agent')

@@ -10,7 +10,8 @@ class MusicalNotation(String):
     PTYPE = 'http://wikiba.se/ontology#MusicalNotation'
 
     def set_value(self, value: str | None = None) -> None:
-        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"Expected str, found {type(value)} ({value})")
 
         if value:
             self.mainsnak.datavalue = {

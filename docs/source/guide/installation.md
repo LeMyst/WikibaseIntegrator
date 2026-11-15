@@ -3,7 +3,7 @@
 ## Installation
 
 The easiest way to install WikibaseIntegrator is to use the `pip` package manager. WikibaseIntegrator supports Python
-3.11 and above.
+3.11.5 and above.
 
 ```bash
 python -m pip install wikibaseintegrator
@@ -24,10 +24,10 @@ python -m pip install .
 If you want to install a specific branch or tag from the repository, you can use the following command:
 
 ```bash
-python -m pip install git+https://github.com/LeMyst/WikibaseIntegrator.git@v0.14.2
+python -m pip install git+https://github.com/LeMyst/WikibaseIntegrator.git@v0.14.3
 ```
 
-where `v0.14.2` is the tag or branch you want to install.
+where `v0.14.3` is the tag or branch you want to install.
 
 You can also use Poetry:
 

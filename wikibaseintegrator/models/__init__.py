@@ -21,3 +21,30 @@ from .sitelink import Sitelink
 from .sitelinks import Sitelinks
 from .snak import Snak
 from .snaks import Snaks
+
+# The public names of the package: a py.typed package re-exports only the imported names listed in __all__
+__all__ = [
+    'Alias',
+    'Aliases',
+    'BaseModel',
+    'Claim',
+    'Claims',
+    'Descriptions',
+    'Form',
+    'Forms',
+    'Glosses',
+    'Labels',
+    'LanguageValue',
+    'LanguageValues',
+    'Lemmas',
+    'Qualifiers',
+    'Reference',
+    'References',
+    'Representations',
+    'Sense',
+    'Senses',
+    'Sitelink',
+    'Sitelinks',
+    'Snak',
+    'Snaks',
+]

@@ -20,9 +20,10 @@ import ujson
 from requests import Session
 from requests.auth import AuthBase
 
-# format_amount() lives with the Quantity data type, so that the data model doesn't import this module: re-exported here
-from wikibaseintegrator.datatypes.quantity import format_amount  # pylint: disable=unused-import
-from wikibaseintegrator.wbi_backoff import RetryAfterError, wbi_backoff, wbi_backoff_wait
+# format_amount() lives with the Quantity data type, so that the data model doesn't import this module: re-exported here, explicitly
+# with the redundant alias (py.typed)
+from wikibaseintegrator.datatypes.quantity import format_amount as format_amount  # pylint: disable=unused-import,useless-import-alias
+from wikibaseintegrator.wbi_backoff import RetryAfterError, SPARQLTimeoutError, wbi_backoff, wbi_backoff_wait
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_exceptions import (AnonymousEditNotAllowedError, EmptyValueError, MaxRetriesReachedException, MissingEntityException, MissingExtensionError,
                                                ModificationFailed, MWApiError, NonExistentEntityError, SaveFailed, SearchError)
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
     from wikibaseintegrator.datatypes import BaseDataType
     from wikibaseintegrator.entities.baseentity import BaseEntity
     from wikibaseintegrator.models import Claim
-    from wikibaseintegrator.wbi_login import _Login
+    from wikibaseintegrator.wbi_login import BaseLogin
 
 log = logging.getLogger(__name__)
 
@@ -53,17 +54,23 @@ def _get_default_session() -> Session:
 def __getattr__(name: str) -> Any:
     # Backward compatibility for the former module-level sessions
     if name in ('default_session', 'helpers_session'):
-        warnings.warn(f"wbi_helpers.{name} is deprecated, the session is now per-thread and private.", DeprecationWarning, stacklevel=2)
+        warnings.warn(f"wbi_helpers.{name} is deprecated and will be removed in WikibaseIntegrator 1.0, the session is now per-thread and private.", DeprecationWarning,
+                      stacklevel=2)
         return _get_default_session()
+    if name == 'BColors':
+        warnings.warn("wbi_helpers.BColors is deprecated and will be removed in WikibaseIntegrator 1.0, the library no longer emits ANSI color codes.", DeprecationWarning,
+                      stacklevel=2)
+        return _BColors
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-class BColors:
+class _BColors:
     """
-    Default colors for pretty outputs.
+    Default colors for pretty outputs, available as ``wbi_helpers.BColors``.
 
-    .. deprecated::
-        Kept for backward compatibility only. The library no longer emits ANSI color codes in its logs.
+    .. deprecated:: 0.15
+        Kept for backward compatibility only, and removed in WikibaseIntegrator 1.0. The library no longer emits ANSI
+        color codes in its logs.
     """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -186,7 +193,7 @@ def _retry_after_delay(response: requests.Response, default: float) -> float:
     return delay if max_value is None else min(delay, max_value)
 
 
-def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: _Login | None = None, max_retries: int = 20, retry_after: int = 60,
+def mediawiki_api_call(method: str, mediawiki_api_url: str | None = None, session: Session | None = None, login: BaseLogin | None = None, max_retries: int = 20, retry_after: int = 60,
                        **kwargs: Any) -> dict:
     """
     A function to call the MediaWiki API.
@@ -351,17 +358,18 @@ def _warn_missing_user_agent(url: str, user_agent: str | None) -> None:
                     "https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy", hostname)
 
 
-def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
+def mediawiki_api_call_helper(data: dict[str, Any], login: BaseLogin | None = None, mediawiki_api_url: str | None = None, user_agent: str | None = None, allow_anonymous: bool = False,
                               max_retries: int = 20, retry_after: int = 60, maxlag: int = 5, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A simplified function to call the MediaWiki API.
     Pass the data, as a dictionary, related to the action you want to call, all commons options will be automatically managed.
 
     :param data: A dictionary containing the JSON data to send to the API
-    :param login: A wbi_login._Login instance
+    :param login: A wbi_login.BaseLogin instance
     :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)
     :param user_agent: The user agent (Recommended for Wikimedia Foundation instances)
-    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)
+    :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False). With a login, the request is still made with
+        its session and its edit token.
     :param max_retries: The maximum number of tries of the request, see mediawiki_api_call()
     :param retry_after: The maximum wait between two tries, see mediawiki_api_call()
     :param maxlag: If applicable, the maximum lag allowed for the replication (An lower number reduce the load on the replicated database)
@@ -388,7 +396,8 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
     }
 
     # Default token is anonymous
-    if isinstance(data, dict) and 'token' not in data:
+    token_given = isinstance(data, dict) and 'token' in data
+    if isinstance(data, dict) and not token_given:
         data.update({'token': '+\\'})
 
     if data is not None:
@@ -408,6 +417,10 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
                 raise AnonymousEditNotAllowedError("Anonymous edit are not allowed by default. "
                                                    "Set allow_anonymous to True to edit mediawiki anonymously or set the login parameter with a valid Login object.")
         else:
+            if login is not None and not token_given:
+                # The request is made with the session of the login, which rejects the anonymous token (badtoken)
+                data.update({'token': login.get_edit_token()})
+
             if 'assert' not in data and login is None:
                 # Assert anon if allow_anonymous is True and no Login instance
                 data.update({'assert': 'anon'})
@@ -429,13 +442,14 @@ def mediawiki_api_call_helper(data: dict[str, Any], login: _Login | None = None,
 
 @wbi_backoff()
 def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | None = None, user_agent: str | None = None, max_retries: int | None = None, retry_after: int = 60,
-                         auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None) -> dict[str, dict]:
+                         auth: tuple[str, str] | AuthBase | None = None, headers: dict[str, str] | None = None, query_timeout: float | None = None) -> dict[str, dict]:
     """
     Static method which can be used to execute any SPARQL query
 
     Server errors (HTTP 5xx), throttling (HTTP 429, after the delay asked by the Query Service), request timeouts (HTTP 408),
     connection errors and responses cut before their end are retried by wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times. If the Query Service still fails after that,
-    the last exception (e.g. requests.HTTPError) is raised. The other client errors (e.g. HTTP 400 for a malformed query) are raised at once.
+    the last exception (e.g. requests.HTTPError) is raised. The other client errors (e.g. HTTP 400 for a malformed query), and a query stopped at the time
+    limit of the endpoint (SPARQLTimeoutError), are raised at once.
 
     :param prefix: The URI prefixes required for an endpoint, default is the Wikidata specific prefixes
     :param query: The actual SPARQL query string
@@ -446,16 +460,26 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
     :param auth: Authentication for a protected SPARQL endpoint: a (username, password) tuple for HTTP Basic auth or any
                  requests.auth.AuthBase instance. Default is config['SPARQL_AUTH'].
     :param headers: Additional HTTP headers sent with the query (e.g. {'Authorization': 'Bearer <token>'}). They override the default ones.
+    :param query_timeout: The maximum time, in seconds, the endpoint may spend on the query, to stop a query that would run too long early.
+        It is sent as the maxQueryTimeMillis parameter of Blazegraph, the engine of the Wikidata Query Service and of the query services of
+        Wikibase. It can't raise the limit of the endpoint (60 seconds on the Wikidata Query Service). Default: config['SPARQL_QUERY_TIMEOUT'],
+        None for the limit of the endpoint
     :return: The results of the query are returned in JSON format
     :raises requests.HTTPError: If the Query Service returns an HTTP error, after the retries for the transient ones are exhausted
+    :raises SPARQLTimeoutError: If the endpoint stopped the query at its time limit. It is a requests.HTTPError too.
+    :raises ValueError: If query_timeout isn't a positive number of seconds
     """
 
     if max_retries is not None:
-        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES'].", DeprecationWarning,
+        warnings.warn("The max_retries parameter of execute_sparql_query() is deprecated and ignored, retries are handled by config['BACKOFF_MAX_TRIES']. "
+                      "It will be removed in WikibaseIntegrator 1.0.", DeprecationWarning,
                       stacklevel=3)
 
     sparql_endpoint_url = str(endpoint or config['SPARQL_ENDPOINT_URL'])
     auth = auth if auth is not None else config['SPARQL_AUTH']
+    query_timeout = query_timeout if query_timeout is not None else config['SPARQL_QUERY_TIMEOUT']
+    if query_timeout is not None and query_timeout <= 0:
+        raise ValueError(f"query_timeout must be a positive number of seconds, not {query_timeout}")
     user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
 
     _warn_missing_user_agent(sparql_endpoint_url, user_agent)
@@ -467,6 +491,8 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
         'query': '#Tool: WikibaseIntegrator wbi_helpers.execute_sparql_query\n' + query,
         'format': 'json'
     }
+    if query_timeout is not None:
+        body['maxQueryTimeMillis'] = str(max(1, int(query_timeout * 1000)))
 
     # Send the query in the request body (application/x-www-form-urlencoded, set automatically by requests for data=).
     # The previous 'multipart/form-data' Content-Type was incorrect (no multipart body was ever sent) and could be
@@ -487,6 +513,9 @@ def execute_sparql_query(query: str, prefix: str | None = None, endpoint: str | 
         delay = _retry_after_delay(response, retry_after)
         log.error("Too Many Requests (429). Retrying in %d seconds.", delay)
         raise RetryAfterError(f'429 Client Error: Too Many Requests for url: {response.url}', response=response, retry_after=delay)
+    # Blazegraph answers a query stopped at its time limit with an HTTP 500 and the stack trace of a (Query)TimeoutException
+    if response.status_code == 500 and 'TimeoutException' in response.text:
+        raise SPARQLTimeoutError(f'500 Server Error: the query was stopped at the time limit of the SPARQL endpoint for url: {response.url}', response=response)
     response.raise_for_status()
 
     return response.json()
@@ -681,7 +710,7 @@ def edit_entity(data: dict, id: str | None = None, type: str | None = None, base
     return json_result
 
 
-def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+def merge_items(from_id: str, to_id: str, login: BaseLogin | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
                 **kwargs: Any) -> dict:
     """
     A static method to merge two items. Wikibase turns the emptied item into a redirect to the target item.
@@ -713,7 +742,7 @@ def merge_items(from_id: str, to_id: str, login: _Login | None = None, ignore_co
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
+def merge_multiple_items(item_ids: list[str], login: BaseLogin | None = None, ignore_conflicts: list[str] | None = None, is_bot: bool = False, tags: list[str] | None = None,
                          **kwargs: Any) -> str:
     """
     Merge several items into the one with the lowest numeric ID, one wbmergeitems call per merged item.
@@ -749,7 +778,7 @@ def merge_multiple_items(item_ids: list[str], login: _Login | None = None, ignor
     return to_id
 
 
-def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+def create_redirect(from_id: str, to_id: str, login: BaseLogin | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     A static method to turn an item into a redirect to another item, with the wbcreateredirect API.
 
@@ -777,7 +806,7 @@ def create_redirect(from_id: str, to_id: str, login: _Login | None = None, is_bo
     return mediawiki_api_call_helper(data=params, login=login, is_bot=is_bot, **kwargs)
 
 
-def merge_lexemes(source: str, target: str, login: _Login | None = None, summary: str | None = None, is_bot: bool = False, tags: list[str] | None = None,
+def merge_lexemes(source: str, target: str, login: BaseLogin | None = None, summary: str | None = None, is_bot: bool = False, tags: list[str] | None = None,
                   **kwargs: Any) -> dict:
     """
     A static method to merge two lexemes
@@ -843,7 +872,7 @@ def remove_claims(claim_id: str, summary: str | None = None, baserevid: int | No
 
 
 def set_claim(claim: Claim, entity_id: str | None = None, index: int | None = None, baserevid: int | None = None, summary: str | None = None, tags: list[str] | None = None,
-              ignore_duplicate_mainsnak: bool = False, login: _Login | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
+              ignore_duplicate_mainsnak: bool = False, login: BaseLogin | None = None, is_bot: bool = False, **kwargs: Any) -> dict:
     """
     Create or replace a single statement, with its qualifiers and references, with the wbsetclaim API.
 
@@ -1352,7 +1381,8 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
     if isinstance(entities, str):
         entities = [entities]
 
-    assert isinstance(entities, list)
+    if not isinstance(entities, list):
+        raise TypeError(f"The entities must be a str or a list of str, found {type(entities)}")
 
     wbi = WikibaseIntegrator(is_bot=kwargs.get('is_bot', False), login=kwargs.get('login', None))
     entity_instances = []
@@ -1382,7 +1412,7 @@ def generate_entity_instances(entities: str | list[str], allow_anonymous: bool =
 
 
 def delete_page(title: str | None = None, pageid: int | None = None, reason: str | None = None, deletetalk: bool = False, watchlist: str = 'preferences',
-                watchlistexpiry: str | None = None, login: _Login | None = None, **kwargs: Any) -> dict:
+                watchlistexpiry: str | None = None, login: BaseLogin | None = None, **kwargs: Any) -> dict:
     """
     Delete a page
 
@@ -1505,7 +1535,7 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
     The datatype of the properties is retrieved from the instance (wbgetentities), and cached.
 
     .. warning::
-        **Experimental.** This function (and its helper :func:`_json2datatype`) is incomplete (the lemmas, forms and senses
+        **Experimental.** This function (and its helper ``_json2datatype()``) is incomplete (the lemmas, forms and senses
         of a lexeme and the datatype of a property are not read, and a qualifier or a reference snak takes a single value per
         property). Its API and behaviour may change or be removed without notice.
 
@@ -1621,13 +1651,15 @@ def _json2datatype(prop_nr: str, statement: Any, wikibase_url: str | None = None
     return f(prop_nr=prop_nr, value=attributes['value'] if attributes else statement)
 
 
-def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent: str | None = None) -> str:
+def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent: str | None = None, flavor: str | None = None, revision: int | None = None) -> str:
     """
     Downloads the TTL (Terse RDF Triple Language) content of a specific entity from a Wikibase instance.
 
     :param entity: The identifier of the entity to download the TTL content for.
     :param wikibase_url: The base URL of the Wikibase instance. Default: config['WIKIBASE_URL']
     :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set
+    :param flavor: The amount of data, see download_entity_data(). Default: all the data ('full')
+    :param revision: The ID of a revision of the entity. Default: the latest revision
     :return: The TTL content of the requested entity.
     :raises requests.HTTPError: If the HTTP request to retrieve the TTL content fails (status code other than 2xx).
     """
@@ -1638,11 +1670,61 @@ def download_entity_ttl(entity: str, wikibase_url: str | None = None, user_agent
         'User-Agent': get_user_agent(user_agent)
     }
 
-    response = _get_default_session().get(wikibase_url + '/entity/' + entity + '.ttl', headers=headers, timeout=config['TIMEOUT'])
+    # The concept URI redirects to Special:EntityData with the query string
+    params: dict[str, str | int] = {}
+    if flavor is not None:
+        params['flavor'] = flavor
+    if revision is not None:
+        params['revision'] = revision
+
+    response = _get_default_session().get(wikibase_url + '/entity/' + entity + '.ttl', params=params, headers=headers, timeout=config['TIMEOUT'])
     response.raise_for_status()
     results = response.text
 
     return results
+
+
+@wbi_backoff()
+def download_entity_data(entity: str, format: str = 'json', flavor: str | None = None, revision: int | None = None, login: BaseLogin | None = None,
+                         mediawiki_api_url: str | None = None, user_agent: str | None = None) -> str:
+    """
+    Download an entity from Special:EntityData, the linked data interface of Wikibase: its JSON at a given revision, which
+    the wbgetentities action of the MediaWiki API can't load, or its RDF representation.
+
+    The page is requested from the index.php next to the api.php of the instance, so that it always comes from the
+    instance of the MediaWiki API. Server errors (HTTP 5xx), throttling (HTTP 429) and connection errors are retried by
+    wbi_backoff, up to config['BACKOFF_MAX_TRIES'] times.
+
+    :param entity: The ID of the entity, e.g. 'Q42'
+    :param format: The format of the data: 'json' (default), 'ttl' (Turtle), 'nt' (N-Triples), 'rdf' (RDF/XML) or 'jsonld' (JSON-LD)
+    :param flavor: The amount of RDF data: 'full' (all the data, the default), 'dump' (without the descriptions of the other
+        entities the entity refers to) or 'simple' (only the best-ranked statements, without their qualifiers and references,
+        with the sitelinks)
+    :param revision: The ID of a revision of the entity. Default: the latest revision
+    :param login: A login instance, to use its session (e.g. for a private wiki)
+    :param mediawiki_api_url: The URL of the MediaWiki API of the instance. Default: config['MEDIAWIKI_API_URL']
+    :param user_agent: The user agent string used in the HTTP request headers. Default: config['USER_AGENT'], if set
+    :return: The data, as text
+    :raises requests.HTTPError: If the instance answers with an error: e.g. 400 for an invalid entity ID, 404 for a
+        missing entity or a revision of another entity, 415 for an unsupported format
+    """
+    mediawiki_api_url = str(mediawiki_api_url or config['MEDIAWIKI_API_URL'])
+    mediawiki_index_url = mediawiki_api_url.rsplit('/', 1)[0] + '/index.php'
+    user_agent = user_agent or (str(config['USER_AGENT']) if config['USER_AGENT'] is not None else None)
+
+    _warn_missing_user_agent(mediawiki_index_url, user_agent)
+
+    params: dict[str, str | int] = {'title': f'Special:EntityData/{entity}.{format}'}
+    if flavor is not None:
+        params['flavor'] = flavor
+    if revision is not None:
+        params['revision'] = revision
+
+    session = login.get_session() if login is not None else _get_default_session()
+    response = session.get(mediawiki_index_url, params=params, headers={'User-Agent': get_user_agent(user_agent)}, timeout=config['TIMEOUT'])
+    response.raise_for_status()
+
+    return response.text
 
 
 @dataclass
@@ -1709,7 +1791,7 @@ class WikibaseCheck:
 
 
 def check_wikibase(mediawiki_api_url: str | None = None, sparql_endpoint_url: str | None = None, wikibase_url: str | None = None, check_sparql: bool = True,
-                   login: _Login | None = None, **kwargs: Any) -> WikibaseCheck:
+                   login: BaseLogin | None = None, **kwargs: Any) -> WikibaseCheck:
     """
     Check the features of a Wikibase instance: the MediaWiki version, the installed extensions, the entity types and the
     datatypes it supports, and whether the SPARQL endpoint answers. It also checks the configuration of

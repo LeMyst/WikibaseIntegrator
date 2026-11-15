@@ -19,7 +19,7 @@ with the SPARQL endpoint and only writes what actually changed.
 python -m pip install wikibaseintegrator
 ```
 
-Python 3.11 or newer is required.
+Python 3.11.5 or newer is required.
 
 ## Quick example
 

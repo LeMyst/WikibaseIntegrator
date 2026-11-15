@@ -21,12 +21,22 @@ class Qualifiers(BaseModel):
 
     @qualifiers.setter
     def qualifiers(self, value: dict[str, list[Snak]]) -> None:
-        assert isinstance(value, dict)
+        if not isinstance(value, dict):
+            raise TypeError(f"The qualifiers must be a dict, found {type(value)}")
         self.__qualifiers = value
 
     def set(self, qualifiers: Qualifiers | list[Snak | Claim] | None) -> Self:
+        """
+        Replace the qualifiers with the given ones.
+
+        :param qualifiers: The new qualifiers, as a Qualifiers object or a list of Snak or Claim objects. None removes them all.
+        :return: This Qualifiers object
+        """
         if isinstance(qualifiers, (list, Qualifiers)):
-            for qualifier in qualifiers:
+            # Copied first: the new qualifiers can be these qualifiers themselves
+            new_qualifiers = list(qualifiers)
+            self.qualifiers = {}
+            for qualifier in new_qualifiers:
                 self.add(qualifier)
         elif qualifiers is None:
             self.qualifiers = {}
@@ -53,8 +63,12 @@ class Qualifiers(BaseModel):
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
 
-        if qualifier is not None:
-            assert isinstance(qualifier, Snak)
+        # Adding no qualifier does nothing, like Reference.add() and References.add()
+        if qualifier is None:
+            return self
+
+        if not isinstance(qualifier, Snak):
+            raise TypeError(f"Expected a Snak or a Claim, found {type(qualifier)}")
 
         property = _require_property_number(qualifier)
 
@@ -76,8 +90,8 @@ class Qualifiers(BaseModel):
         if isinstance(qualifier, Claim):
             qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
 
-        if qualifier is not None:
-            assert isinstance(qualifier, Snak)
+        if not isinstance(qualifier, Snak):
+            raise TypeError(f"Expected a Snak or a Claim, found {type(qualifier)}")
 
         # Removing a qualifier that isn't there does nothing, whether its property has other qualifiers or none, or it has no property
         property = qualifier.property_number

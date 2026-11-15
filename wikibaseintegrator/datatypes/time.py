@@ -9,6 +9,63 @@ from wikibaseintegrator.datatypes.basedatatype import BaseDataType
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType, WikibaseTimePrecision
 
+#: The calendar models known by Wikibase, as found in the ``calendarmodel`` of a time value.
+GREGORIAN_CALENDAR = 'http://www.wikidata.org/entity/Q1985727'
+JULIAN_CALENDAR = 'http://www.wikidata.org/entity/Q1985786'
+
+# The years of the Julian dates that the RDF export of Wikibase converts to the Gregorian calendar (the range of the
+# calendar functions of PHP): the other Julian dates are exported as Gregorian dates
+_JULIAN_CONVERSION_YEARS = range(-4713, 1465073)
+
+_TIMESTAMP = re.compile(r'^([+-]?)([0-9]+)-([0-9]{2})-([0-9]{2})T(.*)$')
+
+
+def _julian_to_day_number(year: int, month: int, day: int) -> int:
+    """The Julian day number of a date of the Julian calendar. The year is astronomical: 0 is 1 BCE, -1 is 2 BCE."""
+    a = (14 - month) // 12
+    y = year + 4800 - a
+    m = month + 12 * a - 3
+    return day + (153 * m + 2) // 5 + 365 * y + y // 4 - 32083
+
+
+def _gregorian_to_day_number(year: int, month: int, day: int) -> int:
+    """The Julian day number of a date of the proleptic Gregorian calendar, with an astronomical year."""
+    a = (14 - month) // 12
+    y = year + 4800 - a
+    m = month + 12 * a - 3
+    return day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
+
+
+def _day_number_to_gregorian(day_number: int) -> tuple[int, int, int]:
+    """The date of the proleptic Gregorian calendar of a Julian day number, as (astronomical year, month, day)."""
+    a = day_number + 32044
+    b = (4 * a + 3) // 146097
+    c = a - 146097 * b // 4
+    d = (4 * c + 3) // 1461
+    e = c - 1461 * d // 4
+    m = (5 * e + 2) // 153
+    return 100 * b + d - 4800 + m // 10, m + 3 - 12 * (m // 10), e - (153 * m + 2) // 5 + 1
+
+
+def _day_number_to_julian(day_number: int) -> tuple[int, int, int]:
+    """The date of the Julian calendar of a Julian day number, as (astronomical year, month, day)."""
+    c = day_number + 32082
+    d = (4 * c + 3) // 1461
+    e = c - 1461 * d // 4
+    m = (5 * e + 2) // 153
+    return d - 4800 + m // 10, m + 3 - 12 * (m // 10), e - (153 * m + 2) // 5 + 1
+
+
+def _days_in_month(year: int, month: int) -> int:
+    """The number of days of a month of the proleptic Gregorian calendar, with an astronomical year."""
+    if month == 2:
+        return 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
+    return 30 if month in (4, 6, 9, 11) else 31
+
+
+def _format_timestamp(year: int, month: int, day: int, rest: str) -> str:
+    return f"{'-' if year < 0 else '+'}{abs(year):04d}-{month:02d}-{day:02d}T{rest}"
+
 
 @total_ordering
 class Time(BaseDataType):
@@ -54,7 +111,8 @@ class Time(BaseDataType):
         if calendarmodel.startswith('Q'):
             calendarmodel = wikibase_url + '/entity/' + calendarmodel
 
-        assert isinstance(time, str) or time is None, f"Expected str, found {type(time)} ({time})"
+        if time is not None and not isinstance(time, str):
+            raise TypeError(f"Expected str, found {type(time)} ({time})")
 
         if time:
             if time == "now":
@@ -110,31 +168,89 @@ class Time(BaseDataType):
             }
 
     @staticmethod
-    def sparql_time(time: str, precision: int | None = None) -> str:
+    def sparql_time(time: str, precision: int | None = None, calendarmodel: str | None = None) -> str:
         """
-        Return the timestamp in the form the Wikibase RDF export stores it: the month and the day are set to 01 when
-        they are unknown ('00') or below the precision. '+1987-00-00T00:00:00Z' and '+1987-05-17T00:00:00Z' with a year
-        precision both become '+1987-01-01T00:00:00Z'.
+        Return the timestamp in the form the Wikibase RDF export stores it, an ``xsd:dateTime`` in the proleptic
+        Gregorian calendar:
+
+        - the month and the day are set to 01 when they are unknown ('00') or below the precision:
+          '+1987-00-00T00:00:00Z' and '+1987-05-17T00:00:00Z' with a year precision both become '+1987-01-01T00:00:00Z';
+        - a day beyond the end of the month is set to the last day of the month;
+        - with a year precision or finer, the BCE years are numbered like in XSD 1.1, where the year 0 is 1 BCE:
+          '-0044-03-15T00:00:00Z' (44 BCE) becomes '-0043-03-15T00:00:00Z';
+        - with a day precision or finer, a date of the Julian calendar is converted to the Gregorian calendar:
+          '+1500-03-01T00:00:00Z' becomes '+1500-03-11T00:00:00Z'.
 
         :param time: A timestamp, as found in the JSON representation.
-        :param precision: The precision of the timestamp.
-        :return: The normalized timestamp.
+        :param precision: The precision of the timestamp, the day precision if not given.
+        :param calendarmodel: The calendar model of the timestamp (an URI), the Gregorian calendar if not given.
+        :return: The normalized timestamp, or the timestamp unchanged if it isn't one Wikibase can export as an
+            ``xsd:dateTime`` (e.g. the year 0).
         """
-        matches = re.match(r'^([+-]?[0-9]+)-([0-9]{2})-([0-9]{2})(T.*)$', time)
+        matches = _TIMESTAMP.match(time)
+        if not matches or int(matches.group(2)) == 0:
+            return time
+
+        sign, digits, month_digits, day_digits, rest = matches.groups()
+        precision = WikibaseTimePrecision.DAY.value if precision is None else int(precision)
+        year = -int(digits) if sign == '-' else int(digits)
+        # The year 0 of the astronomical numbering is 1 BCE, like in XSD 1.1
+        astronomical_year = year + 1 if year < 0 else year
+        month = min(max(int(month_digits), 1), 12)
+        day = max(int(day_digits), 1)
+
+        if calendarmodel == JULIAN_CALENDAR and precision >= WikibaseTimePrecision.DAY.value and year in _JULIAN_CONVERSION_YEARS:
+            day_number = _julian_to_day_number(astronomical_year, month, day)
+            if day_number > 0:
+                return _format_timestamp(*_day_number_to_gregorian(day_number), rest)
+
+        if precision <= WikibaseTimePrecision.YEAR.value:
+            month = day = 1
+        elif precision == WikibaseTimePrecision.MONTH.value:
+            day = 1
+        # Like Wikibase, the length of the months of the years before 4713 BCE is the one of 4713 BCE
+        day = min(day, _days_in_month(max(astronomical_year, -4712), month))
+
+        # Below the year precision, the year isn't renumbered
+        return _format_timestamp(astronomical_year if precision >= WikibaseTimePrecision.YEAR.value else year, month, day, rest)
+
+    @staticmethod
+    def time_from_sparql(time: str, precision: int | None = None, calendarmodel: str | None = None) -> str:
+        """
+        Return the timestamp of the JSON representation of an ``xsd:dateTime`` of the Wikibase RDF export, knowing the
+        precision and the calendar model of the value (on the value node of the statement). This reverses
+        :meth:`sparql_time`, except for what it loses: an unknown month or day ('00') comes back as '01'.
+
+        :param time: A timestamp of the RDF export, e.g. '-0043-03-15T00:00:00Z'.
+        :param precision: The precision of the value, the day precision if not given.
+        :param calendarmodel: The calendar model of the value (an URI), the Gregorian calendar if not given.
+        :return: The timestamp of the JSON representation, e.g. '-0044-03-15T00:00:00Z', or the timestamp unchanged if
+            it isn't one.
+        """
+        matches = _TIMESTAMP.match(time)
         if not matches:
             return time
 
-        year, month, day, rest = matches.groups()
-        if month == '00' or (precision is not None and precision < WikibaseTimePrecision.MONTH.value):
-            month = '01'
-        if day == '00' or (precision is not None and precision < WikibaseTimePrecision.DAY.value):
-            day = '01'
+        sign, digits, month_digits, day_digits, rest = matches.groups()
+        precision = WikibaseTimePrecision.DAY.value if precision is None else int(precision)
+        year = -int(digits) if sign == '-' else int(digits)
+        month, day = int(month_digits), int(day_digits)
 
-        return f'{year}-{month}-{day}{rest}'
+        if precision < WikibaseTimePrecision.YEAR.value:
+            return _format_timestamp(year, month, day, rest)
+
+        if calendarmodel == JULIAN_CALENDAR and precision >= WikibaseTimePrecision.DAY.value:
+            julian_year, julian_month, julian_day = _day_number_to_julian(_gregorian_to_day_number(year, month, day))
+            julian = _format_timestamp(julian_year if julian_year > 0 else julian_year - 1, julian_month, julian_day, rest)
+            # Out of the range of the conversion, the RDF export kept the Julian date as a Gregorian one
+            if Time.sparql_time(julian, precision, calendarmodel) == _format_timestamp(year, month, day, rest):
+                return julian
+
+        return _format_timestamp(year if year > 0 else year - 1, month, day, rest)
 
     def get_sparql_value(self, **kwargs: Any) -> str:
         value = self.mainsnak.datavalue['value']
-        return '"' + self.sparql_time(value['time'], value.get('precision')) + '"^^xsd:dateTime'
+        return '"' + self.sparql_time(value['time'], value.get('precision'), value.get('calendarmodel')) + '"^^xsd:dateTime'
 
     def _time_parts(self) -> tuple[int, int, int]:
         """
@@ -181,6 +297,8 @@ class Time(BaseDataType):
         if type != 'literal':
             raise ValueError('Wrong SPARQL type')
 
-        self.set_value(time=value)
+        # The simple value holds neither the precision nor the calendar model: it is read as a day of the proleptic
+        # Gregorian calendar, the calendar of xsd:dateTime. The years of the RDF export are numbered like in XSD 1.1.
+        self.set_value(time=self.time_from_sparql(value), calendarmodel=GREGORIAN_CALENDAR)
 
         return self

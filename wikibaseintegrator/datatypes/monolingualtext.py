@@ -38,8 +38,10 @@ class MonolingualText(BaseDataType):
     def set_value(self, text: str | None = None, language: str | None = None) -> None:
         language = language or str(config['DEFAULT_LANGUAGE'])
 
-        assert isinstance(text, str) or text is None, f"Expected str, found {type(text)} ({text})"
-        assert isinstance(language, str), f"Expected str, found {type(language)} ({language})"
+        if text is not None and not isinstance(text, str):
+            raise TypeError(f"Expected str, found {type(text)} ({text})")
+        if not isinstance(language, str):
+            raise TypeError(f"Expected str, found {type(language)} ({language})")
 
         if text and ('\n' in text or '\r' in text):
             raise ValueError("MonolingualText text must not contain newline character")
@@ -81,7 +83,7 @@ class MonolingualText(BaseDataType):
     def get_sparql_value(self, **kwargs: Any) -> str:
         return sparql_string(self.mainsnak.datavalue['value']['text']) + '@' + self.mainsnak.datavalue['value']['language']
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^"(.*?)"@([a-z\-]*)$')
         matches = pattern.match(value)
         if not matches:

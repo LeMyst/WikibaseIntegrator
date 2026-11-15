@@ -42,6 +42,8 @@ ENTITY_PREFIXES = {
 
 # Entity sections that can be filtered with the 'props' API parameter.
 ENTITY_SECTIONS = {'labels', 'descriptions', 'aliases', 'claims', 'statements', 'sitelinks', 'lemmas', 'forms', 'senses'}
+# The page of an entity: in the entities of wbgetentities, not in the entity of the response of wbeditentity
+PAGE_FIELDS = {'pageid', 'ns', 'title', 'modified'}
 
 
 def load_fixture(name: str) -> dict:
@@ -68,6 +70,7 @@ class MockWikibase:
         self.sparql_endpoint_url = base_url + '/sparql'
 
         self.entities: dict[str, dict] = {}
+        self.old_revisions: dict[tuple[str, int], dict] = {}  # Special:EntityData revisions other than the latest, keyed by (entity ID, revision ID)
         self.deleted_entities: set[str] = set()  # IDs returned as {'id': ..., 'missing': ''} by wbgetentities, like a deleted entity
         self.next_entity_id = 100000
 
@@ -75,6 +78,7 @@ class MockWikibase:
         self.requests: list[dict[str, str]] = []  # every parsed API request
         self.edits: list[dict[str, Any]] = []  # every wbeditentity call: {'params': ..., 'data': ...}
         self.sparql_queries: list[str] = []
+        self.entity_data_requests: list[dict[str, str]] = []  # every Special:EntityData request (parsed index.php parameters)
 
         # Configurable behaviour
         self.search_results: list[dict] = []  # wbsearchentities results
@@ -94,6 +98,7 @@ class MockWikibase:
 
         mocker.register_uri(requests_mock_lib.ANY, self.mediawiki_api_url, json=self._handle_api)
         mocker.post(self.sparql_endpoint_url, json=self._handle_sparql)
+        mocker.get(self.mediawiki_index_url, text=self._handle_entity_data)
 
     # ------------------------------------------------------------------ #
     # Content setup helpers
@@ -182,6 +187,30 @@ class MockWikibase:
             'results': {'bindings': bindings},
         }
 
+    def _handle_entity_data(self, request: Any, context: Any) -> str:
+        """
+        Special:EntityData through index.php, in JSON only: an entity at its latest revision, or at one of old_revisions
+        when the revision parameter asks for it. Like Wikibase, anything else is answered with an HTML error page.
+        """
+        params = self._parse_params(request)
+        self.entity_data_requests.append(params)
+
+        title = params.get('title', '')
+        if not title.startswith('Special:EntityData/') or not title.endswith('.json'):
+            context.status_code = 415
+            return '<html><body><h1>Unsupported Media Type</h1></body></html>'
+
+        entity_id = title[len('Special:EntityData/'):-len('.json')]
+        entity = self.entities.get(entity_id)
+        if 'revision' in params and (entity is None or entity.get('lastrevid') != int(params['revision'])):
+            entity = self.old_revisions.get((entity_id, int(params['revision'])))
+        if entity is None:
+            context.status_code = 404
+            return f"<html><body><h1>Not Found</h1><p>Can't show revision {params.get('revision')} of entity {entity_id}.</p></body></html>"
+
+        context.headers['Content-Type'] = 'application/json; charset=UTF-8'
+        return json.dumps({'entities': {entity_id: entity}})
+
     # ------------------------------------------------------------------ #
     # action= handlers
     # ------------------------------------------------------------------ #
@@ -260,7 +289,8 @@ class MockWikibase:
         entity = self._apply_edit(base, data, entity_id, entity_type)
         self.entities[entity_id] = deepcopy(entity)
 
-        return {'entity': entity, 'success': 1}
+        # Like Wikibase, the response has no page of the entity, unlike wbgetentities (test_wikibase_behavior.py::TestEditResponse)
+        return {'entity': {key: value for key, value in entity.items() if key not in PAGE_FIELDS}, 'success': 1}
 
     def _apply_edit(self, base: dict, data: dict, entity_id: str, entity_type: str) -> dict:
         entity = base or {'type': entity_type, 'ns': 0, 'title': entity_id, 'pageid': self.next_entity_id, 'lastrevid': 0}
@@ -301,14 +331,39 @@ class MockWikibase:
                 entity[claims_key] = self._apply_claims(entity.get(claims_key, {}), data[key], entity_id)
 
         # Lexeme specific sections, stored as-is.
-        for section in ('lemmas', 'lexicalCategory', 'language', 'forms', 'senses'):
+        for section in ('lemmas', 'lexicalCategory', 'language'):
             if section in data:
                 entity[section] = deepcopy(data[section])
+
+        # Forms and senses: like a real instance, an added one gets an id, a removed one is dropped, the others replace the ones of the same id
+        for section, id_prefix in (('forms', 'F'), ('senses', 'S')):
+            if section in data:
+                entity[section] = self._apply_lexeme_sub_entities(entity.get(section, []), data[section], entity_id, id_prefix)
 
         if entity_type == 'property' and 'datatype' in data:
             entity['datatype'] = data['datatype']
 
         return entity
+
+    @staticmethod
+    def _apply_lexeme_sub_entities(current: list, submitted: list, entity_id: str, id_prefix: str) -> list:
+        result = deepcopy(current)
+        next_number = 1 + max((int(sub_entity['id'].rsplit(id_prefix, 1)[1]) for sub_entity in result), default=0)
+        for sub_entity in deepcopy(submitted):
+            if 'remove' in sub_entity:
+                result = [existing for existing in result if existing['id'] != sub_entity.get('id')]
+            elif 'add' in sub_entity or 'id' not in sub_entity:
+                sub_entity.pop('add', None)
+                sub_entity['id'] = f'{entity_id}-{id_prefix}{next_number}'
+                next_number += 1
+                result.append(sub_entity)
+            else:
+                position = next((position for position, existing in enumerate(result) if existing['id'] == sub_entity['id']), None)
+                if position is None:
+                    result.append(sub_entity)
+                else:
+                    result[position] = sub_entity
+        return result
 
     def _apply_claims(self, current: dict, submitted: dict | list, entity_id: str) -> dict:
         """Merge submitted claims into the current ones, like wbeditentity does."""

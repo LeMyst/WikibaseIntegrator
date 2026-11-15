@@ -11,7 +11,7 @@ from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.datatypes import Item, String
 from wikibaseintegrator.entities import ItemEntity
 from wikibaseintegrator.wbi_enums import EntityField
-from wikibaseintegrator.wbi_exceptions import ModificationFailed, MWApiError, NonExistentEntityError
+from wikibaseintegrator.wbi_exceptions import MissingEntityException, ModificationFailed, MWApiError, NonExistentEntityError
 
 wbi = WikibaseIntegrator()
 
@@ -82,9 +82,53 @@ class TestDelete:
 
         assert wikibase.last_request['title'] == 'Item:Q1' and 'pageid' not in wikibase.last_request
 
-    def test_delete_without_pageid_nor_title(self, wikibase):
-        with pytest.raises(ValueError, match='A pageid or a page title'):
+    def test_delete_without_pageid_nor_title_nor_id(self, wikibase):
+        with pytest.raises(ValueError, match='A pageid, a page title or an id'):
             wbi.item.new().delete(allow_anonymous=True)
+
+    def test_delete_resolves_the_page_of_a_written_entity(self, wikibase):
+        # The response of wbeditentity has no page (#1217): it's resolved from the id
+        item = wbi.item.new()
+        item.labels.set('en', 'new item')
+        written = item.write(allow_anonymous=True)
+        assert written.pageid is None
+
+        written.delete(allow_anonymous=True, reason='test')
+
+        lookup, deletion = wikibase.requests[-2:]
+        assert (lookup['action'], lookup['ids'], lookup['props'], lookup['redirects']) == ('wbgetentities', written.id, 'info', 'no')
+        assert (deletion['action'], deletion['pageid'], deletion['reason']) == ('delete', str(wikibase.entities[written.id]['pageid']), 'test')
+        assert written.pageid == wikibase.entities[written.id]['pageid']
+
+    def test_delete_of_a_missing_entity(self, wikibase, monkeypatch):
+        # wbgetentities marks a deleted entity as missing
+        monkeypatch.setattr('wikibaseintegrator.entities.baseentity.mediawiki_api_call_helper', lambda **kwargs: {'entities': {'Q999999': {'id': 'Q999999', 'missing': ''}}})
+        item = wbi.item.new()
+        item.id = 'Q999999'
+
+        with pytest.raises(MissingEntityException, match='Q999999'):
+            item.delete(allow_anonymous=True)
+        assert not [request for request in wikibase.requests if request.get('action') == 'delete']
+
+    def test_delete_of_an_unknown_entity(self, wikibase):
+        # The simulated instance answers an id it never had with no-such-entity
+        item = wbi.item.new()
+        item.id = 'Q999999'
+
+        with pytest.raises(NonExistentEntityError):
+            item.delete(allow_anonymous=True)
+        assert wikibase.last_request['action'] == 'wbgetentities'
+
+    def test_delete_of_a_redirect(self, wikibase, monkeypatch):
+        # Deleting the page of the target of the redirect would delete another entity
+        monkeypatch.setattr('wikibaseintegrator.entities.baseentity.mediawiki_api_call_helper',
+                            lambda **kwargs: {'entities': {'Q2': {'id': 'Q2', 'title': 'Q2', 'pageid': 2}}})
+        item = wbi.item.new()
+        item.id = 'Q1'
+
+        with pytest.raises(ValueError, match='Q1 is a redirect to Q2'):
+            item.delete(allow_anonymous=True)
+        assert not [request for request in wikibase.requests if request.get('action') == 'delete']
 
     def test_delete_with_a_pageid_as_string(self, wikibase):
         # The pageid setter converts a numeric string to an int
@@ -217,6 +261,67 @@ class TestWrite:
         # A new entity must not carry an id in its data payload (regression: 'id': null was sent)
         assert 'id' not in wikibase.last_edit['data']
         assert written.id != 'Q582'
+
+    def test_write_as_new_drops_what_belongs_to_the_original(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        removed_property, kept_property = list(item.claims.get_json())[:2]
+        for claim in item.claims.get(removed_property):
+            claim.remove()
+        item.labels.set('fr', None)
+        removed_aliases = [alias.value for alias in item.aliases.get('fr')]
+        item.aliases.set('fr', None)
+        item.write(allow_anonymous=True, as_new=True)
+
+        data = wikibase.last_edit['data']
+        # The GUIDs of the claims belong to Q582, and the removals only make sense on it
+        assert removed_property not in data['claims']
+        assert data['claims'][kept_property]
+        assert all('id' not in claim and 'remove' not in claim for claims in data['claims'].values() for claim in claims)
+        assert 'fr' not in data['labels']
+        assert removed_aliases and 'fr' not in data['aliases']
+
+    def test_written_new_entity_has_no_page(self, wikibase):
+        # Like Wikibase, the simulated instance answers wbeditentity without the page of the entity, which wbgetentities gives
+        item = wbi.item.new()
+        item.labels.set('en', 'new item')
+        written = item.write(allow_anonymous=True)
+
+        assert written.id
+        assert (written.pageid, written.title) == (None, None)
+        fetched = wbi.item.get(written.id)
+        assert fetched.pageid is not None
+        assert fetched.title is not None
+
+    def test_write_as_new_forgets_the_page_of_the_original(self, wikibase, item_q582):
+        # The response of wbeditentity has no page id nor title (#1217)
+        item = wbi.item.get('Q582')
+        original_pageid = item.pageid
+        assert original_pageid is not None
+        assert item.title == 'Q582'
+
+        copy = item.write(allow_anonymous=True, as_new=True)
+
+        assert copy.id != 'Q582'
+        assert copy.pageid is None
+        assert copy.title is None
+        # delete() used to remove the page of Q582, the original: it deletes the page of the copy
+        copy.delete(allow_anonymous=True)
+        assert wikibase.last_request['action'] == 'delete'
+        assert wikibase.last_request['pageid'] == str(wikibase.entities[copy.id]['pageid']) != str(original_pageid)
+
+    def test_failed_write_as_new_keeps_the_page(self, wikibase, item_q582, monkeypatch):
+        item = wbi.item.get('Q582')
+        pageid, title = item.pageid, item.title
+
+        def failing_edit(**kwargs):
+            raise MWApiError({'code': 'failed-save', 'info': 'The save has failed.'})
+
+        monkeypatch.setattr('wikibaseintegrator.entities.baseentity.edit_entity', failing_edit)
+        with pytest.raises(MWApiError):
+            item.write(allow_anonymous=True, as_new=True)
+
+        # Nothing was created: the entity still describes the original
+        assert (item.id, item.pageid, item.title) == ('Q582', pageid, title)
 
     def test_write_limited_claims(self, wikibase, item_q582):
         item = wbi.item.get('Q582')

@@ -90,6 +90,7 @@ Wikibase instance
    ~WikibaseCheck
    ~get_user_agent
    ~download_entity_ttl
+   ~download_entity_data
 
 Experimental
 ------------

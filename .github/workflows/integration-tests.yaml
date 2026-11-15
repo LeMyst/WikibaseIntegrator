@@ -1,0 +1,92 @@
+name: Integration tests
+
+# Runs the tests of test/integration/ against a real Wikibase, started with test/integration/docker-compose.yml.
+# Not a required check of the master ruleset: an image update of the Wikibase Suite can break it without any change
+# in the library. Manual, weekly, and on the pull requests changing the integration tests or this workflow.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1'
+  pull_request:
+    branches: [ '**' ]
+    paths:
+      - 'test/integration/**'
+      - '.github/workflows/integration-tests.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: pytest -m integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      COMPOSE_FILE: test/integration/docker-compose.yml
+      WBI_INTEGRATION_MEDIAWIKI_API_URL: http://localhost:8880/w/api.php
+      WBI_INTEGRATION_SPARQL_ENDPOINT_URL: http://localhost:9999/bigdata/namespace/wdq/sparql
+      WBI_INTEGRATION_WIKIBASE_URL: http://localhost:8880
+      # The administrator of the throwaway instance, set in docker-compose.yml: not a secret
+      WBI_INTEGRATION_USER: WikibaseAdmin
+      WBI_INTEGRATION_PASSWORD: WikibaseDockerAdminPass
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Builds the Wikibase image with the WikibaseLexeme extension (test/integration/Dockerfile)
+      - name: Start the Wikibase instance
+        run: docker compose up --detach --build
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14'
+
+      - name: Install poetry
+        run: python -m pip install poetry
+
+      - name: Install dependencies
+        run: python -m poetry install --with dev
+
+      # The first boot runs the MediaWiki installer
+      - name: Wait for the Wikibase instance
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail "${WBI_INTEGRATION_MEDIAWIKI_API_URL}?action=query&meta=siteinfo&siprop=general|extensions&format=json" > siteinfo.json; then
+              python -c "import json; info = json.load(open('siteinfo.json'))['query']; print(info['general']['generator']); print(sorted(extension['name'] for extension in info['extensions']))"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The Wikibase instance didn't answer after 5 minutes"
+          exit 1
+
+      - name: Wait for the query service
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail --get --data-urlencode 'query=ASK {}' "${WBI_INTEGRATION_SPARQL_ENDPOINT_URL}" > /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The query service didn't answer after 5 minutes"
+          exit 1
+
+      - name: Run the integration tests
+        run: python -m poetry run pytest -m integration -v -rs -p no:cacheprovider
+
+      - name: Show the logs of the Wikibase instance
+        if: failure()
+        run: |
+          docker compose ps --all
+          docker compose logs --tail=200
+
+      - name: Stop the Wikibase instance
+        if: always()
+        run: docker compose down --volumes

@@ -1,26 +1,27 @@
-[tool.poetry]
+[project]
 name = "WikibaseIntegrator"
-version = "0.14.3.dev0"
+version = "0.15.0.dev0"
 description = "Python package for reading from and writing to a Wikibase instance"
 authors = [
-    "Myst",
-    "Wikibase Integrator authors",
-    "Wikidata Integrator authors"
+    { name = "Myst" },
+    { name = "Wikibase Integrator authors" },
+    { name = "Wikidata Integrator authors" }
 ]
 license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
-packages = [{ include = "wikibaseintegrator" }]
-include = [
-    { path = "test", format = "sdist" },
-    # PEP 561 marker so downstream type checkers use the package's type hints
-    { path = "wikibaseintegrator/py.typed", format = ["sdist", "wheel"] }
+# 3.11.5: soupsieve 4 (docs and notebooks groups) requires it
+requires-python = ">=3.11.5,<4.0.0"
+dependencies = [
+    "oauthlib>=3.2.2,<5.0.0",
+    "requests>=2.32.3,<3.0.0",
+    "requests-oauthlib>=2.0.0,<3.0.0",
+    "ujson>=5.10,<7.0"
 ]
-homepage = "https://github.com/LeMyst/WikibaseIntegrator"
-repository = "https://github.com/LeMyst/WikibaseIntegrator"
-documentation = "https://lemyst.github.io/WikibaseIntegrator/"
 keywords = ["wikibase", "wikidata", "mediawiki", "sparql"]
 classifiers = [
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -37,16 +38,20 @@ classifiers = [
     "Typing :: Typed"
 ]
 
-[tool.poetry.urls]
+[project.urls]
+Homepage = "https://github.com/LeMyst/WikibaseIntegrator"
+Repository = "https://github.com/LeMyst/WikibaseIntegrator"
+Documentation = "https://lemyst.github.io/WikibaseIntegrator/"
 "Bug Tracker" = "https://github.com/LeMyst/WikibaseIntegrator/issues"
 Changelog = "https://github.com/LeMyst/WikibaseIntegrator/releases"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-oauthlib = ">=3.2.2,<5.0.0"
-requests = "^2.32.3"
-requests-oauthlib = "^2.0.0"
-ujson = ">=5.10,<7.0"
+[tool.poetry]
+packages = [{ include = "wikibaseintegrator" }]
+include = [
+    { path = "test", format = "sdist" },
+    # PEP 561 marker so downstream type checkers use the package's type hints
+    { path = "wikibaseintegrator/py.typed", format = ["sdist", "wheel"] }
+]
 
 [tool.poetry.group.dev]
 optional = true
@@ -69,6 +74,8 @@ pydata-sphinx-theme = "*"
 myst-parser = "*"
 sphinx-github-changelog = "*"
 sphinx-autodoc-typehints = "*"
+# Force soupsieve 4.0 (beautifulsoup4) to fix a denial of service in the descendant combinator (GHSA-mmhr-3c5m-f64f)
+soupsieve = ">=4.0"
 
 [tool.poetry.group.notebooks]
 optional = true
@@ -79,6 +86,8 @@ jupyter = "*"
 jupyterlab = "^4.2.5"
 # Force nbconvert 7.17.2 to fix a path traversal vulnerability (GHSA-pjvx-prjx-h659)
 nbconvert = ">=7.17.2"
+# Force soupsieve 4.0 (beautifulsoup4) to fix a denial of service in the descendant combinator (GHSA-mmhr-3c5m-f64f)
+soupsieve = ">=4.0"
 
 [tool.poetry.group.coverage]
 optional = true
@@ -87,7 +96,7 @@ optional = true
 pytest-cov = "*"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.codespell]
@@ -103,9 +112,13 @@ files = "wikibaseintegrator/**/*.py,test/*.py,test/integration/*.py,scripts/*.py
 warn_unused_ignores = true
 
 # The package ships type hints (py.typed): every function of it must be annotated. The tests are exempt.
+# Its modules re-export only the imported names listed in __all__ or imported with a redundant alias, as type checkers read
+# a py.typed package (Pyright reportPrivateImportUsage, mypy --strict): an import of the tests or of the package relying on
+# an implicit re-export fails.
 [[tool.mypy.overrides]]
 module = "wikibaseintegrator.*"
 disallow_untyped_defs = true
+implicit_reexport = false
 
 [tool.pylint.MASTER]
 extension-pkg-allow-list = [

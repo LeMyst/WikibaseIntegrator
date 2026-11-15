@@ -15,6 +15,9 @@ Options::
     TIMEOUT:           Timeout (in seconds) passed to every HTTP request, either a single value or a (connect, read) tuple.
                        Prevents a silent/unresponsive server from blocking the process indefinitely.
                        Set to None to disable (wait forever). Default: (5, 300)
+    SPARQL_QUERY_TIMEOUT: Default maximum time, in seconds, the SPARQL endpoint may spend on a query of
+                       wbi_helpers.execute_sparql_query() (and so of the fast run mode). See its query_timeout parameter.
+                       Default: None (the limit of the endpoint, 60 seconds on the Wikidata Query Service)
     SPARQL_AUTH:       Default authentication used by wbi_helpers.execute_sparql_query() (and so by the fast run mode) when the
                        SPARQL endpoint is protected. Either a (username, password) tuple for HTTP Basic auth or any
                        requests.auth.AuthBase instance. Default: None (no authentication)
@@ -40,6 +43,7 @@ config: dict[str, Any] = {
     'MEDIAWIKI_INDEX_URL': 'https://www.wikidata.org/w/index.php',
     'MEDIAWIKI_REST_URL': 'https://www.wikidata.org/w/rest.php',
     'SPARQL_ENDPOINT_URL': 'https://query.wikidata.org/sparql',
+    'SPARQL_QUERY_TIMEOUT': None,
     'SPARQL_AUTH': None,
     'MAX_REQUEST_SIZE': None,
     'WIKIBASE_URL': 'http://www.wikidata.org',

@@ -80,6 +80,8 @@ class Claim(BaseModel):
                     ref.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
                 elif isinstance(ref_list, Reference):
                     ref = ref_list
+                else:
+                    raise ValueError("The references must be a References object or a list of Claim object")
                 self.references.add(reference=ref)
         elif references is not None:
             raise ValueError("The references must be a References object or a list of Claim object")
@@ -106,7 +108,8 @@ class Claim(BaseModel):
 
     @qualifiers.setter
     def qualifiers(self, value: Qualifiers) -> None:
-        assert isinstance(value, (Qualifiers, list))
+        if not isinstance(value, (Qualifiers, list)):
+            raise TypeError(f"The qualifiers must be a Qualifiers object or a list, found {type(value)}")
         self.__qualifiers: Qualifiers = Qualifiers().set(value) if isinstance(value, list) else value
 
     @property

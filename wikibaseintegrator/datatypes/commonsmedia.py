@@ -18,7 +18,8 @@ class CommonsMedia(URL):
     SPARQL_IRI_PREFIX = 'http://commons.wikimedia.org/wiki/Special:FilePath/'
 
     def set_value(self, value: str | None = None) -> None:
-        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"Expected str, found {type(value)} ({value})")
 
         if value:
             pattern = re.compile(r'^.+\..+$')
@@ -67,7 +68,7 @@ class CommonsMedia(URL):
             return None
         return '<' + self.SPARQL_IRI_PREFIX + urllib.parse.quote(self.mainsnak.datavalue['value'], safe='') + '>'
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?.*?/?([^/]*?)>?$')
         matches = pattern.match(value)
         if not matches:

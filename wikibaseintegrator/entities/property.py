@@ -51,11 +51,13 @@ class PropertyEntity(TermsEntity):
     def new(self, **kwargs: Any) -> PropertyEntity:
         return PropertyEntity(api=self.api, **kwargs)
 
-    def get(self, entity_id: str | int | None = None, **kwargs: Any) -> PropertyEntity:
+    def get(self, entity_id: str | int | None = None, revision: int | None = None, **kwargs: Any) -> PropertyEntity:
         """
         Request the MediaWiki API to get data for the entity specified in argument.
 
         :param entity_id: The ID of the entity to load, starting with 'P'. By default, the ID of this entity, to reload it.
+        :param revision: The ID of a revision of the entity, to load the entity as it was at this revision. Such an entity can't
+            be written, see loaded_revision. Default: the latest revision
         :param kwargs:
         :return: a PropertyEntity instance
         """
@@ -78,8 +80,10 @@ class PropertyEntity(TermsEntity):
             raise ValueError("Property ID must be greater than 0")
 
         entity_id = f'P{entity_id}'
-        json_data = super()._get(entity_id=entity_id, **kwargs)
-        return PropertyEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        json_data = super()._get(entity_id=entity_id, revision=revision, **kwargs)
+        entity = PropertyEntity(api=self.api).from_json(json_data=json_data['entities'][entity_id])
+        entity.loaded_revision = revision
+        return entity
 
     def get_json(self) -> dict[str, str | Any]:
         json = {

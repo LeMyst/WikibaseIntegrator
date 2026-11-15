@@ -54,10 +54,10 @@ source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 myst_heading_anchors = 4
 master_doc = 'index'
 
-project = meta["tool"]["poetry"]["name"]
+project = meta["project"]["name"]
 copyright = f'{datetime.now().year}, LeMyst'
-author = ", ".join(meta["tool"]["poetry"]["authors"])
-version = meta["tool"]["poetry"]["version"]
+author = ", ".join(author["name"] for author in meta["project"]["authors"])
+version = meta["project"]["version"]
 release = version
 
 language = 'en'
@@ -86,6 +86,9 @@ autodoc_default_options = {
 autodoc_member_order = 'groupwise'
 # The documentation of the class and of its __init__() are shown together, instead of a separate __init__ entry
 autoclass_content = 'both'
+# Warn on every reference that can't be resolved (e.g. a class missing from the API reference), which the CI build turns
+# into a failure: without it, Sphinx renders such a reference as plain text, silently
+nitpicky = True
 
 # sphinx-autodoc-typehints: the types are shown in the parameter descriptions, not in the signatures
 typehints_defaults = 'comma'

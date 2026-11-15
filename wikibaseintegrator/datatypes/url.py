@@ -35,7 +35,8 @@ class URL(BaseDataType):
         self.set_value(value=value)
 
     def set_value(self, value: str | None = None) -> None:
-        assert isinstance(value, str) or value is None, f"Expected str, found {type(value)} ({value})"
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"Expected str, found {type(value)} ({value})")
 
         if value:
             pattern = re.compile(r'^([a-z][a-z\d+.-]*):([^][<>\"\x00-\x20\x7F])+$')
@@ -78,7 +79,7 @@ class URL(BaseDataType):
             return None
         return '<' + self.mainsnak.datavalue['value'].translate(IRI_ESCAPES) + '>'
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?(.*?)>?$')
         matches = pattern.match(value)
         if not matches:
