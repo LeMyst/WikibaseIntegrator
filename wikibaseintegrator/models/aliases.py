@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Self
 
 from wikibaseintegrator.models.alias import Alias
@@ -119,5 +120,14 @@ class Aliases(BaseModel):
 
         return self
 
+    def __iter__(self) -> Iterator[Alias]:
+        """Iterate over the aliases of every language, including the ones marked for removal, like Claims."""
+        return iter([alias for aliases in self.aliases.values() for alias in aliases])
+
     def __len__(self) -> int:
-        return len(self.aliases)
+        # The aliases, like the iteration: not the languages
+        return sum(len(aliases) for aliases in self.aliases.values())
+
+    def count(self) -> int:
+        """Return the number of aliases, across every language, including the ones marked for removal: the same as ``len()``."""
+        return len(self)

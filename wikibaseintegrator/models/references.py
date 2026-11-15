@@ -105,3 +105,7 @@ class References(BaseModel):
 
     def __len__(self) -> int:
         return len(self.references)
+
+    def count(self) -> int:
+        """Return the number of references: the same as ``len()``."""
+        return len(self)

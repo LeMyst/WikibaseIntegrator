@@ -87,13 +87,24 @@ class TestClaim:
         claim.id = 'Q1$1'
         assert claim.get_json()['remove'] == ''
 
-    def test_contains(self):
+    def test_contains_is_deprecated(self):
+        # A claim isn't a collection (#1190): 'in' is deprecated in v0.15 and removed in 1.0
         claim = Item(prop_nr='P31', value='Q5')
-        assert Item(prop_nr='P31', value='Q5') in claim
-        assert Item(prop_nr='P31', value='Q6') not in claim
-        # Known quirk: a string is compared with the datavalue, a dict, so it never matches
-        assert 'Q5' not in claim
-        assert 5 not in claim
+        with pytest.warns(DeprecationWarning, match="'in' on a Claim is deprecated"):
+            assert Item(prop_nr='P31', value='Q5') in claim
+        with pytest.warns(DeprecationWarning):
+            assert Item(prop_nr='P31', value='Q6') not in claim
+        with pytest.warns(DeprecationWarning):
+            # A string is compared with the datavalue, a dict, so it never matches
+            assert 'Q5' not in claim
+        with pytest.warns(DeprecationWarning):
+            assert 5 not in claim
+
+    def test_in_claims_compares_the_property(self):
+        # Not deprecated: Claims has no __contains__, 'in' compares each claim with the string through Claim.__eq__
+        claims = Claims().add(Item(prop_nr='P31', value='Q5'))
+        assert 'P31' in claims
+        assert 'P32' not in claims
 
     def test_eq_with_a_property_number(self):
         claim = Item(prop_nr='P31', value='Q5')
@@ -189,10 +200,9 @@ class TestClaims:
         assert list(json_data) == ['P2']
         assert [claim['mainsnak']['datavalue']['value'] for claim in json_data['P2']] == ['b']
 
-    def test_len_counts_properties(self):
+    def test_len_counts_the_claims(self):
         claims = Claims().add([String(prop_nr='P1', value='a'), String(prop_nr='P1', value='b')])
-        assert len(claims) == 1
-        assert claims.count() == 2
+        assert len(claims) == claims.count() == 2
 
 
 class TestForms:

@@ -39,3 +39,7 @@ class Sitelinks(BaseModel):
 
     def __len__(self) -> int:
         return len(self.sitelinks)
+
+    def count(self) -> int:
+        """Return the number of sitelinks: the same as ``len()``."""
+        return len(self)

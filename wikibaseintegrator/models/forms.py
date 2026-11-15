@@ -81,3 +81,7 @@ class Forms(BaseModel):
 
     def __len__(self) -> int:
         return len(self.forms)
+
+    def count(self) -> int:
+        """Return the number of forms: the same as ``len()``."""
+        return len(self)

@@ -136,13 +136,8 @@ class Qualifiers(BaseModel):
         return json_data
 
     def count(self) -> int:
-        """
-        Return the total number of individual qualifier snaks, across every property.
-
-        Note: ``len(qualifiers)`` returns the number of distinct properties, while iterating yields the individual
-        snaks. Use this method when you need the qualifier count.
-        """
-        return sum(len(snak_list) for snak_list in self.qualifiers.values())
+        """Return the number of qualifiers, across every property: the same as ``len()``."""
+        return len(self)
 
     def __iter__(self) -> Iterator[Snak]:
         iterate = []
@@ -151,5 +146,5 @@ class Qualifiers(BaseModel):
         return iter(iterate)
 
     def __len__(self) -> int:
-        # Returns the number of distinct properties. See count() for the total number of individual snaks.
-        return len(self.qualifiers)
+        # The qualifiers, like the iteration: not the properties
+        return sum(len(snak_list) for snak_list in self.qualifiers.values())

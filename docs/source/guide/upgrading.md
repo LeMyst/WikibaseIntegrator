@@ -50,6 +50,14 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   item they are given.
 - **`Aliases.set()` refuses `FORCE_APPEND` and `MERGE_REFS_OR_APPEND`** with a `ValueError`: a duplicate alias is
   dropped by Wikibase and aliases have no references, and these actions used to do nothing at all, silently.
+- **`len()` counts the elements of every collection**, like the iteration: the claims of `Claims`, the qualifiers of
+  `Qualifiers`, the snaks of `Snaks` and of a `Reference`, the aliases of `Aliases`. It used to count their distinct
+  properties, or languages for `Aliases`: `len(item.claims)` was the number of properties with a claim. Count them
+  with `len({claim.mainsnak.property_number for claim in item.claims})` if you need it. The elements marked for
+  removal are counted, like the iteration gives them.
+  - Every collection has a `count()`, the same as `len()`. `Claims.count()` and `Qualifiers.count()` already counted
+    the elements.
+  - `Aliases` is iterable over its aliases, of every language.
 
 ### Deprecated in v0.15, removed in 1.0
 
@@ -65,6 +73,9 @@ These APIs still work in v0.15 and emit a `DeprecationWarning`. They will be rem
   the SPARQL queries are set by `wbi_config['BACKOFF_MAX_TRIES']`.
 - **Importing `Representations` from `wikibaseintegrator.models.forms` and `Glosses` from
   `wikibaseintegrator.models.senses`**: import them from `wikibaseintegrator.models`.
+- **`in` on a `Claim`** (`x in claim`): a claim isn't a collection. Compare the claims with `==`, and read the
+  value of a claim from `claim.mainsnak.datavalue`. With a string, it never matched anything. `'P31' in item.claims`
+  isn't concerned.
 
 If you want to stay on v0.14.x, you can put this line in your requirements.txt:
 

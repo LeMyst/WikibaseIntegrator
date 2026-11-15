@@ -179,13 +179,8 @@ class Claims(BaseModel):
         return json_data
 
     def count(self) -> int:
-        """
-        Return the total number of individual claims, across every property.
-
-        Note: ``len(claims)`` returns the number of distinct properties, while iterating (``for claim in claims``)
-        yields the individual claims. Use this method when you need the claim count.
-        """
-        return sum(len(claim_list) for claim_list in self.claims.values())
+        """Return the number of claims, across every property, including the ones marked for removal: the same as ``len()``."""
+        return len(self)
 
     def __iter__(self) -> Iterator[Claim]:
         iterate = []
@@ -194,5 +189,5 @@ class Claims(BaseModel):
         return iter(iterate)
 
     def __len__(self) -> int:
-        # Returns the number of distinct properties. See count() for the total number of individual claims.
-        return len(self.claims)
+        # The claims, like the iteration: not the properties
+        return sum(len(claim_list) for claim_list in self.claims.values())

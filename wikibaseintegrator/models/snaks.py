@@ -56,4 +56,9 @@ class Snaks(BaseModel):
         return iter(iterate)
 
     def __len__(self) -> int:
-        return len(self.snaks)
+        # The snaks, like the iteration: not the properties
+        return sum(len(snak_list) for snak_list in self.snaks.values())
+
+    def count(self) -> int:
+        """Return the number of snaks, across every property: the same as ``len()``."""
+        return len(self)

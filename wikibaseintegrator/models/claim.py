@@ -225,6 +225,9 @@ class Claim(BaseModel):
 
     # TODO: rewrite this?
     def __contains__(self, item: object) -> bool:
+        warnings.warn("'in' on a Claim is deprecated and will be removed in WikibaseIntegrator 1.0: a claim isn't a collection. Compare the claims with ==, "
+                      "or read the value from claim.mainsnak.datavalue.", DeprecationWarning, stacklevel=2)
+
         if isinstance(item, Claim):
             return self == item
 
