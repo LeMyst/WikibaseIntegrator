@@ -25,5 +25,6 @@ Other
    :toctree: generated
    :nosignatures:
 
+   ~BaseLogin
    ~WCQSAuth
    ~LoginError
