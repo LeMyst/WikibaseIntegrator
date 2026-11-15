@@ -113,3 +113,7 @@ class LanguageValues(BaseModel):
 
     def __len__(self) -> int:
         return len(self.values)
+
+    def count(self) -> int:
+        """Return the number of values, one per language: the same as ``len()``."""
+        return len(self)

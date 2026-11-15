@@ -86,7 +86,12 @@ class Reference(BaseModel):
         return iter(self.snaks)
 
     def __len__(self) -> int:
+        # The snaks, like the iteration: not the properties
         return len(self.snaks)
+
+    def count(self) -> int:
+        """Return the number of snaks of the reference, across every property: the same as ``len()``."""
+        return len(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reference):

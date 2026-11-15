@@ -343,13 +343,12 @@ class TestClaims:
         claim.reset_id()
         assert claim.id is None
 
-    def test_len_counts_properties_while_count_counts_claims(self):
+    def test_len_counts_the_claims(self):
         claims = Claims()
         claims.add([String(prop_nr='P1', value='a'), String(prop_nr='P1', value='b'), String(prop_nr='P2', value='c')], action_if_exists=ActionIfExists.FORCE_APPEND)
 
-        # len() is the number of distinct properties, count() the number of individual claims
-        assert len(claims) == 2
-        assert claims.count() == 3
+        # len() and count() are the number of claims, like the iteration, not of the properties (#1190)
+        assert len(claims) == claims.count() == len(list(claims)) == 3
 
     def test_claim_comparison_with_unrelated_types(self):
         claim = String(prop_nr='P1', value='foo')
@@ -477,9 +476,8 @@ class TestQualifiers:
         claim = Item(prop_nr='P1')
         claim.qualifiers.set([Item(prop_nr='P2', value='Q1'), Item(prop_nr='P2', value='Q2'), Item(prop_nr='P3', value='Q3')])
 
-        # len() is the number of distinct qualifier properties, count() the number of individual snaks
-        assert len(claim.qualifiers) == 2
-        assert claim.qualifiers.count() == 3
+        # len() and count() are the number of qualifiers, like the iteration, not of the properties (#1190)
+        assert len(claim.qualifiers) == claim.qualifiers.count() == len(list(claim.qualifiers)) == 3
 
     def test_equality(self):
         claim1 = Item(prop_nr='P1')

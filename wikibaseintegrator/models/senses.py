@@ -70,3 +70,7 @@ class Senses(BaseModel):
 
     def __len__(self) -> int:
         return len(self.senses)
+
+    def count(self) -> int:
+        """Return the number of senses: the same as ``len()``."""
+        return len(self)
