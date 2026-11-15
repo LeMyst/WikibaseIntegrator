@@ -1535,7 +1535,7 @@ def format2wbi(entitytype: str, json_raw: str, allow_anonymous: bool = True, wik
     The datatype of the properties is retrieved from the instance (wbgetentities), and cached.
 
     .. warning::
-        **Experimental.** This function (and its helper :func:`_json2datatype`) is incomplete (the lemmas, forms and senses
+        **Experimental.** This function (and its helper ``_json2datatype()``) is incomplete (the lemmas, forms and senses
         of a lexeme and the datatype of a property are not read, and a qualifier or a reference snak takes a single value per
         property). Its API and behaviour may change or be removed without notice.
 

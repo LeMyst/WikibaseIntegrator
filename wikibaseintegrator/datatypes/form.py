@@ -25,18 +25,7 @@ class Form(BaseDataType):
         """
         Constructor, calls the superclass BaseDataType
 
-        :param value: The form number to serve as a value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
-        :type value: str with the format "L<Lexeme ID>-F<Form>"
-        :param prop_nr: The property number for this claim
-        :type prop_nr: str with a 'P' prefix followed by digits
-        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'
-        :type snaktype: str
-        :param references: List with reference objects
-        :type references: A data type with subclass of BaseDataType
-        :param qualifiers: List with qualifier objects
-        :type qualifiers: A data type with subclass of BaseDataType
-        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'
-        :type rank: str
+        :param value: Value using the format "L<Lexeme ID>-F<Form ID>" (example: L252248-F2)
         """
 
         super().__init__(**kwargs)
