@@ -25,6 +25,17 @@ def sparql_string(text: str) -> str:
     return '"' + text + '"'
 
 
+# Wikibase only accepts the calendar models of the times and the globes of the coordinates of Wikidata, on every instance: their
+# IRIs must start with this prefix (the $wikidataBaseUri of ValidatorBuilders, a hardcoded value of Wikibase).
+_WIKIDATA_ENTITY_URI = 'http://www.wikidata.org/entity/'
+
+
+def _warn_wikibase_url(datatype: str, part: str, example: str) -> None:
+    warnings.warn(f"The wikibase_url argument of {datatype} is deprecated and will be removed in WikibaseIntegrator 1.0, it is ignored: a {part} given as an ID "
+                  f"like '{example}' is an entity of Wikidata ({_WIKIDATA_ENTITY_URI}{example}) on every Wikibase instance, the only {part}s Wikibase accepts.",
+                  DeprecationWarning, stacklevel=3)
+
+
 class BaseDataType(Claim):
     """
     The base class for all Wikibase data types, they inherit from it

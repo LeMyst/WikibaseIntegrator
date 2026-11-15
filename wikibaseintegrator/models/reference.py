@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
-from wikibaseintegrator.models.snak import Snak, _require_property_number
+from wikibaseintegrator.models.snak import Snak, _copy_json, _require_property_number
 from wikibaseintegrator.models.snaks import Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -59,7 +59,7 @@ class Reference(BaseModel):
         # Imported here because Claim holds References, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim
         if isinstance(snak, Claim):
-            snak = Snak().from_json(snak.get_json()['mainsnak'])
+            snak = Snak().from_json(_copy_json(snak.mainsnak))
 
         if snak is not None:
             if not isinstance(snak, Snak):

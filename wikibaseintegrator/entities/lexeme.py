@@ -9,6 +9,7 @@ from wikibaseintegrator.models.forms import Forms
 from wikibaseintegrator.models.lemmas import Lemmas
 from wikibaseintegrator.models.sense import Sense
 from wikibaseintegrator.models.senses import Senses
+from wikibaseintegrator.models.snak import _serializing_for
 from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense, lexeme_edit_form, lexeme_edit_sense, lexeme_remove_form, lexeme_remove_sense
 from wikibaseintegrator.wbi_login import BaseLogin
 
@@ -144,13 +145,15 @@ class LexemeEntity(BaseEntity):
         return entity
 
     def get_json(self) -> dict[str, str | dict]:
-        json_data: dict = {
-            'lemmas': self.lemmas.get_json(),
-            'language': self.language,
-            'forms': self.forms.get_json(),
-            'senses': self.senses.get_json(),
-            **super().get_json()
-        }
+        # The claims of the forms and senses, like the ones of the lexeme (see BaseEntity.get_json())
+        with _serializing_for(self.api.config['WIKIBASE_URL']):
+            json_data: dict = {
+                'lemmas': self.lemmas.get_json(),
+                'language': self.language,
+                'forms': self.forms.get_json(),
+                'senses': self.senses.get_json(),
+                **super().get_json()
+            }
 
         if self.lexical_category:
             json_data['lexicalCategory'] = self.lexical_category
@@ -211,7 +214,8 @@ class LexemeEntity(BaseEntity):
         if form.removed:
             raise ValueError('The Form is marked as removed, it cannot be added.')
 
-        data = form.get_json()
+        with _serializing_for(self.api.config['WIKIBASE_URL']):
+            data = form.get_json()
         # 'add' is a marker used by wbeditentity, the wbladdform action doesn't expect it.
         data.pop('add', None)
 
@@ -253,7 +257,8 @@ class LexemeEntity(BaseEntity):
         if form.removed:
             raise ValueError(f'The Form {form_id} is marked as removed: remove it with remove_form().')
 
-        data = form.get_json()
+        with _serializing_for(self.api.config['WIKIBASE_URL']):
+            data = form.get_json()
         # The id is the formId parameter of the action
         data.pop('id', None)
 
@@ -303,7 +308,8 @@ class LexemeEntity(BaseEntity):
         if sense.removed:
             raise ValueError('The Sense is marked as removed, it cannot be added.')
 
-        data = sense.get_json()
+        with _serializing_for(self.api.config['WIKIBASE_URL']):
+            data = sense.get_json()
         # 'add' is a marker used by wbeditentity, the wbladdsense action doesn't expect it.
         data.pop('add', None)
 
@@ -346,7 +352,8 @@ class LexemeEntity(BaseEntity):
         if sense.removed:
             raise ValueError(f'The Sense {sense_id} is marked as removed: remove it with remove_sense().')
 
-        data = sense.get_json()
+        with _serializing_for(self.api.config['WIKIBASE_URL']):
+            data = sense.get_json()
         # The id is the senseId parameter of the action
         data.pop('id', None)
 

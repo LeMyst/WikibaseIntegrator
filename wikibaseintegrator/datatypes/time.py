@@ -5,7 +5,7 @@ import re
 from functools import total_ordering
 from typing import Any, Self
 
-from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.datatypes.basedatatype import _WIKIDATA_ENTITY_URI, BaseDataType, _warn_wikibase_url
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType, WikibaseTimePrecision
 
@@ -95,21 +95,27 @@ class Time(BaseDataType):
         :param precision: Precision value for dates and time as specified in the Wikibase data model
                           (https://www.wikidata.org/wiki/Special:ListDatatypes#time)
         :param timezone: The timezone which applies to the date and time as specified in the Wikibase data model
-        :param calendarmodel: The calendar model used for the date. URL to the Wikibase calendar model item or the QID.
+        :param calendarmodel: The calendar model used for the date: the IRI of the Wikidata item of the calendar, or its ID, e.g. 'Q1985786'
+            for the Julian calendar. Wikibase only accepts the calendar models of Wikidata, on every instance.
+        :param wikibase_url: Deprecated and ignored: a calendar model given as an ID is always an entity of Wikidata.
         """
+        if wikibase_url is not None:
+            _warn_wikibase_url('Time', 'calendar model', 'Q1985786')
 
         super().__init__(**kwargs)
-        self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel, wikibase_url=wikibase_url)
+        self.set_value(time=time, before=before, after=after, precision=precision, timezone=timezone, calendarmodel=calendarmodel)
 
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
     def set_value(self, time: str | None = None, before: int = 0, after: int = 0, precision: int | WikibaseTimePrecision | None = None, timezone: int = 0,
                   calendarmodel: str | None = None, wikibase_url: str | None = None) -> None:
+        if wikibase_url is not None:
+            _warn_wikibase_url('Time', 'calendar model', 'Q1985786')
         calendarmodel = calendarmodel or str(config['CALENDAR_MODEL_QID'])
-        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
+        # An item of Wikidata, whatever the instance
         if calendarmodel.startswith('Q'):
-            calendarmodel = wikibase_url + '/entity/' + calendarmodel
+            calendarmodel = _WIKIDATA_ENTITY_URI + calendarmodel
 
         if time is not None and not isinstance(time, str):
             raise TypeError(f"Expected str, found {type(time)} ({time})")

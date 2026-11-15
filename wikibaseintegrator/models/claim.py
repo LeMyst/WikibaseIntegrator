@@ -9,7 +9,7 @@ from wikibaseintegrator.models.basemodel import BaseModel
 from wikibaseintegrator.models.qualifiers import Qualifiers
 from wikibaseintegrator.models.reference import Reference
 from wikibaseintegrator.models.references import References
-from wikibaseintegrator.models.snak import Snak
+from wikibaseintegrator.models.snak import Snak, _copy_json, _same_datavalue
 from wikibaseintegrator.models.snaks import Snaks
 from wikibaseintegrator.wbi_enums import WikibaseRank, WikibaseSnakType
 
@@ -72,12 +72,12 @@ class Claim(BaseModel):
                     snaks = Snaks()
                     for ref_claim in ref_list:
                         if isinstance(ref_claim, Claim):
-                            snaks.add(Snak().from_json(ref_claim.get_json()['mainsnak']))
+                            snaks.add(Snak().from_json(_copy_json(ref_claim.mainsnak)))
                         else:
                             raise ValueError("The references must be a References object or a list of Claim object")
                     ref.snaks = snaks
                 elif isinstance(ref_list, Claim):
-                    ref.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
+                    ref.snaks = Snaks().add(Snak().from_json(_copy_json(ref_list.mainsnak)))
                 elif isinstance(ref_list, Reference):
                     ref = ref_list
                 else:
@@ -239,7 +239,7 @@ class Claim(BaseModel):
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Claim):
             # The snak type too: a no value and an unknown value claim both have no datavalue
-            return (self.mainsnak.snaktype == other.mainsnak.snaktype and self.mainsnak.datavalue == other.mainsnak.datavalue
+            return (self.mainsnak.snaktype == other.mainsnak.snaktype and _same_datavalue(self.mainsnak.datavalue, other.mainsnak.datavalue)
                     and self.mainsnak.property_number == other.mainsnak.property_number and self.has_equal_qualifiers(other))
 
         if isinstance(other, str):

@@ -336,7 +336,8 @@ class TestWriteRequired:
 
     def test_globe_coordinate_of_another_globe(self, wikibase, sparql_data, frc):
         # The WKT literal of a coordinate on Mars (Q111) starts with the globe, it used to be skipped as invalid
-        sparql_data.statement('Q99', 'P625', literal(f'<{wikibase.base_url}/entity/Q111> Point(354.5 -1.9)', datatype=GEO_WKT_LITERAL), PTYPE_GLOBE_COORDINATE)
+        # The globe is an item of Wikidata, whatever the instance
+        sparql_data.statement('Q99', 'P625', literal('<http://www.wikidata.org/entity/Q111> Point(354.5 -1.9)', datatype=GEO_WKT_LITERAL), PTYPE_GLOBE_COORDINATE)
 
         assert frc.write_required(claims=[GlobeCoordinate(latitude=-1.9, longitude=354.5, globe='Q111', prop_nr='P625')]) is False
         # The same point on the Moon (Q405)

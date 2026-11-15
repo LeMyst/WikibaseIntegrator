@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
-from wikibaseintegrator.models.snak import Snak, _require_property_number
+from wikibaseintegrator.models.snak import Snak, _copy_json, _require_property_number
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
 if TYPE_CHECKING:
@@ -71,7 +71,7 @@ class Qualifiers(BaseModel):
         # Imported here because Claim holds Qualifiers, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim
         if isinstance(qualifier, Claim):
-            qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
+            qualifier = Snak().from_json(_copy_json(qualifier.mainsnak))
 
         # Adding no qualifier does nothing, like Reference.add() and References.add()
         if qualifier is None:
@@ -93,7 +93,7 @@ class Qualifiers(BaseModel):
         """
         from wikibaseintegrator.models.claim import Claim
         if isinstance(qualifier, Claim):
-            qualifier = Snak().from_json(qualifier.get_json()['mainsnak'])
+            qualifier = Snak().from_json(_copy_json(qualifier.mainsnak))
 
         if not isinstance(qualifier, Snak):
             raise TypeError(f"Expected a Snak or a Claim, found {type(qualifier)}")

@@ -1634,7 +1634,7 @@ def _json2datatype(prop_nr: str, statement: Any, wikibase_url: str | None = None
 
     if f.__name__ == 'GlobeCoordinate':
         return f(prop_nr=prop_nr, latitude=attributes['latitude'], longitude=attributes['longitude'], altitude=attributes.get('altitude'), precision=attributes.get('precision'),
-                 globe=attributes.get('globe'), wikibase_url=wikibase_url)
+                 globe=attributes.get('globe'))
     if f.__name__ == 'MonolingualText':
         return f(prop_nr=prop_nr, language=attributes['language'], text=attributes['text'])
     if f.__name__ == 'Quantity':
@@ -1644,7 +1644,7 @@ def _json2datatype(prop_nr: str, statement: Any, wikibase_url: str | None = None
                  wikibase_url=wikibase_url)
     if f.__name__ == 'Time':
         return f(prop_nr=prop_nr, time=attributes['time'] if attributes else statement, before=attributes.get('before') or 0, after=attributes.get('after') or 0,
-                 precision=attributes.get('precision'), timezone=attributes.get('timezone') or 0, calendarmodel=attributes.get('calendarmodel'), wikibase_url=wikibase_url)
+                 precision=attributes.get('precision'), timezone=attributes.get('timezone') or 0, calendarmodel=attributes.get('calendarmodel'))
 
     # The data types with a single value: CommonsMedia, EntitySchema, ExternalID, Form, GeoShape, Item, Lexeme, Math...
     return f(prop_nr=prop_nr, value=attributes['value'] if attributes else statement)

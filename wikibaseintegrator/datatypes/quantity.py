@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing import Any, Self
 
 from wikibaseintegrator.datatypes.basedatatype import BaseDataType
-from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
 
 # A number as written by Python or by a user: an optional sign, digits with an optional fraction, an optional exponent. No
@@ -66,7 +65,8 @@ class Quantity(BaseDataType):
         :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.
         :param unit: The unit item URL or the QID a certain amount has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).
             The default is dimensionless, represented by a '1'
-        :param wikibase_url: The default wikibase URL, used when the unit is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.
+        :param wikibase_url: The Wikibase URL completing a unit given as an ID like 'Q11573'. Default: the ID is kept, and completed when the
+            value is serialized, with the WIKIBASE_URL of the WikibaseIntegrator instance of the entity, else wbi_config['WIKIBASE_URL']
         """
 
         super().__init__(**kwargs)
@@ -76,11 +76,10 @@ class Quantity(BaseDataType):
     # pylint: disable-next=arguments-renamed
     def set_value(self, amount: str | int | float | None = None, upper_bound: str | int | float | None = None, lower_bound: str | int | float | None = None, unit: str | int = '1',
                   wikibase_url: str | None = None) -> None:
-        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
-
         unit = str(unit or '1')
 
-        if unit.startswith('Q'):
+        # Without wikibase_url, a bare ID is completed when the value is serialized (see Snak.get_json())
+        if wikibase_url and unit.startswith('Q'):
             unit = wikibase_url + '/entity/' + unit
 
         if amount is not None:

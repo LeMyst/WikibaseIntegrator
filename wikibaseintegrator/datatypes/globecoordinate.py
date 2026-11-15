@@ -5,7 +5,7 @@ import re
 from decimal import Decimal
 from typing import Any, Self
 
-from wikibaseintegrator.datatypes.basedatatype import BaseDataType
+from wikibaseintegrator.datatypes.basedatatype import _WIKIDATA_ENTITY_URI, BaseDataType, _warn_wikibase_url
 from wikibaseintegrator.models.claim import Claim
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
@@ -58,12 +58,15 @@ class GlobeCoordinate(BaseDataType):
         :param longitude: Longitude in decimal format, between -180 and 180 on Earth, -360 and 360 on another globe (like Wikibase)
         :param altitude: Altitude (in decimal format?) (Always None at this moment)
         :param precision: Precision of the position measurement, default 1 / 3600
-        :param globe: The globe entity concept URI (ex: http://www.wikidata.org/entity/Q2) or 'Q2'
-        :param wikibase_url: The default wikibase URL, used when the globe is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.
+        :param globe: The IRI of the Wikidata item of the globe (ex: http://www.wikidata.org/entity/Q2) or its ID, 'Q2'. Wikibase only
+            accepts the globes of Wikidata, on every instance.
+        :param wikibase_url: Deprecated and ignored: a globe given as an ID is always an entity of Wikidata.
         """
+        if wikibase_url is not None:
+            _warn_wikibase_url('GlobeCoordinate', 'globe', 'Q111')
 
         super().__init__(**kwargs)
-        self.set_value(latitude=latitude, longitude=longitude, altitude=altitude, precision=precision, globe=globe, wikibase_url=wikibase_url)
+        self.set_value(latitude=latitude, longitude=longitude, altitude=altitude, precision=precision, globe=globe)
 
     # The keyword arguments of this public method are named after the parts of the value, not 'value' like in BaseDataType
     # pylint: disable-next=arguments-renamed
@@ -71,11 +74,13 @@ class GlobeCoordinate(BaseDataType):
                   wikibase_url: str | None = None) -> None:
         # https://github.com/wikimedia/Wikibase/blob/174450de8fdeabcf97287604dbbf04d07bb5000c/repo/includes/Rdf/Values/GlobeCoordinateRdfBuilder.php#L120
         precision = precision or 1 / 3600
+        if wikibase_url is not None:
+            _warn_wikibase_url('GlobeCoordinate', 'globe', 'Q111')
         globe = globe or str(config['COORDINATE_GLOBE_QID'])
-        wikibase_url = wikibase_url or str(config['WIKIBASE_URL'])
 
+        # An item of Wikidata, whatever the instance
         if globe.startswith('Q'):
-            globe = wikibase_url + '/entity/' + globe
+            globe = _WIKIDATA_ENTITY_URI + globe
 
         if latitude is not None and longitude is not None:
             # Wikibase accepts -360 to 360 for both, which the coordinates of other globes use (e.g. Mars longitudes go from 0

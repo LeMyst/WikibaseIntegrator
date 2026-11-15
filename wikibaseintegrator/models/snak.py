@@ -1,10 +1,85 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any, Self
 
 from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_enums import WikibaseDatatype, WikibaseSnakType
+
+# The field of the values holding the IRI of an entity of the instance, by value type. A bare entity ID given to a data type
+# without wikibase_url (e.g. Quantity(unit='Q11573')) is kept as it is, and completed with the Wikibase URL when the value is
+# serialized: the one of the WikibaseIntegrator instance of the entity serializing itself, else wbi_config's (#1193). The
+# calendar models and the globes are entities of Wikidata on every instance: Time and GlobeCoordinate complete them at once.
+_ENTITY_IRI_FIELDS = {'quantity': 'unit'}
+
+# The Wikibase URL of the entity being serialized, see _serializing_for()
+_serialization_wikibase_url: ContextVar[str | None] = ContextVar('wikibaseintegrator_serialization_wikibase_url', default=None)
+
+
+@contextmanager
+def _serializing_for(wikibase_url: str | None) -> Iterator[None]:
+    """Complete the bare entity IDs of the values serialized in this block with this Wikibase URL."""
+    token = _serialization_wikibase_url.set(wikibase_url)
+    try:
+        yield
+    finally:
+        _serialization_wikibase_url.reset(token)
+
+
+def _is_bare_entity_id(value: object) -> bool:
+    # The same test as the data types used to apply when they were built
+    return isinstance(value, str) and value.startswith('Q')
+
+
+def _resolve_datavalue(datavalue: dict, wikibase_url: str | None = None) -> dict:
+    """
+    The datavalue with its bare entity ID completed (see _ENTITY_IRI_FIELDS), or the datavalue itself if it has none.
+
+    :param wikibase_url: The Wikibase URL. Default: the one of the entity being serialized, else wbi_config['WIKIBASE_URL']
+    """
+    field = _ENTITY_IRI_FIELDS.get(datavalue.get('type', ''))
+    value = datavalue.get('value')
+    if field is None or not isinstance(value, dict) or not _is_bare_entity_id(value.get(field)):
+        return datavalue
+    wikibase_url = wikibase_url or _serialization_wikibase_url.get() or config['WIKIBASE_URL']
+    return {**datavalue, 'value': {**value, field: f'{wikibase_url}/entity/{value[field]}'}}
+
+
+def _same_entity_iri(first: object, second: object) -> bool:
+    # A bare entity ID matches the IRI of this entity on any instance: the instance isn't known when the values are compared
+    if first == second:
+        return True
+    if _is_bare_entity_id(first) and isinstance(second, str):
+        return second.endswith(f'/entity/{first}')
+    if _is_bare_entity_id(second) and isinstance(first, str):
+        return first.endswith(f'/entity/{second}')
+    return False
+
+
+def _same_datavalue(first: dict, second: dict) -> bool:
+    """Compare two datavalues, a bare entity ID being the same as the IRI of this entity (see _ENTITY_IRI_FIELDS)."""
+    if first == second:
+        return True
+    field = _ENTITY_IRI_FIELDS.get(first.get('type', ''))
+    first_value, second_value = first.get('value'), second.get('value')
+    if field is None or first.get('type') != second.get('type') or not isinstance(first_value, dict) or not isinstance(second_value, dict):
+        return False
+    if {**first, 'value': None} != {**second, 'value': None}:
+        return False
+    return ({k: v for k, v in first_value.items() if k != field} == {k: v for k, v in second_value.items() if k != field}
+            and _same_entity_iri(first_value.get(field), second_value.get(field)))
+
+
+def _copy_json(snak: Snak) -> dict[str, Any]:
+    """The JSON of a snak with its bare entity IDs kept as they are, to copy it, e.g. a claim added as a qualifier."""
+    json_data = snak.get_json()
+    if 'datavalue' in json_data:
+        json_data['datavalue'] = snak.datavalue
+    return json_data
 
 
 def _require_property_number(snak: Snak) -> str:
@@ -95,11 +170,16 @@ class Snak(BaseModel):
         return self
 
     def get_json(self) -> dict[str, Any]:
+        """
+        The JSON of the snak. A bare entity ID of its value, like the unit of a Quantity(unit='Q11573'), is completed with
+        the Wikibase URL: the WIKIBASE_URL of the WikibaseIntegrator instance of the entity serializing itself, else
+        wbi_config['WIKIBASE_URL'].
+        """
         json_data: dict[str, Any] = {
             'snaktype': self.snaktype.value,
             'property': self.property_number,
             'datatype': self.datatype,
-            'datavalue': self.datavalue
+            'datavalue': _resolve_datavalue(self.datavalue)
         }
 
         if self.snaktype in [WikibaseSnakType.NO_VALUE, WikibaseSnakType.UNKNOWN_VALUE]:
@@ -121,4 +201,4 @@ class Snak(BaseModel):
         # The datatype is only compared when both snaks have one: the property determines it, and Commons serves the snaks of the
         # MediaInfo statements without a datatype, while the snaks built with WikibaseIntegrator carry one
         same_datatype = not self.datatype or not other.datatype or self.datatype == other.datatype
-        return self.snaktype == other.snaktype and self.property_number == other.property_number and same_datatype and self.datavalue == other.datavalue
+        return self.snaktype == other.snaktype and self.property_number == other.property_number and same_datatype and _same_datavalue(self.datavalue, other.datavalue)
