@@ -461,18 +461,7 @@
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Constructor, calls the superclass BaseDataType</span>
 
-<span class="sd">        :param value: The form number to serve as a value using the format "L&lt;Lexeme ID&gt;-F&lt;Form ID&gt;" (example: L252248-F2)</span>
-<span class="sd">        :type value: str with the format "L&lt;Lexeme ID&gt;-F&lt;Form&gt;"</span>
-<span class="sd">        :param prop_nr: The property number for this claim</span>
-<span class="sd">        :type prop_nr: str with a 'P' prefix followed by digits</span>
-<span class="sd">        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'</span>
-<span class="sd">        :type snaktype: str</span>
-<span class="sd">        :param references: List with reference objects</span>
-<span class="sd">        :type references: A data type with subclass of BaseDataType</span>
-<span class="sd">        :param qualifiers: List with qualifier objects</span>
-<span class="sd">        :type qualifiers: A data type with subclass of BaseDataType</span>
-<span class="sd">        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'</span>
-<span class="sd">        :type rank: str</span>
+<span class="sd">        :param value: Value using the format "L&lt;Lexeme ID&gt;-F&lt;Form ID&gt;" (example: L252248-F2)</span>
 <span class="sd">        """</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
