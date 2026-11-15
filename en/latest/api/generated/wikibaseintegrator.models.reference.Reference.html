@@ -613,9 +613,25 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.reference.Reference.add">
 <span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snak</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/reference.html#Reference.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.reference.Reference.add" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+<dd><p>Add a snak to the reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>snak</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.models.snak.Snak.html#wikibaseintegrator.models.snak.Snak" title="wikibaseintegrator.models.snak.Snak"><code class="xref py py-class docutils literal notranslate"><span class="pre">Snak</span></code></a> | <a class="reference internal" href="wikibaseintegrator.models.claim.Claim.html#wikibaseintegrator.models.claim.Claim" title="wikibaseintegrator.models.claim.Claim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Claim</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The snak, as a Snak or as a Claim whose main snak is taken. None adds nothing.</p></li>
+<li><p><strong>action_if_exists</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.wbi_enums.ActionIfExists.html#wikibaseintegrator.wbi_enums.ActionIfExists" title="wikibaseintegrator.wbi_enums.ActionIfExists"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="n"><span class="pre">ActionIfExists</span></span><span class="o"><span class="pre">.</span></span><span class="n"><span class="pre">APPEND_OR_REPLACE</span></span></code></span>) – What to do when the snak already exists, like Claims.add(): two snaks are
+equal when they have the same property and value. Defaults to APPEND_OR_REPLACE.
+APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new snak if no equal snak exists.
+FORCE_APPEND: Always add the new snak, even if an equal snak exists.
+KEEP: Add the new snak only if the property has no snak yet.
+REPLACE_ALL: Remove the snaks of the property not equal to the new one, then add it if it isn’t
+there.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This Reference object</p>
 </dd>
 </dl>
 </dd></dl>

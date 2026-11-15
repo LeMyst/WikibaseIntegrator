@@ -613,9 +613,25 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.references.References.add">
 <span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/references.html#References.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.references.References.add" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+<dd><p>Add a reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.models.reference.Reference.html#wikibaseintegrator.models.reference.Reference" title="wikibaseintegrator.models.reference.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reference</span></code></a> | <a class="reference internal" href="wikibaseintegrator.models.claim.Claim.html#wikibaseintegrator.models.claim.Claim" title="wikibaseintegrator.models.claim.Claim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Claim</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The reference, as a Reference or as a Claim whose main snak is the only snak of a new
+reference. None adds nothing.</p></li>
+<li><p><strong>action_if_exists</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.wbi_enums.ActionIfExists.html#wikibaseintegrator.wbi_enums.ActionIfExists" title="wikibaseintegrator.wbi_enums.ActionIfExists"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="n"><span class="pre">ActionIfExists</span></span><span class="o"><span class="pre">.</span></span><span class="n"><span class="pre">APPEND_OR_REPLACE</span></span></code></span>) – What to do when the reference already exists, like Claims.add(): two references are
+equal when they hold the same snaks (the hash isn’t compared). Defaults to APPEND_OR_REPLACE.
+APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new reference if no equal reference exists.
+FORCE_APPEND: Always add the new reference, even if an equal reference exists.
+KEEP: Add the new reference only if the claim has no reference yet.
+REPLACE_ALL: Remove the references not equal to the new one, then add it if it isn’t there.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This References object</p>
 </dd>
 </dl>
 </dd></dl>

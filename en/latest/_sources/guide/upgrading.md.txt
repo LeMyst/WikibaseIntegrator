@@ -37,6 +37,19 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   Gregorian calendar, the calendar of `xsd:dateTime` (`-0043-03-15T00:00:00Z` is `-0044-03-15T00:00:00Z`), and the
   new `Time.time_from_sparql()` reads it knowing its precision and calendar model. Fast run used to report a write as
   required for these dates, and to match a date with the same timestamp in another calendar.
+- **`action_if_exists` is applied by `Qualifiers.add()`, `Reference.add()`, `References.add()` and `Senses.add()`**,
+  which ignored it, and by `Forms.add()`, which gets the parameter. It has the semantics of `Claims.add()`:
+  - With the default `APPEND_OR_REPLACE`, adding a qualifier, a snak of a reference or a reference that is already
+    there does nothing, and so does adding a form or a sense with the same content as one of the lexeme. These used to
+    always be appended, except by `References.add()`, which already skipped an equal reference.
+  - A form or a sense with the id of one of the lexeme replaces it.
+  - `KEEP` only adds when there is nothing yet: no qualifier or snak of the property, no reference, no form or sense.
+  - `REPLACE_ALL` removes the others. The forms and the senses are marked for removal, like the claims.
+
+  Pass `ActionIfExists.FORCE_APPEND` to add duplicates. `Qualifiers.set()` and the `from_json()` methods keep every
+  item they are given.
+- **`Aliases.set()` refuses `FORCE_APPEND` and `MERGE_REFS_OR_APPEND`** with a `ValueError`: a duplicate alias is
+  dropped by Wikibase and aliases have no references, and these actions used to do nothing at all, silently.
 
 ### Deprecated in v0.15, removed in 1.0
 

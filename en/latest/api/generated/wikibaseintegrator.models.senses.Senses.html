@@ -613,9 +613,26 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.senses.Senses.add">
 <span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sense</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/senses.html#Senses.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.senses.Senses.add" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+<dd><p>Add a sense to the lexeme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sense</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.models.sense.Sense.html#wikibaseintegrator.models.sense.Sense" title="wikibaseintegrator.models.sense.Sense"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sense</span></code></a></span>) – The sense.</p></li>
+<li><p><strong>action_if_exists</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.wbi_enums.ActionIfExists.html#wikibaseintegrator.wbi_enums.ActionIfExists" title="wikibaseintegrator.wbi_enums.ActionIfExists"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="n"><span class="pre">ActionIfExists</span></span><span class="o"><span class="pre">.</span></span><span class="n"><span class="pre">APPEND_OR_REPLACE</span></span></code></span>) – What to do when the sense already exists, like Claims.add(): two senses are the
+same when they have the same id, or, when one of them has no id yet, the same content (see Sense.__eq__()).
+Defaults to APPEND_OR_REPLACE.
+APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new sense if it isn’t there. Otherwise, the new sense
+replaces the one with the same id, or cancels the removal of the one with the same content.
+FORCE_APPEND: Always add the new sense, even if it is already there.
+KEEP: Add the new sense only if the lexeme has no sense yet (the ones marked for removal don’t count).
+REPLACE_ALL: Mark for removal the senses that aren’t the new one, then add it like APPEND_OR_REPLACE.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This Senses object</p>
 </dd>
 </dl>
 </dd></dl>

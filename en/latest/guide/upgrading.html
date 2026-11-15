@@ -480,7 +480,7 @@ says what can change in which release.</p>
 <p>v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> and removed in 1.0.</p>
-<ul class="simple">
+<ul>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Qualifiers.set()</span></code> replaces the qualifiers</strong> given as a list or a <code class="docutils literal notranslate"><span class="pre">Qualifiers</span></code> object, like it already did with
 a dict or <code class="docutils literal notranslate"><span class="pre">None</span></code>. It used to add them to the existing qualifiers: call <code class="docutils literal notranslate"><span class="pre">add()</span></code> for each qualifier to keep that.</p></li>
 <li><p><strong>The <code class="docutils literal notranslate"><span class="pre">references</span></code> of a claim reject the items they can’t use</strong>: an item of the list that is neither a <code class="docutils literal notranslate"><span class="pre">Claim</span></code>, a
@@ -509,6 +509,21 @@ is converted to the Gregorian calendar. <code class="docutils literal notranslat
 Gregorian calendar, the calendar of <code class="docutils literal notranslate"><span class="pre">xsd:dateTime</span></code> (<code class="docutils literal notranslate"><span class="pre">-0043-03-15T00:00:00Z</span></code> is <code class="docutils literal notranslate"><span class="pre">-0044-03-15T00:00:00Z</span></code>), and the
 new <code class="docutils literal notranslate"><span class="pre">Time.time_from_sparql()</span></code> reads it knowing its precision and calendar model. Fast run used to report a write as
 required for these dates, and to match a date with the same timestamp in another calendar.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">action_if_exists</span></code> is applied by <code class="docutils literal notranslate"><span class="pre">Qualifiers.add()</span></code>, <code class="docutils literal notranslate"><span class="pre">Reference.add()</span></code>, <code class="docutils literal notranslate"><span class="pre">References.add()</span></code> and <code class="docutils literal notranslate"><span class="pre">Senses.add()</span></code></strong>,
+which ignored it, and by <code class="docutils literal notranslate"><span class="pre">Forms.add()</span></code>, which gets the parameter. It has the semantics of <code class="docutils literal notranslate"><span class="pre">Claims.add()</span></code>:</p>
+<ul class="simple">
+<li><p>With the default <code class="docutils literal notranslate"><span class="pre">APPEND_OR_REPLACE</span></code>, adding a qualifier, a snak of a reference or a reference that is already
+there does nothing, and so does adding a form or a sense with the same content as one of the lexeme. These used to
+always be appended, except by <code class="docutils literal notranslate"><span class="pre">References.add()</span></code>, which already skipped an equal reference.</p></li>
+<li><p>A form or a sense with the id of one of the lexeme replaces it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KEEP</span></code> only adds when there is nothing yet: no qualifier or snak of the property, no reference, no form or sense.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">REPLACE_ALL</span></code> removes the others. The forms and the senses are marked for removal, like the claims.</p></li>
+</ul>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">ActionIfExists.FORCE_APPEND</span></code> to add duplicates. <code class="docutils literal notranslate"><span class="pre">Qualifiers.set()</span></code> and the <code class="docutils literal notranslate"><span class="pre">from_json()</span></code> methods keep every
+item they are given.</p>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Aliases.set()</span></code> refuses <code class="docutils literal notranslate"><span class="pre">FORCE_APPEND</span></code> and <code class="docutils literal notranslate"><span class="pre">MERGE_REFS_OR_APPEND</span></code></strong> with a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: a duplicate alias is
+dropped by Wikibase and aliases have no references, and these actions used to do nothing at all, silently.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>

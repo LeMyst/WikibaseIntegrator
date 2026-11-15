@@ -613,9 +613,25 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.qualifiers.Qualifiers.add">
 <span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qualifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/qualifiers.html#Qualifiers.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.qualifiers.Qualifiers.add" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+<dd><p>Add a qualifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qualifier</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.models.snak.Snak.html#wikibaseintegrator.models.snak.Snak" title="wikibaseintegrator.models.snak.Snak"><code class="xref py py-class docutils literal notranslate"><span class="pre">Snak</span></code></a> | <a class="reference internal" href="wikibaseintegrator.models.claim.Claim.html#wikibaseintegrator.models.claim.Claim" title="wikibaseintegrator.models.claim.Claim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Claim</span></code></a></span>) – The qualifier, as a Snak or as a Claim whose main snak is taken. None adds nothing.</p></li>
+<li><p><strong>action_if_exists</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.wbi_enums.ActionIfExists.html#wikibaseintegrator.wbi_enums.ActionIfExists" title="wikibaseintegrator.wbi_enums.ActionIfExists"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="n"><span class="pre">ActionIfExists</span></span><span class="o"><span class="pre">.</span></span><span class="n"><span class="pre">APPEND_OR_REPLACE</span></span></code></span>) – What to do when the qualifier already exists, like Claims.add(): two qualifiers are
+equal when they have the same property and value. Defaults to APPEND_OR_REPLACE.
+APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new qualifier if no equal qualifier exists.
+FORCE_APPEND: Always add the new qualifier, even if an equal qualifier exists.
+KEEP: Add the new qualifier only if the property has no qualifier yet.
+REPLACE_ALL: Remove the qualifiers of the property not equal to the new one, then add it if it
+isn’t there.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This Qualifiers object</p>
 </dd>
 </dl>
 </dd></dl>
@@ -693,7 +709,7 @@ snaks. Use this method when you need the qualifier count.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.qualifiers.Qualifiers.set">
 <span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qualifiers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/qualifiers.html#Qualifiers.set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.qualifiers.Qualifiers.set" title="Link to this definition">#</a></dt>
-<dd><p>Replace the qualifiers with the given ones.</p>
+<dd><p>Replace the qualifiers with the given ones, all of them, even the equal ones.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>qualifiers</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wikibaseintegrator.models.qualifiers.Qualifiers" title="wikibaseintegrator.models.qualifiers.Qualifiers"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qualifiers</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="wikibaseintegrator.models.snak.Snak.html#wikibaseintegrator.models.snak.Snak" title="wikibaseintegrator.models.snak.Snak"><code class="xref py py-class docutils literal notranslate"><span class="pre">Snak</span></code></a> | <a class="reference internal" href="wikibaseintegrator.models.claim.Claim.html#wikibaseintegrator.models.claim.Claim" title="wikibaseintegrator.models.claim.Claim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Claim</span></code></a>] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>) – The new qualifiers, as a Qualifiers object or a list of Snak or Claim objects. None removes them all.</p>

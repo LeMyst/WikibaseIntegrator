@@ -438,7 +438,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Self</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">_add_with_action</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.reference</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snaks</span>
@@ -473,12 +473,22 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-    <span class="c1"># TODO: implement action_if_exists</span>
-    <span class="c1"># action_if_exists is accepted for symmetry with Claims.add() but not implemented yet</span>
-    <span class="c1"># pylint: disable-next=unused-argument</span>
 <div class="viewcode-block" id="References.add">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.references.References.html#wikibaseintegrator.models.references.References.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">|</span> <span class="n">Claim</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">:</span> <span class="n">ActionIfExists</span> <span class="o">=</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">APPEND_OR_REPLACE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Add a reference.</span>
+
+<span class="sd">        :param reference: The reference, as a Reference or as a Claim whose main snak is the only snak of a new</span>
+<span class="sd">            reference. None adds nothing.</span>
+<span class="sd">        :param action_if_exists: What to do when the reference already exists, like Claims.add(): two references are</span>
+<span class="sd">            equal when they hold the same snaks (the hash isn't compared). Defaults to APPEND_OR_REPLACE.</span>
+<span class="sd">            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new reference if no equal reference exists.</span>
+<span class="sd">            FORCE_APPEND: Always add the new reference, even if an equal reference exists.</span>
+<span class="sd">            KEEP: Add the new reference only if the claim has no reference yet.</span>
+<span class="sd">            REPLACE_ALL: Remove the references not equal to the new one, then add it if it isn't there.</span>
+<span class="sd">        :return: This References object</span>
+<span class="sd">        """</span>
         <span class="c1"># Imported here because Claim holds References, which would make a circular import at module level</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
@@ -495,8 +505,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">Reference</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a Reference or a Claim, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">reference</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">references</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">references</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+            <span class="n">_add_with_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">references</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -505,7 +514,8 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.references.References.html#wikibaseintegrator.models.references.References.from_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reference</span><span class="o">=</span><span class="n">Reference</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">reference</span><span class="p">))</span>
+            <span class="c1"># As they are on the instance</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reference</span><span class="o">=</span><span class="n">Reference</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">reference</span><span class="p">),</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 

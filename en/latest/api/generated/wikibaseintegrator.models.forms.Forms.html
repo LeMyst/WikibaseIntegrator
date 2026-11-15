@@ -612,10 +612,27 @@
 <dd><p>Bases: <a class="reference internal" href="wikibaseintegrator.models.basemodel.BaseModel.html#wikibaseintegrator.models.basemodel.BaseModel" title="wikibaseintegrator.models.basemodel.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.models.forms.Forms.add">
-<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">form</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/forms.html#Forms.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.forms.Forms.add" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">form</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ActionIfExists.APPEND_OR_REPLACE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/models/forms.html#Forms.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.models.forms.Forms.add" title="Link to this definition">#</a></dt>
+<dd><p>Add a form to the lexeme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>form</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.models.form.Form.html#wikibaseintegrator.models.form.Form" title="wikibaseintegrator.models.form.Form"><code class="xref py py-class docutils literal notranslate"><span class="pre">Form</span></code></a></span>) – The form.</p></li>
+<li><p><strong>action_if_exists</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="wikibaseintegrator.wbi_enums.ActionIfExists.html#wikibaseintegrator.wbi_enums.ActionIfExists" title="wikibaseintegrator.wbi_enums.ActionIfExists"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionIfExists</span></code></a></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="n"><span class="pre">ActionIfExists</span></span><span class="o"><span class="pre">.</span></span><span class="n"><span class="pre">APPEND_OR_REPLACE</span></span></code></span>) – What to do when the form already exists, like Claims.add(): two forms are the
+same when they have the same id, or, when one of them has no id yet, the same content (see Form.__eq__()).
+Defaults to APPEND_OR_REPLACE.
+APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new form if it isn’t there. Otherwise, the new form
+replaces the one with the same id, or cancels the removal of the one with the same content.
+FORCE_APPEND: Always add the new form, even if it is already there.
+KEEP: Add the new form only if the lexeme has no form yet (the ones marked for removal don’t count).
+REPLACE_ALL: Mark for removal the forms that aren’t the new one, then add it like APPEND_OR_REPLACE.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Self</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This Forms object</p>
 </dd>
 </dl>
 </dd></dl>

@@ -438,9 +438,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">_add_with_action</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.form</span><span class="w"> </span><span class="kn">import</span> <span class="n">Form</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.representations</span><span class="w"> </span><span class="kn">import</span> <span class="n">Representations</span> <span class="k">as</span> <span class="n">_Representations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -480,8 +481,22 @@
 
 <div class="viewcode-block" id="Forms.add">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.forms.Forms.html#wikibaseintegrator.models.forms.Forms.add">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">Form</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__forms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">Form</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">:</span> <span class="n">ActionIfExists</span> <span class="o">=</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">APPEND_OR_REPLACE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Add a form to the lexeme.</span>
+
+<span class="sd">        :param form: The form.</span>
+<span class="sd">        :param action_if_exists: What to do when the form already exists, like Claims.add(): two forms are the</span>
+<span class="sd">            same when they have the same id, or, when one of them has no id yet, the same content (see Form.__eq__()).</span>
+<span class="sd">            Defaults to APPEND_OR_REPLACE.</span>
+<span class="sd">            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new form if it isn't there. Otherwise, the new form</span>
+<span class="sd">            replaces the one with the same id, or cancels the removal of the one with the same content.</span>
+<span class="sd">            FORCE_APPEND: Always add the new form, even if it is already there.</span>
+<span class="sd">            KEEP: Add the new form only if the lexeme has no form yet (the ones marked for removal don't count).</span>
+<span class="sd">            REPLACE_ALL: Mark for removal the forms that aren't the new one, then add it like APPEND_OR_REPLACE.</span>
+<span class="sd">        :return: This Forms object</span>
+<span class="sd">        """</span>
+        <span class="n">_add_with_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__forms</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -490,7 +505,8 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.forms.Forms.html#wikibaseintegrator.models.forms.Forms.from_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">Form</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">form</span><span class="p">))</span>
+            <span class="c1"># As they are on the instance</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">Form</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">form</span><span class="p">),</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
