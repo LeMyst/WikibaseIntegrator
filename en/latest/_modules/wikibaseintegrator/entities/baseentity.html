@@ -459,6 +459,53 @@
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_new_claims_data</span><span class="p">(</span><span class="n">claims</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
+    <span class="c1"># The claims of a new entity: without the claims marked for removal, and without the GUIDs, which belong to the entity they were read from</span>
+    <span class="n">new_claims</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="nb">property</span><span class="p">,</span> <span class="n">property_claims</span> <span class="ow">in</span> <span class="n">claims</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="p">[{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">claim</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">'id'</span><span class="p">}</span> <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">property_claims</span> <span class="k">if</span> <span class="s1">'remove'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">claim</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">kept</span><span class="p">:</span>
+            <span class="n">new_claims</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="n">kept</span>
+    <span class="k">return</span> <span class="n">new_claims</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_new_entity_data</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Turn, in place, the data of an entity into the data of a new entity (``write(as_new=True)``): remove its id, the GUIDs of</span>
+<span class="sd">    its claims, the ids of its forms and senses, and everything marked for removal, which only makes sense on the entity</span>
+<span class="sd">    the data was read from.</span>
+<span class="sd">    """</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">claims_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'claims'</span><span class="p">,</span> <span class="s1">'statements'</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">claims_key</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">claims_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_new_claims_data</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">claims_key</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">terms_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'labels'</span><span class="p">,</span> <span class="s1">'descriptions'</span><span class="p">,</span> <span class="s1">'lemmas'</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">terms_key</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">terms_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">language</span><span class="p">:</span> <span class="n">term</span> <span class="k">for</span> <span class="n">language</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">terms_key</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">'remove'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">term</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'aliases'</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">aliases</span> <span class="o">=</span> <span class="p">{</span><span class="n">language</span><span class="p">:</span> <span class="p">[</span><span class="n">alias</span> <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">language_aliases</span> <span class="k">if</span> <span class="s1">'remove'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">alias</span><span class="p">]</span> <span class="k">for</span> <span class="n">language</span><span class="p">,</span> <span class="n">language_aliases</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'aliases'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'aliases'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">language</span><span class="p">:</span> <span class="n">language_aliases</span> <span class="k">for</span> <span class="n">language</span><span class="p">,</span> <span class="n">language_aliases</span> <span class="ow">in</span> <span class="n">aliases</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">language_aliases</span><span class="p">}</span>
+
+    <span class="c1"># The forms and senses of a lexeme are added to the new lexeme, with their claims</span>
+    <span class="k">for</span> <span class="n">sub_entities_key</span><span class="p">,</span> <span class="n">terms_key</span> <span class="ow">in</span> <span class="p">((</span><span class="s1">'forms'</span><span class="p">,</span> <span class="s1">'representations'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'senses'</span><span class="p">,</span> <span class="s1">'glosses'</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sub_entities_key</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">sub_entities</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sub_entity</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">sub_entities_key</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="s1">'remove'</span> <span class="ow">in</span> <span class="n">sub_entity</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">sub_entity</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sub_entity</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">'id'</span><span class="p">}</span>
+                <span class="n">sub_entity</span><span class="p">[</span><span class="s1">'add'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">''</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sub_entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">terms_key</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">sub_entity</span><span class="p">[</span><span class="n">terms_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">language</span><span class="p">:</span> <span class="n">term</span> <span class="k">for</span> <span class="n">language</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">sub_entity</span><span class="p">[</span><span class="n">terms_key</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">'remove'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">term</span><span class="p">}</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sub_entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'claims'</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">sub_entity</span><span class="p">[</span><span class="s1">'claims'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_new_claims_data</span><span class="p">(</span><span class="n">sub_entity</span><span class="p">[</span><span class="s1">'claims'</span><span class="p">])</span>
+                <span class="n">sub_entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub_entity</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">sub_entities_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_entities</span>
+
+
 <div class="viewcode-block" id="BaseEntity">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.baseentity.BaseEntity.html#wikibaseintegrator.entities.baseentity.BaseEntity">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseEntity</span><span class="p">:</span>
@@ -733,7 +780,8 @@
 <span class="sd">        :param allow_anonymous: Force a check if the query can be anonymous or not</span>
 <span class="sd">        :param limit_claims: Limit to a list of specific claims to reduce the data sent and avoid sending the complete entity.</span>
 <span class="sd">        :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.</span>
-<span class="sd">        :param as_new: Write the entity as a new one</span>
+<span class="sd">        :param as_new: Write the entity as a new one, without the id of the entity, the GUIDs of its claims, the ids of its forms and senses,</span>
+<span class="sd">            and what is marked for removal</span>
 <span class="sd">        :param is_bot: Add the bot flag to the query</span>
 <span class="sd">        :param fields_to_update: A list or a single EntityField to update. If not set, all fields will be updated.</span>
 <span class="sd">        :param kwargs: More arguments for Python requests</span>
@@ -802,8 +850,9 @@
 
         <span class="k">if</span> <span class="n">as_new</span><span class="p">:</span>
             <span class="n">entity_id</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="c1"># Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API.</span>
-            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API. Neither the GUIDs of</span>
+            <span class="c1"># the claims, nor what is marked for removal, belong to the new entity.</span>
+            <span class="n">_new_entity_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">entity_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
 

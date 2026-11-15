@@ -490,6 +490,9 @@ for removal, like <code class="docutils literal notranslate"><span class="pre">l
 to leave the label unchanged.</p></li>
 <li><p><strong>A <code class="docutils literal notranslate"><span class="pre">Quantity</span></code> takes both bounds or none</strong>: a single <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code> or <code class="docutils literal notranslate"><span class="pre">lower_bound</span></code> raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. Wikibase
 rejects such a quantity when it is written, so it used to fail later, at the write.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">write(as_new=True)</span></code> only sends what belongs to the new entity</strong>: the GUIDs of the claims, the ids of the forms
+and senses of a lexeme, and the claims, terms, forms and senses marked for removal are left out. They used to be
+sent along with the copy, with the GUIDs of the entity it was read from.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
