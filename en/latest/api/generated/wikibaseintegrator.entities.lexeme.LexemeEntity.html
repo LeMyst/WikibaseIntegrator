@@ -840,7 +840,7 @@ unsaved changes included, so calling it again refreshes them instead of duplicat
 <dt class="sig sig-object py" id="wikibaseintegrator.entities.lexeme.LexemeEntity.write_forms">
 <span class="sig-name descname"><span class="pre">write_forms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/entities/lexeme.html#LexemeEntity.write_forms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.entities.lexeme.LexemeEntity.write_forms" title="Link to this definition">#</a></dt>
 <dd><p>Add all the new Forms of the Lexeme, one wbladdform action per Form. The Forms already existing on the
-Wikibase instance are skipped.</p>
+Wikibase instance and the Forms marked as removed are skipped.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – Arguments passed to write_form()</p>

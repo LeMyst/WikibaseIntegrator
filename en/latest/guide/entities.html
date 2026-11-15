@@ -725,6 +725,17 @@ instance, which is also set on the object.</p>
 </pre></div>
 </div>
 </section>
+<section id="remove-a-form-or-a-sense-from-a-lexeme">
+<h3>Remove a form or a sense from a lexeme<a class="headerlink" href="#remove-a-form-or-a-sense-from-a-lexeme" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">remove()</span></code> marks a Form or a Sense for removal, and the next <code class="docutils literal notranslate"><span class="pre">write()</span></code> of the lexeme removes it from the Wikibase
+instance. A new Form or Sense removed before being written is simply left out.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lexeme</span> <span class="o">=</span> <span class="n">wbi</span><span class="o">.</span><span class="n">lexeme</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5'</span><span class="p">)</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-F2'</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'L5-S1'</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+<span class="n">lexeme</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
@@ -798,6 +809,7 @@ instance, which is also set on the object.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-gloss-to-a-sense-on-lexeme">Add gloss to a sense on lexeme</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-form-to-a-lexeme">Add form to a lexeme</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-form-or-a-sense-to-an-existing-lexeme">Add a form or a sense to an existing lexeme</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#remove-a-form-or-a-sense-from-a-lexeme">Remove a form or a sense from a lexeme</a></li>
 </ul>
 </li>
 </ul>

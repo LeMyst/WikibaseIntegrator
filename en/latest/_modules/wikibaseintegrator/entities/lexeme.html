@@ -662,6 +662,9 @@
         <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The Form </span><span class="si">{</span><span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already exists, adding it again would create a duplicate."</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">removed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The Form is marked as removed, it cannot be added.'</span><span class="p">)</span>
+
         <span class="n">data</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
         <span class="c1"># 'add' is a marker used by wbeditentity, the wbladdform action doesn't expect it.</span>
         <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'add'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -679,12 +682,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">write_forms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add all the new Forms of the Lexeme, one wbladdform action per Form. The Forms already existing on the</span>
-<span class="sd">        Wikibase instance are skipped.</span>
+<span class="sd">        Wikibase instance and the Forms marked as removed are skipped.</span>
 
 <span class="sd">        :param kwargs: Arguments passed to write_form()</span>
 <span class="sd">        :return: The ids of the newly created Forms</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">write_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">write_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">removed</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="LexemeEntity.write_sense">
