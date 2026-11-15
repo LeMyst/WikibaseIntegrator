@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=8fb0f742"></script>
+    <script src="../_static/documentation_options.js?v=e3e50566"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'guide/upgrading';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.4.dev0" />
+  <meta name="docsearch:version" content="0.15.0.dev0" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -472,6 +472,16 @@
                   
   <section id="upgrading">
 <h1>Upgrading<a class="headerlink" href="#upgrading" title="Link to this heading">#</a></h1>
+<section id="breaking-changes-in-v0-15">
+<span id="breaking-changes-in-v015"></span><h2>Breaking changes in v0.15<a class="headerlink" href="#breaking-changes-in-v0-15" title="Link to this heading">#</a></h2>
+<p>v0.15 is the last release before 1.0, which freezes the public API under semantic versioning. It gathers the
+changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
+old behavior is kept in v0.15 with a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> and removed in 1.0.</p>
+<p>If you want to stay on v0.14.x, you can put this line in your requirements.txt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wikibaseintegrator</span><span class="o">~=</span><span class="mf">0.14.0</span>
+</pre></div>
+</div>
+</section>
 <section id="breaking-changes-in-v0-14">
 <span id="breaking-changes-in-v014"></span><h2>Breaking changes in v0.14<a class="headerlink" href="#breaking-changes-in-v0-14" title="Link to this heading">#</a></h2>
 <p>v0.14 changes some behaviors of v0.13 that your code may rely on:</p>
@@ -613,6 +623,7 @@ entities (in addition to Item).</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-15">Breaking changes in v0.15</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-14">Breaking changes in v0.14</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-13">Breaking changes in v0.13</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes-in-v0-12">Breaking changes in v0.12</a></li>
