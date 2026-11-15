@@ -875,7 +875,8 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.baseentity.BaseEntity.html#wikibaseintegrator.entities.baseentity.BaseEntity.delete">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Delete the current entity. Use the pageid first if available and fallback to the page title.</span>
+<span class="sd">        Delete the current entity. Use the pageid first if available and fallback to the page title. Without either, as on the entity</span>
+<span class="sd">        returned by write() (the response of wbeditentity has no page), the page is resolved from the id of the entity first.</span>
 
 <span class="sd">        :param login: A wbi_login.Login instance</span>
 <span class="sd">        :param allow_anonymous: Allow an unidentified edit to the MediaWiki API (default False)</span>
@@ -884,12 +885,17 @@
 <span class="sd">        :param deletetalk: Delete the talk page, if it exists.</span>
 <span class="sd">        :param kwargs: Any additional keyword arguments to pass to mediawiki_api_call_helper and requests.request</span>
 <span class="sd">        :return: The data returned by the API as a dictionary</span>
+<span class="sd">        :raises ValueError: If the entity has no id, pageid nor page title, or if its id is a redirect to another entity</span>
+<span class="sd">        :raises MissingEntityException: If the page is resolved from the id, and the entity doesn't exist (or was deleted)</span>
+<span class="sd">        :raises NonExistentEntityError: If the page is resolved from the id, and the instance doesn't know the id</span>
 <span class="sd">        """</span>
 
         <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"A pageid or a page title attribute must be set before deleting an entity object."</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"A pageid, a page title or an id must be set before deleting an entity object."</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_page</span><span class="p">(</span><span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mediawiki_api_url'</span><span class="p">),</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'user_agent'</span><span class="p">))</span>
 
         <span class="c1"># If there is no pageid, fallback to using the page title. It's not the preferred method.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span><span class="p">:</span>
@@ -900,6 +906,26 @@
 
         <span class="k">return</span> <span class="n">delete_page</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pageid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pageid</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Set the pageid and the page title of the entity from its id. The page title can't be built from the id: the namespace of the</span>
+<span class="sd">        entities depends on the configuration of the instance.</span>
+
+<span class="sd">        :raises ValueError: If the id is a redirect to another entity: deleting the page of the target would delete another entity</span>
+<span class="sd">        :raises MissingEntityException: If the entity doesn't exist</span>
+<span class="sd">        """</span>
+        <span class="n">entities</span> <span class="o">=</span> <span class="n">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">'action'</span><span class="p">:</span> <span class="s1">'wbgetentities'</span><span class="p">,</span> <span class="s1">'ids'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">:</span> <span class="s1">'info'</span><span class="p">,</span> <span class="s1">'redirects'</span><span class="p">:</span> <span class="s1">'no'</span><span class="p">,</span> <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span><span class="p">},</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span>
+                                             <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">mediawiki_api_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">user_agent</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="s1">'entities'</span><span class="p">]</span>
+
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">entities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The entity </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> is a redirect to </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span><span class="si">}</span><span class="s2">: it isn't deleted."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">entity</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s1">'The entity </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> does not exist.'</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'pageid'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseEntity.write_required">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.baseentity.BaseEntity.html#wikibaseintegrator.entities.baseentity.BaseEntity.write_required">[docs]</a>

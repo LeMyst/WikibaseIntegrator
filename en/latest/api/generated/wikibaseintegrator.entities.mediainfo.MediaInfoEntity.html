@@ -677,7 +677,8 @@ The entity will be updated with an empty dictionary.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.entities.mediainfo.MediaInfoEntity.delete">
 <span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">login</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_anonymous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_bot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wikibaseintegrator.entities.mediainfo.MediaInfoEntity.delete" title="Link to this definition">#</a></dt>
-<dd><p>Delete the current entity. Use the pageid first if available and fallback to the page title.</p>
+<dd><p>Delete the current entity. Use the pageid first if available and fallback to the page title. Without either, as on the entity
+returned by write() (the response of wbeditentity has no page), the page is resolved from the id of the entity first.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -694,6 +695,13 @@ The entity will be updated with an empty dictionary.</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The data returned by the API as a dictionary</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the entity has no id, pageid nor page title, or if its id is a redirect to another entity</p></li>
+<li><p><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException" title="wikibaseintegrator.wbi_exceptions.MissingEntityException"><strong>MissingEntityException</strong></a> – If the page is resolved from the id, and the entity doesn’t exist (or was deleted)</p></li>
+<li><p><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><strong>NonExistentEntityError</strong></a> – If the page is resolved from the id, and the instance doesn’t know the id</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
