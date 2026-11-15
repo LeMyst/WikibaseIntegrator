@@ -40,9 +40,11 @@ class TestAliases:
         assert [alias.value for alias in aliases.get('fr')] == ['a']
 
     @pytest.mark.parametrize('action', [ActionIfExists.FORCE_APPEND, ActionIfExists.MERGE_REFS_OR_APPEND])
-    def test_set_with_unsupported_action_does_nothing(self, action):
-        # Only APPEND_OR_REPLACE, REPLACE_ALL and KEEP are implemented for the aliases
-        aliases = Aliases().add('fr', 'a').set('fr', values='b', action_if_exists=action)
+    def test_set_with_an_action_without_meaning(self, action):
+        # A duplicate alias is dropped by Wikibase, and aliases have no references: these actions used to do nothing at all
+        aliases = Aliases().add('fr', 'a')
+        with pytest.raises(ValueError, match='has no meaning for aliases'):
+            aliases.set('fr', values='b', action_if_exists=action)
         assert aliases.get('fr') == ['a']
 
     def test_get_json_of_an_empty_language(self):
@@ -204,7 +206,7 @@ class TestForms:
         assert form.grammatical_features == []
 
     def test_get_duplicate_id(self):
-        forms = Forms().add(Form(form_id='L1-F1')).add(Form(form_id='L1-F1'))
+        forms = Forms().add(Form(form_id='L1-F1')).add(Form(form_id='L1-F1'), action_if_exists=ActionIfExists.FORCE_APPEND)
         with pytest.raises(ValueError):
             forms.get('L1-F1')
 

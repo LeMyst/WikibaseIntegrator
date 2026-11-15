@@ -516,11 +516,11 @@ class FastRunContainer:
                     elif 'srid' in result:
                         snak = self._snak_from_result(result, sid, reference=True)
                         if snak is not None:
-                            references[sid].setdefault(result['srid']['value'], Reference()).add(snak)
+                            references[sid].setdefault(result['srid']['value'], Reference()).add(snak, action_if_exists=ActionIfExists.FORCE_APPEND)
                     else:
                         snak = self._snak_from_result(result, sid, reference=False)
                         if snak is not None:
-                            qualifiers[sid].add(snak)
+                            qualifiers[sid].add(snak, action_if_exists=ActionIfExists.FORCE_APPEND)
 
                 if len(results) == 0 or len(results) < limit:
                     break
@@ -531,7 +531,7 @@ class FastRunContainer:
                 if use_references:
                     self._references_cache[sid] = References()
                     for reference in references[sid].values():
-                        self._references_cache[sid].add(reference)
+                        self._references_cache[sid].add(reference, action_if_exists=ActionIfExists.FORCE_APPEND)
                 if use_rank:
                     self._rank_cache[sid] = ranks[sid]
 

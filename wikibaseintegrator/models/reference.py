@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Self
 
-from wikibaseintegrator.models.basemodel import BaseModel
-from wikibaseintegrator.models.snak import Snak
+from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
+from wikibaseintegrator.models.snak import Snak, _require_property_number
 from wikibaseintegrator.models.snaks import Snaks
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
@@ -42,10 +42,20 @@ class Reference(BaseModel):
     def snaks_order(self, value: list[str]) -> None:
         self.__snaks_order = value
 
-    # TODO: implement action_if_exists
-    # action_if_exists is accepted for symmetry with Claims.add() but not implemented yet
-    # pylint: disable-next=unused-argument
     def add(self, snak: Snak | Claim | None = None, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
+        """
+        Add a snak to the reference.
+
+        :param snak: The snak, as a Snak or as a Claim whose main snak is taken. None adds nothing.
+        :param action_if_exists: What to do when the snak already exists, like Claims.add(): two snaks are
+            equal when they have the same property and value. Defaults to APPEND_OR_REPLACE.
+            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new snak if no equal snak exists.
+            FORCE_APPEND: Always add the new snak, even if an equal snak exists.
+            KEEP: Add the new snak only if the property has no snak yet.
+            REPLACE_ALL: Remove the snaks of the property not equal to the new one, then add it if it isn't
+            there.
+        :return: This Reference object
+        """
         # Imported here because Claim holds References, which would make a circular import at module level
         from wikibaseintegrator.models.claim import Claim
         if isinstance(snak, Claim):
@@ -54,7 +64,7 @@ class Reference(BaseModel):
         if snak is not None:
             if not isinstance(snak, Snak):
                 raise TypeError(f"Expected a Snak or a Claim, found {type(snak)}")
-            self.snaks.add(snak)
+            _add_with_action(self.snaks.snaks.setdefault(_require_property_number(snak), []), snak, action_if_exists)
 
         return self
 

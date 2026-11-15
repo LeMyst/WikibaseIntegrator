@@ -4,7 +4,7 @@ import warnings
 from collections.abc import Iterator
 from typing import Any, Self
 
-from wikibaseintegrator.models.basemodel import BaseModel
+from wikibaseintegrator.models.basemodel import BaseModel, _add_with_action
 from wikibaseintegrator.models.glosses import Glosses as _Glosses
 from wikibaseintegrator.models.sense import Sense
 from wikibaseintegrator.wbi_enums import ActionIfExists
@@ -29,17 +29,29 @@ class Senses(BaseModel):
                 return sense
         return None
 
-    # TODO: implement action_if_exists
-    # action_if_exists is accepted for symmetry with Claims.add() but not implemented yet
-    # pylint: disable-next=unused-argument
     def add(self, sense: Sense, action_if_exists: ActionIfExists = ActionIfExists.APPEND_OR_REPLACE) -> Self:
-        self.senses.append(sense)
+        """
+        Add a sense to the lexeme.
+
+        :param sense: The sense.
+        :param action_if_exists: What to do when the sense already exists, like Claims.add(): two senses are the
+            same when they have the same id, or, when one of them has no id yet, the same content (see Sense.__eq__()).
+            Defaults to APPEND_OR_REPLACE.
+            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new sense if it isn't there. Otherwise, the new sense
+            replaces the one with the same id, or cancels the removal of the one with the same content.
+            FORCE_APPEND: Always add the new sense, even if it is already there.
+            KEEP: Add the new sense only if the lexeme has no sense yet (the ones marked for removal don't count).
+            REPLACE_ALL: Mark for removal the senses that aren't the new one, then add it like APPEND_OR_REPLACE.
+        :return: This Senses object
+        """
+        _add_with_action(self.senses, sense, action_if_exists)
 
         return self
 
     def from_json(self, json_data: list[dict]) -> Self:
         for sense in json_data:
-            self.add(sense=Sense().from_json(sense))
+            # As they are on the instance
+            self.add(sense=Sense().from_json(sense), action_if_exists=ActionIfExists.FORCE_APPEND)
 
         return self
 
