@@ -58,23 +58,33 @@ class TestBaseDataType:
         ('<http://example.org/Paris>', 'uri', 'http://example.org/Paris'),
         ('http://example.org/Paris', 'uri', 'http://example.org/Paris'),
     ])
+    @pytest.mark.filterwarnings(r'ignore:parse_sparql_value\(\) is deprecated:DeprecationWarning')
     def test_parse_sparql_value(self, datatype, value, type, expected):
         claim = datatype(prop_nr='P1')
         assert claim.parse_sparql_value(value, type=type) is True
         assert claim.mainsnak.datavalue == {'value': expected, 'type': 'string'}
 
     @pytest.mark.parametrize('type', ['literal', 'uri'])
+    @pytest.mark.filterwarnings(r'ignore:parse_sparql_value\(\) is deprecated:DeprecationWarning')
     def test_parse_sparql_value_no_match(self, type):
         # '.' doesn't match a line break, so a value spanning two lines doesn't match the patterns
         claim = String(prop_nr='P1')
         assert claim.parse_sparql_value('line 1\nline 2', type=type) is False
         assert claim.mainsnak.datavalue == {}
 
+    @pytest.mark.filterwarnings(r'ignore:parse_sparql_value\(\) is deprecated:DeprecationWarning')
     def test_parse_sparql_value_unknown_type(self):
         with pytest.raises(ValueError):
             String(prop_nr='P1').parse_sparql_value('Paris', type='bnode')
 
+    @pytest.mark.parametrize('claim, value', [(String(prop_nr='P1'), 'Paris'), (CommonsMedia(prop_nr='P1'), 'Example.jpg'), (GlobeCoordinate(prop_nr='P1'), 'Point(2.35 48.85)'),
+                                              (MonolingualText(prop_nr='P1'), '"Paris"@fr'), (Quantity(prop_nr='P1'), '1'), (URL(prop_nr='P1'), 'https://example.org/')])
+    def test_parse_sparql_value_is_deprecated(self, claim, value):
+        with pytest.warns(DeprecationWarning, match=r'use from_sparql_value\(\) instead'):
+            assert claim.parse_sparql_value(value) is True
 
+
+@pytest.mark.filterwarnings(r'ignore:parse_sparql_value\(\) is deprecated:DeprecationWarning')
 class TestParseSparqlValue:
     """The legacy parse_sparql_value() of the data types overriding it"""
 
@@ -211,7 +221,13 @@ class TestQuantity:
 
     def test_upper_bound_too_small(self):
         with pytest.raises(ValueError, match='Upper bound too small'):
-            Quantity(amount=5, upper_bound=4, prop_nr='P1')
+            Quantity(amount=5, upper_bound=4, lower_bound=3, prop_nr='P1')
+
+    @pytest.mark.parametrize('lower_bound,upper_bound', [(None, 7), (3, None), ('', 7), (3, ''), (6, None)])
+    def test_single_bound(self, lower_bound, upper_bound):
+        # Wikibase rejects a quantity with one bound, even a lower bound above the amount used to be accepted alone
+        with pytest.raises(ValueError, match='bounds must be given together'):
+            Quantity(amount=5, lower_bound=lower_bound, upper_bound=upper_bound, prop_nr='P1')
 
 
 class TestTime:

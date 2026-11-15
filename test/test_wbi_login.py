@@ -37,7 +37,7 @@ class TestBotPasswordLogin:
         assert credentials.requests[1]['lgtoken'] == credentials.login_token
 
     def test_transient_error_retries_the_whole_login_once_per_try(self, credentials, monkeypatch):
-        # Login.__init__() and _Login.__init__() are both retried: the CSRF token request used to be tried
+        # Login.__init__() and BaseLogin.__init__() are both retried: the CSRF token request used to be tried
         # BACKOFF_MAX_TRIES x BACKOFF_MAX_TRIES times
         wbi_config['BACKOFF_MAX_TRIES'] = 3
         token_requests = []
@@ -187,6 +187,21 @@ class TestOAuth2:
         # The short-lived access token has no refresh token, so renewing the credentials must re-fetch it (not only the CSRF token).
         login.get_edit_token()
         assert token_matcher.call_count > calls_after_init
+
+
+class TestBaseLogin:
+    @pytest.mark.parametrize('login_class', [wbi_login.OAuth2, wbi_login.OAuth1, wbi_login.Login, wbi_login.Clientlogin])
+    def test_every_login_method_derives_from_it(self, login_class):
+        assert issubclass(login_class, wbi_login.BaseLogin)
+
+    def test_private_name_is_an_alias(self):
+        assert wbi_login._Login is wbi_login.BaseLogin
+
+    def test_public_names(self):
+        assert 'BaseLogin' in wbi_login.__all__
+        assert '_Login' not in wbi_login.__all__
+        for name in wbi_login.__all__:
+            assert hasattr(wbi_login, name)
 
 
 class _WCQSHandler(BaseHTTPRequestHandler):

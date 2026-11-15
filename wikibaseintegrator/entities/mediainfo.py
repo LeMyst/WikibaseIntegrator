@@ -20,7 +20,7 @@ from wikibaseintegrator.wbi_exceptions import MissingEntityException
 from wikibaseintegrator.wbi_helpers import mediawiki_api_call_helper
 
 if TYPE_CHECKING:
-    from wikibaseintegrator.wbi_login import _Login
+    from wikibaseintegrator.wbi_login import BaseLogin
 
 
 class MediaInfoEntity(TermsEntity):
@@ -100,7 +100,7 @@ class MediaInfoEntity(TermsEntity):
         entity.loaded_revision = revision
         return entity
 
-    def get_by_title(self, titles: list[str] | str, sites: str = 'commonswiki', login: _Login | None = None, allow_anonymous: bool = True, is_bot: bool | None = None,
+    def get_by_title(self, titles: list[str] | str, sites: str = 'commonswiki', login: BaseLogin | None = None, allow_anonymous: bool = True, is_bot: bool | None = None,
                      **kwargs: Any) -> MediaInfoEntity:
         """
         Request the MediaWiki API to get the MediaInfo entity of a file, from the title of its page.

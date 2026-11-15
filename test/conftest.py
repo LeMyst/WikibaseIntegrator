@@ -328,14 +328,39 @@ class MockWikibase:
                 entity[claims_key] = self._apply_claims(entity.get(claims_key, {}), data[key], entity_id)
 
         # Lexeme specific sections, stored as-is.
-        for section in ('lemmas', 'lexicalCategory', 'language', 'forms', 'senses'):
+        for section in ('lemmas', 'lexicalCategory', 'language'):
             if section in data:
                 entity[section] = deepcopy(data[section])
+
+        # Forms and senses: like a real instance, an added one gets an id, a removed one is dropped, the others replace the ones of the same id
+        for section, id_prefix in (('forms', 'F'), ('senses', 'S')):
+            if section in data:
+                entity[section] = self._apply_lexeme_sub_entities(entity.get(section, []), data[section], entity_id, id_prefix)
 
         if entity_type == 'property' and 'datatype' in data:
             entity['datatype'] = data['datatype']
 
         return entity
+
+    @staticmethod
+    def _apply_lexeme_sub_entities(current: list, submitted: list, entity_id: str, id_prefix: str) -> list:
+        result = deepcopy(current)
+        next_number = 1 + max((int(sub_entity['id'].rsplit(id_prefix, 1)[1]) for sub_entity in result), default=0)
+        for sub_entity in deepcopy(submitted):
+            if 'remove' in sub_entity:
+                result = [existing for existing in result if existing['id'] != sub_entity.get('id')]
+            elif 'add' in sub_entity or 'id' not in sub_entity:
+                sub_entity.pop('add', None)
+                sub_entity['id'] = f'{entity_id}-{id_prefix}{next_number}'
+                next_number += 1
+                result.append(sub_entity)
+            else:
+                position = next((position for position, existing in enumerate(result) if existing['id'] == sub_entity['id']), None)
+                if position is None:
+                    result.append(sub_entity)
+                else:
+                    result[position] = sub_entity
+        return result
 
     def _apply_claims(self, current: dict, submitted: dict | list, entity_id: str) -> dict:
         """Merge submitted claims into the current ones, like wbeditentity does."""
