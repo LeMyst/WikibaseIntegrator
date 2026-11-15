@@ -164,7 +164,7 @@ class GlobeCoordinate(BaseDataType):
             point = f"<{globe.replace('>', '%3E')}> {point}"
         return f'"{point}"^^geo:wktLiteral'
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^"?Point\((.*) (.*)\)"?(?:\^\^geo:wktLiteral)?$')
         matches = pattern.match(value)
         if not matches:

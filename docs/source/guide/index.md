@@ -21,6 +21,7 @@ examples
 :caption: Project
 
 upgrading
+versioning
 wikidataintegrator
 contributing
 about
