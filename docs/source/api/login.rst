@@ -1,7 +1,8 @@
 Login
 =====
 
-The login methods, passed to ``WikibaseIntegrator(login=...)``. Import them from ``wikibaseintegrator.wbi_login``.
+The login methods, passed to ``WikibaseIntegrator(login=...)``. Import them from ``wikibaseintegrator.wbi_login``. They all derive from
+:class:`~wikibaseintegrator.wbi_login.BaseLogin`, the type of the ``login`` parameters of the library.
 
 .. currentmodule:: wikibaseintegrator.wbi_login
 

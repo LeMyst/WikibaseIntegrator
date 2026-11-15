@@ -68,10 +68,9 @@ class TestClaim:
             Claim(references=[['not a claim']])
 
     def test_references_list_of_other_objects(self):
-        # Known quirk: an item of the list that is neither a Claim, a list nor a Reference gives an empty reference
-        claim = Claim(references=['not a claim'])
-        assert len(claim.references) == 1
-        assert len(claim.references.references[0]) == 0
+        # An item of the list that is neither a Claim, a list nor a Reference used to give an empty reference
+        with pytest.raises(ValueError):
+            Claim(references=['not a claim'])
 
     def test_references_of_another_type(self):
         with pytest.raises(ValueError):
@@ -252,6 +251,26 @@ class TestQualifiers:
         qualifiers.set(None)
         assert len(qualifiers) == 0
 
+    def test_set_list_replaces(self):
+        qualifiers = Qualifiers().add(String(prop_nr='P1', value='a'))
+        qualifiers.set([String(prop_nr='P1', value='b')])
+        assert [snak.datavalue['value'] for snak in qualifiers] == ['b']
+
+    def test_set_qualifiers_replaces(self):
+        qualifiers = Qualifiers().add(String(prop_nr='P1', value='a')).add(String(prop_nr='P2', value='c'))
+        qualifiers.set(Qualifiers().add(String(prop_nr='P1', value='b')))
+        assert [snak.datavalue['value'] for snak in qualifiers] == ['b']
+
+    def test_set_itself(self):
+        qualifiers = Qualifiers().add(String(prop_nr='P1', value='a')).add(String(prop_nr='P2', value='c'))
+        qualifiers.set(qualifiers)
+        assert [snak.datavalue['value'] for snak in qualifiers] == ['a', 'c']
+
+    def test_set_empty_list_clears(self):
+        qualifiers = Qualifiers().add(String(prop_nr='P1', value='a'))
+        qualifiers.set([])
+        assert qualifiers.get_json() == {}
+
     def test_set_dict(self):
         snaks = {'P1': [Snak(property_number='P1')]}
         qualifiers = Qualifiers().set(snaks)
@@ -264,9 +283,10 @@ class TestQualifiers:
         assert qualifiers.get('P2') == []
 
     def test_add_none(self):
-        # The None guard of add() only skips the type check, the property lookup that follows fails
-        with pytest.raises(AttributeError):
-            Qualifiers().add(None)
+        # Adding no qualifier does nothing, like Reference.add(None) and References.add(None)
+        qualifiers = Qualifiers().add(String(prop_nr='P1', value='a'))
+        assert qualifiers.add(None) is qualifiers
+        assert qualifiers.get_json() == {'P1': [String(prop_nr='P1', value='a').mainsnak.get_json()]}
 
     def test_remove_a_snak(self):
         qualifiers = Qualifiers().add(String(prop_nr='P1', value='a')).add(String(prop_nr='P1', value='b'))

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import warnings
 from typing import Any, Self
 
 from wikibaseintegrator.models.claim import Claim
@@ -96,8 +97,24 @@ class BaseDataType(Claim):
     def get_sparql_value(self, **kwargs: Any) -> str | None:
         return sparql_string(self.mainsnak.datavalue['value'])
 
+    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+        """
+        Set the value of the claim from a value returned by a SPARQL query.
+
+        .. deprecated:: 0.15
+            Use :meth:`from_sparql_value`, which takes the SPARQL JSON binding of the value. ``parse_sparql_value()``
+            will be removed in WikibaseIntegrator 1.0.
+
+        :param value: The value, as a string
+        :param type: The type of the value, ``'uri'`` or ``'literal'``
+        :param unit: The unit of a quantity
+        :return: True if the value was parsed
+        """
+        warnings.warn("parse_sparql_value() is deprecated and will be removed in WikibaseIntegrator 1.0, use from_sparql_value() instead.", DeprecationWarning, stacklevel=2)
+        return self._parse_sparql_value(value, type=type, unit=unit)
+
     # The unit is only used by the Quantity implementation of this legacy method
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:  # pylint: disable=unused-argument
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:  # pylint: disable=unused-argument
         if type == 'uri':
             pattern = re.compile(r'^<?(.*?)>?$')
             matches = pattern.match(value)
