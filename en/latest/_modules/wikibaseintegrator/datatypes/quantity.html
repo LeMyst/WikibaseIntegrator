@@ -501,8 +501,8 @@
 <span class="sd">        Constructor, calls the superclass BaseDataType</span>
 
 <span class="sd">        :param amount: The amount value</span>
-<span class="sd">        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations</span>
-<span class="sd">        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations</span>
+<span class="sd">        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.</span>
+<span class="sd">        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.</span>
 <span class="sd">        :param unit: The unit item URL or the QID a certain amount has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).</span>
 <span class="sd">            The default is dimensionless, represented by a '1'</span>
 <span class="sd">        :param wikibase_url: The default wikibase URL, used when the unit is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.</span>
@@ -542,12 +542,16 @@
             <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Value, bounds and units must parse as integers or float"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
 
-            <span class="c1"># Compared as Decimal, without the rounding of float</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="ow">or</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Lower bound too large"</span><span class="p">)</span>
+            <span class="c1"># Wikibase only accepts a quantity with both bounds or none</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The upper and lower bounds must be given together, or not at all"</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Upper bound too small"</span><span class="p">)</span>
+            <span class="c1"># Compared as Decimal, without the rounding of float</span>
+            <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="ow">or</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Lower bound too large"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Upper bound too small"</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">'value'</span><span class="p">:</span> <span class="p">{</span>
@@ -562,8 +566,6 @@
             <span class="c1"># remove bounds from json if they are undefined</span>
             <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'upperBound'</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'lowerBound'</span><span class="p">]</span></div>
 
 

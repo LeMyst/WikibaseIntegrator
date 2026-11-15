@@ -16,6 +16,8 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 - **An empty value removes a label, a description or a lemma**: `labels.set('en', '')` marks the existing label
   for removal, like `labels.set('en', None)` and like Wikibase does with an empty value, and returns `None`. It used
   to leave the label unchanged.
+- **A `Quantity` takes both bounds or none**: a single `upper_bound` or `lower_bound` raises a `ValueError`. Wikibase
+  rejects such a quantity when it is written, so it used to fail later, at the write.
 
 ### Deprecated in v0.15, removed in 1.0
 

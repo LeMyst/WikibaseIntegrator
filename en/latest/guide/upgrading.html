@@ -488,6 +488,8 @@ list of <code class="docutils literal notranslate"><span class="pre">Claim</span
 <li><p><strong>An empty value removes a label, a description or a lemma</strong>: <code class="docutils literal notranslate"><span class="pre">labels.set('en',</span> <span class="pre">'')</span></code> marks the existing label
 for removal, like <code class="docutils literal notranslate"><span class="pre">labels.set('en',</span> <span class="pre">None)</span></code> and like Wikibase does with an empty value, and returns <code class="docutils literal notranslate"><span class="pre">None</span></code>. It used
 to leave the label unchanged.</p></li>
+<li><p><strong>A <code class="docutils literal notranslate"><span class="pre">Quantity</span></code> takes both bounds or none</strong>: a single <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code> or <code class="docutils literal notranslate"><span class="pre">lower_bound</span></code> raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. Wikibase
+rejects such a quantity when it is written, so it used to fail later, at the write.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
