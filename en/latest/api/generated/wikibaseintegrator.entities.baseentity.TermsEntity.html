@@ -519,7 +519,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html">NonExistentEntityError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingExtensionError.html">MissingExtensionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html">MissingEntityException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
@@ -683,8 +682,7 @@ returned by write() (the response of wbeditentity has no page), the page is reso
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the entity has no id, pageid nor page title, or if its id is a redirect to another entity</p></li>
-<li><p><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException" title="wikibaseintegrator.wbi_exceptions.MissingEntityException"><strong>MissingEntityException</strong></a> – If the page is resolved from the id, and the entity doesn’t exist (or was deleted)</p></li>
-<li><p><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><strong>NonExistentEntityError</strong></a> – If the page is resolved from the id, and the instance doesn’t know the id</p></li>
+<li><p><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><strong>NonExistentEntityError</strong></a> – If the page is resolved from the id, and the instance doesn’t know the id, or the entity was deleted</p></li>
 </ul>
 </dd>
 </dl>

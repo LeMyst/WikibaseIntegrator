@@ -435,7 +435,6 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
@@ -449,14 +448,12 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.descriptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Descriptions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span><span class="p">,</span> <span class="n">EntityField</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingEntityException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonExistentEntityError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">delete_page</span><span class="p">,</span> <span class="n">download_entity_data</span><span class="p">,</span> <span class="n">edit_entity</span><span class="p">,</span> <span class="n">mediawiki_api_call_helper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLogin</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseIntegrator</span>
-
-<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_new_claims_data</span><span class="p">(</span><span class="n">claims</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
@@ -661,7 +658,7 @@
 <span class="sd">        """</span>
         <span class="c1"># wbgetentities answers {'id': ..., 'missing': ''} for an entity that doesn't exist (or was deleted)</span>
         <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="s1">'The MW API returned that the entity was missing.'</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">NonExistentEntityError</span><span class="p">({</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'missing'</span><span class="p">,</span> <span class="s1">'info'</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"The entity </span><span class="si">{</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'id'</span><span class="p">)</span><span class="si">}</span><span class="s2"> is missing (deleted?) on the Wikibase instance."</span><span class="p">})</span>
 
         <span class="c1"># Absent from the entity JSON of older MediaWiki versions (1.35)</span>
         <span class="k">if</span> <span class="s1">'title'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
@@ -693,7 +690,7 @@
 <span class="sd">            props is ignored. Default: the latest revision</span>
 <span class="sd">        :param kwargs: More arguments for Python requests</span>
 <span class="sd">        :return: python complex dictionary representation of a json</span>
-<span class="sd">        :raises MissingEntityException: If the revision doesn't exist, or isn't a revision of this entity</span>
+<span class="sd">        :raises NonExistentEntityError: If the revision doesn't exist, or isn't a revision of this entity (code nosuchrevid)</span>
 <span class="sd">        """</span>
 
         <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
@@ -704,7 +701,8 @@
                                                        <span class="n">user_agent</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'user_agent'</span><span class="p">)))</span>
             <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The revision </span><span class="si">{</span><span class="n">revision</span><span class="si">}</span><span class="s2"> of the entity </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2"> doesn't exist, or isn't a revision of this entity."</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+                    <span class="k">raise</span> <span class="n">NonExistentEntityError</span><span class="p">({</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'nosuchrevid'</span><span class="p">,</span> <span class="s1">'info'</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"The revision </span><span class="si">{</span><span class="n">revision</span><span class="si">}</span><span class="s2"> of the entity </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2"> doesn't exist, or isn't a revision of this "</span>
+                                                                                 <span class="s2">"entity."</span><span class="p">})</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
                 <span class="k">raise</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
@@ -856,12 +854,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">entity_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">json_result</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">edit_entity</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="n">summary</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="n">clear</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span>
-                                            <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">'Error while writing to the Wikibase instance'</span><span class="p">)</span>
-            <span class="k">raise</span>
+        <span class="n">json_result</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">edit_entity</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="n">summary</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="n">clear</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span>
+                                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">as_new</span><span class="p">:</span>
             <span class="c1"># The page id and title describe the page of the original entity, and the response of wbeditentity has neither: kept, they</span>
@@ -886,8 +880,7 @@
 <span class="sd">        :param kwargs: Any additional keyword arguments to pass to mediawiki_api_call_helper and requests.request</span>
 <span class="sd">        :return: The data returned by the API as a dictionary</span>
 <span class="sd">        :raises ValueError: If the entity has no id, pageid nor page title, or if its id is a redirect to another entity</span>
-<span class="sd">        :raises MissingEntityException: If the page is resolved from the id, and the entity doesn't exist (or was deleted)</span>
-<span class="sd">        :raises NonExistentEntityError: If the page is resolved from the id, and the instance doesn't know the id</span>
+<span class="sd">        :raises NonExistentEntityError: If the page is resolved from the id, and the instance doesn't know the id, or the entity was deleted</span>
 <span class="sd">        """</span>
 
         <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
@@ -913,7 +906,7 @@
 <span class="sd">        entities depends on the configuration of the instance.</span>
 
 <span class="sd">        :raises ValueError: If the id is a redirect to another entity: deleting the page of the target would delete another entity</span>
-<span class="sd">        :raises MissingEntityException: If the entity doesn't exist</span>
+<span class="sd">        :raises NonExistentEntityError: If the entity doesn't exist</span>
 <span class="sd">        """</span>
         <span class="n">entities</span> <span class="o">=</span> <span class="n">mediawiki_api_call_helper</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">'action'</span><span class="p">:</span> <span class="s1">'wbgetentities'</span><span class="p">,</span> <span class="s1">'ids'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">:</span> <span class="s1">'info'</span><span class="p">,</span> <span class="s1">'redirects'</span><span class="p">:</span> <span class="s1">'no'</span><span class="p">,</span> <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span><span class="p">},</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span>
                                              <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">mediawiki_api_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">user_agent</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="s1">'entities'</span><span class="p">]</span>
@@ -922,7 +915,7 @@
         <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The entity </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> is a redirect to </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span><span class="si">}</span><span class="s2">: it isn't deleted."</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">entity</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s1">'The entity </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> does not exist.'</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">NonExistentEntityError</span><span class="p">({</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'missing'</span><span class="p">,</span> <span class="s1">'info'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'The entity </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> does not exist.'</span><span class="p">},</span> <span class="n">response</span><span class="o">=</span><span class="p">{</span><span class="s1">'entities'</span><span class="p">:</span> <span class="n">entities</span><span class="p">})</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pageid</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'pageid'</span><span class="p">)</span>

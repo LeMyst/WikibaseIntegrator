@@ -1,6 +1,0 @@
-﻿MissingEntityException
-======================
-
-.. currentmodule:: wikibaseintegrator.wbi_exceptions
-
-.. autoexception:: MissingEntityException

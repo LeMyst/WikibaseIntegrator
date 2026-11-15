@@ -460,6 +460,16 @@
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
+<span class="c1"># The keyword arguments of Login and Clientlogin, passed to the login requests</span>
+<span class="n">_LOGIN_REQUEST_KWARGS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s1">'headers'</span><span class="p">,</span> <span class="s1">'proxies'</span><span class="p">,</span> <span class="s1">'timeout'</span><span class="p">,</span> <span class="s1">'verify'</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_login_kwargs</span><span class="p">(</span><span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">unsupported</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-</span> <span class="n">_LOGIN_REQUEST_KWARGS</span>
+    <span class="k">if</span> <span class="n">unsupported</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">() got unsupported keyword arguments: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">unsupported</span><span class="p">))</span><span class="si">}</span><span class="s2">. Only headers, proxies, timeout and verify are passed to the "</span>
+                        <span class="s2">"login requests."</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="BaseLogin">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_login.BaseLogin.html#wikibaseintegrator.wbi_login.BaseLogin">[docs]</a>
@@ -779,8 +789,10 @@
 <span class="sd">        :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)</span>
 <span class="sd">        :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server</span>
 <span class="sd">        :param user_agent: UA string to use for API requests.</span>
-<span class="sd">        :param kwargs: Additional parameters to pass to the requests.sessions.Session.post method, such as headers or proxies.</span>
+<span class="sd">        :param kwargs: Additional parameters of the login requests (requests.Session.post): headers, proxies, timeout and verify.</span>
+<span class="sd">        :raises TypeError: If another keyword argument is given</span>
 <span class="sd">        """</span>
+        <span class="n">_check_login_kwargs</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">mediawiki_api_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mediawiki_api_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">])</span>
         <span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">])</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
@@ -806,10 +818,8 @@
             <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span>
         <span class="p">}</span>
 
-        <span class="n">allowed_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'headers'</span><span class="p">,</span> <span class="s1">'proxies'</span><span class="p">,</span> <span class="s1">'timeout'</span><span class="p">,</span> <span class="s1">'verify'</span><span class="p">}</span>
-        <span class="n">filtered_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">allowed_kwargs</span><span class="p">}</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered_kwargs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Unsupported kwargs were ignored: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-</span> <span class="n">allowed_kwargs</span><span class="p">)</span>
+        <span class="c1"># Checked by __init__</span>
+        <span class="n">filtered_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">filtered_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'timeout'</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
         <span class="c1"># The headers given by the caller are added to the default ones (the User-Agent)</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">default_headers</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">filtered_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'headers'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})}</span>
@@ -869,8 +879,10 @@
 <span class="sd">        :param mediawiki_api_url: The URL to the MediaWiki API (default Wikidata)</span>
 <span class="sd">        :param token_renew_period: Seconds after which a new token should be requested from the Wikidata server</span>
 <span class="sd">        :param user_agent: UA string to use for API requests.</span>
-<span class="sd">        :param kwargs: Additional parameters to pass to the requests.sessions.Session.post method, such as headers or proxies.</span>
+<span class="sd">        :param kwargs: Additional parameters of the login requests (requests.Session.post): headers, proxies, timeout and verify.</span>
+<span class="sd">        :raises TypeError: If another keyword argument is given</span>
 <span class="sd">        """</span>
+        <span class="n">_check_login_kwargs</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">mediawiki_api_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mediawiki_api_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">])</span>
         <span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">])</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">'USER_AGENT'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
@@ -896,10 +908,8 @@
             <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span>
         <span class="p">}</span>
 
-        <span class="n">allowed_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'headers'</span><span class="p">,</span> <span class="s1">'proxies'</span><span class="p">,</span> <span class="s1">'timeout'</span><span class="p">,</span> <span class="s1">'verify'</span><span class="p">}</span>
-        <span class="n">filtered_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">allowed_kwargs</span><span class="p">}</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered_kwargs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Unsupported kwargs were ignored: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-</span> <span class="n">allowed_kwargs</span><span class="p">)</span>
+        <span class="c1"># Checked by __init__</span>
+        <span class="n">filtered_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">filtered_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'timeout'</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">'TIMEOUT'</span><span class="p">])</span>
         <span class="c1"># The headers given by the caller are added to the default ones (the User-Agent)</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">default_headers</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">filtered_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'headers'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})}</span>

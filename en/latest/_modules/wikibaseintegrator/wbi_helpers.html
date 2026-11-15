@@ -459,8 +459,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.quantity</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_amount</span> <span class="k">as</span> <span class="n">format_amount</span>  <span class="c1"># pylint: disable=unused-import,useless-import-alias</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_backoff</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryAfterError</span><span class="p">,</span> <span class="n">SPARQLTimeoutError</span><span class="p">,</span> <span class="n">wbi_backoff</span><span class="p">,</span> <span class="n">wbi_backoff_wait</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">AnonymousEditNotAllowedError</span><span class="p">,</span> <span class="n">EmptyValueError</span><span class="p">,</span> <span class="n">MaxRetriesReachedException</span><span class="p">,</span> <span class="n">MissingEntityException</span><span class="p">,</span> <span class="n">MissingExtensionError</span><span class="p">,</span>
-                                               <span class="n">ModificationFailed</span><span class="p">,</span> <span class="n">MWApiError</span><span class="p">,</span> <span class="n">NonExistentEntityError</span><span class="p">,</span> <span class="n">SaveFailed</span><span class="p">,</span> <span class="n">SearchError</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">AnonymousEditNotAllowedError</span><span class="p">,</span> <span class="n">EmptyValueError</span><span class="p">,</span> <span class="n">MaxRetriesReachedException</span><span class="p">,</span> <span class="n">MissingExtensionError</span><span class="p">,</span> <span class="n">ModificationFailed</span><span class="p">,</span> <span class="n">MWApiError</span><span class="p">,</span>
+                                               <span class="n">NonExistentEntityError</span><span class="p">,</span> <span class="n">SaveFailed</span><span class="p">,</span> <span class="n">SearchError</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDataType</span>
@@ -1866,8 +1866,7 @@
 <span class="sd">    :param entities: A list of IDs. Item, Property, Lexeme or MediaInfo.</span>
 <span class="sd">    :param allow_anonymous: Allow an anonymous request to the MediaWiki API. Enabled by default.</span>
 <span class="sd">    :return: A list of tuples, first value in the tuple is the entity's ID, second value is the instance of a subclass of BaseEntity with the corresponding entity data.</span>
-<span class="sd">    :raises NonExistentEntityError: If an ID doesn't exist on the Wikibase instance</span>
-<span class="sd">    :raises MissingEntityException: If an entity is missing, e.g. deleted</span>
+<span class="sd">    :raises NonExistentEntityError: If an ID doesn't exist on the Wikibase instance, or an entity is missing, e.g. deleted (code missing)</span>
 <span class="sd">    :raises ValueError: If an entity has a type that no subclass of BaseEntity implements</span>
 <span class="sd">    """</span>
 
@@ -1894,7 +1893,7 @@
         <span class="k">for</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">entity_json</span> <span class="ow">in</span> <span class="n">reply</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="c1"># A deleted entity is returned as {'id': ..., 'missing': ''}, without its type</span>
             <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">entity_json</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s1">'The entity </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s1"> is missing (deleted?) on the Wikibase instance.'</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">NonExistentEntityError</span><span class="p">({</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'missing'</span><span class="p">,</span> <span class="s1">'info'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'The entity </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s1"> is missing (deleted?) on the Wikibase instance.'</span><span class="p">},</span> <span class="n">response</span><span class="o">=</span><span class="n">reply</span><span class="p">)</span>
 
             <span class="c1"># Use the recursive subclass registry (not __subclasses__(), which only returns direct subclasses) so that</span>
             <span class="c1"># entities inheriting through an intermediate base (Item/Property/MediaInfo via TermsEntity) are found.</span>

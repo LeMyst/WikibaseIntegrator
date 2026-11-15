@@ -762,7 +762,6 @@
         <span class="n">newrefs</span> <span class="o">=</span> <span class="n">newitem</span><span class="o">.</span><span class="n">references</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newrefs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"New item has more or less than 1 reference block."</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">_ref_equal</span><span class="p">(</span><span class="n">oldref</span><span class="p">,</span> <span class="n">newref</span><span class="p">)</span> <span class="k">for</span> <span class="n">oldref</span> <span class="ow">in</span> <span class="n">oldrefs</span><span class="p">)</span> <span class="k">for</span> <span class="n">newref</span> <span class="ow">in</span> <span class="n">newrefs</span><span class="p">)</span></div>

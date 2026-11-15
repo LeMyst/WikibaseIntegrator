@@ -450,7 +450,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claims</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claims</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.descriptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Descriptions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingEntityException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonExistentEntityError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">mediawiki_api_call_helper</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -556,7 +556,7 @@
 <span class="sd">        :param is_bot: Add the bot flag to the request. The is_bot of the WikibaseIntegrator instance by default.</span>
 <span class="sd">        :param kwargs: More arguments for mediawiki_api_call_helper()</span>
 <span class="sd">        :return: a MediaInfoEntity instance</span>
-<span class="sd">        :exception MissingEntityException: If the page doesn't exist.</span>
+<span class="sd">        :exception NonExistentEntityError: If the page doesn't exist (code missingtitle).</span>
 <span class="sd">        :exception ValueError: If the titles match more than one entity.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">titles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -578,7 +578,7 @@
         <span class="c1"># The API answers {'-1': {'title': ..., 'missing': ''}} for a page that doesn't exist</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">'missing'</span> <span class="ow">in</span> <span class="n">entity</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">missing</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MissingEntityException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Title not found: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">titles</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">NonExistentEntityError</span><span class="p">({</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'missingtitle'</span><span class="p">,</span> <span class="s1">'info'</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Title not found: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">titles</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span> <span class="n">response</span><span class="o">=</span><span class="n">json_data</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'More than one element for this title'</span><span class="p">)</span>
 

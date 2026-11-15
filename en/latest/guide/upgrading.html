@@ -535,6 +535,21 @@ the elements.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Aliases</span></code> is iterable over its aliases, of every language.</p></li>
 </ul>
 </li>
+<li><p><strong>A missing entity raises <code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></strong>, like an unknown id already did, instead of
+<code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code>: a deleted entity, a revision that doesn’t exist, a MediaInfo title that isn’t found.
+Its <code class="docutils literal notranslate"><span class="pre">code</span></code> tells the cases apart: <code class="docutils literal notranslate"><span class="pre">no-such-entity</span></code> (unknown id), <code class="docutils literal notranslate"><span class="pre">missingtitle</span></code>, <code class="docutils literal notranslate"><span class="pre">missing</span></code> (e.g. deleted),
+<code class="docutils literal notranslate"><span class="pre">nosuchrevid</span></code>. <code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code> is now another name of <code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code> (see below), so the code
+catching it keeps working, and also catches the unknown ids. <code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code> is an <code class="docutils literal notranslate"><span class="pre">MWApiError</span></code>: the code
+catching <code class="docutils literal notranslate"><span class="pre">MWApiError</span></code> now catches the missing entities too.</p></li>
+<li><p><strong>A claim with qualifiers or references given to <code class="docutils literal notranslate"><span class="pre">References.add()</span></code> raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code></strong>: a reference only
+holds snaks. They used to be dropped, with a warning in the log. Pass the claim without them.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Login</span></code> and <code class="docutils literal notranslate"><span class="pre">Clientlogin</span></code> raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> for an unsupported keyword argument</strong>, like any Python function.
+Only <code class="docutils literal notranslate"><span class="pre">headers</span></code>, <code class="docutils literal notranslate"><span class="pre">proxies</span></code>, <code class="docutils literal notranslate"><span class="pre">timeout</span></code> and <code class="docutils literal notranslate"><span class="pre">verify</span></code> are passed to the login requests: the others used to be ignored,
+with a warning in the log.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">write()</span></code> no longer logs the exception it raises</strong>: it was logged with its traceback, then raised, so it
+appeared twice. Log it where you catch it.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Claim.ref_present()</span></code> no longer emits a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code></strong> when the new claim has no reference or several, a
+normal case of <code class="docutils literal notranslate"><span class="pre">MERGE_REFS_OR_APPEND</span></code>. The result is the same.</p></li>
 </ul>
 <section id="deprecated-in-v0-15-removed-in-1-0">
 <span id="deprecated-in-v015-removed-in-10"></span><h3>Deprecated in v0.15, removed in 1.0<a class="headerlink" href="#deprecated-in-v0-15-removed-in-1-0" title="Link to this heading">#</a></h3>
@@ -553,6 +568,8 @@ the SPARQL queries are set by <code class="docutils literal notranslate"><span c
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">in</span></code> on a <code class="docutils literal notranslate"><span class="pre">Claim</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">in</span> <span class="pre">claim</span></code>): a claim isn’t a collection. Compare the claims with <code class="docutils literal notranslate"><span class="pre">==</span></code>, and read the
 value of a claim from <code class="docutils literal notranslate"><span class="pre">claim.mainsnak.datavalue</span></code>. With a string, it never matched anything. <code class="docutils literal notranslate"><span class="pre">'P31'</span> <span class="pre">in</span> <span class="pre">item.claims</span></code>
 isn’t concerned.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code></strong>: catch <code class="docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code>, which is raised instead (see above).
+<code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code> is another name of it until 1.0.</p></li>
 </ul>
 <p>If you want to stay on v0.14.x, you can put this line in your requirements.txt:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wikibaseintegrator</span><span class="o">~=</span><span class="mf">0.14.0</span>
