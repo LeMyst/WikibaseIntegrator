@@ -4,6 +4,7 @@ Interaction tests for LexemeEntity against the simulated Wikibase instance.
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_login
+from wikibaseintegrator.entities.baseentity import _new_entity_data
 from wikibaseintegrator.models import Form, Sense
 
 wbi = WikibaseIntegrator()
@@ -87,6 +88,30 @@ class TestWrite:
         assert written.lemmas.get('es') == 'pino'
 
 
+    def test_write_as_new_adds_the_forms_and_senses(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.claims.get('P5185')[0].remove()
+        lexeme.senses.get('L5-S1').remove()
+        lexeme.forms.get('L5-F1').representations.set('es', None)
+        lexeme.write(allow_anonymous=True, as_new=True)
+
+        data = wikibase.last_edit['data']
+        assert wikibase.last_edit['params']['new'] == 'lexeme'
+        assert 'id' not in data
+        assert data['claims'] == {}
+        # The forms and senses are new ones: no id of L5, and the removed sense isn't sent
+        assert [set(form) for form in data['forms']] == [{'representations', 'grammaticalFeatures', 'claims', 'add'}] * 2
+        assert all('remove' not in representation for representation in data['forms'][0]['representations'].values())
+        assert data['senses'] == []
+
+
+    def test_new_entity_data_of_partial_sub_entities(self):
+        # The data given to _write() by hand can have forms and senses without terms or claims
+        data = {'id': 'L5', 'forms': [{'id': 'L5-F1', 'grammaticalFeatures': []}], 'senses': [{'id': 'L5-S1'}, {'id': 'L5-S2', 'remove': ''}]}
+        _new_entity_data(data)
+        assert data == {'forms': [{'grammaticalFeatures': [], 'add': ''}], 'senses': [{'add': ''}]}
+
+
 class TestWriteForm:
     def test_write_form(self, wikibase, lexeme_l5):
         lexeme = wbi.lexeme.get('L5')
@@ -139,6 +164,41 @@ class TestWriteForm:
 
         # Calling it again is a no-op: every Form now has an id
         assert lexeme.write_forms(allow_anonymous=True) == []
+
+
+    def test_write_form_refuses_a_removed_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        requests_before = len(wikibase.requests)
+
+        # The 'remove' marker would be sent to wbladdform, which doesn't expect it
+        with pytest.raises(ValueError, match='removed'):
+            lexeme.write_form(new_form().remove(), allow_anonymous=True)
+
+        assert len(wikibase.requests) == requests_before
+
+    def test_write_forms_skips_the_removed_ones(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.forms.add(new_form(representation='pinillo').remove())
+        lexeme.forms.add(new_form(representation='pinito'))
+
+        assert lexeme.write_forms(allow_anonymous=True) == ['L5-F3']
+        assert wikibase.last_edit['data']['representations']['es']['value'] == 'pinito'
+
+
+class TestRemoveForm:
+    def test_write_sends_the_removed_form(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        assert lexeme.forms.get('L5-F1').remove() is lexeme.forms.get('L5-F1')
+        lexeme.write(allow_anonymous=True)
+
+        forms = {form['id']: form for form in wikibase.last_edit['data']['forms']}
+        assert 'remove' in forms['L5-F1']
+        assert 'remove' not in forms['L5-F2']
+
+    def test_new_removed_form_is_left_out(self, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.forms.add(new_form().remove())
+        assert [form['id'] for form in lexeme.get_json()['forms']] == ['L5-F1', 'L5-F2']
 
 
 class TestWriteSense:

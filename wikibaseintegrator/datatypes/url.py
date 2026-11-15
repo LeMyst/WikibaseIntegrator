@@ -79,7 +79,7 @@ class URL(BaseDataType):
             return None
         return '<' + self.mainsnak.datavalue['value'].translate(IRI_ESCAPES) + '>'
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?(.*?)>?$')
         matches = pattern.match(value)
         if not matches:

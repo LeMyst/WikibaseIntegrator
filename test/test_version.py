@@ -33,7 +33,7 @@ def test_version_from_the_metadata():
 def test_version_of_a_checkout_without_metadata():
     # The import used to fail with a PackageNotFoundError
     with open(PACKAGE_ROOT / 'pyproject.toml', 'rb') as file:
-        expected = tomllib.load(file)['tool']['poetry']['version']
+        expected = tomllib.load(file)['project']['version']
 
     assert version_in_a_fresh_interpreter(WITHOUT_METADATA) == expected
 

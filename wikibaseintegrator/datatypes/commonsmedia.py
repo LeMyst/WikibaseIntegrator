@@ -68,7 +68,7 @@ class CommonsMedia(URL):
             return None
         return '<' + self.SPARQL_IRI_PREFIX + urllib.parse.quote(self.mainsnak.datavalue['value'], safe='') + '>'
 
-    def parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
+    def _parse_sparql_value(self, value: str, type: str = 'literal', unit: str = '1') -> bool:
         pattern = re.compile(r'^<?.*?/?([^/]*?)>?$')
         matches = pattern.match(value)
         if not matches:

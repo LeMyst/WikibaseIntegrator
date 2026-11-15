@@ -80,6 +80,8 @@ class Claim(BaseModel):
                     ref.snaks = Snaks().add(Snak().from_json(ref_list.get_json()['mainsnak']))
                 elif isinstance(ref_list, Reference):
                     ref = ref_list
+                else:
+                    raise ValueError("The references must be a References object or a list of Claim object")
                 self.references.add(reference=ref)
         elif references is not None:
             raise ValueError("The references must be a References object or a list of Claim object")

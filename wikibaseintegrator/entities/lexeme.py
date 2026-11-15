@@ -11,7 +11,7 @@ from wikibaseintegrator.models.sense import Sense
 from wikibaseintegrator.models.senses import Senses
 from wikibaseintegrator.wbi_config import config
 from wikibaseintegrator.wbi_helpers import lexeme_add_form, lexeme_add_sense
-from wikibaseintegrator.wbi_login import _Login
+from wikibaseintegrator.wbi_login import BaseLogin
 
 
 class LexemeEntity(BaseEntity):
@@ -190,7 +190,7 @@ class LexemeEntity(BaseEntity):
         json_data = super()._write(data=self.get_json(), **kwargs)
         return self.from_json(json_data=json_data)
 
-    def write_form(self, form: Form, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
+    def write_form(self, form: Form, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
         """
         Add a single Form to the Lexeme with the wbladdform action.
 
@@ -209,6 +209,9 @@ class LexemeEntity(BaseEntity):
         if form.id:
             raise ValueError(f"The Form {form.id} already exists, adding it again would create a duplicate.")
 
+        if form.removed:
+            raise ValueError('The Form is marked as removed, it cannot be added.')
+
         data = form.get_json()
         # 'add' is a marker used by wbeditentity, the wbladdform action doesn't expect it.
         data.pop('add', None)
@@ -223,14 +226,14 @@ class LexemeEntity(BaseEntity):
     def write_forms(self, **kwargs: Any) -> list[str]:
         """
         Add all the new Forms of the Lexeme, one wbladdform action per Form. The Forms already existing on the
-        Wikibase instance are skipped.
+        Wikibase instance and the Forms marked as removed are skipped.
 
         :param kwargs: Arguments passed to write_form()
         :return: The ids of the newly created Forms
         """
-        return [self.write_form(form, **kwargs) for form in self.forms if not form.id]
+        return [self.write_form(form, **kwargs) for form in self.forms if not form.id and not form.removed]
 
-    def write_sense(self, sense: Sense, login: _Login | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
+    def write_sense(self, sense: Sense, login: BaseLogin | None = None, allow_anonymous: bool = False, is_bot: bool | None = None, **kwargs: Any) -> str:
         """
         Add a single Sense to the Lexeme with the wbladdsense action.
 

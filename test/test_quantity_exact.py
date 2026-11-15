@@ -75,4 +75,4 @@ class TestExactAmounts:
         assert value['upperBound'] == '+10000000000000000002'
 
         with pytest.raises(ValueError, match='Upper bound too small'):
-            Quantity(amount='10000000000000000001', upper_bound='10000000000000000000', prop_nr='P1')
+            Quantity(amount='10000000000000000001', upper_bound='10000000000000000000', lower_bound='10000000000000000000', prop_nr='P1')

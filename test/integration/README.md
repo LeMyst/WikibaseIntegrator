@@ -8,6 +8,19 @@ a **real Wikibase instance** and validate the actual end-to-end interaction
 They are **deselected by default** (`pytest` alone never runs them) and are
 enabled with the `integration` marker plus a few environment variables.
 
+Two files:
+- `test_wikibase_roundtrip.py` writes entities with the library and reads them back.
+- `test_wikibase_behavior.py` checks, with raw API calls, the behaviors of Wikibase that the library relies on (e.g.
+  that an empty list of aliases leaves the aliases of an entity). The unit tests simulate them: when one of these tests
+  fails, Wikibase changed.
+
+## In the CI
+
+The `integration-tests.yaml` workflow starts the docker-compose instance below and runs these tests: on demand
+(`workflow_dispatch`), every Monday, and on the pull requests changing `test/integration/` or the workflow. It isn't a
+required check of `master`, since an update of the Wikibase Suite image can break it without any change in the
+library. The image has no WikibaseLexeme extension, so the Lexeme tests are skipped there.
+
 ## Running against a local Wikibase (recommended)
 
 ```bash
