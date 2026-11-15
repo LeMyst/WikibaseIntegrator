@@ -54,10 +54,10 @@ source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 myst_heading_anchors = 4
 master_doc = 'index'
 
-project = meta["tool"]["poetry"]["name"]
+project = meta["project"]["name"]
 copyright = f'{datetime.now().year}, LeMyst'
-author = ", ".join(meta["tool"]["poetry"]["authors"])
-version = meta["tool"]["poetry"]["version"]
+author = ", ".join(author["name"] for author in meta["project"]["authors"])
+version = meta["project"]["version"]
 release = version
 
 language = 'en'
