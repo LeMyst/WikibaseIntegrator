@@ -4,6 +4,7 @@ Interaction tests for LexemeEntity against the simulated Wikibase instance.
 import pytest
 
 from wikibaseintegrator import WikibaseIntegrator, datatypes, wbi_login
+from wikibaseintegrator.entities.baseentity import _new_entity_data
 from wikibaseintegrator.models import Form, Sense
 
 wbi = WikibaseIntegrator()
@@ -85,6 +86,30 @@ class TestWrite:
         assert edit['data']['lexicalCategory'] == 'Q1084'
         assert written.id == 'L5'
         assert written.lemmas.get('es') == 'pino'
+
+
+    def test_write_as_new_adds_the_forms_and_senses(self, wikibase, lexeme_l5):
+        lexeme = wbi.lexeme.get('L5')
+        lexeme.claims.get('P5185')[0].remove()
+        lexeme.senses.get('L5-S1').remove()
+        lexeme.forms.get('L5-F1').representations.set('es', None)
+        lexeme.write(allow_anonymous=True, as_new=True)
+
+        data = wikibase.last_edit['data']
+        assert wikibase.last_edit['params']['new'] == 'lexeme'
+        assert 'id' not in data
+        assert data['claims'] == {}
+        # The forms and senses are new ones: no id of L5, and the removed sense isn't sent
+        assert [set(form) for form in data['forms']] == [{'representations', 'grammaticalFeatures', 'claims', 'add'}] * 2
+        assert all('remove' not in representation for representation in data['forms'][0]['representations'].values())
+        assert data['senses'] == []
+
+
+    def test_new_entity_data_of_partial_sub_entities(self):
+        # The data given to _write() by hand can have forms and senses without terms or claims
+        data = {'id': 'L5', 'forms': [{'id': 'L5-F1', 'grammaticalFeatures': []}], 'senses': [{'id': 'L5-S1'}, {'id': 'L5-S2', 'remove': ''}]}
+        _new_entity_data(data)
+        assert data == {'forms': [{'grammaticalFeatures': [], 'add': ''}], 'senses': [{'add': ''}]}
 
 
 class TestWriteForm:

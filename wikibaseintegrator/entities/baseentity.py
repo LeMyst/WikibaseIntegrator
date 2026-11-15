@@ -25,6 +25,53 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+def _new_claims_data(claims: dict[str, list[dict]]) -> dict[str, list[dict]]:
+    # The claims of a new entity: without the claims marked for removal, and without the GUIDs, which belong to the entity they were read from
+    new_claims = {}
+    for property, property_claims in claims.items():
+        kept = [{key: value for key, value in claim.items() if key != 'id'} for claim in property_claims if 'remove' not in claim]
+        if kept:
+            new_claims[property] = kept
+    return new_claims
+
+
+def _new_entity_data(data: dict[str, Any]) -> None:
+    """
+    Turn, in place, the data of an entity into the data of a new entity (``write(as_new=True)``): remove its id, the GUIDs of
+    its claims, the ids of its forms and senses, and everything marked for removal, which only makes sense on the entity
+    the data was read from.
+    """
+    data.pop('id', None)
+
+    for claims_key in ('claims', 'statements'):
+        if isinstance(data.get(claims_key), dict):
+            data[claims_key] = _new_claims_data(data[claims_key])
+
+    for terms_key in ('labels', 'descriptions', 'lemmas'):
+        if isinstance(data.get(terms_key), dict):
+            data[terms_key] = {language: term for language, term in data[terms_key].items() if 'remove' not in term}
+
+    if isinstance(data.get('aliases'), dict):
+        aliases = {language: [alias for alias in language_aliases if 'remove' not in alias] for language, language_aliases in data['aliases'].items()}
+        data['aliases'] = {language: language_aliases for language, language_aliases in aliases.items() if language_aliases}
+
+    # The forms and senses of a lexeme are added to the new lexeme, with their claims
+    for sub_entities_key, terms_key in (('forms', 'representations'), ('senses', 'glosses')):
+        if isinstance(data.get(sub_entities_key), list):
+            sub_entities = []
+            for sub_entity in data[sub_entities_key]:
+                if 'remove' in sub_entity:
+                    continue
+                sub_entity = {key: value for key, value in sub_entity.items() if key != 'id'}
+                sub_entity['add'] = ''
+                if isinstance(sub_entity.get(terms_key), dict):
+                    sub_entity[terms_key] = {language: term for language, term in sub_entity[terms_key].items() if 'remove' not in term}
+                if isinstance(sub_entity.get('claims'), dict):
+                    sub_entity['claims'] = _new_claims_data(sub_entity['claims'])
+                sub_entities.append(sub_entity)
+            data[sub_entities_key] = sub_entities
+
+
 class BaseEntity:
     ETYPE = 'base-entity'
     subclasses: list[type[BaseEntity]] = []
@@ -282,7 +329,8 @@ class BaseEntity:
         :param allow_anonymous: Force a check if the query can be anonymous or not
         :param limit_claims: Limit to a list of specific claims to reduce the data sent and avoid sending the complete entity.
         :param clear: If set, the complete entity is emptied before proceeding. The entity will not be saved before it is filled with the "data", possibly with parts excluded.
-        :param as_new: Write the entity as a new one
+        :param as_new: Write the entity as a new one, without the id of the entity, the GUIDs of its claims, the ids of its forms and senses,
+            and what is marked for removal
         :param is_bot: Add the bot flag to the query
         :param fields_to_update: A list or a single EntityField to update. If not set, all fields will be updated.
         :param kwargs: More arguments for Python requests
@@ -351,8 +399,9 @@ class BaseEntity:
 
         if as_new:
             entity_id = None
-            # Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API.
-            data.pop('id', None)
+            # Don't keep an id when creating a new entity: a null id in the data payload is rejected by the API. Neither the GUIDs of
+            # the claims, nor what is marked for removal, belong to the new entity.
+            _new_entity_data(data)
         else:
             entity_id = self.id
 

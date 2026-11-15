@@ -18,6 +18,9 @@ old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
   to leave the label unchanged.
 - **A `Quantity` takes both bounds or none**: a single `upper_bound` or `lower_bound` raises a `ValueError`. Wikibase
   rejects such a quantity when it is written, so it used to fail later, at the write.
+- **`write(as_new=True)` only sends what belongs to the new entity**: the GUIDs of the claims, the ids of the forms
+  and senses of a lexeme, and the claims, terms, forms and senses marked for removal are left out. They used to be
+  sent along with the copy, with the GUIDs of the entity it was read from.
 
 ### Deprecated in v0.15, removed in 1.0
 

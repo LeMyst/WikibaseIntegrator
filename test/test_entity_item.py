@@ -218,6 +218,24 @@ class TestWrite:
         assert 'id' not in wikibase.last_edit['data']
         assert written.id != 'Q582'
 
+    def test_write_as_new_drops_what_belongs_to_the_original(self, wikibase, item_q582):
+        item = wbi.item.get('Q582')
+        removed_property, kept_property = list(item.claims.get_json())[:2]
+        for claim in item.claims.get(removed_property):
+            claim.remove()
+        item.labels.set('fr', None)
+        removed_aliases = [alias.value for alias in item.aliases.get('fr')]
+        item.aliases.set('fr', None)
+        item.write(allow_anonymous=True, as_new=True)
+
+        data = wikibase.last_edit['data']
+        # The GUIDs of the claims belong to Q582, and the removals only make sense on it
+        assert removed_property not in data['claims']
+        assert data['claims'][kept_property]
+        assert all('id' not in claim and 'remove' not in claim for claims in data['claims'].values() for claim in claims)
+        assert 'fr' not in data['labels']
+        assert removed_aliases and 'fr' not in data['aliases']
+
     def test_write_limited_claims(self, wikibase, item_q582):
         item = wbi.item.get('Q582')
         item.write(allow_anonymous=True, limit_claims=['P31'])
