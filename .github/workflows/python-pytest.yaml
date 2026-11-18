@@ -28,7 +28,6 @@ jobs:
   build:
     name: pytest ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    container: ubuntu:24.04
 
     strategy:
       matrix:
@@ -40,12 +39,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install pipx
-        run: apt update && apt install -y pipx && pipx ensurepath
-
-      - name: Update path
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install poetry
         run: pipx install poetry
