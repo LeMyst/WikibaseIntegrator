@@ -40,7 +40,6 @@ Exceptions
    ~SaveFailed
    ~NonExistentEntityError
    ~MissingExtensionError
-   ~MissingEntityException
    ~EmptyValueError
    ~UnknownDatatypeError
    ~AnonymousEditNotAllowedError

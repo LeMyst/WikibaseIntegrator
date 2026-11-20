@@ -12,7 +12,7 @@ python -m pip uninstall wikidataintegrator
 python -m pip install wikibaseintegrator
 ```
 
-WikibaseIntegrator requires Python 3.11 or newer.
+WikibaseIntegrator requires Python 3.11.5 or newer.
 
 ## A script, before and after
 

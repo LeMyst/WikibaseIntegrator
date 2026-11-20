@@ -1,0 +1,6 @@
+﻿clear\_fastrun\_store
+=====================
+
+.. currentmodule:: wikibaseintegrator.wbi_fastrun
+
+.. autofunction:: clear_fastrun_store

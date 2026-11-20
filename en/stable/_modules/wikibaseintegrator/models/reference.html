@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/reference';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -437,8 +437,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">_add_with_action</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_copy_json</span><span class="p">,</span> <span class="n">_require_property_number</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snaks</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
 
@@ -478,20 +478,31 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">snaks_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__snaks_order</span> <span class="o">=</span> <span class="n">value</span>
 
-    <span class="c1"># TODO: implement action_if_exists</span>
-    <span class="c1"># action_if_exists is accepted for symmetry with Claims.add() but not implemented yet</span>
-    <span class="c1"># pylint: disable-next=unused-argument</span>
 <div class="viewcode-block" id="Reference.add">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.reference.Reference.html#wikibaseintegrator.models.reference.Reference.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snak</span><span class="p">:</span> <span class="n">Snak</span> <span class="o">|</span> <span class="n">Claim</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">:</span> <span class="n">ActionIfExists</span> <span class="o">=</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">APPEND_OR_REPLACE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Add a snak to the reference.</span>
+
+<span class="sd">        :param snak: The snak, as a Snak or as a Claim whose main snak is taken. None adds nothing.</span>
+<span class="sd">        :param action_if_exists: What to do when the snak already exists, like Claims.add(): two snaks are</span>
+<span class="sd">            equal when they have the same property and value. Defaults to APPEND_OR_REPLACE.</span>
+<span class="sd">            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new snak if no equal snak exists.</span>
+<span class="sd">            FORCE_APPEND: Always add the new snak, even if an equal snak exists.</span>
+<span class="sd">            KEEP: Add the new snak only if the property has no snak yet.</span>
+<span class="sd">            REPLACE_ALL: Remove the snaks of the property not equal to the new one, then add it if it isn't</span>
+<span class="sd">            there.</span>
+<span class="sd">        :return: This Reference object</span>
+<span class="sd">        """</span>
         <span class="c1"># Imported here because Claim holds References, which would make a circular import at module level</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
-            <span class="n">snak</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
+            <span class="n">snak</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">_copy_json</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">snak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">Snak</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">Snak</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a Snak or a Claim, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">_add_with_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="o">.</span><span class="n">snaks</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_require_property_number</span><span class="p">(</span><span class="n">snak</span><span class="p">),</span> <span class="p">[]),</span> <span class="n">snak</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -520,7 +531,15 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># The snaks, like the iteration: not the properties</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snaks</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Reference.count">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.reference.Reference.html#wikibaseintegrator.models.reference.Reference.count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the number of snaks of the reference, across every property: the same as ``len()``."""</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Reference</span><span class="p">):</span>

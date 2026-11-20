@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/wikibaseintegrator.datatypes.monolingualtext.MonolingualText';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -463,6 +463,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.OAuth1.html">OAuth1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Login.html">Login</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Clientlogin.html">Clientlogin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.BaseLogin.html">BaseLogin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.WCQSAuth.html">WCQSAuth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.LoginError.html">LoginError</a></li>
 </ul>
@@ -503,6 +504,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../fastrun.html">Fast run</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.FastRunContainer.html">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../configuration.html">Configuration, enums and exceptions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -518,7 +520,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html">NonExistentEntityError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingExtensionError.html">MissingExtensionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html">MissingEntityException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
@@ -647,16 +648,6 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.monolingualtext.MonolingualText.parse_sparql_value">
-<span class="sig-name descname"><span class="pre">parse_sparql_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'literal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/datatypes/monolingualtext.html#MonolingualText.parse_sparql_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.parse_sparql_value" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="wikibaseintegrator.datatypes.monolingualtext.MonolingualText.set_value">
 <span class="sig-name descname"><span class="pre">set_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/datatypes/monolingualtext.html#MonolingualText.set_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.set_value" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
@@ -730,7 +721,6 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText"><code class="docutils literal notranslate"><span class="pre">MonolingualText</span></code></a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.from_sparql_value"><code class="docutils literal notranslate"><span class="pre">MonolingualText.from_sparql_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.get_sparql_value"><code class="docutils literal notranslate"><span class="pre">MonolingualText.get_sparql_value()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.parse_sparql_value"><code class="docutils literal notranslate"><span class="pre">MonolingualText.parse_sparql_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.set_value"><code class="docutils literal notranslate"><span class="pre">MonolingualText.set_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.DTYPE"><code class="docutils literal notranslate"><span class="pre">MonolingualText.DTYPE</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.monolingualtext.MonolingualText.PTYPE"><code class="docutils literal notranslate"><span class="pre">MonolingualText.PTYPE</span></code></a></li>

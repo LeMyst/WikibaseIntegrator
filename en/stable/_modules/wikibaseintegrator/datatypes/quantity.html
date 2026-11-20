@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/datatypes/quantity';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -439,7 +439,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.datatypes.basedatatype</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDataType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
 
 <span class="c1"># A number as written by Python or by a user: an optional sign, digits with an optional fraction, an optional exponent. No</span>
@@ -501,11 +500,12 @@
 <span class="sd">        Constructor, calls the superclass BaseDataType</span>
 
 <span class="sd">        :param amount: The amount value</span>
-<span class="sd">        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations</span>
-<span class="sd">        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations</span>
+<span class="sd">        :param upper_bound: Upper bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.</span>
+<span class="sd">        :param lower_bound: Lower bound of the value if it exists, e.g. for standard deviations. Give both bounds or none.</span>
 <span class="sd">        :param unit: The unit item URL or the QID a certain amount has been measured in (https://www.wikidata.org/wiki/Wikidata:Units).</span>
 <span class="sd">            The default is dimensionless, represented by a '1'</span>
-<span class="sd">        :param wikibase_url: The default wikibase URL, used when the unit is only an ID like 'Q2'. Use wbi_config['WIKIBASE_URL'] by default.</span>
+<span class="sd">        :param wikibase_url: The Wikibase URL completing a unit given as an ID like 'Q11573'. Default: the ID is kept, and completed when the</span>
+<span class="sd">            value is serialized, with the WIKIBASE_URL of the WikibaseIntegrator instance of the entity, else wbi_config['WIKIBASE_URL']</span>
 <span class="sd">        """</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -517,11 +517,10 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.quantity.Quantity.html#wikibaseintegrator.datatypes.quantity.Quantity.set_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amount</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="s1">'1'</span><span class="p">,</span>
                   <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">wikibase_url</span> <span class="o">=</span> <span class="n">wikibase_url</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">])</span>
-
         <span class="n">unit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">unit</span> <span class="ow">or</span> <span class="s1">'1'</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">unit</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'Q'</span><span class="p">):</span>
+        <span class="c1"># Without wikibase_url, a bare ID is completed when the value is serialized (see Snak.get_json())</span>
+        <span class="k">if</span> <span class="n">wikibase_url</span> <span class="ow">and</span> <span class="n">unit</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'Q'</span><span class="p">):</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">wikibase_url</span> <span class="o">+</span> <span class="s1">'/entity/'</span> <span class="o">+</span> <span class="n">unit</span>
 
         <span class="k">if</span> <span class="n">amount</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -542,12 +541,16 @@
             <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Value, bounds and units must parse as integers or float"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
 
-            <span class="c1"># Compared as Decimal, without the rounding of float</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="ow">or</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Lower bound too large"</span><span class="p">)</span>
+            <span class="c1"># Wikibase only accepts a quantity with both bounds or none</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The upper and lower bounds must be given together, or not at all"</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Upper bound too small"</span><span class="p">)</span>
+            <span class="c1"># Compared as Decimal, without the rounding of float</span>
+            <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="ow">or</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Lower bound too large"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Upper bound too small"</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">'value'</span><span class="p">:</span> <span class="p">{</span>
@@ -562,8 +565,6 @@
             <span class="c1"># remove bounds from json if they are undefined</span>
             <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'upperBound'</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'lowerBound'</span><span class="p">]</span></div>
 
 
@@ -601,12 +602,9 @@
         <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="n">format_amount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'amount'</span><span class="p">])</span> <span class="o">+</span> <span class="s1">'"^^xsd:decimal'</span></div>
 
 
-<div class="viewcode-block" id="Quantity.parse_sparql_value">
-<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.quantity.Quantity.html#wikibaseintegrator.datatypes.quantity.Quantity.parse_sparql_value">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">parse_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'literal'</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'1'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_sparql_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'literal'</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'1'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">amount</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
-</div>
 
 </pre></div>
 

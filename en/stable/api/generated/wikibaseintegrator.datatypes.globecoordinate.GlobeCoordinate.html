@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -463,6 +463,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.OAuth1.html">OAuth1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Login.html">Login</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Clientlogin.html">Clientlogin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.BaseLogin.html">BaseLogin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.WCQSAuth.html">WCQSAuth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.LoginError.html">LoginError</a></li>
 </ul>
@@ -503,6 +504,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../fastrun.html">Fast run</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.FastRunContainer.html">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../configuration.html">Configuration, enums and exceptions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -518,7 +520,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html">NonExistentEntityError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingExtensionError.html">MissingExtensionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html">MissingEntityException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
@@ -618,8 +619,9 @@
 <li><p><strong>longitude</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – Longitude in decimal format, between -180 and 180 on Earth, -360 and 360 on another globe (like Wikibase)</p></li>
 <li><p><strong>altitude</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – Altitude (in decimal format?) (Always None at this moment)</p></li>
 <li><p><strong>precision</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – Precision of the position measurement, default 1 / 3600</p></li>
-<li><p><strong>globe</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The globe entity concept URI (ex: <a class="reference external" href="http://www.wikidata.org/entity/Q2">http://www.wikidata.org/entity/Q2</a>) or ‘Q2’</p></li>
-<li><p><strong>wikibase_url</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The default wikibase URL, used when the globe is only an ID like ‘Q2’. Use wbi_config[‘WIKIBASE_URL’] by default.</p></li>
+<li><p><strong>globe</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – The IRI of the Wikidata item of the globe (ex: <a class="reference external" href="http://www.wikidata.org/entity/Q2">http://www.wikidata.org/entity/Q2</a>) or its ID, ‘Q2’. Wikibase only
+accepts the globes of Wikidata, on every instance.</p></li>
+<li><p><strong>wikibase_url</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span>, default: <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></span>) – Deprecated and ignored: a globe given as an ID is always an entity of Wikidata.</p></li>
 </ul>
 </dd>
 </dl>
@@ -650,16 +652,6 @@ indexed by the same string as the local claims.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.parse_sparql_value">
-<span class="sig-name descname"><span class="pre">parse_sparql_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'literal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/datatypes/globecoordinate.html#GlobeCoordinate.parse_sparql_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.parse_sparql_value" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -738,7 +730,6 @@ indexed by the same string as the local claims.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate</span></code></a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.from_sparql_value"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate.from_sparql_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.get_sparql_value"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate.get_sparql_value()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.parse_sparql_value"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate.parse_sparql_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.set_value"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate.set_value()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.DTYPE"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate.DTYPE</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wikibaseintegrator.datatypes.globecoordinate.GlobeCoordinate.PTYPE"><code class="docutils literal notranslate"><span class="pre">GlobeCoordinate.PTYPE</span></code></a></li>

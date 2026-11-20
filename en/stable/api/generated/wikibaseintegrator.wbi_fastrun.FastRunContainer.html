@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/wikibaseintegrator.wbi_fastrun.FastRunContainer';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -463,6 +463,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.OAuth1.html">OAuth1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Login.html">Login</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Clientlogin.html">Clientlogin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.BaseLogin.html">BaseLogin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.WCQSAuth.html">WCQSAuth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.LoginError.html">LoginError</a></li>
 </ul>
@@ -503,6 +504,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../fastrun.html">Fast run</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../configuration.html">Configuration, enums and exceptions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -518,7 +520,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html">NonExistentEntityError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingExtensionError.html">MissingExtensionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html">MissingEntityException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
@@ -607,7 +608,7 @@
 <h1>FastRunContainer<a class="headerlink" href="#fastruncontainer" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_fastrun.FastRunContainer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_fastrun.</span></span><span class="sig-name descname"><span class="pre">FastRunContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_filter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_qualifiers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_references</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_insensitive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparql_endpoint_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikibase_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_fastrun.html#FastRunContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_fastrun.FastRunContainer" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_fastrun.</span></span><span class="sig-name descname"><span class="pre">FastRunContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_filter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_qualifiers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_references</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_insensitive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparql_endpoint_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikibase_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mediawiki_api_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_fastrun.html#FastRunContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_fastrun.FastRunContainer" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A FastRunContainer loads the statements of the entities matching the base filter from the SPARQL endpoint and
 caches them, so that a bot can check whether a write is required without loading every entity through the API.</p>
@@ -731,8 +732,8 @@ qualifiers, references and ranks stays case sensitive. Disabled by default.</p><
 cache is disabled and the claim carries a value, only the statements holding the same value (and the same
 qualifiers if use_qualifiers is enabled) are loaded; such a partial load is never reused as a cache.</p>
 <p>A complete load only reads the simple values: joining the value node of every statement, for the unit of a
-quantity or the precision of a time, makes the query of a large dataset exceed the time limit of the SPARQL
-endpoint. The unit and the precision are loaded later, only for the statements holding the value of a claim
+quantity or the precision and the calendar model of a time, makes the query of a large dataset exceed the time
+limit of the SPARQL endpoint. They are loaded later, only for the statements holding the value of a claim
 (see _filter_value_details()). A partial load, restricted to one value, reads them directly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -463,6 +463,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.OAuth1.html">OAuth1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Login.html">Login</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.Clientlogin.html">Clientlogin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.BaseLogin.html">BaseLogin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.WCQSAuth.html">WCQSAuth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_login.LoginError.html">LoginError</a></li>
 </ul>
@@ -503,6 +504,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../fastrun.html">Fast run</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.FastRunContainer.html">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../configuration.html">Configuration, enums and exceptions</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -518,7 +520,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
 <li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">NonExistentEntityError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingExtensionError.html">MissingExtensionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MissingEntityException.html">MissingEntityException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
@@ -609,8 +610,15 @@
 <dt class="sig sig-object py" id="wikibaseintegrator.wbi_exceptions.NonExistentEntityError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">wikibaseintegrator.wbi_exceptions.</span></span><span class="sig-name descname"><span class="pre">NonExistentEntityError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wikibaseintegrator/wbi_exceptions.html#NonExistentEntityError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="wikibaseintegrator.wbi_exceptions.MWApiError.html#wikibaseintegrator.wbi_exceptions.MWApiError" title="wikibaseintegrator.wbi_exceptions.MWApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MWApiError</span></code></a></p>
-<p>When the API return a ‘no-such-entity’ error: the entity doesn’t exist on the Wikibase instance, or its entity type
-doesn’t exist there.</p>
+<p>Raised when an entity, a revision or a page doesn’t exist on the Wikibase instance. Its code tells why:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">no-such-entity</span></code>: the instance doesn’t know the id, or its entity type doesn’t exist there (an API error)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">missingtitle</span></code>: the page doesn’t exist (an API error), or a MediaInfo title isn’t found</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">missing</span></code>: the entity is missing, e.g. deleted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nosuchrevid</span></code>: the revision doesn’t exist, or isn’t a revision of this entity</p></li>
+</ul>
+<p>It replaces MissingEntityException, deprecated in 0.15 and removed in 1.0: <code class="docutils literal notranslate"><span class="pre">MissingEntityException</span></code> is now
+another name of this class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

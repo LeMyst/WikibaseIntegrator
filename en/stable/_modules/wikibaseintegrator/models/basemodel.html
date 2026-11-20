@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/basemodel';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -432,9 +432,67 @@
                 <article class="bd-article">
                   
   <h1>Source code for wikibaseintegrator.models.basemodel</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_with_action</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">:</span> <span class="n">ActionIfExists</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Add an item to a list following action_if_exists, with the semantics of Claims.add().</span>
+
+<span class="sd">    The snaks and the references are the same when they are equal (==). The forms and the senses, which have an id and</span>
+<span class="sd">    can be marked for removal:</span>
+
+<span class="sd">    - are the same when they have the same id, or, when one of them has no id yet, the same content;</span>
+<span class="sd">    - replace the one with the same id (APPEND_OR_REPLACE, REPLACE_ALL, MERGE_REFS_OR_APPEND), or cancel the removal of</span>
+<span class="sd">      the one with the same content;</span>
+<span class="sd">    - are marked for removal instead of being deleted from the list (REPLACE_ALL), and don't count as existing for KEEP</span>
+<span class="sd">      when they are marked for removal.</span>
+
+<span class="sd">    :param items: The list of the items, e.g. the qualifiers of a property or the senses of a lexeme.</span>
+<span class="sd">    :param item: The item to add.</span>
+<span class="sd">    :param action_if_exists: What to do when the item already exists.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action_if_exists</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action_if_exists</span><span class="si">}</span><span class="s1"> is not a valid action_if_exists value. Use the enum ActionIfExists'</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">:</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">sub_entity</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">'removed'</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">same</span><span class="p">(</span><span class="n">existing</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sub_entity</span> <span class="ow">and</span> <span class="n">existing</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">existing</span> <span class="o">==</span> <span class="n">item</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">KEEP</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="s1">'removed'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">items</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sub_entity</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">same</span><span class="p">(</span><span class="n">existing</span><span class="p">):</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">removed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">items</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">existing</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="n">same</span><span class="p">(</span><span class="n">existing</span><span class="p">)]</span>
+
+    <span class="c1"># Like Claims._find_equal(): the one that isn't marked for removal first</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">position</span> <span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">existing</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="k">if</span> <span class="n">same</span><span class="p">(</span><span class="n">existing</span><span class="p">)]</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">position</span> <span class="k">for</span> <span class="n">position</span> <span class="ow">in</span> <span class="n">matches</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="n">position</span><span class="p">],</span> <span class="s1">'removed'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">matches</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sub_entity</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">items</span><span class="p">[</span><span class="n">match</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+    <span class="k">elif</span> <span class="n">sub_entity</span><span class="p">:</span>
+        <span class="n">items</span><span class="p">[</span><span class="n">match</span><span class="p">]</span><span class="o">.</span><span class="n">removed</span> <span class="o">=</span> <span class="kc">False</span>
+
+
 <div class="viewcode-block" id="BaseModel">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.basemodel.BaseModel.html#wikibaseintegrator.models.basemodel.BaseModel">[docs]</a>
-<span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""A mixin implementing a simple __repr__."""</span>
         <span class="k">return</span> <span class="s2">"&lt;</span><span class="si">{klass}</span><span class="s2"> @</span><span class="si">{id:x}</span><span class="s2"> </span><span class="si">{attrs}</span><span class="s2">&gt;"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>  <span class="c1"># pylint: disable=consider-using-f-string</span>

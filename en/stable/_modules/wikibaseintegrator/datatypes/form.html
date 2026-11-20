@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/datatypes/form';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -461,18 +461,7 @@
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Constructor, calls the superclass BaseDataType</span>
 
-<span class="sd">        :param value: The form number to serve as a value using the format "L&lt;Lexeme ID&gt;-F&lt;Form ID&gt;" (example: L252248-F2)</span>
-<span class="sd">        :type value: str with the format "L&lt;Lexeme ID&gt;-F&lt;Form&gt;"</span>
-<span class="sd">        :param prop_nr: The property number for this claim</span>
-<span class="sd">        :type prop_nr: str with a 'P' prefix followed by digits</span>
-<span class="sd">        :param snaktype: The snak type, either 'value', 'somevalue' or 'novalue'</span>
-<span class="sd">        :type snaktype: str</span>
-<span class="sd">        :param references: List with reference objects</span>
-<span class="sd">        :type references: A data type with subclass of BaseDataType</span>
-<span class="sd">        :param qualifiers: List with qualifier objects</span>
-<span class="sd">        :type qualifiers: A data type with subclass of BaseDataType</span>
-<span class="sd">        :param rank: rank of a snak with value 'preferred', 'normal' or 'deprecated'</span>
-<span class="sd">        :type rank: str</span>
+<span class="sd">        :param value: Value using the format "L&lt;Lexeme ID&gt;-F&lt;Form ID&gt;" (example: L252248-F2)</span>
 <span class="sd">        """</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -481,7 +470,8 @@
 <div class="viewcode-block" id="Form.set_value">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.datatypes.form.Form.html#wikibaseintegrator.datatypes.form.Form.set_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Expected str, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected str, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^L[0-9]+-F[0-9]+$'</span><span class="p">)</span>

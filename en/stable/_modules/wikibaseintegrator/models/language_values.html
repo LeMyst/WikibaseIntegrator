@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/language_values';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -469,7 +469,8 @@
 <span class="sd">        :param language_value: A LanguageValue object</span>
 <span class="sd">        :return: The current LanguageValues object</span>
 <span class="sd">        """</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language_value</span><span class="p">,</span> <span class="n">LanguageValue</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language_value</span><span class="p">,</span> <span class="n">LanguageValue</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a LanguageValue, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">language_value</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">language_value</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">language_value</span><span class="o">.</span><span class="n">language</span><span class="p">]</span> <span class="o">=</span> <span class="n">language_value</span>
@@ -500,15 +501,17 @@
 <span class="sd">        Create or update the specified language with the valued passed in arguments.</span>
 
 <span class="sd">        :param language: The desired language.</span>
-<span class="sd">        :param value: The desired value of the LanguageValue object. Use None to delete an existing LanguageValue object from the list.</span>
+<span class="sd">        :param value: The desired value of the LanguageValue object. Use None or an empty string to delete an existing LanguageValue object</span>
+<span class="sd">            from the list, as Wikibase does with an empty value.</span>
 <span class="sd">        :param action_if_exists: The action if the LanguageValue object is already defined. Can be ActionIfExists.REPLACE_ALL (default) or ActionIfExists.KEEP.</span>
 <span class="sd">        :return: The created or updated LanguageValue. None if there's no LanguageValue object with this language.</span>
 <span class="sd">        """</span>
         <span class="n">language</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'DEFAULT_LANGUAGE'</span><span class="p">])</span>
-        <span class="k">assert</span> <span class="n">action_if_exists</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">KEEP</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">action_if_exists</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">REPLACE_ALL</span><span class="p">,</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">KEEP</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action_if_exists</span><span class="si">}</span><span class="s1"> is not a valid action_if_exists value, use ActionIfExists.REPLACE_ALL or ActionIfExists.KEEP'</span><span class="p">)</span>
 
-        <span class="c1"># Remove value if None</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Remove the value if None or empty: Wikibase removes a label, description or lemma set to an empty string</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">language</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">language</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -560,7 +563,14 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LanguageValues.count">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.language_values.LanguageValues.html#wikibaseintegrator.models.language_values.LanguageValues.count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the number of values, one per language: the same as ``len()``."""</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</div>
 
 </pre></div>
 

@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/configuration';</script>
@@ -54,11 +54,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ActionIfExists" href="generated/wikibaseintegrator.wbi_enums.ActionIfExists.html" />
-    <link rel="prev" title="get_fastrun_container" href="generated/wikibaseintegrator.wbi_fastrun.get_fastrun_container.html" />
+    <link rel="prev" title="clear_fastrun_store" href="generated/wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -463,6 +463,7 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_login.OAuth1.html">OAuth1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_login.Login.html">Login</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_login.Clientlogin.html">Clientlogin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_login.BaseLogin.html">BaseLogin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_login.WCQSAuth.html">WCQSAuth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_login.LoginError.html">LoginError</a></li>
 </ul>
@@ -503,6 +504,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="fastrun.html">Fast run</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.FastRunContainer.html">FastRunContainer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.get_fastrun_container.html">get_fastrun_container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html">clear_fastrun_store</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">Configuration, enums and exceptions</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -518,7 +520,6 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SaveFailed.html">SaveFailed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html">NonExistentEntityError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingExtensionError.html">MissingExtensionError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingEntityException.html">MissingEntityException</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html">EmptyValueError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html">UnknownDatatypeError</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html">AnonymousEditNotAllowedError</a></li>
@@ -676,42 +677,39 @@ Options can be changed at run time. See test/test_wbi_backoff.py for usage examp
 <td><p>When the API return a 'failed-save' error</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError" title="wikibaseintegrator.wbi_exceptions.NonExistentEntityError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonExistentEntityError</span></code></a></p></td>
-<td><p>When the API return a 'no-such-entity' error: the entity doesn't exist on the Wikibase instance, or its entity type doesn't exist there.</p></td>
+<td><p>Raised when an entity, a revision or a page doesn't exist on the Wikibase instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingExtensionError.html#wikibaseintegrator.wbi_exceptions.MissingExtensionError" title="wikibaseintegrator.wbi_exceptions.MissingExtensionError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingExtensionError</span></code></a></p></td>
 <td><p>Raised when a request needs a MediaWiki extension the Wikibase instance doesn't provide, e.g. the lexemes of the WikibaseLexeme extension.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException" title="wikibaseintegrator.wbi_exceptions.MissingEntityException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingEntityException</span></code></a></p></td>
-<td><p>Raised when an entity read from the Wikibase instance is missing, e.g. deleted, or when a MediaInfo title is not found.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html#wikibaseintegrator.wbi_exceptions.EmptyValueError" title="wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.EmptyValueError.html#wikibaseintegrator.wbi_exceptions.EmptyValueError" title="wikibaseintegrator.wbi_exceptions.EmptyValueError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmptyValueError</span></code></a></p></td>
 <td><p>Raised before a write when a claim, a qualifier or a reference has no value, while its snak type states that it has one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError" title="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.UnknownDatatypeError.html#wikibaseintegrator.wbi_exceptions.UnknownDatatypeError" title="wikibaseintegrator.wbi_exceptions.UnknownDatatypeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnknownDatatypeError</span></code></a></p></td>
 <td><p>Raised when no data type class handles a datatype, like one added to the Wikibase instance by an extension that WikibaseIntegrator doesn't support.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError" title="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError.html#wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError" title="wikibaseintegrator.wbi_exceptions.AnonymousEditNotAllowedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnonymousEditNotAllowedError</span></code></a></p></td>
 <td><p>Raised when an anonymous edit is attempted while it is not explicitly allowed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.LoginError.html#wikibaseintegrator.wbi_exceptions.LoginError" title="wikibaseintegrator.wbi_exceptions.LoginError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoginError</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.LoginError.html#wikibaseintegrator.wbi_exceptions.LoginError" title="wikibaseintegrator.wbi_exceptions.LoginError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoginError</span></code></a></p></td>
 <td><p>Raised when there is an issue with the login</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
 <td><p>Raised when the wbsearchentities API answers without success.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
 <td><p>Raised when a request still fails after all its retries: the last failure is its cause (<code class="docutils literal notranslate"><span class="pre">__cause__</span></code>).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError" title="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></p></td>
-<td><p>Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth: it answers with the HTML login page of Wikimedia Commons instead of the query results.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
-<td><p>Raised when a request still fails after all its retries: the last failure is its cause (<code class="docutils literal notranslate"><span class="pre">__cause__</span></code>).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
-<td><p>Raised when the wbsearchentities API answers without success.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError" title="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></p></td>
+<td><p>Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth: it answers with the HTML login page of Wikimedia Commons instead of the query results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException.html#wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException" title="wikibaseintegrator.wbi_exceptions.MaxRetriesReachedException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxRetriesReachedException</span></code></a></p></td>
+<td><p>Raised when a request still fails after all its retries: the last failure is its cause (<code class="docutils literal notranslate"><span class="pre">__cause__</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError" title="wikibaseintegrator.wbi_exceptions.SearchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SearchError</span></code></a></p></td>
+<td><p>Raised when the wbsearchentities API answers without success.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError.html#wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError" title="wikibaseintegrator.wbi_exceptions.WCQSAuthenticationError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WCQSAuthenticationError</span></code></a></p></td>
 <td><p>Raised when the Wikimedia Commons Query Service doesn't accept the wcqsOauth cookie given to wbi_login.WCQSAuth: it answers with the HTML login page of Wikimedia Commons instead of the query results.</p></td>
 </tr>
 </tbody>
@@ -794,12 +792,12 @@ some Wikidata entities. It is installed on the instances of Wikibase.cloud, for 
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="generated/wikibaseintegrator.wbi_fastrun.get_fastrun_container.html"
+       href="generated/wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">get_fastrun_container</p>
+        <p class="prev-next-title">clear_fastrun_store</p>
       </div>
     </a>
     <a class="right-next"

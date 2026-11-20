@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/wbi_fastrun';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -451,10 +451,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.qualifiers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qualifiers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.reference</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">References</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span><span class="p">,</span> <span class="n">_resolve_datavalue</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span><span class="p">,</span> <span class="n">WikibaseRank</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute_sparql_query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnknownDatatypeError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">_load_properties_datatype</span><span class="p">,</span> <span class="n">execute_sparql_query</span><span class="p">,</span> <span class="n">properties_dt</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -464,7 +465,7 @@
 <span class="c1"># with the Wikidata entity Q199 (the number one), whatever the instance.</span>
 <span class="n">UNITLESS_UNIT_URIS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'1'</span><span class="p">,</span> <span class="s1">'http://www.wikidata.org/entity/Q199'</span><span class="p">,</span> <span class="s1">'https://www.wikidata.org/entity/Q199'</span><span class="p">)</span>
 
-<span class="c1"># The number of statements whose unit and precision are loaded by one SPARQL query</span>
+<span class="c1"># The number of statements whose unit, precision and calendar model are loaded by one SPARQL query</span>
 <span class="n">VALUE_DETAILS_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">100</span>
 
 <span class="c1"># The number of statements whose qualifiers, references and rank are loaded by one SPARQL query</span>
@@ -503,7 +504,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_filter</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseDataType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseDataType</span><span class="p">]],</span> <span class="n">base_data_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseDataType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_qualifiers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                  <span class="n">use_references</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_rank</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">sparql_endpoint_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">base_filter</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">BaseDataType</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">BaseDataType</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">BaseDataType</span><span class="p">)):</span>
@@ -519,6 +520,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">base_data_type</span> <span class="o">=</span> <span class="n">base_data_type</span> <span class="ow">or</span> <span class="n">BaseDataType</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sparql_endpoint_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wikibase_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">])</span>
+        <span class="c1"># The MediaWiki API giving the datatypes of the properties, and the user agent of the requests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mediawiki_api_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mediawiki_api_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_qualifiers</span> <span class="o">=</span> <span class="n">use_qualifiers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_references</span> <span class="o">=</span> <span class="n">use_references</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_rank</span> <span class="o">=</span> <span class="n">use_rank</span>
@@ -531,26 +535,60 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_qualifiers_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Qualifiers</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_references_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">References</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rank_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">WikibaseRank</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="c1"># The lazily loaded unit and precision of the values: property number -&gt; statement ID -&gt; (unit, precision).</span>
+        <span class="c1"># The lazily loaded unit, precision and calendar model of the values:</span>
+        <span class="c1"># property number -&gt; statement ID -&gt; (unit, precision, calendar model).</span>
         <span class="c1"># Reset with the statements of the property, so that they are never older than the statements.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value_details</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value_details</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_entity_id</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Reduce an entity URI to its bare entity ID. A bare entity ID is returned unchanged."""</span>
         <span class="k">return</span> <span class="n">entity</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_datatype_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseDataType</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_datatype_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseDataType</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return the data type class implementing the given SPARQL property type (e.g. 'http://wikiba.se/ontology#Time' -&gt; Time).</span>
 
-<span class="sd">        :param property_type: A property type URI from the wikibase ontology</span>
+<span class="sd">        :param property_type: A property type URI from the wikibase ontology, None if unknown</span>
 <span class="sd">        :exception ValueError: if no class implements the given property type</span>
 <span class="sd">        """</span>
         <span class="k">for</span> <span class="n">subclass</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_data_type</span><span class="o">.</span><span class="n">subclasses</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">subclass</span><span class="o">.</span><span class="n">PTYPE</span> <span class="o">==</span> <span class="n">property_type</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">subclass</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No data type class found for the property type '</span><span class="si">{</span><span class="n">property_type</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_property_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_nrs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Load the types of the properties missing from properties_type from the MediaWiki API (mediawiki_api_url),</span>
+<span class="sd">        50 by 50. The queries read the type of a property from the graph of the SPARQL endpoint (wikibase:propertyType),</span>
+<span class="sd">        but a graph can lack the properties: the scholarly articles graph of the Wikidata Query Service only holds the</span>
+<span class="sd">        articles. A property of a datatype without data type class is left out, its values can't be compared.</span>
+
+<span class="sd">        :param prop_nrs: The property numbers, e.g. ['P356', 'P580']</span>
+<span class="sd">        """</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">prop_nr</span> <span class="k">for</span> <span class="n">prop_nr</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">prop_nrs</span><span class="p">)</span> <span class="k">if</span> <span class="n">prop_nr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">_load_properties_datatype</span><span class="p">(</span><span class="n">missing</span><span class="p">,</span> <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mediawiki_api_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">prop_nr</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="n">datatype</span> <span class="o">=</span> <span class="n">properties_dt</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">mediawiki_api_url</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_data_type</span><span class="o">.</span><span class="n">get_datatype_class</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">datatype</span><span class="p">))</span><span class="o">.</span><span class="n">PTYPE</span>
+            <span class="k">except</span> <span class="n">UnknownDatatypeError</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Unknown datatype '</span><span class="si">%s</span><span class="s2">' of property '</span><span class="si">%s</span><span class="s2">', its values can't be compared"</span><span class="p">,</span> <span class="n">datatype</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_property_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The type of a property, from a SPARQL result binding ?property_type, else from properties_type (see</span>
+<span class="sd">        _load_property_types()). A type read from a result is kept in properties_type.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="s1">'property_type'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">property_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'property_type'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">prop_nr</span><span class="p">,</span> <span class="n">property_type</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">property_type</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop_nr</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_unit</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -569,13 +607,13 @@
 <span class="sd">        The key indexing the value of the given claim in self.data, casefolded when case_insensitive is enabled.</span>
 <span class="sd">        An unknown value or no value has no key: it can't be compared through SPARQL.</span>
 
-<span class="sd">        The key is the simple value, which holds neither the unit of a quantity nor the precision of a time: two</span>
-<span class="sd">        amounts only differing by their unit, or '1987' and '1987-01-01', share the same key. They are told apart by</span>
-<span class="sd">        _filter_value_details().</span>
+<span class="sd">        The key is the simple value, which holds neither the unit of a quantity nor the precision and the calendar</span>
+<span class="sd">        model of a time: two amounts only differing by their unit, or '1987' and '1987-01-01', share the same key.</span>
+<span class="sd">        They are told apart by _filter_value_details().</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">!=</span> <span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">KNOWN_VALUE</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">claim</span><span class="o">.</span><span class="n">get_sparql_value</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">claim</span><span class="o">.</span><span class="n">get_sparql_value</span><span class="p">(</span><span class="n">wikibase_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">case_insensitive</span><span class="p">:</span>
@@ -587,29 +625,48 @@
 <span class="w">        </span><span class="sd">"""The type of the datavalue of the claim (e.g. 'quantity' or 'time'), or None if it has no datavalue."""</span>
         <span class="k">return</span> <span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_value_details_from_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""The normalized unit and the precision of a value, from a SPARQL result binding ?unit and ?precision."""</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_value_details_from_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The normalized unit, the precision and the calendar model of a value, from a SPARQL result binding ?unit,</span>
+<span class="sd">        ?precision and ?calendar.</span>
+<span class="sd">        """</span>
         <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_unit</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">'unit'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">])</span> <span class="k">if</span> <span class="s1">'unit'</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">precision</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">'precision'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">])</span> <span class="k">if</span> <span class="s1">'precision'</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">unit</span><span class="p">,</span> <span class="n">precision</span>
+        <span class="n">calendar</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'calendar'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span> <span class="k">if</span> <span class="s1">'calendar'</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">unit</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">calendar</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_snak_key</span><span class="p">(</span><span class="n">snak</span><span class="p">:</span> <span class="n">Snak</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The key comparing a snak loaded from the SPARQL endpoint with a local snak. The timestamps are compared in the</span>
-<span class="sd">        form the SPARQL endpoint stores them: '+1987-00-00T00:00:00Z' and '+1987-01-01T00:00:00Z' are the same year.</span>
+<span class="sd">        form the SPARQL endpoint stores them (see Time.sparql_time()): '+1987-00-00T00:00:00Z' and</span>
+<span class="sd">        '+1987-01-01T00:00:00Z' are the same year.</span>
 <span class="sd">        """</span>
         <span class="n">datavalue</span> <span class="o">=</span> <span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span>
         <span class="k">if</span> <span class="n">datavalue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'time'</span><span class="p">:</span>
             <span class="n">datavalue</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">datavalue</span><span class="p">)</span>
-            <span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'time'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Time</span><span class="o">.</span><span class="n">sparql_time</span><span class="p">(</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'time'</span><span class="p">],</span> <span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'precision'</span><span class="p">))</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span>
+            <span class="n">value</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Time</span><span class="o">.</span><span class="n">sparql_time</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'precision'</span><span class="p">),</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'calendarmodel'</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">snak</span><span class="o">.</span><span class="n">property_number</span><span class="p">,</span> <span class="n">snak</span><span class="o">.</span><span class="n">snaktype</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">snak</span><span class="o">.</span><span class="n">datatype</span><span class="p">,</span> <span class="n">datavalue</span><span class="p">],</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_set_precision</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">BaseDataType</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Set the precision of a time loaded from the SPARQL endpoint, the simple value does not carry it."""</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'time'</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">][</span><span class="s1">'precision'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">'value'</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_time_details</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">BaseDataType</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Set the precision and the calendar model of a time loaded from the SPARQL endpoint, which the simple value</span>
+<span class="sd">        doesn't carry, then the timestamp of the JSON representation they give (see Time.time_from_sparql()).</span>
+
+<span class="sd">        :param f: The snak built from the simple value of the result.</span>
+<span class="sd">        :param result: The result, binding the value, the precision and the calendar model with the names starting with prefix.</span>
+<span class="sd">        :param prefix: The prefix of the names of the variables ('' for a qualifier, 'ref_' for a reference snak).</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">'time'</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">mainsnak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">precision'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">value</span><span class="p">[</span><span class="s1">'precision'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">precision'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">])</span>
+        <span class="k">if</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">calendar'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">value</span><span class="p">[</span><span class="s1">'calendarmodel'</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">calendar'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
+        <span class="n">value</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Time</span><span class="o">.</span><span class="n">time_from_sparql</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">value'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s1">'precision'</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s1">'calendarmodel'</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_base_filter_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wb_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Generate the SPARQL triples restricting ?entity to the entities matching the base filter."""</span>
@@ -649,8 +706,8 @@
 <span class="sd">        qualifiers if use_qualifiers is enabled) are loaded; such a partial load is never reused as a cache.</span>
 
 <span class="sd">        A complete load only reads the simple values: joining the value node of every statement, for the unit of a</span>
-<span class="sd">        quantity or the precision of a time, makes the query of a large dataset exceed the time limit of the SPARQL</span>
-<span class="sd">        endpoint. The unit and the precision are loaded later, only for the statements holding the value of a claim</span>
+<span class="sd">        quantity or the precision and the calendar model of a time, makes the query of a large dataset exceed the time</span>
+<span class="sd">        limit of the SPARQL endpoint. They are loaded later, only for the statements holding the value of a claim</span>
 <span class="sd">        (see _filter_value_details()). A partial load, restricted to one value, reads them directly.</span>
 
 <span class="sd">        :param claims: A Claim, Claims or list of Claim</span>
@@ -668,6 +725,7 @@
             <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span>
 
         <span class="n">wb_url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="n">wb_url</span><span class="p">)</span>
 
         <span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_QUERY_LIMIT'</span><span class="p">])</span>
 
@@ -713,11 +771,12 @@
                 <span class="k">if</span> <span class="n">partial_load</span><span class="p">:</span>
                     <span class="n">query</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">                    #Tool: WikibaseIntegrator wbi_fastrun.load_statements</span>
-<span class="s1">                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision WHERE {{</span>
+<span class="s1">                    SELECT ?entity ?sid ?value ?property_type ?unit ?precision ?calendar WHERE {{</span>
 <span class="s1">                      # Base filter string</span>
 <span class="s1">                      </span><span class="si">{base_filter_string}</span>
 <span class="s1">                      ?entity &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/</span><span class="si">{prop_nr}</span><span class="s1">&gt; ?sid.</span>
-<span class="s1">                      &lt;</span><span class="si">{wb_url}</span><span class="s1">/entity/</span><span class="si">{prop_nr}</span><span class="s1">&gt; wikibase:propertyType ?property_type.</span>
+<span class="s1">                      # Optional: the graph can lack the properties, see _load_property_types()</span>
+<span class="s1">                      OPTIONAL {{ &lt;</span><span class="si">{wb_url}</span><span class="s1">/entity/</span><span class="si">{prop_nr}</span><span class="s1">&gt; wikibase:propertyType ?property_type. }}</span>
 <span class="s1">                      ?sid &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/statement/</span><span class="si">{prop_nr}</span><span class="s1">&gt; ?value.</span>
 <span class="s1">                      ?sid &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/statement/</span><span class="si">{prop_nr}</span><span class="s1">&gt; </span><span class="si">{value}</span><span class="s1">.</span>
 <span class="s1">                      </span><span class="si">{qualifiers_filter_string}</span>
@@ -725,8 +784,10 @@
 <span class="s1">                      OPTIONAL {{ ?sid &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/statement/value/</span><span class="si">{prop_nr}</span><span class="s1">&gt; [ wikibase:quantityUnit ?unit ] . }}</span>
 <span class="s1">                      # The precision of a time value, only bound for times</span>
 <span class="s1">                      OPTIONAL {{ ?sid &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/statement/value/</span><span class="si">{prop_nr}</span><span class="s1">&gt; [ wikibase:timePrecision ?precision ] . }}</span>
+<span class="s1">                      # The calendar model of a time value, only bound for times</span>
+<span class="s1">                      OPTIONAL {{ ?sid &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/statement/value/</span><span class="si">{prop_nr}</span><span class="s1">&gt; [ wikibase:timeCalendarModel ?calendar ] . }}</span>
 <span class="s1">                    }}</span>
-<span class="s1">                    ORDER BY ?sid ?value ?unit ?precision</span>
+<span class="s1">                    ORDER BY ?sid ?value ?unit ?precision ?calendar</span>
 <span class="s1">                    OFFSET </span><span class="si">{offset}</span>
 <span class="s1">                    LIMIT </span><span class="si">{limit}</span>
 <span class="s1">                    '''</span>
@@ -735,14 +796,15 @@
                     <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_filter_string</span><span class="o">=</span><span class="n">base_filter_string</span><span class="p">,</span> <span class="n">wb_url</span><span class="o">=</span><span class="n">wb_url</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="n">prop_nr</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">),</span> <span class="n">limit</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">limit</span><span class="p">),</span>
                                          <span class="n">value</span><span class="o">=</span><span class="n">claim</span><span class="o">.</span><span class="n">get_sparql_value</span><span class="p">(</span><span class="n">wikibase_url</span><span class="o">=</span><span class="n">wb_url</span><span class="p">),</span> <span class="n">qualifiers_filter_string</span><span class="o">=</span><span class="n">qualifiers_filter_string</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Without the unit and the precision, which are on the value node: see the docstring</span>
+                    <span class="c1"># Without the unit, the precision and the calendar model, which are on the value node: see the docstring</span>
                     <span class="n">query</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">                    #Tool: WikibaseIntegrator wbi_fastrun.load_statements</span>
 <span class="s1">                    SELECT ?entity ?sid ?value ?property_type WHERE {{</span>
 <span class="s1">                      # Base filter string</span>
 <span class="s1">                      </span><span class="si">{base_filter_string}</span>
 <span class="s1">                      ?entity &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/</span><span class="si">{prop_nr}</span><span class="s1">&gt; ?sid.</span>
-<span class="s1">                      &lt;</span><span class="si">{wb_url}</span><span class="s1">/entity/</span><span class="si">{prop_nr}</span><span class="s1">&gt; wikibase:propertyType ?property_type.</span>
+<span class="s1">                      # Optional: the graph can lack the properties, see _load_property_types()</span>
+<span class="s1">                      OPTIONAL {{ &lt;</span><span class="si">{wb_url}</span><span class="s1">/entity/</span><span class="si">{prop_nr}</span><span class="s1">&gt; wikibase:propertyType ?property_type. }}</span>
 <span class="s1">                      ?sid &lt;</span><span class="si">{wb_url}</span><span class="s1">/prop/statement/</span><span class="si">{prop_nr}</span><span class="s1">&gt; ?value.</span>
 <span class="s1">                    }}</span>
 <span class="s1">                    ORDER BY ?sid ?value</span>
@@ -755,12 +817,15 @@
                     <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_filter_string</span><span class="o">=</span><span class="n">base_filter_string</span><span class="p">,</span> <span class="n">wb_url</span><span class="o">=</span><span class="n">wb_url</span><span class="p">,</span> <span class="n">prop_nr</span><span class="o">=</span><span class="n">prop_nr</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">),</span> <span class="n">limit</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">limit</span><span class="p">))</span>
 
                 <span class="n">offset</span> <span class="o">+=</span> <span class="n">limit</span>  <span class="c1"># We increase the offset for the next iteration</span>
-                <span class="n">results</span> <span class="o">=</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="s1">'property_type'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_load_property_types</span><span class="p">([</span><span class="n">prop_nr</span><span class="p">])</span>
 
                 <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
                     <span class="n">entity</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
                     <span class="n">sid</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'sid'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
-                    <span class="n">property_type</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'property_type'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
+                    <span class="n">property_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_property_type</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">)</span>
 
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datatype_class</span><span class="p">(</span><span class="n">property_type</span><span class="p">)()</span><span class="o">.</span><span class="n">from_sparql_value</span><span class="p">(</span><span class="n">sparql_value</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'value'</span><span class="p">])</span>
@@ -775,12 +840,9 @@
                         <span class="k">if</span> <span class="n">sparql_value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">]:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">][</span><span class="n">sparql_value</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-                        <span class="k">if</span> <span class="n">prop_nr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">]</span> <span class="o">=</span> <span class="n">property_type</span>
-
                         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">][</span><span class="n">sparql_value</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'entity'</span><span class="p">:</span> <span class="n">entity</span><span class="p">,</span> <span class="s1">'sid'</span><span class="p">:</span> <span class="n">sid</span><span class="p">})</span>
 
-                        <span class="c1"># Only the query of a partial load reads the unit and the precision</span>
+                        <span class="c1"># Only the query of a partial load reads the unit, the precision and the calendar model</span>
                         <span class="k">if</span> <span class="n">partial_load</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_value_details</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">][</span><span class="n">sid</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_details_from_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
@@ -820,28 +882,35 @@
         <span class="k">if</span> <span class="n">use_qualifiers</span><span class="p">:</span>
             <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'''{</span>
 <span class="s1">                    ?sid ?predicate ?value.</span>
-<span class="s1">                    ?property wikibase:qualifier ?predicate.</span>
-<span class="s1">                    ?property wikibase:propertyType ?property_type.</span>
-<span class="s1">                    # The precision of a time value, from the value node holding the same timestamp</span>
+<span class="s1">                    # A qualifier, e.g. &lt;http://www.wikidata.org/prop/qualifier/P580&gt;, recognized from the IRI of its predicate</span>
+<span class="s1">                    # rather than from the triples of the property: the graph can lack the properties, see _load_property_types()</span>
+<span class="s1">                    FILTER(REGEX(STR(?predicate), "/prop/qualifier/P[0-9]+$"))</span>
+<span class="s1">                    BIND(IRI(REPLACE(STR(?predicate), "/prop/qualifier/(P[0-9]+)$", "/entity/$1")) AS ?property)</span>
+<span class="s1">                    OPTIONAL { ?property wikibase:propertyType ?property_type. }</span>
+<span class="s1">                    # The precision and the calendar model of a time value, from the value node holding the same timestamp</span>
 <span class="s1">                    OPTIONAL {</span>
-<span class="s1">                      ?property wikibase:qualifierValue ?value_predicate.</span>
 <span class="s1">                      ?sid ?value_predicate ?value_node.</span>
+<span class="s1">                      FILTER(STR(?value_predicate) = REPLACE(STR(?predicate), "/prop/qualifier/", "/prop/qualifier/value/"))</span>
 <span class="s1">                      ?value_node wikibase:timeValue ?value;</span>
-<span class="s1">                                  wikibase:timePrecision ?precision.</span>
+<span class="s1">                                  wikibase:timePrecision ?precision;</span>
+<span class="s1">                                  wikibase:timeCalendarModel ?calendar.</span>
 <span class="s1">                    }</span>
 <span class="s1">                  }'''</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_references</span><span class="p">:</span>
             <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'''{</span>
 <span class="s1">                    ?sid prov:wasDerivedFrom ?srid.</span>
 <span class="s1">                    ?srid ?ref_predicate ?ref_value.</span>
-<span class="s1">                    ?ref_property wikibase:reference ?ref_predicate.</span>
-<span class="s1">                    ?ref_property wikibase:propertyType ?property_type.</span>
-<span class="s1">                    # The precision of a time value, from the value node holding the same timestamp</span>
+<span class="s1">                    # A reference snak, e.g. &lt;http://www.wikidata.org/prop/reference/P248&gt;, recognized from the IRI of its predicate</span>
+<span class="s1">                    FILTER(REGEX(STR(?ref_predicate), "/prop/reference/P[0-9]+$"))</span>
+<span class="s1">                    BIND(IRI(REPLACE(STR(?ref_predicate), "/prop/reference/(P[0-9]+)$", "/entity/$1")) AS ?ref_property)</span>
+<span class="s1">                    OPTIONAL { ?ref_property wikibase:propertyType ?property_type. }</span>
+<span class="s1">                    # The precision and the calendar model of a time value, from the value node holding the same timestamp</span>
 <span class="s1">                    OPTIONAL {</span>
-<span class="s1">                      ?ref_property wikibase:referenceValue ?ref_value_predicate.</span>
 <span class="s1">                      ?srid ?ref_value_predicate ?ref_value_node.</span>
+<span class="s1">                      FILTER(STR(?ref_value_predicate) = REPLACE(STR(?ref_predicate), "/prop/reference/", "/prop/reference/value/"))</span>
 <span class="s1">                      ?ref_value_node wikibase:timeValue ?ref_value;</span>
-<span class="s1">                                      wikibase:timePrecision ?ref_precision.</span>
+<span class="s1">                                      wikibase:timePrecision ?ref_precision;</span>
+<span class="s1">                                      wikibase:timeCalendarModel ?ref_calendar.</span>
 <span class="s1">                    }</span>
 <span class="s1">                  }'''</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_rank</span><span class="p">:</span>
@@ -864,17 +933,23 @@
                 <span class="c1"># change from one page to the next, so that a page could repeat a qualifier or a reference snak and skip another</span>
                 <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'''</span>
 <span class="s1">                #Tool: WikibaseIntegrator wbi_fastrun._load_statement_details</span>
-<span class="s1">                SELECT ?sid ?property ?value ?property_type ?precision ?srid ?ref_property ?ref_value ?ref_precision ?rank WHERE </span><span class="se">{{</span>
+<span class="s1">                SELECT ?sid ?property ?value ?property_type ?precision ?calendar ?srid ?ref_property ?ref_value ?ref_precision ?ref_calendar ?rank WHERE </span><span class="se">{{</span>
 <span class="s1">                  VALUES ?sid </span><span class="se">{{</span><span class="s1"> </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s1"> </span><span class="se">}}</span>
 <span class="s1">                  </span><span class="si">{</span><span class="n">union</span><span class="si">}</span>
 <span class="s1">                </span><span class="se">}}</span>
-<span class="s1">                ORDER BY ?sid ?srid ?ref_property ?ref_value ?ref_precision ?property ?value ?precision ?rank</span>
+<span class="s1">                ORDER BY ?sid ?srid ?ref_property ?ref_value ?ref_precision ?ref_calendar ?property ?value ?precision ?calendar ?rank</span>
 <span class="s1">                OFFSET </span><span class="si">{</span><span class="n">offset</span><span class="si">}</span>
 <span class="s1">                LIMIT </span><span class="si">{</span><span class="n">limit</span><span class="si">}</span>
 <span class="s1">                '''</span>
 
                 <span class="n">offset</span> <span class="o">+=</span> <span class="n">limit</span>  <span class="c1"># We increase the offset for the next iteration</span>
-                <span class="n">results</span> <span class="o">=</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
+
+                <span class="c1"># The qualifier and reference snaks whose property type isn't in the graph</span>
+                <span class="n">untyped</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_id</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">'ref_property'</span> <span class="k">if</span> <span class="s1">'srid'</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">else</span> <span class="s1">'property'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">])</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span>
+                           <span class="k">if</span> <span class="s1">'rank'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="s1">'property_type'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">untyped</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_load_property_types</span><span class="p">(</span><span class="n">untyped</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
                     <span class="n">sid</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'sid'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
@@ -883,11 +958,11 @@
                     <span class="k">elif</span> <span class="s1">'srid'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
                         <span class="n">snak</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snak_from_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">snak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="n">references</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">'srid'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">],</span> <span class="n">Reference</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span>
+                            <span class="n">references</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">'srid'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">],</span> <span class="n">Reference</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">snak</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snak_from_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">snak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="n">qualifiers</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snak</span><span class="p">)</span>
+                            <span class="n">qualifiers</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snak</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">:</span>
                     <span class="k">break</span>
@@ -898,7 +973,7 @@
                 <span class="k">if</span> <span class="n">use_references</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_references_cache</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span> <span class="o">=</span> <span class="n">References</span><span class="p">()</span>
                     <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">references</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_references_cache</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_references_cache</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">use_rank</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_rank_cache</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ranks</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span>
 
@@ -913,10 +988,7 @@
 <span class="sd">        """</span>
         <span class="n">prefix</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'ref_'</span><span class="p">,</span> <span class="s1">'reference snak'</span><span class="p">)</span> <span class="k">if</span> <span class="n">reference</span> <span class="k">else</span> <span class="p">(</span><span class="s1">''</span><span class="p">,</span> <span class="s1">'qualifier'</span><span class="p">)</span>
         <span class="n">prop_nr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_id</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">property'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">])</span>
-        <span class="n">property_type</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'property_type'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">prop_nr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">properties_type</span><span class="p">[</span><span class="n">prop_nr</span><span class="p">]</span> <span class="o">=</span> <span class="n">property_type</span>
+        <span class="n">property_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_property_type</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datatype_class</span><span class="p">(</span><span class="n">property_type</span><span class="p">)(</span><span class="n">prop_nr</span><span class="o">=</span><span class="n">prop_nr</span><span class="p">)</span><span class="o">.</span><span class="n">from_sparql_value</span><span class="p">(</span><span class="n">sparql_value</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">value'</span><span class="p">])</span>
@@ -924,7 +996,7 @@
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Skipping a </span><span class="si">%s</span><span class="s2"> of statement '</span><span class="si">%s</span><span class="s2">': </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_precision</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">precision'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_time_details</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">f</span>
 
@@ -974,8 +1046,8 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_value_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_nr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Load the unit (of a quantity) and the precision (of a time) of the values of the given statements, which are</span>
-<span class="sd">        on the value node, not on the simple value loaded by load_statements(). The statements already known are not</span>
+<span class="sd">        Load the unit (of a quantity), the precision and the calendar model (of a time) of the values of the given</span>
+<span class="sd">        statements, which are on the value node, not on the simple value loaded by load_statements(). The statements already known are not</span>
 <span class="sd">        queried again.</span>
 
 <span class="sd">        :param prop_nr: The property of the statements.</span>
@@ -989,27 +1061,31 @@
             <span class="n">values</span> <span class="o">=</span> <span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;</span><span class="si">{</span><span class="n">sid</span><span class="si">}</span><span class="s1">&gt;'</span> <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">)</span>
             <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'''</span>
 <span class="s1">            #Tool: WikibaseIntegrator wbi_fastrun._load_value_details</span>
-<span class="s1">            SELECT ?sid ?unit ?precision WHERE </span><span class="se">{{</span>
+<span class="s1">            SELECT ?sid ?unit ?precision ?calendar WHERE </span><span class="se">{{</span>
 <span class="s1">              VALUES ?sid </span><span class="se">{{</span><span class="s1"> </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s1"> </span><span class="se">}}</span>
 <span class="s1">              ?sid ?value_predicate ?value_node.</span>
-<span class="s1">              ?property wikibase:statementValue ?value_predicate.</span>
+<span class="s1">              # The value node of the statement, e.g. &lt;http://www.wikidata.org/prop/statement/value/P2067&gt;, recognized from the IRI</span>
+<span class="s1">              # of its predicate: the graph can lack the properties, see _load_property_types()</span>
+<span class="s1">              FILTER(STRENDS(STR(?value_predicate), "/prop/statement/value/</span><span class="si">{</span><span class="n">prop_nr</span><span class="si">}</span><span class="s1">"))</span>
 <span class="s1">              # The unit of a quantity value, only bound for quantities</span>
 <span class="s1">              OPTIONAL </span><span class="se">{{</span><span class="s1"> ?value_node wikibase:quantityUnit ?unit . </span><span class="se">}}</span>
 <span class="s1">              # The precision of a time value, only bound for times</span>
 <span class="s1">              OPTIONAL </span><span class="se">{{</span><span class="s1"> ?value_node wikibase:timePrecision ?precision . </span><span class="se">}}</span>
+<span class="s1">              # The calendar model of a time value, only bound for times</span>
+<span class="s1">              OPTIONAL </span><span class="se">{{</span><span class="s1"> ?value_node wikibase:timeCalendarModel ?calendar . </span><span class="se">}}</span>
 <span class="s1">            </span><span class="se">}}</span>
 <span class="s1">            '''</span>
 
-            <span class="n">results</span> <span class="o">=</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
 
-            <span class="c1"># A statement without a value node has neither unit nor precision: its value won't match any claim</span>
+            <span class="c1"># A statement without a value node has neither unit, precision nor calendar model: its value won't match any claim</span>
             <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
-                <span class="n">details</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">details</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
                 <span class="n">details</span><span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s1">'sid'</span><span class="p">][</span><span class="s1">'value'</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_details_from_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_statements_with_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">:</span> <span class="n">Claim</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">"""The loaded statements holding the simple value of the claim, whatever the unit or the precision of the value."""</span>
+<span class="w">        </span><span class="sd">"""The loaded statements holding the simple value of the claim, whatever the unit, the precision or the calendar model of the value."""</span>
         <span class="n">value_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_key</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
@@ -1017,10 +1093,10 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_filter_value_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">:</span> <span class="n">Claim</span><span class="p">,</span> <span class="n">statements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Keep the statements whose value has the same unit as the claim, for a quantity, or the same precision, for a</span>
-<span class="sd">        time. The statements of the other data types are returned unchanged.</span>
+<span class="sd">        Keep the statements whose value has the same unit as the claim, for a quantity, or the same precision and</span>
+<span class="sd">        calendar model, for a time. The statements of the other data types are returned unchanged.</span>
 
-<span class="sd">        The unit and the precision are loaded for the given statements only: pass the statements holding the value of</span>
+<span class="sd">        These details are loaded for the given statements only: pass the statements holding the value of</span>
 <span class="sd">        the claim, restricted as much as possible (e.g. to the entities holding the other claims).</span>
 
 <span class="sd">        :param claim: The claim.</span>
@@ -1040,9 +1116,10 @@
             <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_unit</span><span class="p">(</span><span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'unit'</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">))</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">statement</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span> <span class="k">if</span> <span class="n">details</span><span class="p">[</span><span class="n">statement</span><span class="p">[</span><span class="s1">'sid'</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">unit</span><span class="p">]</span>
 
-        <span class="c1"># The simple value of a time drops the precision: '1987' and '1987-01-01' share the same timestamp</span>
-        <span class="n">precision</span> <span class="o">=</span> <span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'precision'</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">statement</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span> <span class="k">if</span> <span class="n">details</span><span class="p">[</span><span class="n">statement</span><span class="p">[</span><span class="s1">'sid'</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">precision</span><span class="p">]</span>
+        <span class="c1"># The simple value of a time drops the precision and the calendar model: '1987' and '1987-01-01' share the same</span>
+        <span class="c1"># timestamp, and so do a date of the Julian calendar and the same day in the Gregorian calendar</span>
+        <span class="n">precision</span><span class="p">,</span> <span class="n">calendarmodel</span> <span class="o">=</span> <span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'precision'</span><span class="p">),</span> <span class="n">datavalue</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'calendarmodel'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">statement</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span> <span class="k">if</span> <span class="n">details</span><span class="p">[</span><span class="n">statement</span><span class="p">[</span><span class="s1">'sid'</span><span class="p">]][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="n">calendarmodel</span><span class="p">)]</span>
 
 <div class="viewcode-block" id="FastRunContainer.get_entities">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_fastrun.FastRunContainer.html#wikibaseintegrator.wbi_fastrun.FastRunContainer.get_entities">[docs]</a>
@@ -1062,13 +1139,14 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"claims must have at least one claim"</span><span class="p">)</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span><span class="p">)</span>
 
         <span class="n">candidates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Claim</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">load_statements</span><span class="p">(</span><span class="n">claims</span><span class="o">=</span><span class="n">claim</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">query_limit</span><span class="p">)</span>
             <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">claim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_statements_with_value</span><span class="p">(</span><span class="n">claim</span><span class="p">)))</span>
 
-        <span class="c1"># The entities holding every simple value, then among them only, the ones with the same unit or precision</span>
+        <span class="c1"># The entities holding every simple value, then among them only, the ones with the same unit, or precision and calendar model</span>
         <span class="n">entities</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_id</span><span class="p">(</span><span class="n">statement</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">])</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">statements</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">claim</span><span class="p">,</span> <span class="n">statements</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
             <span class="n">statements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_value_details</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[</span><span class="n">statement</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_id</span><span class="p">(</span><span class="n">statement</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">])</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">])</span>
@@ -1156,6 +1234,7 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"claims must have at least one claim"</span><span class="p">)</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wikibase_url</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">action_if_exists</span> <span class="o">==</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">:</span>
             <span class="c1"># The new statements are always appended, a write is always required</span>
@@ -1205,7 +1284,7 @@
 
             <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">claim</span><span class="p">,</span> <span class="n">statements</span><span class="p">))</span>
 
-        <span class="c1"># The entities holding every simple value, then among them only, the ones with the same unit or precision</span>
+        <span class="c1"># The entities holding every simple value, then among them only, the ones with the same unit, or precision and calendar model</span>
         <span class="n">common_entities</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_id</span><span class="p">(</span><span class="n">statement</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">])</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">statements</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">common_entities</span><span class="p">:</span>
             <span class="n">candidates</span> <span class="o">=</span> <span class="p">[(</span><span class="n">claim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_value_details</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[</span><span class="n">statement</span> <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_id</span><span class="p">(</span><span class="n">statement</span><span class="p">[</span><span class="s1">'entity'</span><span class="p">])</span> <span class="ow">in</span> <span class="n">common_entities</span><span class="p">]))</span>
@@ -1330,7 +1409,7 @@
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">execute_sparql_query</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparql_endpoint_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)[</span><span class="s1">'results'</span><span class="p">][</span><span class="s1">'bindings'</span><span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_language_predicate</span><span class="p">(</span><span class="n">lang</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lang_data_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1382,10 +1461,29 @@
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_with_entity_iris</span><span class="p">(</span><span class="n">claims</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Claim</span><span class="p">]</span> <span class="o">|</span> <span class="n">Claims</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Claim</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The claims, their values completed with the Wikibase URL of the container where they hold a bare entity ID, like</span>
+<span class="sd">    Quantity(unit='Q11573') (see Snak.get_json()): copies of the claims concerned, the others as they are.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">snaks</span><span class="p">(</span><span class="n">claim</span><span class="p">:</span> <span class="n">Claim</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snak</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">claim</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">,</span> <span class="o">*</span><span class="n">claim</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">snak</span> <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">claim</span><span class="o">.</span><span class="n">references</span> <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">)]</span>
+
+    <span class="n">resolved</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">claims</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_resolve_datavalue</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span> <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">snaks</span><span class="p">(</span><span class="n">claim</span><span class="p">)):</span>
+            <span class="n">claim</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">snaks</span><span class="p">(</span><span class="n">claim</span><span class="p">):</span>
+                <span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">=</span> <span class="n">_resolve_datavalue</span><span class="p">(</span><span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">)</span>
+        <span class="n">resolved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resolved</span>
+
+
 <div class="viewcode-block" id="get_fastrun_container">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_fastrun.get_fastrun_container.html#wikibaseintegrator.wbi_fastrun.get_fastrun_container">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_fastrun_container</span><span class="p">(</span><span class="n">base_filter</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseDataType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseDataType</span><span class="p">]],</span> <span class="n">use_qualifiers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_references</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_rank</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                          <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FastRunContainer</span><span class="p">:</span>
+                          <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">sparql_endpoint_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                          <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FastRunContainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Return a FastRunContainer object, create a new one if it doesn't already exist.</span>
 
@@ -1395,6 +1493,11 @@
 <span class="sd">    :param use_rank: Use rank during fastrun. Disabled by default.</span>
 <span class="sd">    :param cache: Put data returned by the SPARQL endpoint in cache. Enabled by default.</span>
 <span class="sd">    :param case_insensitive: Compare the string values without taking the case into account. Disabled by default.</span>
+<span class="sd">    :param sparql_endpoint_url: The SPARQL endpoint, e.g. 'https://query-scholarly.wikidata.org/sparql' for the scholarly articles of</span>
+<span class="sd">        Wikidata. Default: config['SPARQL_ENDPOINT_URL']</span>
+<span class="sd">    :param wikibase_url: The Wikibase URL of the entity IRIs of the endpoint. Default: config['WIKIBASE_URL']</span>
+<span class="sd">    :param mediawiki_api_url: The MediaWiki API giving the datatypes of the properties. Default: config['MEDIAWIKI_API_URL']</span>
+<span class="sd">    :param user_agent: The user agent of the requests. Default: config['USER_AGENT']</span>
 <span class="sd">    :return: a FastRunContainer object</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">base_filter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1402,19 +1505,22 @@
 
     <span class="c1"># We search if we already have a FastRunContainer with the same parameters to reuse it</span>
     <span class="n">fastrun_container</span> <span class="o">=</span> <span class="n">_search_fastrun_store</span><span class="p">(</span><span class="n">base_filter</span><span class="o">=</span><span class="n">base_filter</span><span class="p">,</span> <span class="n">use_qualifiers</span><span class="o">=</span><span class="n">use_qualifiers</span><span class="p">,</span> <span class="n">use_references</span><span class="o">=</span><span class="n">use_references</span><span class="p">,</span> <span class="n">use_rank</span><span class="o">=</span><span class="n">use_rank</span><span class="p">,</span>
-                                              <span class="n">case_insensitive</span><span class="o">=</span><span class="n">case_insensitive</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">)</span>
+                                              <span class="n">case_insensitive</span><span class="o">=</span><span class="n">case_insensitive</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">,</span> <span class="n">sparql_endpoint_url</span><span class="o">=</span><span class="n">sparql_endpoint_url</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="o">=</span><span class="n">wikibase_url</span><span class="p">,</span>
+                                              <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">mediawiki_api_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">user_agent</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">fastrun_container</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_search_fastrun_store</span><span class="p">(</span><span class="n">base_filter</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseDataType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseDataType</span><span class="p">]],</span> <span class="n">use_qualifiers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_references</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_rank</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                          <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FastRunContainer</span><span class="p">:</span>
+                          <span class="n">cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">sparql_endpoint_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                          <span class="n">mediawiki_api_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FastRunContainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Search for an existing FastRunContainer with the same parameters or create a new one if it doesn't exist.</span>
 
-<span class="sd">    The containers are also told apart by the SPARQL endpoint and the Wikibase URL of the configuration: the queries of a</span>
-<span class="sd">    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance.</span>
+<span class="sd">    The containers are also told apart by the SPARQL endpoint, the Wikibase URL and the MediaWiki API URL: the queries of a</span>
+<span class="sd">    container use the entity IRIs of its Wikibase URL, so a container is only reused for the same instance and endpoint. A</span>
+<span class="sd">    reused container takes the user agent and the cache option given.</span>
 
 <span class="sd">    :param base_filter: The default filter to initialize the dataset. A list made of BaseDataType or list of BaseDataType.</span>
 <span class="sd">    :param use_qualifiers: Use qualifiers during fastrun. Enabled by default.</span>
@@ -1422,22 +1528,43 @@
 <span class="sd">    :param use_rank: Use rank during fastrun. Disabled by default.</span>
 <span class="sd">    :param cache: Put data returned by the SPARQL endpoint in cache. Enabled by default.</span>
 <span class="sd">    :param case_insensitive: Compare the string values without taking the case into account. Disabled by default.</span>
+<span class="sd">    :param sparql_endpoint_url: The SPARQL endpoint. Default: config['SPARQL_ENDPOINT_URL']</span>
+<span class="sd">    :param wikibase_url: The Wikibase URL. Default: config['WIKIBASE_URL']</span>
+<span class="sd">    :param mediawiki_api_url: The MediaWiki API URL. Default: config['MEDIAWIKI_API_URL']</span>
+<span class="sd">    :param user_agent: The user agent of the requests. Default: config['USER_AGENT']</span>
 <span class="sd">    :return: a FastRunContainer object</span>
 <span class="sd">    """</span>
+    <span class="n">sparql_endpoint_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sparql_endpoint_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">])</span>
+    <span class="n">wikibase_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wikibase_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">])</span>
+    <span class="n">mediawiki_api_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mediawiki_api_url</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'MEDIAWIKI_API_URL'</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">fastrun</span> <span class="ow">in</span> <span class="n">fastrun_store</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">base_filter</span> <span class="o">==</span> <span class="n">base_filter</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">use_qualifiers</span> <span class="o">==</span> <span class="n">use_qualifiers</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">use_references</span> <span class="o">==</span> <span class="n">use_references</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-                <span class="n">fastrun</span><span class="o">.</span><span class="n">use_rank</span> <span class="o">==</span> <span class="n">use_rank</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">case_insensitive</span> <span class="o">==</span> <span class="n">case_insensitive</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">sparql_endpoint_url</span> <span class="o">==</span> <span class="n">config</span><span class="p">[</span><span class="s1">'SPARQL_ENDPOINT_URL'</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span>
-                <span class="n">fastrun</span><span class="o">.</span><span class="n">wikibase_url</span> <span class="o">==</span> <span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
+                <span class="n">fastrun</span><span class="o">.</span><span class="n">use_rank</span> <span class="o">==</span> <span class="n">use_rank</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">case_insensitive</span> <span class="o">==</span> <span class="n">case_insensitive</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">sparql_endpoint_url</span> <span class="o">==</span> <span class="n">sparql_endpoint_url</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">fastrun</span><span class="o">.</span><span class="n">wikibase_url</span> <span class="o">==</span> <span class="n">wikibase_url</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fastrun</span><span class="o">.</span><span class="n">mediawiki_api_url</span> <span class="o">==</span> <span class="n">mediawiki_api_url</span><span class="p">):</span>
             <span class="n">fastrun</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cache</span>
+            <span class="n">fastrun</span><span class="o">.</span><span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span>
             <span class="k">return</span> <span class="n">fastrun</span>
 
     <span class="c1"># In case nothing was found in the fastrun_store</span>
     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Create a new FastRunContainer"</span><span class="p">)</span>
 
     <span class="n">fastrun_container</span> <span class="o">=</span> <span class="n">FastRunContainer</span><span class="p">(</span><span class="n">base_data_type</span><span class="o">=</span><span class="n">BaseDataType</span><span class="p">,</span> <span class="n">base_filter</span><span class="o">=</span><span class="n">base_filter</span><span class="p">,</span> <span class="n">use_qualifiers</span><span class="o">=</span><span class="n">use_qualifiers</span><span class="p">,</span> <span class="n">use_references</span><span class="o">=</span><span class="n">use_references</span><span class="p">,</span> <span class="n">use_rank</span><span class="o">=</span><span class="n">use_rank</span><span class="p">,</span>
-                                         <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="o">=</span><span class="n">case_insensitive</span><span class="p">)</span>
+                                         <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">,</span> <span class="n">case_insensitive</span><span class="o">=</span><span class="n">case_insensitive</span><span class="p">,</span> <span class="n">sparql_endpoint_url</span><span class="o">=</span><span class="n">sparql_endpoint_url</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="o">=</span><span class="n">wikibase_url</span><span class="p">,</span>
+                                         <span class="n">mediawiki_api_url</span><span class="o">=</span><span class="n">mediawiki_api_url</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">user_agent</span><span class="p">)</span>
     <span class="n">fastrun_store</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fastrun_container</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fastrun_container</span>
+
+
+<div class="viewcode-block" id="clear_fastrun_store">
+<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_fastrun.clear_fastrun_store.html#wikibaseintegrator.wbi_fastrun.clear_fastrun_store">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_fastrun_store</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Forget the fast run containers kept by get_fastrun_container(), with the data they loaded: the next call creates new</span>
+<span class="sd">    containers, which query the SPARQL endpoint again. The store keeps every container until it is cleared: clear it, e.g.</span>
+<span class="sd">    at the end of a batch, to free their memory or to read the changes made since.</span>
+<span class="sd">    """</span>
+    <span class="n">fastrun_store</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
 </pre></div>
 
                 </article>

@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/senses';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -434,13 +434,23 @@
   <h1>Source code for wikibaseintegrator.models.senses</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.glosses</span><span class="w"> </span><span class="kn">import</span> <span class="n">Glosses</span>  <span class="c1"># pylint: disable=unused-import  # Re-exported: Sense and Glosses used to be defined in this module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">_add_with_action</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.glosses</span><span class="w"> </span><span class="kn">import</span> <span class="n">Glosses</span> <span class="k">as</span> <span class="n">_Glosses</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.sense</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sense</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="c1"># Sense and Glosses used to be defined in this module: Sense is still imported here, Glosses only until 1.0</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">'Glosses'</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Importing Glosses from </span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is deprecated and will be removed in WikibaseIntegrator 1.0, import it from wikibaseintegrator.models instead."</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_Glosses</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Senses">
@@ -458,13 +468,24 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-    <span class="c1"># TODO: implement action_if_exists</span>
-    <span class="c1"># action_if_exists is accepted for symmetry with Claims.add() but not implemented yet</span>
-    <span class="c1"># pylint: disable-next=unused-argument</span>
 <div class="viewcode-block" id="Senses.add">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.senses.Senses.html#wikibaseintegrator.models.senses.Senses.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sense</span><span class="p">:</span> <span class="n">Sense</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">:</span> <span class="n">ActionIfExists</span> <span class="o">=</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">APPEND_OR_REPLACE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sense</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Add a sense to the lexeme.</span>
+
+<span class="sd">        :param sense: The sense.</span>
+<span class="sd">        :param action_if_exists: What to do when the sense already exists, like Claims.add(): two senses are the</span>
+<span class="sd">            same when they have the same id, or, when one of them has no id yet, the same content (see Sense.__eq__()).</span>
+<span class="sd">            Defaults to APPEND_OR_REPLACE.</span>
+<span class="sd">            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new sense if it isn't there. Otherwise, the new sense</span>
+<span class="sd">            replaces the one with the same id, or cancels the removal of the one with the same content.</span>
+<span class="sd">            FORCE_APPEND: Always add the new sense, even if it is already there.</span>
+<span class="sd">            KEEP: Add the new sense only if the lexeme has no sense yet (the ones marked for removal don't count).</span>
+<span class="sd">            REPLACE_ALL: Mark for removal the senses that aren't the new one, then add it like APPEND_OR_REPLACE.</span>
+<span class="sd">        :return: This Senses object</span>
+<span class="sd">        """</span>
+        <span class="n">_add_with_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="p">,</span> <span class="n">sense</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -473,7 +494,8 @@
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.senses.Senses.html#wikibaseintegrator.models.senses.Senses.from_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">sense</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sense</span><span class="o">=</span><span class="n">Sense</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">sense</span><span class="p">))</span>
+            <span class="c1"># As they are on the instance</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sense</span><span class="o">=</span><span class="n">Sense</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">sense</span><span class="p">),</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -495,7 +517,14 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Senses.count">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.senses.Senses.html#wikibaseintegrator.models.senses.Senses.count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the number of senses: the same as ``len()``."""</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</div>
 
 </pre></div>
 

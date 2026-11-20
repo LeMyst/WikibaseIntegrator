@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/qualifiers';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -437,8 +437,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Self</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_require_property_number</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">_add_with_action</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Snak</span><span class="p">,</span> <span class="n">_copy_json</span><span class="p">,</span> <span class="n">_require_property_number</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionIfExists</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -457,15 +457,25 @@
 
     <span class="nd">@qualifiers</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">qualifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snak</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The qualifiers must be a dict, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__qualifiers</span> <span class="o">=</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="Qualifiers.set">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.qualifiers.Qualifiers.html#wikibaseintegrator.models.qualifiers.Qualifiers.set">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qualifiers</span><span class="p">:</span> <span class="n">Qualifiers</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snak</span> <span class="o">|</span> <span class="n">Claim</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Replace the qualifiers with the given ones, all of them, even the equal ones.</span>
+
+<span class="sd">        :param qualifiers: The new qualifiers, as a Qualifiers object or a list of Snak or Claim objects. None removes them all.</span>
+<span class="sd">        :return: This Qualifiers object</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifiers</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">Qualifiers</span><span class="p">)):</span>
-            <span class="k">for</span> <span class="n">qualifier</span> <span class="ow">in</span> <span class="n">qualifiers</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span>
+            <span class="c1"># Copied first: the new qualifiers can be these qualifiers themselves</span>
+            <span class="n">new_qualifiers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qualifiers</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">qualifier</span> <span class="ow">in</span> <span class="n">new_qualifiers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">qualifiers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">else</span><span class="p">:</span>
@@ -486,26 +496,35 @@
         <span class="k">return</span> <span class="p">[]</span></div>
 
 
-    <span class="c1"># TODO: implement action_if_exists</span>
-    <span class="c1"># action_if_exists is accepted for symmetry with Claims.add() but not implemented yet</span>
-    <span class="c1"># pylint: disable-next=unused-argument</span>
 <div class="viewcode-block" id="Qualifiers.add">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.qualifiers.Qualifiers.html#wikibaseintegrator.models.qualifiers.Qualifiers.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qualifier</span><span class="p">:</span> <span class="n">Snak</span> <span class="o">|</span> <span class="n">Claim</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">:</span> <span class="n">ActionIfExists</span> <span class="o">=</span> <span class="n">ActionIfExists</span><span class="o">.</span><span class="n">APPEND_OR_REPLACE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Add a qualifier.</span>
+
+<span class="sd">        :param qualifier: The qualifier, as a Snak or as a Claim whose main snak is taken. None adds nothing.</span>
+<span class="sd">        :param action_if_exists: What to do when the qualifier already exists, like Claims.add(): two qualifiers are</span>
+<span class="sd">            equal when they have the same property and value. Defaults to APPEND_OR_REPLACE.</span>
+<span class="sd">            APPEND_OR_REPLACE and MERGE_REFS_OR_APPEND: Add the new qualifier if no equal qualifier exists.</span>
+<span class="sd">            FORCE_APPEND: Always add the new qualifier, even if an equal qualifier exists.</span>
+<span class="sd">            KEEP: Add the new qualifier only if the property has no qualifier yet.</span>
+<span class="sd">            REPLACE_ALL: Remove the qualifiers of the property not equal to the new one, then add it if it</span>
+<span class="sd">            isn't there.</span>
+<span class="sd">        :return: This Qualifiers object</span>
+<span class="sd">        """</span>
         <span class="c1"># Imported here because Claim holds Qualifiers, which would make a circular import at module level</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
-            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
+            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">_copy_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">qualifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">)</span>
+        <span class="c1"># Adding no qualifier does nothing, like Reference.add() and References.add()</span>
+        <span class="k">if</span> <span class="n">qualifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
 
-        <span class="nb">property</span> <span class="o">=</span> <span class="n">_require_property_number</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a Snak or a Claim, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span>
+        <span class="n">_add_with_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_require_property_number</span><span class="p">(</span><span class="n">qualifier</span><span class="p">),</span> <span class="p">[]),</span> <span class="n">qualifier</span><span class="p">,</span> <span class="n">action_if_exists</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -521,10 +540,10 @@
 <span class="sd">        """</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.claim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Claim</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Claim</span><span class="p">):</span>
-            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">get_json</span><span class="p">()[</span><span class="s1">'mainsnak'</span><span class="p">])</span>
+            <span class="n">qualifier</span> <span class="o">=</span> <span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">_copy_json</span><span class="p">(</span><span class="n">qualifier</span><span class="o">.</span><span class="n">mainsnak</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">qualifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qualifier</span><span class="p">,</span> <span class="n">Snak</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a Snak or a Claim, found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">qualifier</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Removing a qualifier that isn't there does nothing, whether its property has other qualifiers or none, or it has no property</span>
         <span class="nb">property</span> <span class="o">=</span> <span class="n">qualifier</span><span class="o">.</span><span class="n">property_number</span>
@@ -559,7 +578,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
         <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">snak</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">[</span><span class="nb">property</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">qualifier</span><span class="o">=</span><span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">snak</span><span class="p">))</span>
+                <span class="c1"># As they are on the instance</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">qualifier</span><span class="o">=</span><span class="n">Snak</span><span class="p">()</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">snak</span><span class="p">),</span> <span class="n">action_if_exists</span><span class="o">=</span><span class="n">ActionIfExists</span><span class="o">.</span><span class="n">FORCE_APPEND</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
@@ -575,13 +595,8 @@
 <div class="viewcode-block" id="Qualifiers.count">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.qualifiers.Qualifiers.html#wikibaseintegrator.models.qualifiers.Qualifiers.count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Return the total number of individual qualifier snaks, across every property.</span>
-
-<span class="sd">        Note: ``len(qualifiers)`` returns the number of distinct properties, while iterating yields the individual</span>
-<span class="sd">        snaks. Use this method when you need the qualifier count.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">snak_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">snak_list</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+<span class="w">        </span><span class="sd">"""Return the number of qualifiers, across every property: the same as ``len()``."""</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Snak</span><span class="p">]:</span>
@@ -591,8 +606,8 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">iterate</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="c1"># Returns the number of distinct properties. See count() for the total number of individual snaks.</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="p">)</span></div>
+        <span class="c1"># The qualifiers, like the iteration: not the properties</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">snak_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">snak_list</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qualifiers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
 </pre></div>
 

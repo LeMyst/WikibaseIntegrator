@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/entities/lexeme';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -443,9 +443,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.lemmas</span><span class="w"> </span><span class="kn">import</span> <span class="n">Lemmas</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.sense</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sense</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.senses</span><span class="w"> </span><span class="kn">import</span> <span class="n">Senses</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">lexeme_add_form</span><span class="p">,</span> <span class="n">lexeme_add_sense</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.snak</span><span class="w"> </span><span class="kn">import</span> <span class="n">_serializing_for</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">lexeme_add_form</span><span class="p">,</span> <span class="n">lexeme_add_sense</span><span class="p">,</span> <span class="n">lexeme_edit_form</span><span class="p">,</span> <span class="n">lexeme_edit_sense</span><span class="p">,</span> <span class="n">lexeme_remove_form</span><span class="p">,</span> <span class="n">lexeme_remove_sense</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLogin</span>
 
 
 <div class="viewcode-block" id="LexemeEntity">
@@ -459,7 +459,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span><span class="p">:</span> <span class="n">Lemmas</span> <span class="o">=</span> <span class="n">lemmas</span> <span class="k">if</span> <span class="n">lemmas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Lemmas</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lexical_category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">lexical_category</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'DEFAULT_LEXEME_LANGUAGE'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'DEFAULT_LEXEME_LANGUAGE'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forms</span><span class="p">:</span> <span class="n">Forms</span> <span class="o">=</span> <span class="n">forms</span> <span class="k">if</span> <span class="n">forms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Forms</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="p">:</span> <span class="n">Senses</span> <span class="o">=</span> <span class="n">senses</span> <span class="k">if</span> <span class="n">senses</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Senses</span><span class="p">()</span>
 
@@ -589,13 +589,15 @@
 <div class="viewcode-block" id="LexemeEntity.get_json">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.get_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">]:</span>
-        <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">'lemmas'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span>
-            <span class="s1">'language'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="p">,</span>
-            <span class="s1">'forms'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span>
-            <span class="s1">'senses'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span>
-            <span class="o">**</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
-        <span class="p">}</span>
+        <span class="c1"># The claims of the forms and senses, like the ones of the lexeme (see BaseEntity.get_json())</span>
+        <span class="k">with</span> <span class="n">_serializing_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
+            <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">'lemmas'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span>
+                <span class="s1">'language'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="p">,</span>
+                <span class="s1">'forms'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span>
+                <span class="s1">'senses'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">get_json</span><span class="p">(),</span>
+                <span class="o">**</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+            <span class="p">}</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexical_category</span><span class="p">:</span>
             <span class="n">json_data</span><span class="p">[</span><span class="s1">'lexicalCategory'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexical_category</span>
@@ -643,7 +645,7 @@
 
 <div class="viewcode-block" id="LexemeEntity.write_form">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.write_form">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">write_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">Form</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">Form</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a single Form to the Lexeme with the wbladdform action.</span>
 
@@ -660,16 +662,22 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'You must set a Lexeme id before writing a Form.'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The Form </span><span class="si">{</span><span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already exists, adding it again would create a duplicate."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The Form </span><span class="si">{</span><span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already exists, adding it again would create a duplicate: edit it with edit_form()."</span><span class="p">)</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">removed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The Form is marked as removed, it cannot be added.'</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_serializing_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
         <span class="c1"># 'add' is a marker used by wbeditentity, the wbladdform action doesn't expect it.</span>
         <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'add'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
         <span class="n">is_bot</span> <span class="o">=</span> <span class="n">is_bot</span> <span class="k">if</span> <span class="n">is_bot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">is_bot</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">lexeme_add_form</span><span class="p">(</span><span class="n">lexeme_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="s1">'form'</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">lexeme_add_form</span><span class="p">(</span><span class="n">lexeme_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_lastrevid</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">'form'</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span></div>
 
@@ -679,17 +687,71 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">write_forms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add all the new Forms of the Lexeme, one wbladdform action per Form. The Forms already existing on the</span>
-<span class="sd">        Wikibase instance are skipped.</span>
+<span class="sd">        Wikibase instance and the Forms marked as removed are skipped.</span>
 
 <span class="sd">        :param kwargs: Arguments passed to write_form()</span>
 <span class="sd">        :return: The ids of the newly created Forms</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">write_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">write_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">removed</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="LexemeEntity.edit_form">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.edit_form">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">edit_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">Form</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Form</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Edit a single existing Form of the Lexeme with the wbleditformelements action: its representations, its</span>
+<span class="sd">        grammatical features and its claims. The representations and the claims marked for removal are removed.</span>
+
+<span class="sd">        Contrary to write(), only the Form is sent to the Wikibase instance, the rest of the Lexeme is left untouched.</span>
+
+<span class="sd">        :param form: The Form to edit, with the id of a Form of the Lexeme.</span>
+<span class="sd">        :param login: A login instance</span>
+<span class="sd">        :param allow_anonymous: Force a check if the query can be anonymous or not</span>
+<span class="sd">        :param is_bot: Add the bot flag to the query</span>
+<span class="sd">        :param kwargs: More arguments for lexeme_edit_form (e.g. baserevid, tags) and Python requests</span>
+<span class="sd">        :return: The Form, updated from the Form returned by the instance (e.g. with the GUIDs of its new claims)</span>
+<span class="sd">        """</span>
+        <span class="n">form_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_entity_id</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'Form'</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">removed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'The Form </span><span class="si">{</span><span class="n">form_id</span><span class="si">}</span><span class="s1"> is marked as removed: remove it with remove_form().'</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_serializing_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="c1"># The id is the formId parameter of the action</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">lexeme_edit_form</span><span class="p">(</span><span class="n">form_id</span><span class="o">=</span><span class="n">form_id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_bot</span><span class="p">(</span><span class="n">is_bot</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_lastrevid</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">form</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">'form'</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="LexemeEntity.remove_form">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.remove_form">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">Form</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Remove a single Form from the Lexeme with the wblremoveform action, and from the forms of this object.</span>
+
+<span class="sd">        Contrary to write(), only the removal is sent to the Wikibase instance, the rest of the Lexeme is left untouched.</span>
+
+<span class="sd">        :param form: The Form to remove, or its id, e.g. L10-F2</span>
+<span class="sd">        :param login: A login instance</span>
+<span class="sd">        :param allow_anonymous: Force a check if the query can be anonymous or not</span>
+<span class="sd">        :param is_bot: Add the bot flag to the query</span>
+<span class="sd">        :param kwargs: More arguments for lexeme_remove_form (e.g. baserevid, tags) and Python requests</span>
+<span class="sd">        """</span>
+        <span class="n">form_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_entity_id</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">id</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">Form</span><span class="p">)</span> <span class="k">else</span> <span class="n">form</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'Form'</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">lexeme_remove_form</span><span class="p">(</span><span class="n">form_id</span><span class="o">=</span><span class="n">form_id</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_bot</span><span class="p">(</span><span class="n">is_bot</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_lastrevid</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">forms</span> <span class="o">=</span> <span class="p">[</span><span class="n">existing</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forms</span> <span class="k">if</span> <span class="n">existing</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">form_id</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="LexemeEntity.write_sense">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.write_sense">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">write_sense</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sense</span><span class="p">:</span> <span class="n">Sense</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">_Login</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_sense</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sense</span><span class="p">:</span> <span class="n">Sense</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a single Sense to the Lexeme with the wbladdsense action.</span>
 
@@ -706,19 +768,22 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'You must set a Lexeme id before writing a Sense.'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sense</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The Sense </span><span class="si">{</span><span class="n">sense</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already exists, adding it again would create a duplicate."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The Sense </span><span class="si">{</span><span class="n">sense</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already exists, adding it again would create a duplicate: edit it with edit_sense()."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sense</span><span class="o">.</span><span class="n">removed</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The Sense is marked as removed, it cannot be added.'</span><span class="p">)</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="n">sense</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">_serializing_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">sense</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
         <span class="c1"># 'add' is a marker used by wbeditentity, the wbladdsense action doesn't expect it.</span>
         <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'add'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
         <span class="n">is_bot</span> <span class="o">=</span> <span class="n">is_bot</span> <span class="k">if</span> <span class="n">is_bot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">is_bot</span>
 
-        <span class="n">sense</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">lexeme_add_sense</span><span class="p">(</span><span class="n">lexeme_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="s1">'sense'</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">lexeme_add_sense</span><span class="p">(</span><span class="n">lexeme_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="n">is_bot</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_lastrevid</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="n">sense</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">'sense'</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">sense</span><span class="o">.</span><span class="n">id</span></div>
 
@@ -734,7 +799,102 @@
 <span class="sd">        :return: The ids of the newly created Senses</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">write_sense</span><span class="p">(</span><span class="n">sense</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">sense</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">senses</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">sense</span><span class="o">.</span><span class="n">id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">sense</span><span class="o">.</span><span class="n">removed</span><span class="p">]</span></div>
-</div>
+
+
+<div class="viewcode-block" id="LexemeEntity.edit_sense">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.edit_sense">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">edit_sense</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sense</span><span class="p">:</span> <span class="n">Sense</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sense</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Edit a single existing Sense of the Lexeme with the wbleditsenseelements action: its glosses and its claims. The</span>
+<span class="sd">        glosses and the claims marked for removal are removed.</span>
+
+<span class="sd">        Contrary to write(), only the Sense is sent to the Wikibase instance, the rest of the Lexeme is left untouched.</span>
+
+<span class="sd">        :param sense: The Sense to edit, with the id of a Sense of the Lexeme.</span>
+<span class="sd">        :param login: A login instance</span>
+<span class="sd">        :param allow_anonymous: Force a check if the query can be anonymous or not</span>
+<span class="sd">        :param is_bot: Add the bot flag to the query</span>
+<span class="sd">        :param kwargs: More arguments for lexeme_edit_sense (e.g. baserevid, tags) and Python requests</span>
+<span class="sd">        :return: The Sense, updated from the Sense on the instance (e.g. with the GUIDs of its new claims). The response</span>
+<span class="sd">            of wbleditsenseelements has no claims: they are read from the lexeme, with one more request.</span>
+<span class="sd">        """</span>
+        <span class="n">sense_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_entity_id</span><span class="p">(</span><span class="n">sense</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'Sense'</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sense</span><span class="o">.</span><span class="n">removed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'The Sense </span><span class="si">{</span><span class="n">sense_id</span><span class="si">}</span><span class="s1"> is marked as removed: remove it with remove_sense().'</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_serializing_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">sense</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="c1"># The id is the senseId parameter of the action</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">login</span> <span class="o">=</span> <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">lexeme_edit_sense</span><span class="p">(</span><span class="n">sense_id</span><span class="o">=</span><span class="n">sense_id</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_bot</span><span class="p">(</span><span class="n">is_bot</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_lastrevid</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="n">sense_json</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">'sense'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'claims'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sense_json</span><span class="p">:</span>
+            <span class="c1"># wbleditsenseelements leaves the claims out of its response, unlike wbleditformelements: they are read from</span>
+            <span class="c1"># the lexeme, so that the new claims get their GUID and the removed ones are dropped</span>
+            <span class="n">lexeme_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">(</span><span class="n">entity_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'mediawiki_api_url'</span><span class="p">,</span> <span class="s1">'user_agent'</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">})</span>
+            <span class="n">senses</span> <span class="o">=</span> <span class="p">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]:</span> <span class="n">existing</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">lexeme_json</span><span class="p">[</span><span class="s1">'entities'</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">][</span><span class="s1">'senses'</span><span class="p">]}</span>
+            <span class="n">sense_json</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">sense_json</span><span class="p">,</span> <span class="s1">'claims'</span><span class="p">:</span> <span class="n">senses</span><span class="p">[</span><span class="n">sense_id</span><span class="p">][</span><span class="s1">'claims'</span><span class="p">]}</span>
+
+        <span class="k">return</span> <span class="n">sense</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">sense_json</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LexemeEntity.remove_sense">
+<a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.entities.lexeme.LexemeEntity.html#wikibaseintegrator.entities.lexeme.LexemeEntity.remove_sense">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_sense</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sense</span><span class="p">:</span> <span class="n">Sense</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">login</span><span class="p">:</span> <span class="n">BaseLogin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Remove a single Sense from the Lexeme with the wblremovesense action, and from the senses of this object.</span>
+
+<span class="sd">        Contrary to write(), only the removal is sent to the Wikibase instance, the rest of the Lexeme is left untouched.</span>
+
+<span class="sd">        :param sense: The Sense to remove, or its id, e.g. L10-S2</span>
+<span class="sd">        :param login: A login instance</span>
+<span class="sd">        :param allow_anonymous: Force a check if the query can be anonymous or not</span>
+<span class="sd">        :param is_bot: Add the bot flag to the query</span>
+<span class="sd">        :param kwargs: More arguments for lexeme_remove_sense (e.g. baserevid, tags) and Python requests</span>
+<span class="sd">        """</span>
+        <span class="n">sense_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_entity_id</span><span class="p">(</span><span class="n">sense</span><span class="o">.</span><span class="n">id</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sense</span><span class="p">,</span> <span class="n">Sense</span><span class="p">)</span> <span class="k">else</span> <span class="n">sense</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'Sense'</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">lexeme_remove_sense</span><span class="p">(</span><span class="n">sense_id</span><span class="o">=</span><span class="n">sense_id</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">allow_anonymous</span><span class="o">=</span><span class="n">allow_anonymous</span><span class="p">,</span> <span class="n">is_bot</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_bot</span><span class="p">(</span><span class="n">is_bot</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_lastrevid</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">senses</span> <span class="o">=</span> <span class="p">[</span><span class="n">existing</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">senses</span> <span class="k">if</span> <span class="n">existing</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">sense_id</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sub_entity_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub_entity_id</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Check that the id is the one of a Form or a Sense of this Lexeme, already on the Wikibase instance.</span>
+
+<span class="sd">        :param sub_entity_id: The id of the Form or the Sense, or its concept URI.</span>
+<span class="sd">        :param kind: 'Form' or 'Sense'</span>
+<span class="sd">        :return: The id, e.g. L10-F2</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'You must set a Lexeme id before editing or removing a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s1">.'</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sub_entity_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> has no id: it isn't on the Wikibase instance, add it with write_</span><span class="si">{</span><span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">()."</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sub_entity_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> must be a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> or a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> id, got '</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">sub_entity_id</span><span class="p">)</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+
+        <span class="n">sub_entity_id</span> <span class="o">=</span> <span class="n">sub_entity_id</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">rf</span><span class="s1">'</span><span class="si">{</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">kind</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">[0-9]+'</span><span class="p">,</span> <span class="n">sub_entity_id</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">sub_entity_id</span><span class="si">}</span><span class="s2">' isn't the id of a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> of the Lexeme </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sub_entity_id</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_bot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_bot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">is_bot</span> <span class="k">if</span> <span class="n">is_bot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">is_bot</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_lastrevid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The edits of a Form or a Sense are revisions of the Lexeme: keep its last revision id up to date."""</span>
+        <span class="k">if</span> <span class="s1">'lastrevid'</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastrevid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">'lastrevid'</span><span class="p">])</span></div>
 
 </pre></div>
 

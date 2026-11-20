@@ -11,3 +11,4 @@ Compare the claims to write with the data of the SPARQL endpoint, to skip the wr
 
    ~FastRunContainer
    ~get_fastrun_container
+   ~clear_fastrun_store

@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/wbi_exceptions';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -433,6 +433,7 @@
                   
   <h1>Source code for wikibaseintegrator.wbi_exceptions</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="c1"># An entity link of the parameters of an error message, e.g. [[Q42|Q42]] or [[Property:P50|P50]]</span>
@@ -563,8 +564,15 @@
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.NonExistentEntityError.html#wikibaseintegrator.wbi_exceptions.NonExistentEntityError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NonExistentEntityError</span><span class="p">(</span><span class="n">MWApiError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    When the API return a 'no-such-entity' error: the entity doesn't exist on the Wikibase instance, or its entity type</span>
-<span class="sd">    doesn't exist there.</span>
+<span class="sd">    Raised when an entity, a revision or a page doesn't exist on the Wikibase instance. Its code tells why:</span>
+
+<span class="sd">    * ``no-such-entity``: the instance doesn't know the id, or its entity type doesn't exist there (an API error)</span>
+<span class="sd">    * ``missingtitle``: the page doesn't exist (an API error), or a MediaInfo title isn't found</span>
+<span class="sd">    * ``missing``: the entity is missing, e.g. deleted</span>
+<span class="sd">    * ``nosuchrevid``: the revision doesn't exist, or isn't a revision of this entity</span>
+
+<span class="sd">    It replaces MissingEntityException, deprecated in 0.15 and removed in 1.0: ``MissingEntityException`` is now</span>
+<span class="sd">    another name of this class.</span>
 <span class="sd">    """</span></div>
 
 
@@ -639,15 +647,6 @@
 
 
 
-<div class="viewcode-block" id="MissingEntityException">
-<a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.MissingEntityException.html#wikibaseintegrator.wbi_exceptions.MissingEntityException">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">MissingEntityException</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Raised when an entity read from the Wikibase instance is missing, e.g. deleted, or when a MediaInfo title is not found.</span>
-<span class="sd">    """</span></div>
-
-
-
 <div class="viewcode-block" id="SearchError">
 <a class="viewcode-back" href="../../api/generated/wikibaseintegrator.wbi_exceptions.SearchError.html#wikibaseintegrator.wbi_exceptions.SearchError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SearchError</span><span class="p">(</span><span class="n">WikibaseIntegratorError</span><span class="p">):</span>
@@ -673,6 +672,15 @@
 <span class="sd">    Set ``allow_anonymous=True`` or provide a valid ``login`` object to edit the MediaWiki instance.</span>
 <span class="sd">    """</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="c1"># MissingEntityException was merged into NonExistentEntityError in 0.15 (#453)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">'MissingEntityException'</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"MissingEntityException is deprecated and will be removed in WikibaseIntegrator 1.0: catch NonExistentEntityError, which is now raised for the "</span>
+                      <span class="s2">"missing entities too."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">NonExistentEntityError</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 
                 </article>

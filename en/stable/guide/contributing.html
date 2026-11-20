@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'guide/contributing';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -407,6 +407,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="upgrading.html">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="versioning.html">Versioning and deprecation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="wikidataintegrator.html">Migrating from WikidataIntegrator</a></li>
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
@@ -495,6 +496,13 @@ pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 </section>
+<section id="changing-the-public-api">
+<h2>Changing the public API<a class="headerlink" href="#changing-the-public-api" title="Link to this heading">#</a></h2>
+<p>The <a class="reference internal" href="versioning.html"><span class="std std-doc">versioning and deprecation policy</span></a> says which changes are breaking. A breaking change goes in
+the breaking changes of the <a class="reference internal" href="upgrading.html"><span class="std std-doc">upgrading guide</span></a>, and its pull request gets the <code class="docutils literal notranslate"><span class="pre">breaking</span> <span class="pre">change</span></code> label.
+Where a transition is possible, deprecate the old API first: a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> naming the replacement and the
+version of the removal, a <code class="docutils literal notranslate"><span class="pre">deprecated</span></code> note in the docstring, and an entry in the upgrading guide.</p>
+</section>
 </section>
 
 
@@ -545,6 +553,7 @@ pre-commit<span class="w"> </span>install
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-of-the-development-environment">Installation of the development environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changing-the-public-api">Changing the public API</a></li>
 </ul>
   </nav></div>
 

@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a9ba800c"></script>
+    <script src="../../../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wikibaseintegrator/models/snak';</script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.3" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -435,10 +435,85 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextvars</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextVar</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.models.basemodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wikibaseintegrator.wbi_enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">WikibaseDatatype</span><span class="p">,</span> <span class="n">WikibaseSnakType</span>
+
+<span class="c1"># The field of the values holding the IRI of an entity of the instance, by value type. A bare entity ID given to a data type</span>
+<span class="c1"># without wikibase_url (e.g. Quantity(unit='Q11573')) is kept as it is, and completed with the Wikibase URL when the value is</span>
+<span class="c1"># serialized: the one of the WikibaseIntegrator instance of the entity serializing itself, else wbi_config's (#1193). The</span>
+<span class="c1"># calendar models and the globes are entities of Wikidata on every instance: Time and GlobeCoordinate complete them at once.</span>
+<span class="n">_ENTITY_IRI_FIELDS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'quantity'</span><span class="p">:</span> <span class="s1">'unit'</span><span class="p">}</span>
+
+<span class="c1"># The Wikibase URL of the entity being serialized, see _serializing_for()</span>
+<span class="n">_serialization_wikibase_url</span><span class="p">:</span> <span class="n">ContextVar</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">ContextVar</span><span class="p">(</span><span class="s1">'wikibaseintegrator_serialization_wikibase_url'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_serializing_for</span><span class="p">(</span><span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Complete the bare entity IDs of the values serialized in this block with this Wikibase URL."""</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">_serialization_wikibase_url</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">wikibase_url</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_serialization_wikibase_url</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_bare_entity_id</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># The same test as the data types used to apply when they were built</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'Q'</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_datavalue</span><span class="p">(</span><span class="n">datavalue</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">wikibase_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The datavalue with its bare entity ID completed (see _ENTITY_IRI_FIELDS), or the datavalue itself if it has none.</span>
+
+<span class="sd">    :param wikibase_url: The Wikibase URL. Default: the one of the entity being serialized, else wbi_config['WIKIBASE_URL']</span>
+<span class="sd">    """</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">_ENTITY_IRI_FIELDS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">datavalue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">datavalue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'value'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">field</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_is_bare_entity_id</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">datavalue</span>
+    <span class="n">wikibase_url</span> <span class="o">=</span> <span class="n">wikibase_url</span> <span class="ow">or</span> <span class="n">_serialization_wikibase_url</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">'WIKIBASE_URL'</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">datavalue</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="p">{</span><span class="o">**</span><span class="n">value</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">wikibase_url</span><span class="si">}</span><span class="s1">/entity/</span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span><span class="p">}}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_entity_iri</span><span class="p">(</span><span class="n">first</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">second</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># A bare entity ID matches the IRI of this entity on any instance: the instance isn't known when the values are compared</span>
+    <span class="k">if</span> <span class="n">first</span> <span class="o">==</span> <span class="n">second</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">_is_bare_entity_id</span><span class="p">(</span><span class="n">first</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">second</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">second</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s1">'/entity/</span><span class="si">{</span><span class="n">first</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_is_bare_entity_id</span><span class="p">(</span><span class="n">second</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">first</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s1">'/entity/</span><span class="si">{</span><span class="n">second</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_datavalue</span><span class="p">(</span><span class="n">first</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">second</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Compare two datavalues, a bare entity ID being the same as the IRI of this entity (see _ENTITY_IRI_FIELDS)."""</span>
+    <span class="k">if</span> <span class="n">first</span> <span class="o">==</span> <span class="n">second</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">_ENTITY_IRI_FIELDS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
+    <span class="n">first_value</span><span class="p">,</span> <span class="n">second_value</span> <span class="o">=</span> <span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'value'</span><span class="p">),</span> <span class="n">second</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'value'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">field</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span> <span class="o">!=</span> <span class="n">second</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first_value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">second_value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="p">{</span><span class="o">**</span><span class="n">first</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span> <span class="o">!=</span> <span class="p">{</span><span class="o">**</span><span class="n">second</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="kc">None</span><span class="p">}:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">first_value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">field</span><span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">second_value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">field</span><span class="p">}</span>
+            <span class="ow">and</span> <span class="n">_same_entity_iri</span><span class="p">(</span><span class="n">first_value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">),</span> <span class="n">second_value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_copy_json</span><span class="p">(</span><span class="n">snak</span><span class="p">:</span> <span class="n">Snak</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The JSON of a snak with its bare entity IDs kept as they are, to copy it, e.g. a claim added as a qualifier."""</span>
+    <span class="n">json_data</span> <span class="o">=</span> <span class="n">snak</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">'datavalue'</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">:</span>
+        <span class="n">json_data</span><span class="p">[</span><span class="s1">'datavalue'</span><span class="p">]</span> <span class="o">=</span> <span class="n">snak</span><span class="o">.</span><span class="n">datavalue</span>
+    <span class="k">return</span> <span class="n">json_data</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_require_property_number</span><span class="p">(</span><span class="n">snak</span><span class="p">:</span> <span class="n">Snak</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -536,11 +611,16 @@
 <div class="viewcode-block" id="Snak.get_json">
 <a class="viewcode-back" href="../../../api/generated/wikibaseintegrator.models.snak.Snak.html#wikibaseintegrator.models.snak.Snak.get_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The JSON of the snak. A bare entity ID of its value, like the unit of a Quantity(unit='Q11573'), is completed with</span>
+<span class="sd">        the Wikibase URL: the WIKIBASE_URL of the WikibaseIntegrator instance of the entity serializing itself, else</span>
+<span class="sd">        wbi_config['WIKIBASE_URL'].</span>
+<span class="sd">        """</span>
         <span class="n">json_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">'snaktype'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaktype</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
             <span class="s1">'property'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_number</span><span class="p">,</span>
             <span class="s1">'datatype'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatype</span><span class="p">,</span>
-            <span class="s1">'datavalue'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">datavalue</span>
+            <span class="s1">'datavalue'</span><span class="p">:</span> <span class="n">_resolve_datavalue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datavalue</span><span class="p">)</span>
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaktype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">NO_VALUE</span><span class="p">,</span> <span class="n">WikibaseSnakType</span><span class="o">.</span><span class="n">UNKNOWN_VALUE</span><span class="p">]:</span>
@@ -563,7 +643,7 @@
         <span class="c1"># The datatype is only compared when both snaks have one: the property determines it, and Commons serves the snaks of the</span>
         <span class="c1"># MediaInfo statements without a datatype, while the snaks built with WikibaseIntegrator carry one</span>
         <span class="n">same_datatype</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatype</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">datatype</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatype</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">datatype</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">snaktype</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_number</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">property_number</span> <span class="ow">and</span> <span class="n">same_datatype</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">datavalue</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">datavalue</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">snaktype</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">snaktype</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_number</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">property_number</span> <span class="ow">and</span> <span class="n">same_datatype</span> <span class="ow">and</span> <span class="n">_same_datavalue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datavalue</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">datavalue</span><span class="p">)</span></div>
 
 </pre></div>
 
