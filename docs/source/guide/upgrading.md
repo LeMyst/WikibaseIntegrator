@@ -9,6 +9,10 @@ v0.15 is the last release before 1.0, which freezes the public API under semanti
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a `DeprecationWarning` and removed in 1.0.
 
+- **Python 3.11.5 or newer is required**, instead of Python 3.11: the `Requires-Python` metadata of the package is
+  `>=3.11.5`. The locked dependencies need it since soupsieve 4, the fix of
+  [GHSA-mmhr-3c5m-f64f](https://github.com/advisories/GHSA-mmhr-3c5m-f64f). On Python 3.11.0 to 3.11.4, pip keeps
+  installing v0.14.3: update Python to the last 3.11 release to install v0.15.
 - **`Qualifiers.set()` replaces the qualifiers** given as a list or a `Qualifiers` object, like it already did with
   a dict or `None`. It used to add them to the existing qualifiers: call `add()` for each qualifier to keep that.
 - **The `references` of a claim reject the items they can't use**: an item of the list that is neither a `Claim`, a
