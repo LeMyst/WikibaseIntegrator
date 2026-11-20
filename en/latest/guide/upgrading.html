@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=e3e50566"></script>
+    <script src="../_static/documentation_options.js?v=ef97403f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'guide/upgrading';</script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.15.0.dev0" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -481,6 +481,10 @@ says what can change in which release.</p>
 changes of the API and of the behavior that have to happen before the freeze. Where a transition is possible, the
 old behavior is kept in v0.15 with a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> and removed in 1.0.</p>
 <ul>
+<li><p><strong>Python 3.11.5 or newer is required</strong>, instead of Python 3.11: the <code class="docutils literal notranslate"><span class="pre">Requires-Python</span></code> metadata of the package is
+<code class="docutils literal notranslate"><span class="pre">&gt;=3.11.5</span></code>. The locked dependencies need it since soupsieve 4, the fix of
+<a class="reference external" href="https://github.com/advisories/GHSA-mmhr-3c5m-f64f">GHSA-mmhr-3c5m-f64f</a>. On Python 3.11.0 to 3.11.4, pip keeps
+installing v0.14.3: update Python to the last 3.11 release to install v0.15.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Qualifiers.set()</span></code> replaces the qualifiers</strong> given as a list or a <code class="docutils literal notranslate"><span class="pre">Qualifiers</span></code> object, like it already did with
 a dict or <code class="docutils literal notranslate"><span class="pre">None</span></code>. It used to add them to the existing qualifiers: call <code class="docutils literal notranslate"><span class="pre">add()</span></code> for each qualifier to keep that.</p></li>
 <li><p><strong>The <code class="docutils literal notranslate"><span class="pre">references</span></code> of a claim reject the items they can’t use</strong>: an item of the list that is neither a <code class="docutils literal notranslate"><span class="pre">Claim</span></code>, a
