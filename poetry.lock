@@ -3345,14 +3345,14 @@ typing-extensions = {version = ">=4.16", markers = "python_version < \"3.15\""}
 
 [[package]]
 name = "sphinx-github-changelog"
-version = "2.3.0"
+version = "2.3.1"
 description = "Build a sphinx changelog from GitHub Releases"
 optional = false
 python-versions = ">=3.11"
 groups = ["docs"]
 files = [
-    {file = "sphinx_github_changelog-2.3.0-py3-none-any.whl", hash = "sha256:6f4d2ffe2dd4dc0c8980b1bc3fbfced5454c9224d15a4b367ebee6c14e5edd5f"},
-    {file = "sphinx_github_changelog-2.3.0.tar.gz", hash = "sha256:704a6dfca5426b70b0bbcfb426937cb900935a69c0343690af8602bd50d100f8"},
+    {file = "sphinx_github_changelog-2.3.1-py3-none-any.whl", hash = "sha256:b255680fe981bf2b4d6b507a75e953c08696de6fadbe6eaa7fdb1edc32c1fe31"},
+    {file = "sphinx_github_changelog-2.3.1.tar.gz", hash = "sha256:525b228370bc9aae702359db7a4954c74792009098ee26d4349a57e614df5436"},
 ]
 
 [package.dependencies]
