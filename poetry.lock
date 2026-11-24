@@ -3194,14 +3194,14 @@ files = [
 
 [[package]]
 name = "soupsieve"
-version = "4.1.2"
+version = "4.1.3"
 description = "A modern CSS selector implementation for Beautiful Soup."
 optional = false
 python-versions = ">=3.11.5"
 groups = ["docs", "notebooks"]
 files = [
-    {file = "soupsieve-4.1.2-py3-none-any.whl", hash = "sha256:96b4115212a3abee1f572d62da706cca090b088cb5effa278db5702122e63a2c"},
-    {file = "soupsieve-4.1.2.tar.gz", hash = "sha256:c6539a2638f26991463527337e39d630e3cbb86d024f52282a510535b8a7e09f"},
+    {file = "soupsieve-4.1.3-py3-none-any.whl", hash = "sha256:7a390d1a57d1ab7bb228531e9b8a750a5ebf87db774e0ef6faeeac057d22a5bf"},
+    {file = "soupsieve-4.1.3.tar.gz", hash = "sha256:13f70186c8f40bf8d0ff7bbab09a18fb149600b465269207b5e5b588f55fda08"},
 ]
 
 [[package]]
@@ -3913,4 +3913,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.5,<4.0.0"
-content-hash = "83a869e161ceb143e60d9b5c0ab9e9001baa310d21ea4046725a6a80ba8f7174"
+content-hash = "2c6be2f98cec175284aa8fe36fed228f6e7f74803954a44fce4cdfa917ff5826"
